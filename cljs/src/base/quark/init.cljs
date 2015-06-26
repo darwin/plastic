@@ -1,7 +1,6 @@
 (ns quark.init
   (:require [quark.dev.devtools]
             [quark.dev.figwheel]
-            [cljsjs.react]
             [quark.frame.core]
             [quark.main]))
 
