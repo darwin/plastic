@@ -4,14 +4,15 @@
   "version": "0.0.1",
   "description": "An experimental ClojureScript editor implemented as Atom package.",
   "keywords": ["ClojureScript"],
-  "activationCommands": {
-    "atom-workspace": "quark:toggle"
-  },
   "repository": "https://github.com/darwin/quark",
   "license": "MIT",
   "engines": {
     "atom": ">=1.0.0 <2.0.0"
   },
   "dependencies": {
+    "async": "~0.2.9",
+    "space-pen": "~5.1.1",
+    "emissary": "1.x",
+    "underscore-plus": "^1.0.6"
   }
 }

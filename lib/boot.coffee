@@ -5,7 +5,7 @@ oldNodeGlobalRequire = goog.nodeGlobalRequire
 
 goog.nodeGlobalRequire = (path) ->
   return oldNodeGlobalRequire(path) unless path == "../lib/_build/react.inc.js"
-  console.warn "cljs-patch: prevented loading ", path
+  console.log "cljs-patch: prevented loading ", path
 
 require("./_build/react.inc.js")
 # ---------------- END OF THE HACK
