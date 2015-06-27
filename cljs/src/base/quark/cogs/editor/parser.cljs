@@ -1,4 +1,4 @@
-(ns quark.cogs.editors.parser
+(ns quark.cogs.editor.parser
   (:require [quark.frame.core :refer [subscribe register-handler]]
             [quark.schema.paths :as paths]
             [rewrite-clj.parser :as parser])

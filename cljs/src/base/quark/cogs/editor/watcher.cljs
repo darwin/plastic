@@ -1,4 +1,4 @@
-(ns quark.cogs.editors.watcher
+(ns quark.cogs.editor.watcher
   (:require [quark.frame.core :refer [subscribe]]
             [clojure.data :as data])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
@@ -10,5 +10,5 @@
 
 (react!
   (when-let [editors @editors-substription]
-    (log "editors changed:" (data/diff prev editors))
+    (log "editor changed:" (data/diff prev editors) editors)
     (set! prev editors)))

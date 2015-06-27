@@ -1,4 +1,4 @@
-(ns quark.cogs.editors.loader
+(ns quark.cogs.editor.loader
   (:require [quark.frame.core :refer [subscribe register-handler]]
             [quark.schema.paths :as paths]
             [quark.onion.core :as onion])

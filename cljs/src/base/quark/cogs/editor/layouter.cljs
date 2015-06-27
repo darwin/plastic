@@ -1,4 +1,4 @@
-(ns quark.cogs.editors.layouter
+(ns quark.cogs.editor.layouter
   (:require [quark.frame.core :refer [subscribe register-handler]]
             [quark.schema.paths :as paths]
             [rewrite-clj.zip :as zip]

@@ -2,7 +2,7 @@
   (:require [quark.frame.router :refer [router-loop]]
             [quark.onion.core]
             [quark.cogs.boot.core]
-            [quark.cogs.editors.core]
+            [quark.cogs.editor.core]
             [quark.db :refer [app-db]])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
