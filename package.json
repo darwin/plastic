@@ -13,6 +13,7 @@
     "async": "~0.2.9",
     "space-pen": "~5.1.1",
     "emissary": "1.x",
+    "pathwatcher": "^4.4.1",
     "underscore-plus": "^1.0.6"
   }
 }

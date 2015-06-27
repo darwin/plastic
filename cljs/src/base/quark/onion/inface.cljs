@@ -1,5 +1,6 @@
-(ns quark.onion.atom
-  (:require [quark.cogs.renderer.core :refer [mount-editor]])
+(ns quark.onion.inface
+  (:require [quark.cogs.renderer.core :refer [mount-editor]]
+            [quark.onion.api :as api])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [dispatch react!]]))
 
@@ -17,6 +18,9 @@
 
 (defmethod process :default [command]
   (error (str "Invalid onion message '" command "'")))
+
+(defmethod process :apis [_ apis]
+  (api/register-apis! apis))
 
 (defmethod process :init [_ state]
   (dispatch :init (js->clj state :keywordize-keys true)))
@@ -38,8 +42,3 @@
 
 (defn ^:export send [& args]
   (apply process args))
-
-; for figwheel
-(defn ^:export remount-editors []
-  (doseq [[editor-id atom-view] @ids->views]
-    (mount-editor (.-element atom-view) editor-id)))

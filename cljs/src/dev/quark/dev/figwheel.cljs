@@ -56,7 +56,7 @@
                          :content        res}))))))
 
 (defn on-js-load []
-  (.remount-editors js/quark.onion.atom))
+  (.remount-editors js/quark.onion.remounter))
 
 (figwheel/start
   {:on-jsload     on-js-load

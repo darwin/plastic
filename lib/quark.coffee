@@ -1,9 +1,10 @@
-require("./boot")
+require './boot'
 
 path = require 'path'
 QuarkEditorView = require './quark-editor-view'
 {CompositeDisposable} = require 'atom'
 bridge = require './bridge'
+apis = require './apis'
 
 quarkEditorOpener = (uri) ->
   if path.extname(uri) is '.cljs'
@@ -14,6 +15,7 @@ module.exports = Quark =
   subscriptions: null
 
   activate: (state) ->
+    bridge.send "apis", apis
     bridge.send "init", state # TODO: unserialize our part and pass rest
 
     atom.workspace.addOpener quarkEditorOpener

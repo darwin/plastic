@@ -1,3 +1,3 @@
 module.exports =
   send: (args...) ->
-    quark.onion.atom.send(args...)
+    quark.onion.inface.send(args...)
