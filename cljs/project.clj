@@ -5,6 +5,7 @@
   :dependencies [[org.clojure/clojure "1.7.0-beta3"]
                  [org.clojure/clojurescript "0.0-3308"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
+                 [rewrite-cljs "0.2.0"]
                  [binaryage/devtools "0.1.2"]               ; Electron 0.28.2 has old Blink, we have to stick with this old version of devtools for now
                  [figwheel "0.3.3"]
                  [reagent "0.5.0" :exclusions [cljsjs/react]]
