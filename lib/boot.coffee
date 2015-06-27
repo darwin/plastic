@@ -1,4 +1,11 @@
 require("./_build/goog/bootstrap/nodejs.js")
+
+prevImportScript = goog.global.CLOSURE_IMPORT_SCRIPT
+
+goog.global.CLOSURE_IMPORT_SCRIPT = (src) ->
+  # console.log "loading deps:", src
+  prevImportScript(src)
+
 # ---------------- START OF THE HACK
 # hack our way to include react without patching reagent
 oldNodeGlobalRequire = goog.nodeGlobalRequire
@@ -13,3 +20,4 @@ global.React = require("./_build/react.inc.js")
 require("./_build/cljs_deps.js")
 
 goog.require("quark.init")
+goog.require("quark.main")

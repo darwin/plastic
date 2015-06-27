@@ -5,8 +5,6 @@
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [react!]]))
 
-(register-sub :editors (get-in-query-factory paths/editors))
-
 (def editors-substription (subscribe [:editors]))
 
 (react!

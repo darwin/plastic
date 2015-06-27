@@ -1,9 +1,8 @@
 (ns quark.dev.figwheel
-  (:require [figwheel.client :as figwheel]
+  (:require [clojure.string :as string]
+            [figwheel.client :as figwheel]
             [figwheel.client.socket :as socket]
-            [clojure.string :as string]
-            [figwheel.client.utils :as utils]
-            [quark.onion.atom :as atom])
+            [figwheel.client.utils :as utils])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.common :refer [defonce]]))
 
@@ -57,7 +56,7 @@
                          :content        res}))))))
 
 (defn on-js-load []
-  (atom/remount-editors))
+  (.remount-editors js/quark.onion.atom))
 
 (figwheel/start
   {:on-jsload     on-js-load

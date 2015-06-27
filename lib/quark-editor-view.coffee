@@ -21,9 +21,9 @@ class QuarkEditorView extends View
     bridge.send "unregister-editor", @
 
   serialize: ->
-    deserializer: 'QuarkView'
-    version: 2
-    uri: @uri
+    # deserializer: 'QuarkView'
+    # version: 2
+    # uri: @uri
 
   getTitle: ->
     if sessionPath = @uri

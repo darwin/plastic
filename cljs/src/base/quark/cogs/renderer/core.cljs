@@ -6,9 +6,6 @@
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [reagent.ratom :refer [reaction]]))
 
-(register-sub :editor-render-state (fn [db [_query-id editor-id]]
-                                     (reaction (get-in @db (concat paths/editors [editor-id :render-state])))))
-
 (defn editor-root-component [editor-id]
   (let [state (subscribe [:editor-render-state editor-id])]
     (fn []

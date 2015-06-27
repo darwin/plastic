@@ -14,22 +14,18 @@ module.exports = Quark =
   subscriptions: null
 
   activate: (state) ->
-    bridge.send "init"
+    bridge.send "init", state # TODO: unserialize our part and pass rest
 
     atom.workspace.addOpener quarkEditorOpener
 
     @subscriptions = new CompositeDisposable
 
     @subscriptions.add atom.commands.add 'atom-workspace', 'quark:toggle': => @toggle()
-    @subscriptions.add atom.commands.add 'atom-workspace', 'quark:wake': => @wake()
 
   deactivate: ->
     @subscriptions.dispose()
 
   serialize: ->
-
-  wake: ->
-    console.info "Quark is here"
 
   toggle: ->
     console.log 'Quark!'

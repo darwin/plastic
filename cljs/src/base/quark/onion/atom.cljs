@@ -11,11 +11,6 @@
 (defn unregister-view [editor-id]
   (swap! ids->views dissoc editor-id))
 
-; for figwheel
-(defn remount-editors []
-  (doseq [[editor-id atom-view] @ids->views]
-    (mount-editor (.-element atom-view) editor-id)))
-
 ; -------------------------------------------------------------------------------------------
 
 (defmulti process (fn [command & _] (keyword command)))
@@ -23,8 +18,8 @@
 (defmethod process :default [command]
   (error (str "Invalid onion message '" command "'")))
 
-(defmethod process :init [_]
-  (log "init"))
+(defmethod process :init [_ state]
+  (dispatch :init (js->clj state :keywordize-keys true)))
 
 (defmethod process :register-editor [_ atom-view]
   (let [editor-id (.-id atom-view)
@@ -43,3 +38,8 @@
 
 (defn ^:export send [& args]
   (apply process args))
+
+; for figwheel
+(defn ^:export remount-editors []
+  (doseq [[editor-id atom-view] @ids->views]
+    (mount-editor (.-element atom-view) editor-id)))
