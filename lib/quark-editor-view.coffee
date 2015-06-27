@@ -9,8 +9,7 @@ lastId = 0
 module.exports =
 class QuarkEditorView extends View
   @content: ->
-    @div class: 'quark-editor-view', tabindex: -1, =>
-      @text "hello!"
+    @div class: 'quark-editor-view', tabindex: -1
 
   initialize: ({@uri}={}) ->
     lastId += 1

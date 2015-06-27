@@ -1,0 +1,10 @@
+.quark-editor-view {
+  font-size: 14pt;
+}
+
+.quark-editor-view .fancy {
+  margin: 40px;
+  display: inline-block;
+  background-color: blue;
+  color: white;
+}

@@ -1,4 +1,5 @@
 (ns quark.onion.atom
+  (:require [quark.cogs.renderer.core :refer [mount-editor]])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [dispatch react!]]))
 
@@ -9,6 +10,11 @@
 
 (defn unregister-view [editor-id]
   (swap! ids->views dissoc editor-id))
+
+; for figwheel
+(defn remount-editors []
+  (doseq [[editor-id atom-view] @ids->views]
+    (mount-editor (.-element atom-view) editor-id)))
 
 ; -------------------------------------------------------------------------------------------
 
@@ -25,7 +31,8 @@
         editor-def {:id  editor-id
                     :uri (.-uri atom-view)}]
     (register-view editor-id atom-view)
-    (dispatch :add-editor editor-id editor-def)))
+    (dispatch :add-editor editor-id editor-def)
+    (mount-editor (.-element atom-view) editor-id)))
 
 (defmethod process :unregister-editor [_ atom-view]
   (let [editor-id (.-id atom-view)]
@@ -36,4 +43,3 @@
 
 (defn ^:export send [& args]
   (apply process args))
-

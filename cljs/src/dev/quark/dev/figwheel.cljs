@@ -2,7 +2,8 @@
   (:require [figwheel.client :as figwheel]
             [figwheel.client.socket :as socket]
             [clojure.string :as string]
-            [figwheel.client.utils :as utils])
+            [figwheel.client.utils :as utils]
+            [quark.onion.atom :as atom])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.common :refer [defonce]]))
 
@@ -55,8 +56,11 @@
                          :callback-name  (:callback-name msg)
                          :content        res}))))))
 
+(defn on-js-load []
+  (atom/remount-editors))
+
 (figwheel/start
-  {:on-jsload     (fn [] ())
+  {:on-jsload     on-js-load
    :eval-fn       eval
    :websocket-url "ws://localhost:7000/figwheel-ws"
    :merge-plugins {:repl-plugin repl-plugin}})

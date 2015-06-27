@@ -19,6 +19,7 @@
 
   :figwheel {:server-port    7000
              :nrepl-port     7777
+             :css-dirs ["../styles"]
              :server-logfile ".tmp/figwheel_server.log"}
 
   :cljsbuild {:builds [{:id           "dev"

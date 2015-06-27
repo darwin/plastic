@@ -6,6 +6,8 @@
 (defn add-editor [editors [id editor-def]]
   (let [editors (if (map? editors) editors {})
         record {:desc "editor"
+                :render-state {:some "render state"
+                               :example-def editor-def}
                 :editor-def editor-def}]
     (assoc editors id record)))
 
