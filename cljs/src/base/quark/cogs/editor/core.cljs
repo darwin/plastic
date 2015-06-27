@@ -1,5 +1,5 @@
 (ns quark.cogs.editor.core
-  (:require [quark.cogs.editor.handlers]
+  (:require [quark.cogs.editor.lifecycle]
             [quark.cogs.editor.watcher]
             [quark.cogs.editor.loader]
             [quark.cogs.editor.parser]
