@@ -1,7 +1,5 @@
-(ns quark.cogs.editors.subs
-  (:require [quark.frame.core :refer [register-sub subscribe]]
-            [quark.schema.paths :as paths]
-            [quark.util.subs :refer [get-in-query-factory]])
+(ns quark.cogs.editors.watcher
+  (:require [quark.frame.core :refer [subscribe]])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [react!]]))
 

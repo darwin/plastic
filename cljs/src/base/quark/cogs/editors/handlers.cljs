@@ -1,14 +1,24 @@
 (ns quark.cogs.editors.handlers
-  (:require [quark.frame.core :refer [register-handler]]
+  (:require [quark.frame.core :refer [subscribe register-handler]]
             [quark.schema.paths :as paths])
-  (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
+  (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
+                   [quark.macros.glue :refer [dispatch react!]]))
+
+(defn wire-editor [editor-id]
+  (let [uri-subscription (subscribe [:editor-uri editor-id])]
+    (react!
+      (when-let [uri @uri-subscription]
+        (log "editor" editor-id "changed uri:" uri)
+        (dispatch :editor-fetch-text editor-id uri)))))
 
 (defn add-editor [editors [id editor-def]]
   (let [editors (if (map? editors) editors {})
-        record {:desc "editor"
+        record {:parsed nil
+                :text nil
                 :render-state {:some "render state"
-                               :example-def editor-def}
-                :editor-def editor-def}]
+                               :example editor-def}
+                :def editor-def}]
+    (wire-editor id)
     (assoc editors id record)))
 
 (defn remove-editor [editors [editor-id]]

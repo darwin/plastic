@@ -6,7 +6,11 @@
                    [quark.macros.glue :refer [react!]]
                    [reagent.ratom :refer [reaction]]))
 
+(defn editor-selector [path]
+  (fn [editor-id]
+    (concat paths/editors [editor-id] path)))
+
 (register-sub :editors (subs/path-query-factory paths/editors))
 
-(register-sub :editor-render-state (subs/path-query-factory (fn [editor-id]
-                                                              (concat paths/editors [editor-id :render-state]))))
+(register-sub :editor-render-state (subs/path-query-factory (editor-selector [:render-state])))
+(register-sub :editor-uri (subs/path-query-factory (editor-selector [:def :uri])))
