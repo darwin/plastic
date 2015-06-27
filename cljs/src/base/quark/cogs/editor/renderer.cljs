@@ -1,4 +1,4 @@
-(ns quark.cogs.renderer.core
+(ns quark.cogs.editor.renderer
   (:require [reagent.core :as reagent]
             [quark.frame.core :refer [register-sub subscribe]]
             [quark.frame.middleware :refer [path]])

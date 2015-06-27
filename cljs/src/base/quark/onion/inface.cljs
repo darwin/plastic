@@ -1,5 +1,5 @@
 (ns quark.onion.inface
-  (:require [quark.cogs.renderer.core :refer [mount-editor]]
+  (:require [quark.cogs.editor.renderer :refer [mount-editor]]
             [quark.onion.api :as api])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [dispatch react!]]))
