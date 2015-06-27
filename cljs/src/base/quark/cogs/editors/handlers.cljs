@@ -1,4 +1,4 @@
-(ns quark.core.editors.handlers
+(ns quark.cogs.editors.handlers
   (:require [quark.frame.core :refer [register-handler]]
             [quark.schema.paths :as paths])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))

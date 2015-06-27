@@ -1,4 +1,4 @@
-(ns quark.core.editors.subs
+(ns quark.cogs.editors.subs
   (:require [quark.frame.core :refer [register-sub subscribe]]
             [quark.schema.paths :as paths]
             [quark.util.subs :refer [get-in-query-factory]])
