@@ -3,6 +3,8 @@
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [reagent.ratom :refer [reaction]]))
 
-(defn get-in-query-factory [path]
-  (fn [db [_query-id]]
-    (reaction (get-in @db path))))
+(defn path-query-factory [path-or-fn]
+  (fn [db [_query-id & args]]
+    (reaction (get-in @db (if (fn? path-or-fn)
+                            (apply path-or-fn args)
+                            path-or-fn)))))
