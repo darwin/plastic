@@ -6,7 +6,7 @@
                    [quark.macros.glue :refer [react! dispatch]]))
 
 (defn parse-source [editors [editor-id text]]
-  (let [parsed (parser/parse-string text)]
+  (let [parsed (parser/parse-string-all text)]
     (dispatch :editor-set-parsed editor-id parsed))
   editors)
 

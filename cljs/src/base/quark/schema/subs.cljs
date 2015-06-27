@@ -15,3 +15,4 @@
 (register-sub :editor-render-state (subs/path-query-factory (editor-selector [:render-state])))
 (register-sub :editor-uri (subs/path-query-factory (editor-selector [:def :uri])))
 (register-sub :editor-text (subs/path-query-factory (editor-selector [:text])))
+(register-sub :editor-parsed (subs/path-query-factory (editor-selector [:parsed])))

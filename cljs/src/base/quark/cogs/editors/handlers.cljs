@@ -16,9 +16,16 @@
       (when-let [text @text-subscription]
         (dispatch :editor-parse-source editor-id text)))))
 
+(defn watch-to-layout [editor-id]
+  (let [parsed-subscription (subscribe [:editor-parsed editor-id])]
+    (react!
+      (when-let [parsed @parsed-subscription]
+        (dispatch :editor-layout editor-id parsed)))))
+
 (defn wire-editor [editor-id]
   (watch-to-fetch-text editor-id)
-  (watch-to-parse-source editor-id))
+  (watch-to-parse-source editor-id)
+  (watch-to-layout editor-id))
 
 (defn add-editor [editors [id editor-def]]
   (let [editors (if (map? editors) editors {})

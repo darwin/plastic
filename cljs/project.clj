@@ -23,7 +23,7 @@
              :server-logfile ".tmp/figwheel_server.log"}
 
   :cljsbuild {:builds [{:id           "dev"
-                        :source-paths ["src/base" "checkouts/reagent/src" "checkouts/figwheel/src"]
+                        :source-paths ["src/base" "checkouts/reagent/src" "checkouts/figwheel/src" "checkouts/rewrite-cljs/src"]
                         :compiler     {:main           quark.init
                                        :output-to      "../lib/_build/quark.js"
                                        :output-dir     "../lib/_build"
