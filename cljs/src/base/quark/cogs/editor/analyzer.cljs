@@ -14,15 +14,20 @@
             [cljs.env :as env]
             [cljs.reader :as edn]
             [cljs.tools.reader :as reader]
+            [goog.object :as gobject]
+            [goog.string :as gstring]
             [clojure.string :as string])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [react! dispatch]]
                    [cljs.env.macros :refer [ensure with-compiler-env]]
                    [cljs.analyzer.macros :refer [no-warn]]))
 
-(def fs (js/require "fs"))
-(def path (js/require "path"))
+(defonce fs (js/require "fs"))
+(defonce path (js/require "path"))
+(defonce vm (js/require "vm"))
 
+(defn debugger []
+  (.runInThisContext vm "debugger"))
 
 (defn resolve-symlink [link-path]
   (.realpathSync fs link-path))
@@ -32,7 +37,65 @@
 (defn ^:private custom-warning-handler [warning-type env extra]
   (when (warning-type ana/*cljs-warnings*)
     (when-let [s (ana/error-message warning-type extra)]
-      (throw s))))
+      (warn s)
+;      (debugger)
+      )))
+
+(defn ana-error
+  ([env s] (ana-error env s nil))
+  ([env s cause]
+   (let [ex (ex-info (ana/message env s)
+              (assoc (ana/source-info env) :tag :cljs/analysis-error)
+              cause)]
+     (if cause (error (.-message cause) "\n" (.-stack cause)))
+     ;(debugger)
+     ex)))
+
+(set! ana/error ana-error)
+
+(defn my-find-ns-obj [ns]
+  ;(log "FIIIND" ns)
+  (letfn [(find-ns* [ctxt xs]
+            (cond
+              (nil? ctxt) nil
+              (nil? xs) ctxt
+              :else (recur (gobject/get ctxt (first xs)) (next xs))))]
+    (let [segs (-> ns str (.split "."))]
+      ;(when (gobject/get (. goog/dependencies_ -nameToPath) (str ns))
+      (condp identical? *target*
+        "nodejs" (find-ns* js/global segs)
+        "default" (find-ns* js/window segs)
+        (throw (js/Error. (str "find-ns-obj not supported for target " *target*))))))) ;)
+
+(set! find-ns-obj my-find-ns-obj)
+
+(defn my-find-macros-ns [ns]
+  (let [ns (cond-> ns
+             (not (gstring/contains (str ns) "$macros"))
+             (-> (str "$macros") symbol))]
+    (when-let [ns-obj (find-ns-obj ns)]
+      (create-ns ns ns-obj))))
+
+;(set! find-macros-ns my-find-macros-ns)
+
+(defn my-core-name?
+  "Is sym visible from core in the current compilation namespace?"
+  [env sym]
+  (let [res (and (or
+                   (get-in @env/*compiler* [::ana/namespaces 'cljs.core :defs sym])
+                   (get-in @env/*compiler* [::ana/namespaces 'cljs.core$macros :defs sym])
+                   (when-let [mac (ana/get-expander sym env)]
+                     (log "expander" mac)
+                     (let [ns (-> mac meta :ns)]
+                       (= (.getName ns) 'cljs.core$macros))))
+              (not (contains? (-> env :ns :excludes) sym)))]
+    (log "core?" sym env @env/*compiler* (get-in @env/*compiler* [::ana/namespaces 'cljs.core :defs sym]) "=>" res)
+    (if-not (get-in @env/*compiler* [::ana/namespaces 'cljs.core])
+      (js-debugger))
+    res))
+
+;(set! ana/core-name? my-core-name?)
+
 
 ; this is bleeding edge, see https://github.com/swannodette/cljs-bootstrap
 ; follow https://github.com/kanaka/cljs-bootstrap/blob/master/REPL.md
@@ -43,19 +106,22 @@
 (def compiler-env (env/default-compiler-env))
 
 (defn set-namespace-edn! [cenv ns-name ns-edn]
-  (swap! cenv assoc-in [::ana/namespaces ns-name] (edn/read-string ns-edn)))
+  (let [edn (edn/read-string ns-edn)]
+    (log "EDN:" ns-name edn)
+    (swap! cenv assoc-in [::ana/namespaces ns-name] edn)))
 
-; load cache files
-(try
+(defn bootstrap []
+  ; load cache files
+  (set! *target* "nodejs")
+  (apply load-file ["/Users/darwin/github/cljs-bootstrap/.cljs_bootstrap/cljs/core$macros.js"])
+  (let [core-edn (.readFileSync fs "/Users/darwin/github/cljs-bootstrap/resources/cljs/core.cljs.cache.aot.edn" "utf8")
+        macros-edn (.readFileSync fs "/Users/darwin/github/cljs-bootstrap/.cljs_bootstrap/cljs/core$macros.cljc.cache.edn" "utf8")]
+    (set-namespace-edn! compiler-env 'cljs.core core-edn)
+    (set-namespace-edn! compiler-env 'cljs.core$macros macros-edn))
+  true)
 
-  (def core-edn (.readFileSync fs "/Users/darwin/github/cljs-bootstrap/resources/cljs/core.cljs.cache.aot.edn" "utf8"))
-  (def macros-edn (.readFileSync fs "/Users/darwin/github/cljs-bootstrap/.cljs_bootstrap/cljs/core$macros.cljc.cache.edn" "utf8"))
-
-  (set-namespace-edn! compiler-env 'cljs.core core-edn)
-  (set-namespace-edn! compiler-env 'cljs.core$macros macros-edn)
-
-  (catch js/Error e
-    (.log js/console (.-message e) "\n" (.-stack e) e)))
+; this is important - do not even think to removing it
+(defonce bootstrap-result (bootstrap))
 
 (log "ANALYZER INIT DONE")
 
@@ -188,7 +254,7 @@
   ([source] (analyze-file source nil))
   ([source opts]
    (binding [ana/*file-defs* (atom #{})]
-     (ensure
+     ;(ensure
        (let [;ns-info (ana/parse-ns res)
              path (or (:atom-path opts) "unknown/file/path.clj?")
              opts (dissoc opts :atom-path)]
@@ -205,11 +271,16 @@
                (if forms
                  (let [form (first forms)
                        env (assoc env :ns (ana/get-namespace ana/*cljs-ns*))
-                       _ (log "analyze" form env opts)
+                       _ (log "analyze in" ana/*cljs-ns* form env opts "compiler:" @env/*compiler*)
                        ast (ana/analyze env form nil opts)
                        _ (log "  =>" ast)
                        results (conj results ast)]
                    (if (= (:op ast) :ns)
                      (recur results (:name ast) (next forms))
                      (recur results ns (next forms))))
-                 [ns results])))))))))
+                 [ns results]))))))));)
+
+
+(defn analyze-full [& args]
+  (with-compiler-env compiler-env
+    (apply analyze-file args)))

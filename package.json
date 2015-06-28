@@ -3,7 +3,9 @@
   "main": "./lib/quark",
   "version": "0.0.1",
   "description": "An experimental ClojureScript editor implemented as Atom package.",
-  "keywords": ["ClojureScript"],
+  "keywords": [
+    "ClojureScript"
+  ],
   "repository": "https://github.com/darwin/quark",
   "license": "MIT",
   "engines": {
@@ -11,9 +13,10 @@
   },
   "dependencies": {
     "async": "~0.2.9",
-    "space-pen": "~5.1.1",
     "emissary": "1.x",
     "pathwatcher": "^4.4.1",
+    "source-map-support": "^0.3.2",
+    "space-pen": "~5.1.1",
     "underscore-plus": "^1.0.6"
   }
 }
