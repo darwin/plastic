@@ -21,6 +21,11 @@
                    [cljs.analyzer.macros :refer [no-warn]]))
 
 (def fs (js/require "fs"))
+(def path (js/require "path"))
+
+
+(defn resolve-symlink [link-path]
+  (.realpathSync fs link-path))
 
 (enable-console-print!)
 
@@ -54,15 +59,23 @@
 
 (log "ANALYZER INIT DONE")
 
+(def ns-symlinks-dir "/Users/darwin/github/quark/cljs/deps/")
+
 (declare analyze-file)
 
-(defn locate-src
-  "Given a namespace return the corresponding ClojureScript (.cljs or .cljc)
-  resource on the classpath or file from the root of the build."
-  [ns]
-  (info "locate src" ns)
-  "")
-
+(defn locate-src [ns]
+  (let [link (str ns-symlinks-dir ns)]
+    (if (.existsSync fs link)
+      (if-let [path (resolve-symlink link)]
+        (do
+          (info "located src:" ns "->" path)
+          [(.readFileSync fs path "utf8") path])
+        (do
+          (warn "add unable to resolve" link)
+          ["" "/no/path/bad/symlink"]))
+      (do
+        (warn "add symlink" ns "to" ns-symlinks-dir)
+        ["" "/no/path/missing/symlink"]))))
 
 (defn analyze-deps
   ([lib deps env] (analyze-deps lib deps env nil))
@@ -76,8 +89,8 @@
                      (contains? (:js-dependency-index compiler) (name dep))
                      ;#?(:clj (deps/find-classpath-lib dep))
                      )
-           (if-let [src (locate-src dep)]
-             (analyze-file src opts)
+           (if-let [[src path] (locate-src dep)]
+             (analyze-file src (assoc opts :atom-path path))
              (throw
                (ana/error env
                  (ana/error-message :undeclared-ns {:ns-sym dep :js-provide (name dep)}))))))))))
@@ -142,7 +155,7 @@
 (defn ext
   "Given a file, url or string return the file extension."
   [x]
-    (last (string/split x #"\.")))
+  (last (string/split x #"\.")))
 
 (defn forms-seq*
   "Seq of Clojure/ClojureScript forms from rdr, a java.io.Reader. Optionally
@@ -182,17 +195,21 @@
          ;(when-not (get-in @env/*compiler* [::namespaces (:ns ns-info) :defs])
          (binding [ana/*cljs-ns* 'cljs.user
                    ana/*cljs-file* path
+                   ana/*cljs-warning-handlers* [custom-warning-handler]
                    reader/*alias-map* (or reader/*alias-map* {})]
            (let [env (assoc (ana/empty-env) :build-options opts)
                  forms-todo (seq (forms-seq* source))]
-             (loop [ns nil
+             (loop [results []
+                    ns nil
                     forms forms-todo]
                (if forms
                  (let [form (first forms)
                        env (assoc env :ns (ana/get-namespace ana/*cljs-ns*))
                        _ (log "analyze" form env opts)
-                       ast (ana/analyze env form nil opts)]
+                       ast (ana/analyze env form nil opts)
+                       _ (log "  =>" ast)
+                       results (conj results ast)]
                    (if (= (:op ast) :ns)
-                     (recur (:name ast) (next forms))
-                     (recur ns (next forms))))
-                 ns)))))))))
+                     (recur results (:name ast) (next forms))
+                     (recur results ns (next forms))))
+                 [ns results])))))))))

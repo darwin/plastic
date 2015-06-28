@@ -36,10 +36,7 @@
 
 (defn layout [editors [editor-id parsed]]
   (let [top-level-forms (extract-top-level-forms parsed)
-        asts (try
-               (analyze-file (get-in editors [editor-id :text]) {:atom-path (get-in editors [editor-id :def :uri])})
-               (catch js/Error e
-                 (str (.-message e) "\n" (.-stack e))))]
+        asts (analyze-file (get-in editors [editor-id :text]) {:atom-path (get-in editors [editor-id :def :uri])})]
     (log "AST>" asts)
     (dispatch :editor-set-layout editor-id top-level-forms))
   editors)
