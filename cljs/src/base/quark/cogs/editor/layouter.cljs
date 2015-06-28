@@ -28,18 +28,20 @@
     (do
       (let [val (zip/string pos)
             next (zip/right pos)]
-        (log ">" val)
         (recur (conj res val) next)))))
 
-(defn top-level-forms [parsed]
+(defn extract-top-level-forms [parsed]
   (let [top (edn parsed)]
     (walk-forms [] top)))
 
 (defn layout [editors [editor-id parsed]]
-  (let [forms (top-level-forms parsed)
-        asts (analyze-file forms (get-in editors [editor-id :def :uri]))]
+  (let [top-level-forms (extract-top-level-forms parsed)
+        asts (try
+               (analyze-file (get-in editors [editor-id :text]) {:atom-path (get-in editors [editor-id :def :uri])})
+               (catch js/Error e
+                 (str (.-message e) "\n" (.-stack e))))]
     (log "AST>" asts)
-    (dispatch :editor-set-layout editor-id forms))
+    (dispatch :editor-set-layout editor-id top-level-forms))
   editors)
 
 (defn set-layout [editors [editor-id layout]]
