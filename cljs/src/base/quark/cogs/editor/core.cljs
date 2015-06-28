@@ -3,5 +3,6 @@
             [quark.cogs.editor.watcher]
             [quark.cogs.editor.loader]
             [quark.cogs.editor.parser]
-            [quark.cogs.editor.layouter])
+            [quark.cogs.editor.layouter]
+            [quark.cogs.editor.analyzer])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))

@@ -6,9 +6,9 @@
 
 (defonce ^:dynamic prev nil)
 
-(def editors-substription (subscribe [:editors]))
+(def editors-subscription (subscribe [:editors]))
 
 (react!
-  (when-let [editors @editors-substription]
+  (when-let [editors @editors-subscription]
     (log "editor changed:" (data/diff prev editors) editors)
     (set! prev editors)))

@@ -4,6 +4,7 @@
             [rewrite-clj.zip :as zip]
             [rewrite-clj.node :as node]
             [rewrite-clj.zip.whitespace :as ws]
+            [quark.cogs.editor.analyzer :refer [analyze-file]]
             [clojure.zip :as z])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [react! dispatch]]))
@@ -35,7 +36,10 @@
     (walk-forms [] top)))
 
 (defn layout [editors [editor-id parsed]]
-  (dispatch :editor-set-layout editor-id (top-level-forms parsed))
+  (let [forms (top-level-forms parsed)
+        asts (analyze-file forms (get-in editors [editor-id :def :uri]))]
+    (log "AST>" asts)
+    (dispatch :editor-set-layout editor-id forms))
   editors)
 
 (defn set-layout [editors [editor-id layout]]
