@@ -24,9 +24,9 @@
 
 (defonce fs (js/require "fs"))
 (defonce path (js/require "path"))
-#_(defonce vm (js/require "vm"))
+(defonce vm (js/require "vm"))
 
-#_(defn debugger []
+(defn debugger []
   (.runInThisContext vm "debugger"))
 
 (defn resolve-symlink [link-path]
@@ -38,7 +38,7 @@
   (when (warning-type ana/*cljs-warnings*)
     (when-let [s (ana/error-message warning-type extra)]
       (warn s)
-      ;(js-debugger)
+      ;(debugger)
       )))
 
 (defn ana-error
@@ -48,13 +48,12 @@
               (assoc (ana/source-info env) :tag :cljs/analysis-error)
               cause)]
      (if cause (error (.-message cause) "\n" (.-stack cause)))
-     ;(js-debugger)
+     ;(debugger)
      ex)))
 
 (set! ana/error ana-error)
 
 (defn my-find-ns-obj [ns]
-  ;(log "FIIIND" ns)
   (letfn [(find-ns* [ctxt xs]
             (cond
               (nil? ctxt) nil
@@ -218,14 +217,14 @@
         (ana/check-uses uses env))
       (set! ana/*cljs-ns* name)
       (let [ns-info
-            {:name name
-             :doc (or docstring mdocstr)
-             :excludes excludes
-             :use-macros use-macros
+            {:name           name
+             :doc            (or docstring mdocstr)
+             :excludes       excludes
+             :use-macros     use-macros
              :require-macros require-macros
-             :uses uses
-             :requires requires
-             :imports imports}
+             :uses           uses
+             :requires       requires
+             :imports        imports}
             ns-info
             (if (:merge form-meta)
               ;; for merging information in via require usage in REPLs
@@ -241,7 +240,7 @@
                   ns-info))
               ns-info)]
         (swap! env/*compiler* update-in [::ana/namespaces name] merge ns-info)
-        (merge {:env env :op :ns :form form
+        (merge {:env     env :op :ns :form form
                 :reloads @reloads}
           (cond-> ns-info
             (@reload :use)
@@ -290,32 +289,36 @@
   ([source opts]
    (binding [ana/*file-defs* (atom #{})]
      ;(ensure
-       (let [;ns-info (ana/parse-ns res)
-             path (or (:atom-path opts) "unknown/file/path.clj?")
-             opts (dissoc opts :atom-path)]
-         ;(when-not (get-in @env/*compiler* [::namespaces (:ns ns-info) :defs])
-         (binding [ana/*cljs-ns* 'cljs.user
-                   ana/*cljs-file* path
-                   ana/*cljs-warning-handlers* [custom-warning-handler]
-                   reader/*alias-map* (or reader/*alias-map* {})]
-           (let [env (assoc (ana/empty-env) :build-options opts)
-                 forms-todo (seq (forms-seq* source))]
-             (loop [results []
-                    ns nil
-                    forms forms-todo]
-               (if forms
-                 (let [form (first forms)
-                       env (assoc env :ns (ana/get-namespace ana/*cljs-ns*))
-                       _ (log "analyze in" ana/*cljs-ns* form env opts "compiler:" @env/*compiler*)
-                       ast (ana/analyze env form nil opts)
-                       _ (log "  =>" ast)
-                       results (conj results ast)]
-                   (if (= (:op ast) :ns)
-                     (recur results (:name ast) (next forms))
-                     (recur results ns (next forms))))
-                 [ns results]))))))));)
+     (let [;ns-info (ana/parse-ns res)
+           path (or (:atom-path opts) "unknown/file/path.clj?")
+           opts (dissoc opts :atom-path)]
+       ;(when-not (get-in @env/*compiler* [::namespaces (:ns ns-info) :defs])
+       (binding [ana/*cljs-ns* 'cljs.user
+                 ana/*cljs-file* path
+                 ana/*cljs-warning-handlers* [custom-warning-handler]
+                 reader/*alias-map* (or reader/*alias-map* {})]
+         (let [env (assoc (ana/empty-env) :build-options opts)
+               forms-todo (seq (forms-seq* source))]
+           (loop [results []
+                  ns nil
+                  forms forms-todo]
+             (if forms
+               (let [form (first forms)
+                     env (assoc env :ns (ana/get-namespace ana/*cljs-ns*))
+                     _ (log "analyze in" ana/*cljs-ns* form "compiler:" @env/*compiler*)
+                     ast (ana/analyze env form nil opts)
+                     ;_ (log "  =>" ast)
+                     results (conj results ast)]
+                 (if (= (:op ast) :ns)
+                   (recur results (:name ast) (next forms))
+                   (recur results ns (next forms))))
+               [ns results]))))))))                         ;)
 
+(def clean-compiler-env (prepare-clean-compiler-env))
 
 (defn analyze-full [& args]
-  (with-compiler-env (prepare-clean-compiler-env)
-    (apply analyze-file args)))
+  (let [compiler-env (prepare-clean-compiler-env)]
+    (log "------------------------------------------------------")
+    (log "analyze-full" args "compiler:" compiler-env)
+    (with-compiler-env compiler-env
+      (apply analyze-file args))))

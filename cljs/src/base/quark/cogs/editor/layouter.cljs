@@ -1,5 +1,6 @@
 (ns quark.cogs.editor.layouter
-  (:require [quark.frame.core :refer [subscribe register-handler]]
+  (:require [cljs.core.async :refer [<! timeout]]
+            [quark.frame.core :refer [subscribe register-handler]]
             [quark.schema.paths :as paths]
             [rewrite-clj.zip :as zip]
             [rewrite-clj.node :as node]
@@ -7,7 +8,8 @@
             [quark.cogs.editor.analyzer :refer [analyze-full]]
             [clojure.zip :as z])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
-                   [quark.macros.glue :refer [react! dispatch]]))
+                   [quark.macros.glue :refer [react! dispatch]]
+                   [cljs.core.async.macros :refer [go]]))
 
 (defn edn* [node]
   (z/zipper
@@ -35,17 +37,24 @@
     (walk-forms [] top)))
 
 (defn layout [editors [editor-id parsed]]
-  (let [top-level-forms (extract-top-level-forms parsed)
-        asts (analyze-full (get-in editors [editor-id :text]) {:atom-path (get-in editors [editor-id :def :uri])})]
-    (log "AST>" asts)
-    (dispatch :editor-set-layout editor-id top-level-forms))
+  (let [top-level-forms (extract-top-level-forms parsed)]
+    (dispatch :editor-set-layout editor-id top-level-forms)
+    (go
+      (<! (timeout 1000)) ; give it some time to render UI (next requestAnimationFrame)
+      (dispatch :editor-analyze editor-id)))
   editors)
 
 (defn set-layout [editors [editor-id layout]]
   (assoc-in editors [editor-id :render-state :layout] layout))
+
+(defn analyze [editors [editor-id]]
+  (let [ast (analyze-full (get-in editors [editor-id :text]) {:atom-path (get-in editors [editor-id :def :uri])})]
+    (log "AST>" ast))
+  editors)
 
 ; ----------------------------------------------------------------------------------------------------------------
 ; register handlers
 
 (register-handler :editor-layout paths/editors-path layout)
 (register-handler :editor-set-layout paths/editors-path set-layout)
+(register-handler :editor-analyze paths/editors-path analyze)
