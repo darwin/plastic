@@ -30,7 +30,10 @@
   (.runInThisContext vm "debugger"))
 
 (defn resolve-symlink [link-path]
-  (.realpathSync fs link-path))
+  (try
+    (.realpathSync fs link-path)
+    (catch :default _)))
+
 
 (enable-console-print!)
 
@@ -119,7 +122,7 @@
                 (log "expanded" form "->" form')
                 (if (seq? form')
                   (let [sym' (first form')
-                        sym  (first form)]
+                        sym (first form)]
                     (if (= sym' 'js*)
                       (vary-meta form' merge
                         (cond-> {:js-op (if (namespace sym) sym (symbol "cljs.core" (str sym)))}
@@ -168,22 +171,26 @@
     (set-namespace-edn! compiler-env 'cljs.core$macros macros-edn)
     compiler-env))
 
-(def ns-symlinks-dir "/Users/darwin/github/quark/cljs/deps/")
+(def ns-resolver-dir "/Users/darwin/github/quark/cljs/ns-resolver/")
 
 (declare analyze-file)
 
 (defn locate-src [ns]
-  (let [link (str ns-symlinks-dir ns)]
-    (if (.existsSync fs link)
-      (if-let [path (resolve-symlink link)]
-        (do
-          (info "located src:" ns "->" path)
-          [(.readFileSync fs path "utf8") path])
-        (do
-          (warn "add unable to resolve" link)
-          ["" "/no/path/bad/symlink"]))
+  (let [segments (string/split ns #"\.")
+        symlink-resolutions (for [i (range 1 (inc (count segments)))]
+                              (let [prefix (string/join "." (take i segments))
+                                    remainder (string/join "/" (drop i segments))
+                                    link1 (str ns-resolver-dir prefix "/" remainder ".cljs")
+                                    link2 (str ns-resolver-dir prefix "/" remainder ".cljc")]
+                                (or (resolve-symlink link1) (resolve-symlink link2))))
+        good-resolutions (remove nil? symlink-resolutions)
+        resolution (first good-resolutions)]
+    (if resolution
       (do
-        (warn "add symlink" ns "to" ns-symlinks-dir)
+        (info "located src:" ns "->" resolution)
+        [(.readFileSync fs resolution "utf8") resolution])
+      (do
+        (warn "add a symlink for" ns "to" ns-resolver-dir)
         ["" "/no/path/missing/symlink"]))))
 
 (defn analyze-deps

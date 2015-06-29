@@ -3,7 +3,7 @@
   :url "http://github.com/darwin/quark"
 
   :dependencies [[org.clojure/clojure "1.7.0-beta3"]
-                 [org.clojure/clojurescript "0.0-3419"]
+                 [org.clojure/clojurescript "0.0-3422"]
                  [org.clojure/tools.reader "0.10.0-SNAPSHOT"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                  [rewrite-cljs "0.2.0"]

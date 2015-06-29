@@ -4,4 +4,3 @@ target/
 .idea/
 *.iml
 checkouts/
-deps/
