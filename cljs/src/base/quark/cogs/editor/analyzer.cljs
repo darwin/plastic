@@ -20,7 +20,7 @@
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [react! dispatch]]
                    [cljs.env.macros :refer [ensure with-compiler-env]]
-                   [cljs.analyzer.macros :refer [no-warn]]))
+                   [cljs.analyzer.macros :refer [no-warn wrapping-errors]]))
 
 (defonce fs (js/require "fs"))
 (defonce path (js/require "path"))
@@ -94,6 +94,51 @@
     res))
 
 ;(set! ana/core-name? my-core-name?)
+
+(defn my-resolve-ns-alias [env name]
+  (let [sym (symbol name)
+        res (get (:requires (:ns env)) sym sym)]
+    (log "resolve-ns-alias" sym "=>" res "in" env)
+    (debugger)
+    res))
+
+;(set! ana/resolve-ns-alias my-resolve-ns-alias)
+
+(defn my-macroexpand-1
+  "Given a env, an analysis environment, and form, a ClojureScript form,
+   macroexpand the form once."
+  [env form]
+  (ensure
+    (wrapping-errors env
+      (let [op (first form)]
+        (if (ana/specials op)
+          form
+          (if-let [mac-var (and (symbol? op) (ana/get-expander op env))]
+            (binding [cljs.core/*ns* (create-ns ana/*cljs-ns*)]
+              (let [form' (apply @mac-var form env (rest form))]
+                (log "expanded" form "->" form')
+                (if (seq? form')
+                  (let [sym' (first form')
+                        sym  (first form)]
+                    (if (= sym' 'js*)
+                      (vary-meta form' merge
+                        (cond-> {:js-op (if (namespace sym) sym (symbol "cljs.core" (str sym)))}
+                          (-> mac-var meta ::numeric) (assoc :numeric true)))
+                      form'))
+                  form')))
+            (if (symbol? op)
+              (let [opname (str op)]
+                (cond
+                  (= (first opname) \.) (let [[target & args] (next form)]
+                                          (with-meta (list* '. target (symbol (subs opname 1)) args)
+                                            (meta form)))
+                  (= (last opname) \.) (with-meta
+                                         (list* 'new (symbol (subs opname 0 (dec (count opname)))) (next form))
+                                         (meta form))
+                  :else form))
+              form)))))))
+
+;(set! ana/macroexpand-1 my-macroexpand-1)
 
 ; ================================================================================================================================================
 
@@ -269,12 +314,11 @@
          forms-seq_
          (fn forms-seq_ []
            (lazy-seq
-             (let [form (binding [*ns* (create-ns ana/*cljs-ns*)
+             (let [form (binding [cljs.core/*ns* (create-ns ana/*cljs-ns*)
                                   reader/*data-readers* data-readers
-                                  reader/*alias-map*
-                                  (apply merge
-                                    ((juxt :requires :require-macros)
-                                      (ana/get-namespace ana/*cljs-ns*)))
+                                  reader/*alias-map* (apply merge
+                                                       ((juxt :requires :require-macros)
+                                                         (ana/get-namespace ana/*cljs-ns*)))
                                   reader/resolve-symbol ana/resolve-symbol]
                           (reader/read opts pbr))]
                (if-not (identical? form eof-sentinel)
