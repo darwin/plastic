@@ -24,9 +24,9 @@
 
 (defonce fs (js/require "fs"))
 (defonce path (js/require "path"))
-(defonce vm (js/require "vm"))
+#_(defonce vm (js/require "vm"))
 
-(defn debugger []
+#_(defn debugger []
   (.runInThisContext vm "debugger"))
 
 (defn resolve-symlink [link-path]
@@ -38,7 +38,7 @@
   (when (warning-type ana/*cljs-warnings*)
     (when-let [s (ana/error-message warning-type extra)]
       (warn s)
-;      (debugger)
+      ;(js-debugger)
       )))
 
 (defn ana-error
@@ -48,7 +48,7 @@
               (assoc (ana/source-info env) :tag :cljs/analysis-error)
               cause)]
      (if cause (error (.-message cause) "\n" (.-stack cause)))
-     ;(debugger)
+     ;(js-debugger)
      ex)))
 
 (set! ana/error ana-error)
@@ -103,8 +103,6 @@
 
 (log "ANALYZER INIT")
 
-(def compiler-env (env/default-compiler-env))
-
 (defn set-namespace-edn! [cenv ns-name ns-edn]
   (let [edn (edn/read-string ns-edn)]
     (log "EDN:" ns-name edn)
@@ -114,11 +112,15 @@
   ; load cache files
   (set! *target* "nodejs")
   (apply load-file ["/Users/darwin/github/cljs-bootstrap/.cljs_bootstrap/cljs/core$macros.js"])
-  (let [core-edn (.readFileSync fs "/Users/darwin/github/cljs-bootstrap/resources/cljs/core.cljs.cache.aot.edn" "utf8")
-        macros-edn (.readFileSync fs "/Users/darwin/github/cljs-bootstrap/.cljs_bootstrap/cljs/core$macros.cljc.cache.edn" "utf8")]
-    (set-namespace-edn! compiler-env 'cljs.core core-edn)
-    (set-namespace-edn! compiler-env 'cljs.core$macros macros-edn))
   true)
+
+(defn prepare-clean-compiler-env []
+  (let [core-edn (.readFileSync fs "/Users/darwin/github/cljs-bootstrap/resources/cljs/core.cljs.cache.aot.edn" "utf8")
+        macros-edn (.readFileSync fs "/Users/darwin/github/cljs-bootstrap/.cljs_bootstrap/cljs/core$macros.cljc.cache.edn" "utf8")
+        compiler-env (env/default-compiler-env)]
+    (set-namespace-edn! compiler-env 'cljs.core core-edn)
+    (set-namespace-edn! compiler-env 'cljs.core$macros macros-edn)
+    compiler-env))
 
 ; this is important - do not even think to removing it
 (defonce bootstrap-result (bootstrap))
@@ -214,7 +216,40 @@
         (analyze-deps name @deps env (dissoc opts :macros-ns)))
       (when (and ana/*analyze-deps* (seq uses))
         (ana/check-uses uses env))
-      (set! ana/*cljs-ns* name))))
+      (set! ana/*cljs-ns* name)
+      (let [ns-info
+            {:name name
+             :doc (or docstring mdocstr)
+             :excludes excludes
+             :use-macros use-macros
+             :require-macros require-macros
+             :uses uses
+             :requires requires
+             :imports imports}
+            ns-info
+            (if (:merge form-meta)
+              ;; for merging information in via require usage in REPLs
+              (let [ns-info' (get-in @env/*compiler* [::ana/namespaces name])]
+                (if (pos? (count ns-info'))
+                  (let [merge-keys
+                        [:use-macros :require-macros :uses :requires :imports]]
+                    (merge
+                      ns-info'
+                      (merge-with merge
+                        (select-keys ns-info' merge-keys)
+                        (select-keys ns-info merge-keys))))
+                  ns-info))
+              ns-info)]
+        (swap! env/*compiler* update-in [::ana/namespaces name] merge ns-info)
+        (merge {:env env :op :ns :form form
+                :reloads @reloads}
+          (cond-> ns-info
+            (@reload :use)
+            (update-in [:uses]
+              (fn [m] (with-meta m {(@reload :use) true})))
+            (@reload :require)
+            (update-in [:requires]
+              (fn [m] (with-meta m {(@reload :require) true})))))))))
 
 (deftype Sentinel [])
 
@@ -282,5 +317,5 @@
 
 
 (defn analyze-full [& args]
-  (with-compiler-env compiler-env
+  (with-compiler-env (prepare-clean-compiler-env)
     (apply analyze-file args)))
