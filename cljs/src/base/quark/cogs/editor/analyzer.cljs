@@ -95,23 +95,25 @@
 
 ;(set! ana/core-name? my-core-name?)
 
+; ================================================================================================================================================
 
 ; this is bleeding edge, see https://github.com/swannodette/cljs-bootstrap
 ; follow https://github.com/kanaka/cljs-bootstrap/blob/master/REPL.md
 ; => /Users/darwin/github/cljs-bootstrap
-
-(log "ANALYZER INIT")
-
-(defn set-namespace-edn! [cenv ns-name ns-edn]
-  (let [edn (edn/read-string ns-edn)]
-    (log "EDN:" ns-name edn)
-    (swap! cenv assoc-in [::ana/namespaces ns-name] edn)))
 
 (defn bootstrap []
   ; load cache files
   (set! *target* "nodejs")
   (apply load-file ["/Users/darwin/github/cljs-bootstrap/.cljs_bootstrap/cljs/core$macros.js"])
   true)
+
+; this is important - do not even think about removing it
+(defonce bootstrap-result (bootstrap))
+
+
+(defn set-namespace-edn! [cenv ns-name ns-edn]
+  (let [edn (edn/read-string ns-edn)]
+    (swap! cenv assoc-in [::ana/namespaces ns-name] edn)))
 
 (defn prepare-clean-compiler-env []
   (let [core-edn (.readFileSync fs "/Users/darwin/github/cljs-bootstrap/resources/cljs/core.cljs.cache.aot.edn" "utf8")
@@ -120,11 +122,6 @@
     (set-namespace-edn! compiler-env 'cljs.core core-edn)
     (set-namespace-edn! compiler-env 'cljs.core$macros macros-edn)
     compiler-env))
-
-; this is important - do not even think to removing it
-(defonce bootstrap-result (bootstrap))
-
-(log "ANALYZER INIT DONE")
 
 (def ns-symlinks-dir "/Users/darwin/github/quark/cljs/deps/")
 
@@ -288,11 +285,8 @@
   ([source] (analyze-file source nil))
   ([source opts]
    (binding [ana/*file-defs* (atom #{})]
-     ;(ensure
-     (let [;ns-info (ana/parse-ns res)
-           path (or (:atom-path opts) "unknown/file/path.clj?")
+     (let [path (or (:atom-path opts) "unknown/file/path.clj?")
            opts (dissoc opts :atom-path)]
-       ;(when-not (get-in @env/*compiler* [::namespaces (:ns ns-info) :defs])
        (binding [ana/*cljs-ns* 'cljs.user
                  ana/*cljs-file* path
                  ana/*cljs-warning-handlers* [custom-warning-handler]
@@ -312,13 +306,13 @@
                  (if (= (:op ast) :ns)
                    (recur results (:name ast) (next forms))
                    (recur results ns (next forms))))
-               [ns results]))))))))                         ;)
+               [ns results]))))))))
 
 (def clean-compiler-env (prepare-clean-compiler-env))
 
 (defn analyze-full [& args]
+  (log "------------------------------------------------------")
   (let [compiler-env (prepare-clean-compiler-env)]
-    (log "------------------------------------------------------")
     (log "analyze-full" args "compiler:" compiler-env)
     (with-compiler-env compiler-env
       (apply analyze-file args))))
