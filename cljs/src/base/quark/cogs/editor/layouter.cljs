@@ -6,6 +6,7 @@
             [rewrite-clj.node :as node]
             [rewrite-clj.zip.whitespace :as ws]
             [quark.cogs.editor.analyzer :refer [analyze-full]]
+            [clojure.walk :as walk]
             [clojure.zip :as z])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [react! dispatch]]
@@ -18,7 +19,7 @@
     node/replace-children
     node))
 
-(defn edn [node]
+(defn make-zipper [node]
   (if (= (node/tag node) :forms)
     (let [top (edn* node)]
       (or (-> top zip/down ws/skip-whitespace) top))
@@ -84,17 +85,27 @@
 (defn item-info [loc]
   (let [node (zip/node loc)]
     {:string (zip/string loc)
-     :tag (node/tag node)
+     :tag    (node/tag node)
      :depth  (ancestor-count loc)
-     :path   (get-path loc)
-     }))
+     :path   (get-path loc)}))
 
 (defn build-soup [form]
-  (map item-info (leaf-nodes (edn form))))
+  (map item-info (leaf-nodes (make-zipper form))))
+
+(declare build-structure)
+
+(defn build-structure [depth node]
+  (merge {:tag   (node/tag node)
+          :depth depth}
+    (if (node/inner? node)
+      {:children (doall (map (partial build-structure (inc depth)) (node/children node)))}
+      {:text (node/string node)})))
 
 (defn form-info [top]
-  {:text (zip/string top)
-   :soup (build-soup (zip/node top))})
+  (let [node (zip/node top)]
+    {:text      (zip/string top)
+     :soup      (build-soup node)
+     :structure (build-structure 0 node)}))
 
 (defn walk-forms [res pos]
   (if (zip/end? pos)
@@ -104,7 +115,7 @@
       (recur (conj res val) next))))
 
 (defn extract-top-level-forms [parsed]
-  (let [top (edn parsed)]
+  (let [top (make-zipper parsed)]
     (walk-forms [] top)))
 
 (defn layout [editors [editor-id parsed]]
