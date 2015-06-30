@@ -9,3 +9,9 @@
 # https://atom.io/docs/latest/behind-atom-keymaps-in-depth
 'atom-workspace':
   'ctrl-alt-o': 'quark:toggle'
+  
+'.quark-editor-view':
+  'left': 'quark:move-left'
+  'right': 'quark:move-right'
+  'up': 'quark:move-up'
+  'down': 'quark:move-down'

@@ -1,6 +1,7 @@
 (ns quark.onion.inface
   (:require [quark.cogs.editor.renderer :refer [mount-editor]]
-            [quark.onion.api :as api])
+            [quark.onion.api :as api]
+            [clojure.string :as string])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [dispatch react!]]))
 
@@ -37,6 +38,12 @@
   (let [editor-id (.-id atom-view)]
     (dispatch :remove-editor editor-id)
     (unregister-view editor-id)))
+
+(defmethod process :editor-command [_ atom-view command event]
+  (let [editor-id (.-id atom-view)
+        internal-command (keyword (string/replace command #"^quark:" ""))]
+    (dispatch :editor-command editor-id internal-command)
+    (.stopPropagation event)))
 
 ; -------------------------------------------------------------------------------------------
 

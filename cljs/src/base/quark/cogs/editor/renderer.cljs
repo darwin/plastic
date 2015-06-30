@@ -3,8 +3,10 @@
             [quark.frame.core :refer [register-sub subscribe]]
             [quark.frame.middleware :refer [path]]
             [inkspot.color :as color]
-            [inkspot.color-chart :as cc])
+            [inkspot.color-chart :as cc]
+            [phalanges.core :as phalanges])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
+                   [quark.macros.glue :refer [react! dispatch]]
                    [reagent.ratom :refer [reaction]]))
 
 (defonce ^:dynamic id 0)
@@ -19,7 +21,6 @@
    :set    (cycle (cc/gradient "#333322" "#aaaa99" 8))})
 
 (log (take 11 bg-colors))
-
 
 (defonce ^:dynamic cur-bg-color 0)
 
@@ -83,9 +84,9 @@
   (let [state (subscribe [:editor-render-state editor-id])]
     (fn []
       (let [forms (:forms @state)]
-        ^{:key (id!)} [:div
+        ^{:key (id!)} [:div.quark-editor-root
                        (for [form forms]
-                         ^{:key (id!)} [:div
+                         ^{:key (id!)} [:div.quark-form-editor
                                         [plain-text-compoent form]
                                         [structural-component-wrapper (:structure form)]
                                         [soup-component form]

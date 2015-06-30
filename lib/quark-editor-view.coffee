@@ -18,6 +18,13 @@ class QuarkEditorView extends ScrollView
     @id = lastId
 
     bridge.send "register-editor", @
+    
+    @addCommands [
+      'quark:move-left'
+      'quark:move-right'
+      'quark:move-up'
+      'quark:move-down'
+    ]
 
   detached: ->
     bridge.send "unregister-editor", @
@@ -26,6 +33,14 @@ class QuarkEditorView extends ScrollView
     # deserializer: 'QuarkView'
     # version: 2
     # uri: @uri
+
+  addCommands: (commands) =>
+    handler = (command) =>
+      (event) =>
+        bridge.send "editor-command", @, command, event
+    
+    for command in commands
+      atom.commands.add @element, command, handler(command)
 
   getTitle: ->
     if sessionPath = @uri
