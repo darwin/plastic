@@ -3,15 +3,17 @@ path = require 'path'
 {Disposable} = require 'atom'
 #{Subscriber} = require 'emissary'
 bridge = require './bridge'
+{ScrollView} = require 'atom-space-pen-views'
 
 lastId = 0
 
 module.exports =
-class QuarkEditorView extends View
+class QuarkEditorView extends ScrollView
   @content: ->
     @div class: 'quark-editor-view', tabindex: -1
 
   initialize: ({@uri}={}) ->
+    super
     lastId += 1
     @id = lastId
 
