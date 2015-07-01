@@ -2,129 +2,55 @@
   (:require [cljs.core.async :refer [<! timeout]]
             [quark.frame.core :refer [subscribe register-handler]]
             [quark.schema.paths :as paths]
-            [rewrite-clj.zip :as zip]
-            [rewrite-clj.node :as node]
-            [rewrite-clj.zip.whitespace :as ws]
+            [rewrite-clj.zip :as rzip]
+            [rewrite-clj.node :as rnode]
             [quark.cogs.editor.analyzer :refer [analyze-full]]
-            [clojure.walk :as walk]
-            [clojure.zip :as z])
+            [quark.cogs.editor.utils :refer [leaf-nodes ancestor-count make-rpath make-zipper collect-all-right]])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [react! dispatch]]
                    [cljs.core.async.macros :refer [go]]))
 
-(defn edn* [node]
-  (z/zipper
-    node/inner?
-    (comp seq node/children)
-    node/replace-children
-    node))
+(defn item-info [zloc]
+  (let [rnode (rzip/node zloc)]
+    {:string (rzip/string zloc)
+     :tag    (rnode/tag rnode)
+     :depth  (ancestor-count zloc)
+     :path   (make-rpath zloc)}))
 
-(defn make-zipper [node]
-  (if (= (node/tag node) :forms)
-    (let [top (edn* node)]
-      (or (-> top zip/down ws/skip-whitespace) top))
-    (recur (node/forms-node [node]))))
-
-; interesting nodes are non-whitespace nodes and new lines
-(defn node-interesting? [node]
-  (or (node/linebreak? node) (not (node/whitespace? node))))
-
-(def node-not-interesting? (complement node-interesting?))
-
-(defn not-interesting? [loc]
-  (node-not-interesting? (zip/node loc)))
-
-; perform the given movement while the given predicate returns true
-(defn skip [f p? zloc]
-  (first
-    (drop-while #(if (or (z/end? %) (nil? %)) false (p? %))
-      (iterate f zloc))))
-
-(defn skip-not-interesting [f zloc]
-  (skip f not-interesting? zloc))
-
-(defn skip-not-interesting-by-moving-left [zloc]
-  (skip-not-interesting z/left zloc))
-
-(defn skip-not-interesting-by-moving-right [zloc]
-  (skip-not-interesting z/right zloc))
-
-(defn move-right [zloc]
-  (some-> zloc z/right skip-not-interesting-by-moving-right))
-
-(defn move-left [zloc]
-  (some-> zloc z/left skip-not-interesting-by-moving-left))
-
-(defn move-down [zloc]
-  (some-> zloc z/down skip-not-interesting-by-moving-right))
-
-(defn move-up [zloc]
-  (some-> zloc z/up skip-not-interesting-by-moving-left))
-
-(defn move-next [zloc]
-  (some-> zloc z/next skip-not-interesting-by-moving-right))
-
-(defn leaf-nodes [loc]
-  (filter (complement z/branch?)                            ; filter only non-branch nodes
-    (take-while (complement z/end?)                         ; take until the :end
-      (iterate move-next loc))))
-
-(defn ancestor-count [loc]
-  (dec (count (take-while move-up (iterate move-up loc)))))
-
-(defn left-sibling-count [loc]
-  (count (take-while move-left (iterate move-left loc))))
-
-(defn get-path [loc]
-  (let [parent (move-up loc)
-        is-root? (not (boolean (move-up parent)))]
-    (if is-root?
-      []
-      (conj (get-path parent) (left-sibling-count loc)))))
-
-(defn item-info [loc]
-  (let [node (zip/node loc)]
-    {:string (zip/string loc)
-     :tag    (node/tag node)
-     :depth  (ancestor-count loc)
-     :path   (get-path loc)}))
-
-(defn build-soup [form]
-  (map item-info (leaf-nodes (make-zipper form))))
+(defn build-soup [rnode]
+  (map item-info (leaf-nodes (make-zipper rnode))))
 
 (declare build-structure)
 
-(defn build-structure [depth node]
-  (merge {:tag   (node/tag node)
+(defn build-structure [depth rnode]
+  (merge {:tag   (rnode/tag rnode)
           :depth depth}
-    (if (node/inner? node)
-      {:children (doall (map (partial build-structure (inc depth)) (node/children node)))}
-      {:text (node/string node)})))
+    (if (rnode/inner? rnode)
+      {:children (doall (map (partial build-structure (inc depth)) (rnode/children rnode)))}
+      {:text (rnode/string rnode)})))
 
-(defn form-info [top]
-  (let [node (zip/node top)]
-    {:text      (zip/string top)
-     :soup      (build-soup node)
-     :structure (build-structure 0 node)}))
+(defn form-info [zloc]
+  (let [rnode (rzip/node zloc)]
+    {:text      (rzip/string zloc)
+     :soup      (build-soup rnode)
+     :structure (build-structure 0 rnode)}))
 
-(defn walk-forms [res pos]
-  (if (zip/end? pos)
-    res
-    (let [val (form-info pos)
-          next (zip/right pos)]
-      (recur (conj res val) next))))
+(defn extract-top-level-form-infos [rnode]
+  (let [zloc (make-zipper rnode)
+        zlocs (collect-all-right zloc)]
+    (doall (map form-info zlocs))))
 
-(defn extract-top-level-forms [parsed]
-  (let [top (make-zipper parsed)]
-    (walk-forms [] top)))
+(defn analyze-with-delay [editor-id delay]
+  (go
+    (<! (timeout delay))                                     ; give it some time to render UI (next requestAnimationFrame)
+    (dispatch :editor-analyze editor-id)))
 
-(defn layout [editors [editor-id parsed]]
-  (let [top-level-forms (extract-top-level-forms parsed)
+(defn layout [editors [editor-id]]
+  (let [rnode (get-in editors [editor-id :parsed])
+        top-level-forms (extract-top-level-form-infos rnode)
         state {:forms top-level-forms}]
     (dispatch :editor-set-layout editor-id state)
-    #_(go
-      (<! (timeout 1000))                                   ; give it some time to render UI (next requestAnimationFrame)
-      (dispatch :editor-analyze editor-id)))
+    #_(analyze-with-delay editor-id 1000))
   editors)
 
 (defn set-layout [editors [editor-id state]]
