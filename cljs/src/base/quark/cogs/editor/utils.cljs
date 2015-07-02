@@ -74,11 +74,11 @@
 (defn root? [loc]
   (nil? (move-up loc)))
 
-(defn make-rpath [loc]
+(defn make-path [loc]
   (let [parent-loc (move-up loc)]
     (if (root? parent-loc)
       []
-      (conj (make-rpath parent-loc) (left-sibling-count loc)))))
+      (conj (make-path parent-loc) (left-sibling-count loc)))))
 
 (defn rpath->rloc [rpath rnode]
   (let [zloc (make-zipper rnode)]

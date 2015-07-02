@@ -4,13 +4,25 @@
 // for a full listing of what's available.
 @import "ui-variables";
 
+@scope-base: hsl(207, 100%, 70%);
+@scope-highlight-base: hsl(207, 100%, 70%);
+@scope-angle: 70;
+
+@depth-base: hsl(0, 0%, 10%);
+@depth-multiplier: 2;
+
 .quark-editor-view {
   font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
-  font-size: 14px;
+  font-size: 13px;
   overflow: auto;
   -moz-user-select: -moz-none;
   -khtml-user-select: none;
   -webkit-user-select: none;
+  line-height: 12px;
+}
+
+.quark-editor-view sub {
+  font-size: 8px;
 }
 
 .quark-editor-view .fancy {
@@ -31,6 +43,19 @@
   padding: 2px 6px;
   display: inline-block;
   background-color: #494;
+  color: white;
+  float: left;
+  clear: both;
+  border-radius: 4px;
+  white-space: pre;
+}
+
+.quark-editor-view .debug {
+  font-size: 9px;
+  margin-bottom: 20px;
+  padding: 2px 6px;
+  display: inline-block;
+  background-color: #449;
   color: white;
   float: left;
   clear: both;
@@ -98,8 +123,6 @@
   vertical-align: top;
   white-space: nowrap;
   margin-bottom: 2px;
-  border-left: 2px solid;
-  border-right: 2px solid;
 }
 
 /*
@@ -128,15 +151,13 @@
 .quark-editor-view .token {
   vertical-align: top;
   white-space: pre;
-  margin-top: 0px;
-  margin-left: 1px;
-  margin-bottom: 0px;
-  margin-right: 2px;
+  margin-top: 2px;
+  margin-left: 0px;
+  margin-bottom: 2px;
+  margin-right: 6px;
   padding: 0px 2px;
   display: inline-block;
   border-radius: 2px;
-  opacity: 0.8;
-  margin-right: 6px;
 }
 
 .quark-editor-view .token.vab,
@@ -146,22 +167,58 @@
 }
 
 .quark-editor-view .compound.list > .wrap > .token:first-child {
-  color: #ff9a11;
   font-weight: bold;
+  font-style: italic;
 }
 
 .quark-editor-view .token.string {
-  // background-color: #000000;
-  // opacity: 0.9;
 }
 
 .quark-editor-view .token.string i {
-  opacity: 0.2;
+  opacity: 0.1;
 }
 
 .quark-editor-view .punctuation {
-  background-color: transparent !important;
   padding: 0px 0px;
-  opacity: 0.2;
+  opacity: 0.4;
   font-weight: bold;
 }
+
+.quark-editor-view .scope {
+  border-top: 2px solid;
+  border-color: spin(@scope-base, 0*@scope-angle);
+}
+
+.quark-editor-view .decl-scope {
+  //text-shadow: 0px 0px 4px;
+}
+
+.makeScopes(@i) when (@i > 0) {
+    @scope: @i - 1;
+
+    .quark-editor-view .scope-@{scope} {
+        border-color: spin(@scope-base, @scope*@scope-angle);
+    }
+
+    .quark-editor-view .decl-scope-@{scope} {
+        // text-shadow: 0px 0px 7px spin(@scope-highlight-base, @scope*@scope-angle);
+        color: spin(@scope-base, @scope*@scope-angle);
+    }
+ 
+     // next iteration
+    .makeScopes((@i - 1));
+}
+ 
+.makeScopes(20);
+
+.makeDepths(@i) when (@i > 0) {
+    @depth: @i - 1;
+
+    .quark-editor-view .depth-@{depth} {
+        background-color: lighten(@depth-base, percentage((@depth*@depth-multiplier)/100));
+    }
+
+    .makeDepths((@i - 1));
+}
+ 
+.makeDepths(20);

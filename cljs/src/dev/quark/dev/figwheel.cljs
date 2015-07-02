@@ -4,7 +4,8 @@
             [figwheel.client.socket :as socket]
             [figwheel.client.utils :as utils])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
-                   [quark.macros.common :refer [defonce]]))
+                   [quark.macros.common :refer [defonce]]
+                   [quark.macros.glue :refer [dispatch]]))
 
 ; note: figwheel does not play well with advanced optimizations, do not include it
 
@@ -56,7 +57,9 @@
                          :content        res}))))))
 
 (defn on-js-load []
-  (.remount-editors js/quark.onion.remounter))
+  ;(.remount-editors js/quark.onion.remounter)
+  (dispatch :editor-layout)
+  )
 
 (figwheel/start
   {:on-jsload     on-js-load

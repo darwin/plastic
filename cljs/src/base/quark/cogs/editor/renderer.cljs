@@ -46,6 +46,10 @@
   [:div.structure-state
    [:div (utils/print-node (:structure form))]])
 
+(defn debug-component [form]
+  [:div.debug
+   [:div (utils/print-node (:debug form))]])
+
 (defn soup-component [form]
   [:div.soup
    (for [item (:soup form)]
@@ -62,21 +66,38 @@
     (string/replace #"␣" "<i>.</i>")
     (string/replace #"⇥" "<i>»</i>")))
 
-(defn inner-structural-component [tree]
-  (cond
-    (= (:tag tree) :newline) [:br]
-    (= (:tag tree) :whitespace) [:div.token " "]
-    (:text tree) [:div.token {:class                   (:tag tree)
-                              :dangerouslySetInnerHTML {:__html (wrap-specials (:text tree))}}]
-    :else ^{:key (id!)} [:div.wrap
-                         (for [child (:children tree)]
-                           ^{:key (id!)} [structural-component child])]))
+(defn visualise-shadowing [text shadows]
+  (if (< shadows 2)
+    text
+    (str text "<sub>" shadows "</sub>")))
+
+(defn classv [v]
+  (string/join " " (filter (complement nil?) v)))
+
+(defn inner-structural-component [node]
+  (let [decl-scope (:decl-scope node)
+        tag (:tag node)
+        text (:text node)
+        shadows (:shadows node)]
+    (cond
+      (= tag :newline) [:br]
+      (= tag :whitespace) [:div.token " "]
+      (:text node) [:div.token {:class                   (classv [(name tag)
+                                                                  (if decl-scope (str "decl-scope " "decl-scope-" decl-scope))])
+                                :dangerouslySetInnerHTML {:__html (wrap-specials (visualise-shadowing text shadows))}}]
+      :else ^{:key (id!)} [:div.wrap
+                           (for [child (:children node)]
+                             ^{:key (id!)} [structural-component child])])))
+
+
 
 (defn wrap [open close tree]
-  (let [colors (get colors-by-type (:tag tree))]
-    [:div.compound {:class (:tag tree)
-                    :style {:background-color (nth bg-colors (inc (:depth tree)))
-                            :border-color     (nth bg-colors (:depth tree))}}
+  (let [scope (or (:scope tree) nil)
+        depth (or (:depth tree) nil)
+        tag (:tag tree)]
+    [:div.compound {:class (classv [(name tag)
+                                    (if scope (str "scope " "scope-" scope))
+                                    (if depth (str "depth " "depth-" depth))])}
      [:div.token.punctuation.vat open]
      (inner-structural-component tree)
      [:div.token.punctuation.vab close]]))
@@ -99,6 +120,7 @@
      ^{:key (id!)} [:div.quark-form
                     [plain-text-compoent form]
                     [structural-component-wrapper (:structure form)]
+                    [debug-component form]
                     [structure-component form]
                     ;[soup-component form]
                     ])])
