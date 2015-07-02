@@ -11,7 +11,7 @@
   editors)
 
 (defn set-parsed [editors [editor-id parsed]]
-  (assoc-in editors [editor-id :parsed] parsed))
+  (assoc-in editors [editor-id :parse-tree] parsed))
 
 ; ----------------------------------------------------------------------------------------------------------------
 ; register handlers

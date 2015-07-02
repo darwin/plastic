@@ -8,6 +8,9 @@
   font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
   font-size: 14px;
   overflow: auto;
+  -moz-user-select: -moz-none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
 }
 
 .quark-editor-view .fancy {
@@ -23,6 +26,7 @@
 }
 
 .quark-editor-view .state {
+  font-size: 9px;
   margin-bottom: 20px;
   padding: 2px 6px;
   display: inline-block;
@@ -31,6 +35,20 @@
   float: left;
   clear: both;
   border-radius: 4px;
+  white-space: pre;
+}
+
+.quark-editor-view .structure-state {
+  font-size: 9px;
+  margin-bottom: 20px;
+  padding: 2px 6px;
+  display: inline-block;
+  background-color: #944;
+  color: white;
+  float: left;
+  clear: both;
+  border-radius: 4px;
+  white-space: pre;
 }
 
 .quark-editor-view .soup {
@@ -77,31 +95,73 @@
 
 .quark-editor-view .compound {
   display: inline-block;
-  border-bottom: 2px solid #090
-  //padding-bottom: 2px;
-  //border: 1px solid green;
+  vertical-align: top;
+  white-space: nowrap;
+  margin-bottom: 2px;
+  border-left: 2px solid;
+  border-right: 2px solid;
 }
+
+/*
+.quark-editor-view .compound.list {
+  border-left-style: dashed;
+  border-right-style: dashed;
+}
+
+.quark-editor-view .compound.map {
+  border-left-style: dotted;
+  border-right-style: dotted;
+}
+
+.quark-editor-view .compound.set {
+  border-left-style: dotted;
+  border-right-style: dotted;
+}
+*/
 
 .quark-editor-view .wrap {
   display: inline-block;
+  white-space: nowrap;
   //border: 1px solid red;
 }
 
 .quark-editor-view .token {
   vertical-align: top;
+  white-space: pre;
   margin-top: 0px;
   margin-left: 1px;
   margin-bottom: 0px;
   margin-right: 2px;
-  padding: 0px 0px;
+  padding: 0px 2px;
   display: inline-block;
-  //background-color: #944;
   border-radius: 2px;
   opacity: 0.8;
+  margin-right: 6px;
+}
+
+.quark-editor-view .token.vab,
+.quark-editor-view .token.vat,
+.quark-editor-view .token:last-child {
+  margin-right: 0px;
+}
+
+.quark-editor-view .compound.list > .wrap > .token:first-child {
+  color: #ff9a11;
+  font-weight: bold;
+}
+
+.quark-editor-view .token.string {
+  // background-color: #000000;
+  // opacity: 0.9;
+}
+
+.quark-editor-view .token.string i {
+  opacity: 0.2;
 }
 
 .quark-editor-view .punctuation {
   background-color: transparent !important;
   padding: 0px 0px;
   opacity: 0.2;
+  font-weight: bold;
 }

@@ -10,5 +10,5 @@
 
 (react!
   (when-let [editors @editors-subscription]
-    (log "editor changed:" (data/diff prev editors) editors)
+    (log "editors changed:" (data/diff prev editors) editors)
     (set! prev editors)))

@@ -4,7 +4,9 @@
             [quark.frame.middleware :refer [path]]
             [inkspot.color :as color]
             [inkspot.color-chart :as cc]
-            [phalanges.core :as phalanges])
+            [phalanges.core :as phalanges]
+            [quark.cogs.editor.utils :as utils]
+            [clojure.string :as string])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [react! dispatch]]
                    [reagent.ratom :refer [reaction]]))
@@ -12,7 +14,7 @@
 (defonce ^:dynamic id 0)
 
 (def bg-colors
-  (cycle (cc/gradient "#111111" "#dddddd" 16)))
+  (cycle (cc/gradient "#111111" "#aaaaaa" 20)))
 
 (def colors-by-type
   {:list   (cycle (cc/gradient "#223322" "#99aa99" 8))
@@ -36,9 +38,13 @@
   [:div.fancy
    [:div (:text form)]])
 
-(defn state-component [form]
+(defn state-component [parse-tree]
   [:div.state
-   [:div (pr-str (:structure form))]])
+   [:div (utils/print-node parse-tree)]])
+
+(defn structure-component [form]
+  [:div.structure-state
+   [:div (utils/print-node (:structure form))]])
 
 (defn soup-component [form]
   [:div.soup
@@ -50,11 +56,18 @@
 
 (declare structural-component)
 
+(defn wrap-specials [s]
+  (-> s
+    (string/replace #"↵" "<i>↵</i>")
+    (string/replace #"␣" "<i>.</i>")
+    (string/replace #"⇥" "<i>»</i>")))
+
 (defn inner-structural-component [tree]
   (cond
     (= (:tag tree) :newline) [:br]
     (= (:tag tree) :whitespace) [:div.token " "]
-    (:text tree) [:div.token (:text tree)]
+    (:text tree) [:div.token {:class                   (:tag tree)
+                              :dangerouslySetInnerHTML {:__html (wrap-specials (:text tree))}}]
     :else ^{:key (id!)} [:div.wrap
                          (for [child (:children tree)]
                            ^{:key (id!)} [structural-component child])]))
@@ -80,17 +93,25 @@
   [:div.structural
    [structural-component tree]])
 
+(defn forms-component [forms]
+  [:div.quark-form-group
+   (for [form forms]
+     ^{:key (id!)} [:div.quark-form
+                    [plain-text-compoent form]
+                    [structural-component-wrapper (:structure form)]
+                    [structure-component form]
+                    ;[soup-component form]
+                    ])])
+
 (defn editor-root-component [editor-id]
   (let [state (subscribe [:editor-render-state editor-id])]
     (fn []
-      (let [forms (:forms @state)]
+      (let [forms (:forms @state)
+            parse-tree (:parse-tree @state)]
         ^{:key (id!)} [:div.quark-editor-root
-                       (for [form forms]
-                         ^{:key (id!)} [:div.quark-form-editor
-                                        [plain-text-compoent form]
-                                        [structural-component-wrapper (:structure form)]
-                                        [soup-component form]
-                                        [state-component form]])]))))
+                       [forms-component forms]
+                       [state-component parse-tree]
+                       ]))))
 
 (defn mount-editor [element editor-id]
   (let [editor (partial editor-root-component editor-id)]

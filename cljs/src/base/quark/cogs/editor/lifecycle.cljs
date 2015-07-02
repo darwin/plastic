@@ -17,7 +17,7 @@
         (dispatch :editor-parse-source editor-id text)))))
 
 (defn watch-to-layout [editor-id]
-  (let [parsed-subscription (subscribe [:editor-parsed editor-id])]
+  (let [parsed-subscription (subscribe [:editor-parse-tree editor-id])]
     (react!
       (when-let [parsed @parsed-subscription]
         (dispatch :editor-layout editor-id parsed)))))
