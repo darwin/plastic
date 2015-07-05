@@ -167,7 +167,7 @@
 }
 
 .quark-editor-view .compound.list > .wrap > .token:first-child {
-  font-weight: bold;
+  //font-weight: bold;
   font-style: italic;
 }
 
@@ -178,6 +178,11 @@
   opacity: 0.1;
 }
 
+// declaration
+.quark-editor-view .token .decl {
+  font-weight: bold;
+}
+
 .quark-editor-view .punctuation {
   padding: 0px 0px;
   opacity: 0.4;
@@ -185,7 +190,8 @@
 }
 
 .quark-editor-view .scope {
-  border-top: 2px solid;
+  border-left: 2px solid;
+  padding-left: 20px;
   border-color: spin(@scope-base, 0*@scope-angle);
 }
 

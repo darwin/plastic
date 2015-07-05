@@ -62,29 +62,40 @@
 
 (defn wrap-specials [s]
   (-> s
+    (string/replace #"\\\"" "\"")
     (string/replace #"↵" "<i>↵</i>")
     (string/replace #"␣" "<i>.</i>")
     (string/replace #"⇥" "<i>»</i>")))
 
 (defn visualise-shadowing [text shadows]
-  (if (< shadows 2)
-    text
-    (str text "<sub>" shadows "</sub>")))
+  (cond
+    (>= shadows 2) (str text "<sub>" shadows "</sub>")      ; shadowing
+    :default text))
 
-(defn classv [v]
+(defn visualize-decl [text decl?]
+  (if decl?
+    (str "<span class=\"decl\">" text "</span>")            ; declaration
+    text))
+
+(defn classv [& v]
   (string/join " " (filter (complement nil?) v)))
 
 (defn inner-structural-component [node]
   (let [decl-scope (:decl-scope node)
         tag (:tag node)
         text (:text node)
-        shadows (:shadows node)]
+        shadows (:shadows node)
+        decl? (:decl? node)]
     (cond
       (= tag :newline) [:br]
       (= tag :whitespace) [:div.token " "]
-      (:text node) [:div.token {:class                   (classv [(name tag)
-                                                                  (if decl-scope (str "decl-scope " "decl-scope-" decl-scope))])
-                                :dangerouslySetInnerHTML {:__html (wrap-specials (visualise-shadowing text shadows))}}]
+      (:text node) [:div.token {:class                   (classv
+                                                           (name tag)
+                                                           (if decl-scope (str "decl-scope " "decl-scope-" decl-scope)))
+                                :dangerouslySetInnerHTML {:__html (-> text
+                                                                    wrap-specials
+                                                                    (visualise-shadowing shadows)
+                                                                    (visualize-decl decl?))}}]
       :else ^{:key (id!)} [:div.wrap
                            (for [child (:children node)]
                              ^{:key (id!)} [structural-component child])])))
@@ -95,9 +106,10 @@
   (let [scope (or (:scope tree) nil)
         depth (or (:depth tree) nil)
         tag (:tag tree)]
-    [:div.compound {:class (classv [(name tag)
-                                    (if scope (str "scope " "scope-" scope))
-                                    (if depth (str "depth " "depth-" depth))])}
+    [:div.compound {:class (classv
+                             (name tag)
+                             (if scope (str "scope " "scope-" scope))
+                             (if depth (str "depth " "depth-" depth)))}
      [:div.token.punctuation.vat open]
      (inner-structural-component tree)
      [:div.token.punctuation.vab close]]))
@@ -118,9 +130,9 @@
   [:div.quark-form-group
    (for [form forms]
      ^{:key (id!)} [:div.quark-form
-                    [plain-text-compoent form]
+                    ;[plain-text-compoent form]
                     [structural-component-wrapper (:structure form)]
-                    [debug-component form]
+                    ;[debug-component form]
                     [structure-component form]
                     ;[soup-component form]
                     ])])

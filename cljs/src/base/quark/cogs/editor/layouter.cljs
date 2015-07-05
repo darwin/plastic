@@ -63,7 +63,9 @@
 (defn build-structure [depth scope-id lexical-info node]
   (let [lexical (get lexical-info node)
         new-scope-id (get-in lexical [:scope :id])
-        decl-scope (get-in lexical [:declaration-scope])]
+        decl-scope (get-in lexical [:declaration-scope])
+        shadows (:shadows decl-scope)
+        decl? (:decl? decl-scope)]
     (merge {:tag   (node/tag node)
             :depth depth}
       (if (node/inner? node)
@@ -80,8 +82,11 @@
       (if (not= new-scope-id scope-id)
         {:scope (get-in lexical [:scope :id])})
       (if decl-scope
-        {:decl-scope (:id decl-scope)
-         :shadows    (:shadows decl-scope)}))))
+        {:decl-scope (:id decl-scope)})
+      (if shadows
+       {:shadows    shadows})
+      (if decl?
+        {:decl? decl?}))))
 
 (declare analyze-lexical-info)
 
@@ -159,9 +164,14 @@
 (defn find-declaration [node scope-info]
   (if scope-info
     (let [locals (get-in scope-info [:scope :locals])
-          matching-locals (filter (partial local-valid? node) locals)]
-      (if-not (empty? matching-locals)
-        (assoc (:scope scope-info) :shadows (count matching-locals))
+          matching-locals (filter (partial local-valid? node) locals)
+          hit-count (count matching-locals)
+          best-node (first (last matching-locals))]
+      (if-not (= hit-count 0)
+        (merge (:scope scope-info)
+          {:shadows hit-count}
+          (if (identical? best-node node)
+            {:decl? true}))
         (find-declaration node (:parent-scope scope-info))))))
 
 (defn resolve-var [node scope-info]
