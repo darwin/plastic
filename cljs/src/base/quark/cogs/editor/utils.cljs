@@ -30,6 +30,12 @@
 (defn not-interesting? [loc]
   (node-not-interesting? (zip/node loc)))
 
+(defn layouting-children [node]
+  (filter node-interesting? (node/children node)))
+
+(defn essential-children [node]
+  (filter #(not (or (node/whitespace? %) (node/comment? %))) (node/children node)))
+
 ; perform the given movement while the given predicate returns true
 (defn skip [f p? loc]
   (first
@@ -108,4 +114,13 @@
                 pprint/*print-lines* true]
         (pprint node)))))
 
-
+(defn node-walker [inner-fn leaf-fn reducer child-selector]
+  (let [walker (fn walk [node]
+              (if (node/inner? node)
+                (let [node-results (inner-fn node)
+                      children-results (mapcat walk (child-selector node))
+                      results (apply reducer (concat children-results node-results))]
+                  [results])
+                (leaf-fn node)))]
+    (fn [node]
+      (apply reducer (walker node)))))

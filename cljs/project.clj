@@ -30,6 +30,7 @@
 
   :cljsbuild {:builds [{:id           "dev"
                         :source-paths ["src/base"
+                                       "src/dev"
                                        "checkouts/clojurescript/src/main/cljs"
                                        ;"checkouts/clojurescript/src/main/clojure"
                                        "checkouts/tools.reader/src/main/cljs"

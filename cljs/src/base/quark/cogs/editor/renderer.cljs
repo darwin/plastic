@@ -69,23 +69,24 @@
 
 (defn visualise-shadowing [text shadows]
   (cond
-    (>= shadows 2) (str text "<sub>" shadows "</sub>")      ; shadowing
+    (>= shadows 2) (str text "<sub>" shadows "</sub>")
     :default text))
 
 (defn visualize-decl [text decl?]
   (if decl?
-    (str "<span class=\"decl\">" text "</span>")            ; declaration
+    (str "<span class=\"decl\">" text "</span>")
+    text))
+
+(defn visualize-def-name [text def-name?]
+  (if def-name?
+    (str "<span class=\"def-name\">" text "</span>")
     text))
 
 (defn classv [& v]
   (string/join " " (filter (complement nil?) v)))
 
 (defn inner-structural-component [node]
-  (let [decl-scope (:decl-scope node)
-        tag (:tag node)
-        text (:text node)
-        shadows (:shadows node)
-        decl? (:decl? node)]
+  (let [{:keys [decl-scope tag text shadows decl? def-name?]} node]
     (cond
       (= tag :newline) [:br]
       (= tag :whitespace) [:div.token " "]
@@ -95,7 +96,8 @@
                                 :dangerouslySetInnerHTML {:__html (-> text
                                                                     wrap-specials
                                                                     (visualise-shadowing shadows)
-                                                                    (visualize-decl decl?))}}]
+                                                                    (visualize-decl decl?)
+                                                                    (visualize-def-name def-name?))}}]
       :else ^{:key (id!)} [:div.wrap
                            (for [child (:children node)]
                              ^{:key (id!)} [structural-component child])])))
