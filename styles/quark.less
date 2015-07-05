@@ -8,8 +8,8 @@
 @scope-highlight-base: hsl(207, 100%, 70%);
 @scope-angle: 70;
 
-@depth-base: hsl(0, 0%, 10%);
-@depth-multiplier: 2;
+@depth-base: hsl(0, 0%, 5%);
+@depth-multiplier: 3;
 
 .quark-editor-view {
   font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
@@ -50,6 +50,11 @@
   white-space: pre;
 }
 
+.quark-editor-view .form-group {
+  border-collapse: separate; // allow spacing between cell borders
+  border-spacing: 0 20px;
+}
+
 .quark-editor-view .debug {
   font-size: 9px;
   margin-bottom: 20px;
@@ -63,14 +68,23 @@
   white-space: pre;
 }
 
-.quark-editor-view .structure-state {
+.quark-editor-view .code-debug {
   font-size: 9px;
   margin-bottom: 20px;
   padding: 2px 6px;
-  display: inline-block;
   background-color: #944;
   color: white;
-  float: left;
+  clear: both;
+  border-radius: 4px;
+  white-space: pre;
+}
+
+.quark-editor-view .docs-debug {
+  font-size: 9px;
+  margin-bottom: 20px;
+  padding: 2px 6px;
+  background-color: #449;
+  color: white;
   clear: both;
   border-radius: 4px;
   white-space: pre;
@@ -99,15 +113,43 @@
   border-radius: 2px;
 }
 
-.quark-editor-view .structural {
-  margin-bottom: 20px;
+.quark-editor-view .code {
   padding: 4px;
-  display: inline-block;
+  display: block;
   background-color: #000;
   color: white;
-  float: left;
   clear: both;
-  border-radius: 4px;
+}
+
+.quark-editor-view .docs-cell,
+.quark-editor-view .code-cell {
+  vertical-align: top;
+}
+
+.quark-editor-view .doc {
+  padding: 4px;
+  display: block;
+  background-color: #000;
+  color: #fff;
+  clear: both;
+}
+
+.quark-editor-view .doc .name {
+  text-decoration: underline;
+  margin-bottom: 1em;
+}
+
+.quark-editor-view .doc .docstring {
+  white-space: pre;
+  color: #aaa;
+  margin-left: 30px;
+  padding: 4px 6px;
+  background-color: #111;
+  border-radius: 2px;
+}
+
+.quark-editor-view .doc i {
+  opacity: 0.2;
 }
 
 .quark-editor-view .vat {
@@ -123,6 +165,7 @@
   vertical-align: top;
   white-space: nowrap;
   margin-bottom: 2px;
+  border-radius: 2px;
 }
 
 /*
@@ -166,25 +209,47 @@
   margin-right: 0px;
 }
 
+.quark-editor-view .punctuation.list {
+  opacity: 0.05;
+  //display: none;
+}
+
+
 .quark-editor-view .compound.list > .wrap > .token:first-child {
   //font-weight: bold;
   font-style: italic;
 }
 
+.quark-editor-view .token.keyword {
+  color: hsl(280, 100%, 70%);
+}
+
+// keyword colon
+.quark-editor-view .token.keyword .colon {
+  opacity: 0.2;
+//  display: none;
+}
+
 .quark-editor-view .token.string {
+  color: hsl(130, 100%, 80%);
 }
 
 .quark-editor-view .token.string i {
-  opacity: 0.1;
+  opacity: 0.2;
 }
 
 .quark-editor-view .token .decl {
-  font-weight: bold;
+ font-weight: bold;
 }
 
 .quark-editor-view .token .def-name {
   font-weight: bold;
   text-decoration: underline;
+}
+
+.quark-editor-view .token .def-doc {
+  background-color: black;
+  color: #888;
 }
 
 .quark-editor-view .punctuation {
@@ -196,30 +261,37 @@
 .quark-editor-view .scope {
   border-left: 2px solid;
   padding-left: 20px;
-  border-color: spin(@scope-base, 0*@scope-angle);
 }
 
 .quark-editor-view .decl-scope {
   //text-shadow: 0px 0px 4px;
 }
 
-.makeScopes(@i) when (@i > 0) {
-    @scope: @i - 1;
-
+.makeScope(@scope, @color) {
     .quark-editor-view .scope-@{scope} {
-        border-color: spin(@scope-base, @scope*@scope-angle);
+        border-color: darken(@color, 10);
     }
 
     .quark-editor-view .decl-scope-@{scope} {
-        // text-shadow: 0px 0px 7px spin(@scope-highlight-base, @scope*@scope-angle);
-        color: spin(@scope-base, @scope*@scope-angle);
+        color: @color;
     }
- 
-     // next iteration
-    .makeScopes((@i - 1));
+
+    .quark-editor-view .decl-scope-@{scope} .decl {
+        color: darken(@color, 10);
+    }
 }
- 
-.makeScopes(20);
+
+// purple is keywords
+// green is strings
+// -- other colors are avail
+.makeScope(1, hsl(210, 100%, 80%));
+.makeScope(2, hsl(0, 100%, 80%));
+.makeScope(3, hsl(50, 100%, 80%));
+.makeScope(4, hsl(180, 100%, 80%));
+.makeScope(5, hsl(330, 100%, 80%));
+.makeScope(6, hsl(20, 100%, 80%));
+.makeScope(7, hsl(240, 100%, 80%));
+.makeScope(8, hsl(300, 100%, 80%));
 
 .makeDepths(@i) when (@i > 0) {
     @depth: @i - 1;

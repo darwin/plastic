@@ -34,12 +34,14 @@
     [(if first-symbol-node
        {first-symbol-node {:def-name? true}})
      (if first-string-node
-       {first-string-node {:def-doc? true}})]))
+       {first-string-node {:def-doc? true}})
+     {node {:def?          true
+            :def-name-node first-symbol-node
+            :def-doc-node  first-string-node}}]))
 
 (defn def-info [node]
   (when (is-def? node)
-    (log "!!!" node {node (merge {:def? true} (extract-sym-doc node))})
-    (concat [{node {:def? true}}] (extract-sym-doc node))))
+    (extract-sym-doc node)))
 
 (defn analyze-defs [node info]
   (let [walker (node-walker def-info (fn [] []) helpers/deep-merge essential-children)]

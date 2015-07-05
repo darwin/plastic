@@ -33,6 +33,12 @@
 (defn layouting-children [node]
   (filter node-interesting? (node/children node)))
 
+(defn layouting-children-zip [loc]
+  (let [first (zip/down loc)
+        children (take-while (complement nil?)
+                   (iterate z/right first))]
+    (filter #(node-interesting? (zip/node %)) children)))
+
 (defn essential-children [node]
   (filter #(not (or (node/whitespace? %) (node/comment? %))) (node/children node)))
 

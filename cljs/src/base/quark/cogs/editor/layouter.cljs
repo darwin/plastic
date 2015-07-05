@@ -13,7 +13,8 @@
             [rewrite-clj.node.stringz :refer [StringNode]]
             [rewrite-clj.node.keyword :refer [KeywordNode]]
             [quark.cogs.editor.analyzer :refer [analyze-full]]
-            [quark.cogs.editor.utils :refer [layouting-children essential-children node-walker node-interesting? leaf-nodes ancestor-count make-path make-zipper collect-all-right]])
+            [quark.cogs.editor.utils :refer [layouting-children-zip layouting-children essential-children node-walker node-interesting? leaf-nodes ancestor-count make-path make-zipper collect-all-right]]
+            [clojure.zip :as z])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [react! dispatch]]
                    [cljs.core.async.macros :refer [go]]))
@@ -65,39 +66,63 @@
     strip-double-quotes
     replace-whitespace-characters))
 
-(defn build-node-layout [depth scope-id analysis node]
-  (let [node-analysis (get analysis node)
-        new-scope-id (get-in node-analysis [:scope :id])
-        decl-scope (get-in node-analysis [:declaration-scope])
-        def-name? (get node-analysis :def-name?)
-        shadows (:shadows decl-scope)
-        decl? (:decl? decl-scope)]
-    (merge {:tag   (node/tag node)
-            :depth depth}
-      (if (node/inner? node)
-        {:children (doall (map (partial build-node-layout (inc depth) new-scope-id analysis) (layouting-children node)))}
-        {:text (node/string node)})
-      (if (node/comment? node)
-        {:tag  :newline
-         :text "\n"})
-      (if (instance? StringNode node)
-        {:text (prepare-string-for-display (node/string node))
-         :tag  "string"})
-      (if (instance? KeywordNode node)
-        {:tag "keyword"})
-      (if (not= new-scope-id scope-id)
-        {:scope new-scope-id})
-      (if def-name?
-        {:def-name? true})
-      (if decl-scope
-        {:decl-scope (:id decl-scope)})
-      (if shadows
-        {:shadows shadows})
-      (if decl?
-        {:decl? decl?}))))
+(defn is-whitespace-or-nl-after-def-doc? [analysis loc]
+  (let [node (zip/node loc)]
+    (if (or (node/whitespace? node) (node/linebreak? node))
+      (let [prev (z/left loc)
+            prev-node (zip/node prev)
+            prev-node-analysis (get analysis prev-node)]
+        (:def-doc? prev-node-analysis)))))
 
-(defn build-layout [analysis node]
-  (build-node-layout 0 nil analysis node))
+(defn build-node-code-tree [depth scope-id analysis loc]
+  (let [node (zip/node loc)
+        node-analysis (get analysis node)
+        new-scope-id (get-in node-analysis [:scope :id])
+        {:keys [declaration-scope def-name? def-doc?]} node-analysis
+        {:keys [shadows decl?]} declaration-scope]
+
+    (if (or def-doc? (is-whitespace-or-nl-after-def-doc? analysis loc))
+      nil
+      (merge
+        {:tag   (node/tag node)
+         :depth depth}
+        (if (node/inner? node)
+          {:children (remove nil? (map (partial build-node-code-tree (inc depth) new-scope-id analysis) (layouting-children-zip loc)))}
+          {:text (node/string node)})
+        (if (node/comment? node)
+          {:tag  :newline
+           :text "\n"})
+        (if (instance? StringNode node)
+          {:text (prepare-string-for-display (node/string node))
+           :tag  :string})
+        (if (instance? KeywordNode node)
+          {:tag :keyword})
+        (if (not= new-scope-id scope-id)
+          {:scope new-scope-id})
+        (if def-name?
+          {:def-name? true})
+        (if declaration-scope
+          {:decl-scope (:id declaration-scope)})
+        (if shadows
+          {:shadows shadows})
+        (if decl?
+          {:decl? decl?})))))
+
+(defn build-code-tree [analysis node]
+  (build-node-code-tree 0 nil analysis node))
+
+(defn doc-item [[node info]]
+  (let [name-node (:def-name-node info)
+        name (if name-node (node/string name-node))
+        doc-node (:def-doc-node info)
+        doc (if doc-node (node/string doc-node))]
+  (merge
+    (if name {:name name})
+    (if doc {:doc (prepare-string-for-display doc)}))))
+
+(defn build-docs-tree [analysis node]
+  (let [docs (filter (fn [[node info]] (:def? info)) analysis)]
+    (map doc-item docs)))
 
 (defn form-layout-info [loc]
   (let [node (zip/node loc)
@@ -105,15 +130,16 @@
                    (analyze-scopes node)
                    (analyze-symbols node)
                    (analyze-defs node))]
-    (log analysis)
+    (log "ANALYSIS:" analysis)
     {:text      (zip/string loc)
      :soup      (build-soup node)
-     :structure (build-layout analysis node)}))
+     :code-tree (build-code-tree analysis loc)
+     :docs-tree (build-docs-tree analysis loc)}))
 
-(defn extract-top-level-form-infos [node]
+(defn prepare-top-level-forms [node]
   (let [loc (make-zipper node)
         right-siblinks (collect-all-right loc)]
-    (doall (map form-layout-info right-siblinks))))
+    (map form-layout-info right-siblinks)))
 
 (defn analyze-with-delay [editor-id delay]
   (go
@@ -122,7 +148,7 @@
 
 (defn layout-editor [editor editor-id]
   (let [parse-tree (get editor :parse-tree)
-        top-level-forms (extract-top-level-form-infos parse-tree)
+        top-level-forms (prepare-top-level-forms parse-tree)
         state {:forms      top-level-forms
                :parse-tree parse-tree}]
     (dispatch :editor-set-layout editor-id state)
