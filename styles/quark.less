@@ -90,6 +90,17 @@
     border-radius: 4px;
     white-space: pre;
   }
+  
+  .headers-debug {
+    font-size: 9px;
+    margin-bottom: 20px;
+    padding: 2px 6px;
+    background-color: #499;
+    color: white;
+    clear: both;
+    border-radius: 4px;
+    white-space: pre;
+  }
 
   .soup {
     margin-bottom: 20px;
@@ -141,18 +152,18 @@
     padding-bottom: 1em;
   }
 
-  .doc .name {
+  .headers-wrapper {
+    background-color: black;
+    clear: both;
+    border-radius: 2px;
   }
-  
-  .doc .name div {
+
+  .header .name div {
     display: inline-block;
     background-color: #888;
     color: #21252b;
     font-weight: bold;
     padding: 4px 12px;
-    position: relative;
-    top: -4px;
-    left: -4px;
     border-radius: 0;
     border-bottom-right-radius: 2px;
     border-top-left-radius: 2px;
@@ -160,7 +171,6 @@
 
   .doc .docstring {
     display: inline-block;
-    margin-top: 1em;
     white-space: pre;
     color: #aaa;
     margin-left: @doc-indent;
@@ -170,7 +180,7 @@
   }
 
   .doc i {
-    opacity: 0.2;
+    opacity: 0.1;
   }
 
   .vat {

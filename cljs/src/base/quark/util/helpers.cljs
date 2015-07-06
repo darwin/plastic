@@ -1,6 +1,6 @@
 (ns quark.util.helpers
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]])
-  (:require [cljs.pprint :as pprint]))
+  (:require [cljs.pprint :as pprint :refer [pprint]]))
 
 (defn deep-merge
   "Recursively merges maps. If keys are not maps, the last value wins."
@@ -28,7 +28,7 @@
 (defmethod clean-dispatch :fn []
   (-write cljs.core/*out* "..."))
 
-(defn print [o]
+(defn nice-print [o]
   (with-out-str
     (pprint/with-pprint-dispatch clean-dispatch
       (binding [pprint/*print-pretty* true

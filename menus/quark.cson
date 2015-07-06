@@ -14,15 +14,19 @@
       'command': 'quark:toggle-plaintext-debug'
     },
     {
-      'label': 'Toggle Code Tree (debug)'
+      'label': 'Toggle Code Render Info (debug)'
       'command': 'quark:toggle-code-debug'
     },
     {
-      'label': 'Toggle Docs Tree (debug)'
+      'label': 'Toggle Docs Render Info (debug)'
       'command': 'quark:toggle-docs-debug'
     },
     {
-      'label': 'Toggle Parser Tree (debug)'
+      'label': 'Toggle Headers Render Info (debug)'
+      'command': 'quark:toggle-headers-debug'
+    },
+    {
+      'label': 'Toggle Parser Data (debug)'
       'command': 'quark:toggle-parser-debug'
     }
   ]

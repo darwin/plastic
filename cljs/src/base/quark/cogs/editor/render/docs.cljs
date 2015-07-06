@@ -5,11 +5,9 @@
                    [reagent.ratom :refer [reaction]]))
 
 (defn doc-component [doc-info]
-  (let [{:keys [name doc]} doc-info]
+  (let [{:keys [doc]} doc-info]
     ^{:key (id!)}
     [:div.doc
-     (if name [:div.name
-               [:div name]])
      (if doc [:div.docstring (raw-html (wrap-specials doc))])]))
 
 (defn docs-component [doc-info-list]
@@ -19,4 +17,4 @@
 
 (defn docs-wrapper-component [form]
   [:div.docs-wrapper
-   [docs-component (:docs-tree form)]])
+   [docs-component (:docs form)]])

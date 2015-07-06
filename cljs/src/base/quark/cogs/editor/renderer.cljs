@@ -1,9 +1,10 @@
 (ns quark.cogs.editor.renderer
   (:require [reagent.core :as reagent]
             [quark.frame.core :refer [register-sub subscribe]]
-            [quark.cogs.editor.render.code :refer [code-wrapper-component]]
+            [quark.cogs.editor.render.headers :refer [headers-wrapper-component]]
             [quark.cogs.editor.render.docs :refer [docs-wrapper-component]]
-            [quark.cogs.editor.render.debug :refer [parser-debug-component plaintext-debug-component docs-debug-component code-debug-component]]
+            [quark.cogs.editor.render.code :refer [code-wrapper-component]]
+            [quark.cogs.editor.render.debug :refer [parser-debug-component plaintext-debug-component docs-debug-component code-debug-component headers-debug-component]]
             [quark.cogs.editor.render.utils :refer [raw-html wrap-specials id! classv]])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [react! dispatch]]
@@ -13,19 +14,22 @@
   (let [settings (subscribe [:settings])]
     (fn [forms]
       (let [{:keys [code-visible docs-visible
-                    docs-debug-visible code-debug-visible plaintext-debug-visible]} @settings]
+                    headers-debug-visible docs-debug-visible code-debug-visible plaintext-debug-visible]} @settings]
         [:table.form-group
          [:tbody
           (for [form forms]
             ^{:key (id!)} [:tr.form
                            [:td.form-cell
                             [:div.form-box
-                             (if plaintext-debug-visible
-                               [plaintext-debug-component form])
+                             [headers-wrapper-component form] ; headers are always visoble
                              (if docs-visible
                                [docs-wrapper-component form])
                              (if code-visible
                                [code-wrapper-component form])
+                             (if plaintext-debug-visible
+                               [plaintext-debug-component form])
+                             (if headers-debug-visible
+                               [headers-debug-component form])
                              (if docs-debug-visible
                                [docs-debug-component form])
                              (if code-debug-visible

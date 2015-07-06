@@ -9,16 +9,20 @@
 
 (defn parser-debug-component [parse-tree]
   [:div.state
-   [:div (helpers/print parse-tree)]])
+   [:div (helpers/nice-print parse-tree)]])
 
 (defn code-debug-component [form]
   [:div.code-debug
-   [:div (helpers/print (:code-tree form))]])
+   [:div (helpers/nice-print (:code form))]])
 
 (defn docs-debug-component [form]
   [:div.docs-debug
-   [:div (helpers/print (:docs-tree form))]])
+   [:div (helpers/nice-print (:docs form))]])
+
+(defn headers-debug-component [form]
+  [:div.headers-debug
+   [:div (helpers/nice-print (:headers form))]])
 
 (defn debug-component [form]
   [:div.debug
-   [:div (helpers/print (:debug form))]])
+   [:div (helpers/nice-print (:debug form))]])

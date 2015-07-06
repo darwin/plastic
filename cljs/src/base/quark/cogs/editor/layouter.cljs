@@ -86,7 +86,7 @@
                          (or (node/linebreak? node) (not (node/whitespace? node)))))]
     (filter interesting? children)))
 
-(defn build-node-code-tree [depth scope-id analysis loc]
+(defn build-node-code-render-info [depth scope-id analysis loc]
   (let [node (zip/node loc)
         node-analysis (get analysis node)
         new-scope-id (get-in node-analysis [:scope :id])
@@ -99,7 +99,7 @@
         {:tag   (node/tag node)
          :depth depth}
         (if (node/inner? node)
-          {:children (remove nil? (map (partial build-node-code-tree (inc depth) new-scope-id analysis) (layout-affecting-children loc)))}
+          {:children (remove nil? (map (partial build-node-code-render-info (inc depth) new-scope-id analysis) (layout-affecting-children loc)))}
           {:text (node/string node)})
         (if (node/comment? node)
           {:tag  :newline
@@ -122,24 +122,30 @@
         (if decl?
           {:decl? decl?})))))
 
-(defn build-code-tree [analysis node]
-  (build-node-code-tree 0 nil analysis node))
+(defn build-code-render-info [analysis node]
+  (build-node-code-render-info 0 nil analysis node))
+
+(defn header-item [[_node info]]
+  (let [name-node (:def-name-node info)
+        name (if name-node (node/string name-node))]
+    (if name
+      {:name name})))
+
+(defn build-headers-render-info [analysis _node]
+  (let [headers (filter (fn [[_node info]] (:def? info)) analysis)]
+    (map header-item headers)))
 
 (defn doc-item [[_node info]]
-  (let [name-node (:def-name-node info)
-        name (if name-node (node/string name-node))
-        doc-node (:def-doc-node info)
+  (let [doc-node (:def-doc-node info)
         doc (if doc-node (node/string doc-node))]
-    (merge
-      (if name {:name name})
-      (if doc {:doc (prepare-string-for-display doc)}))))
+    (if doc {:doc (prepare-string-for-display doc)})))
 
-(defn build-docs-tree [analysis _node]
+(defn build-docs-render-info [analysis _node]
   (let [docs (filter (fn [[_node info]] (:def? info)) analysis)]
     (map doc-item docs)))
 
 (defn debug-print-analysis [node analysis]
-  (group "ANALYSIS of" (:id node) (node/string node))
+  (group "ANALYSIS of" (:id node) "\n" (node/string node))
   (doall (map (fn [[n info]] (log (:id n) (first (string/split (node/string n) #"\s")) info)) (sort (fn [[a _] [b _]] (- (:id a) (:id b))) analysis)))
   (group-end))
 
@@ -151,10 +157,11 @@
                    (analyze-defs node)
                    (analyze-cursors editor))]
     (debug-print-analysis node analysis)
-    {:text      (zip/string loc)
-     :soup      (build-soup node)
-     :code-tree (build-code-tree analysis loc)
-     :docs-tree (build-docs-tree analysis loc)}))
+    {:text    (zip/string loc)
+     :soup    (build-soup node)
+     :code    (build-code-render-info analysis loc)
+     :docs    (build-docs-render-info analysis loc)
+     :headers (build-headers-render-info analysis loc)}))
 
 (defn prepare-top-level-forms [editor]
   (let [node (get editor :parse-tree)

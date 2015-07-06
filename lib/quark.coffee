@@ -25,6 +25,7 @@ module.exports = Quark =
     @addCommands [
       'quark:toggle-docs'
       'quark:toggle-code'
+      'quark:toggle-headers-debug'
       'quark:toggle-docs-debug'
       'quark:toggle-code-debug'
       'quark:toggle-plaintext-debug'

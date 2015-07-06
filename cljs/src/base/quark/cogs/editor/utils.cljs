@@ -1,10 +1,6 @@
 (ns quark.cogs.editor.utils
   (:require [rewrite-clj.zip :as zip]
             [rewrite-clj.node :as node]
-            [rewrite-clj.zip.whitespace :as ws]
-            [quark.cogs.editor.analyzer :refer [analyze-full]]
-            [cljs.pprint :as pprint :refer [pprint]]
-            [clojure.walk :refer [postwalk]]
             [clojure.zip :as z])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 

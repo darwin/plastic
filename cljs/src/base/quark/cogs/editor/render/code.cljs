@@ -72,7 +72,7 @@
   (:text (first (:children node))))
 
 (defn code-wrapper-component [form]
-  (let [node (:code-tree form)
+  (let [node (:code form)
         name (extract-first-child-name node)]
     [:div.code-wrapper.noselect
      [:div.code {:class (if name (str "sexpr-" name))}

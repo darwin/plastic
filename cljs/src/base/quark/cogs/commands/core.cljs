@@ -14,6 +14,9 @@
 (defmethod handle :toggle-docs [_ settings]
   (toggle-setting settings :docs-visible))
 
+(defmethod handle :toggle-headers-debug [_ settings]
+  (toggle-setting settings :headers-debug-visible))
+
 (defmethod handle :toggle-docs-debug [_ settings]
   (toggle-setting settings :docs-debug-visible))
 
