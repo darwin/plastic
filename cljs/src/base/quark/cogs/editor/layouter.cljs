@@ -6,6 +6,7 @@
             [quark.cogs.editor.analysis.scopes :refer [analyze-scopes]]
             [quark.cogs.editor.analysis.symbols :refer [analyze-symbols]]
             [quark.cogs.editor.analysis.defs :refer [analyze-defs]]
+            [quark.cogs.editor.analysis.cursors :refer [analyze-cursors]]
             [quark.dev.formatting :refer [devtools-formatting!]]
             [rewrite-clj.zip :as zip]
             [rewrite-clj.node :as node]
@@ -13,7 +14,7 @@
             [rewrite-clj.node.stringz :refer [StringNode]]
             [rewrite-clj.node.keyword :refer [KeywordNode]]
             [quark.cogs.editor.analyzer :refer [analyze-full]]
-            [quark.cogs.editor.utils :refer [layouting-children-zip layouting-children essential-children node-walker node-interesting? leaf-nodes ancestor-count make-path make-zipper collect-all-right]]
+            [quark.cogs.editor.utils :refer [layouting-children-zip layouting-children essential-children node-walker node-interesting? leaf-nodes ancestor-count loc->path make-zipper collect-all-right]]
             [clojure.zip :as z])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [react! dispatch]]
@@ -24,12 +25,12 @@
     (if (node/comment? node)
       {:tag   :newline
        :depth (ancestor-count loc)
-       :path  (make-path loc)
+       :path  (loc->path loc)
        :text  ("\n")}
       {:string (zip/string loc)
        :tag    (node/tag node)
        :depth  (ancestor-count loc)
-       :path   (make-path loc)})))
+       :path   (loc->path loc)})))
 
 (defn build-soup [node]
   (map item-info (leaf-nodes (make-zipper node))))
@@ -76,7 +77,7 @@
   (let [node (zip/node loc)
         node-analysis (get analysis node)
         new-scope-id (get-in node-analysis [:scope :id])
-        {:keys [declaration-scope def-name? def-doc?]} node-analysis
+        {:keys [declaration-scope def-name? def-doc? cursor]} node-analysis
         {:keys [shadows decl?]} declaration-scope]
 
     (if (or def-doc? (is-whitespace-or-nl-after-def-doc? analysis loc))
@@ -101,6 +102,8 @@
           {:def-name? true})
         (if declaration-scope
           {:decl-scope (:id declaration-scope)})
+        (if cursor
+          {:cursor true})
         (if shadows
           {:shadows shadows})
         (if decl?
@@ -122,22 +125,25 @@
   (let [docs (filter (fn [[_node info]] (:def? info)) analysis)]
     (map doc-item docs)))
 
-(defn form-layout-info [loc]
+(defn form-layout-info [editor loc]
   (let [node (zip/node loc)
         analysis (->> {}
                    (analyze-scopes node)
                    (analyze-symbols node)
-                   (analyze-defs node))]
+                   (analyze-defs node)
+                   (analyze-cursors editor))]
     (log "ANALYSIS:" analysis)
     {:text      (zip/string loc)
      :soup      (build-soup node)
      :code-tree (build-code-tree analysis loc)
      :docs-tree (build-docs-tree analysis loc)}))
 
-(defn prepare-top-level-forms [node]
-  (let [loc (make-zipper node)
+(defn prepare-top-level-forms [editor]
+  (let [node (get editor :parse-tree)
+        top (make-zipper node) ; root "forms" node
+        loc (zip/down top)
         right-siblinks (collect-all-right loc)]
-    (map form-layout-info right-siblinks)))
+    (map (partial form-layout-info editor) right-siblinks)))
 
 (defn analyze-with-delay [editor-id delay]
   (go
@@ -146,7 +152,7 @@
 
 (defn layout-editor [editor editor-id]
   (let [parse-tree (get editor :parse-tree)
-        top-level-forms (prepare-top-level-forms parse-tree)
+        top-level-forms (prepare-top-level-forms editor)
         state {:forms      top-level-forms
                :parse-tree parse-tree}]
     (dispatch :editor-set-layout editor-id state)

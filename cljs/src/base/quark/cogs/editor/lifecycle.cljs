@@ -22,14 +22,22 @@
       (when-let [parsed @parsed-subscription]
         (dispatch :editor-layout editor-id parsed)))))
 
+(defn watch-cursor-changes [editor-id]
+  (let [cursor-subscription (subscribe [:editor-cursor editor-id])]
+    (react!
+      (when-let [_ @cursor-subscription]
+        (dispatch :editor-layout editor-id)))))
+
 (defn wire-editor [editor-id]
   (watch-to-fetch-text editor-id)
   (watch-to-parse-source editor-id)
-  (watch-to-layout editor-id))
+  (watch-to-layout editor-id)
+  (watch-cursor-changes editor-id))
 
 (defn add-editor [editors [id editor-def]]
   (let [editors (if (map? editors) editors {})
-        record {:render-state {:some "render state"}
+        record {:id id
+                :render-state {:some "render state"}
                 :def editor-def}]
     (wire-editor id)
     (assoc editors id record)))

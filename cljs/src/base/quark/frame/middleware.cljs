@@ -48,7 +48,7 @@
   [handler]
   (fn log-ex-handler
     [db v]
-    (warn "re-frame: use of \"log-ex\" is deprecated. You don't need it any more IF YOU ARE USING CHROME 44. Chrome now seems to now produce good stack traces.")
+    ;(warn "re-frame: use of \"log-ex\" is deprecated. You don't need it any more IF YOU ARE USING CHROME 44. Chrome now seems to now produce good stack traces.")
     (try
       (handler db v)
       (catch :default e                                     ;; ooops, handler threw

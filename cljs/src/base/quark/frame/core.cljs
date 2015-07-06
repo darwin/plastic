@@ -41,6 +41,6 @@
 ;; register with "pure" middleware in the correct (left-hand-side) position.
 (defn register-handler
   ([id handler]
-   (handlers/register-base id [pure trim-v] handler))
+   (handlers/register-base id [pure trim-v log-ex] handler))
   ([id middleware handler]
-   (handlers/register-base id [pure trim-v middleware] handler)))
+   (handlers/register-base id [pure trim-v log-ex middleware] handler)))

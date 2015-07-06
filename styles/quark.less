@@ -13,6 +13,10 @@
   line-height: 12px;
 }
 
+.quark-editor-view .quark-editor-root {
+  margin-left: 10px;
+}
+
 .quark-editor-view .noselect {
   -moz-user-select: -moz-none;
   -khtml-user-select: none;
@@ -50,7 +54,7 @@
 
 .quark-editor-view .form-group {
   border-collapse: separate; // allow spacing between cell borders
-  border-spacing: 0 20px;
+  border-spacing: 0 10px;
 }
 
 .quark-editor-view .debug {
@@ -119,7 +123,7 @@
 .quark-editor-view .code {
   padding: 4px;
   color: white;
-  margin-left: @doc-indent+6;
+  margin-left: @doc-indent;
 }
 
 .quark-editor-view .code.sexpr-ns {
@@ -285,6 +289,11 @@
         color: darken(@color, 10);
     }
 }
+
+.quark-editor-view .cursor {
+  background-color: darken(yellow, 20%) !important;
+}
+
 
 // purple is keywords
 // green is strings

@@ -1,17 +1,10 @@
 (ns quark.cogs.editor.analysis.defs
-  (:require [cljs.core.async :refer [<! timeout]]
-            [quark.frame.core :refer [subscribe register-handler]]
-            [quark.util.helpers :as helpers]
-            [quark.cogs.editor.analysis.scopes :refer [analyze-scopes]]
+  (:require [quark.util.helpers :as helpers]
             [rewrite-clj.node :as node]
             [rewrite-clj.node.stringz :refer [StringNode]]
-            [rewrite-clj.node.keyword :refer [KeywordNode]]
             [rewrite-clj.node.token :refer [TokenNode]]
-            [quark.cogs.editor.analyzer :refer [analyze-full]]
-            [quark.cogs.editor.utils :refer [essential-nodes node-children-unwrap-metas layouting-children essential-children node-walker node-interesting? leaf-nodes ancestor-count make-path make-zipper collect-all-right]])
-  (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
-                   [quark.macros.glue :refer [react! dispatch]]
-                   [cljs.core.async.macros :refer [go]]))
+            [quark.cogs.editor.utils :refer [essential-nodes node-children-unwrap-metas essential-children node-walker]])
+  (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 (defn first-child-sexpr [node]
   (first (node/child-sexprs node)))

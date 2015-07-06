@@ -17,18 +17,15 @@
 
 (defn make-zipper [node]
   (if (= (node/tag node) :forms)
-    (let [top (make-zipper* node)]
-      (or (-> top zip/down ws/skip-whitespace) top))
+    (make-zipper* node)
     (recur (node/forms-node [node]))))
 
 ; interesting nodes are non-whitespace nodes and new lines
 (defn node-interesting? [node]
   (or (node/linebreak? node) (not (node/whitespace? node))))
 
-(def node-not-interesting? (complement node-interesting?))
-
-(defn not-interesting? [loc]
-  (node-not-interesting? (zip/node loc)))
+(defn loc-interesting? [loc]
+  (node-interesting? (zip/node loc)))
 
 (defn layouting-children [node]
   (filter node-interesting? (node/children node)))
@@ -45,14 +42,17 @@
 (defn essential-children [node]
   (essential-nodes (node/children node)))
 
-; perform the given movement while the given predicate returns true
-(defn skip [f p? loc]
+(defn valid-loc? [loc]
+  (not (or (nil? loc) (z/end? loc) (zip/end? loc))))
+
+; perform the given movement while the given policy predicate returns true
+(defn skip [movement policy loc]
   (first
-    (drop-while #(if (or (z/end? %) (nil? %)) false (p? %))
-      (iterate f loc))))
+    (drop-while #(and (valid-loc? %) (not (policy %)))
+      (iterate movement loc))))
 
 (defn skip-not-interesting [f loc]
-  (skip f not-interesting? loc))
+  (skip f loc-interesting? loc))
 
 (defn skip-not-interesting-by-moving-left [loc]
   (skip-not-interesting z/left loc))
@@ -75,6 +75,21 @@
 (defn move-next [loc]
   (some-> loc z/next skip-not-interesting-by-moving-right))
 
+(defn zip-right [policy loc]
+  (some->> loc z/right (skip z/right policy)))
+
+(defn zip-left [policy loc]
+  (some->> loc z/left (skip z/left policy)))
+
+(defn zip-down [policy loc]
+  (some->> loc z/down (skip z/right policy)))
+
+(defn zip-up [policy loc]
+  (some->> loc z/up (skip z/left policy)))
+
+(defn zip-next [policy loc]
+  (some->> loc z/next (skip z/right policy)))
+
 (defn leaf-nodes [loc]
   (filter (complement z/branch?)                            ; filter only non-branch nodes
     (take-while (complement z/end?)                         ; take until the :end
@@ -83,24 +98,33 @@
 (defn ancestor-count [loc]
   (dec (count (take-while move-up (iterate move-up loc)))))
 
-(defn left-sibling-count [loc]
-  (count (take-while move-left (iterate move-left loc))))
+(defn left-siblings-count [loc]
+  (count (take-while z/left (iterate z/left loc))))
 
 (defn root? [loc]
   (nil? (move-up loc)))
 
-(defn make-path [loc]
-  (let [parent-loc (move-up loc)]
-    (if (root? parent-loc)
-      []
-      (conj (make-path parent-loc) (left-sibling-count loc)))))
+(defn loc->path [loc]
+  (let [parent-loc (z/up loc)
+        pos (left-siblings-count loc)]
+    (if parent-loc
+      (conj (loc->path parent-loc) pos)
+      [])))
 
-(defn rpath->rloc [rpath rnode]
-  (let [zloc (make-zipper rnode)]
-    ))
+(defn path->loc [path loc]
+  (if (and path (valid-loc? loc))
+    (if (empty? path)
+      loc
+      (let [down-loc (z/down loc)
+            child-loc (nth (iterate z/right down-loc) (first path))]
+        (if (valid-loc? child-loc)
+          (recur (rest path) child-loc))))))
 
 (defn collect-all-right [loc]
   (take-while (complement zip/end?) (iterate zip/right loc)))
+
+(defn collect-all-parents [loc]
+  (take-while valid-loc? (iterate z/up loc)))
 
 (defn- type-dispatcher [obj]
   (cond
@@ -125,12 +149,12 @@
 
 (defn node-walker [inner-fn leaf-fn reducer child-selector]
   (let [walker (fn walk [node]
-              (if (node/inner? node)
-                (let [node-results (inner-fn node)
-                      children-results (mapcat walk (child-selector node))
-                      results (apply reducer (concat children-results node-results))]
-                  [results])
-                (leaf-fn node)))]
+                 (if (node/inner? node)
+                   (let [node-results (inner-fn node)
+                         children-results (mapcat walk (child-selector node))
+                         results (apply reducer (concat children-results node-results))]
+                     [results])
+                   (leaf-fn node)))]
     (fn [node]
       (apply reducer (walker node)))))
 

@@ -1,18 +1,10 @@
 (ns quark.cogs.editor.analysis.scopes
-  (:require [cljs.core.async :refer [<! timeout]]
-            [quark.frame.core :refer [subscribe register-handler]]
-            [quark.schema.paths :as paths]
-            [quark.util.helpers :as helpers]
-            [rewrite-clj.zip :as zip]
+  (:require [quark.util.helpers :as helpers]
             [rewrite-clj.node :as node]
-            [clojure.string :as string]
             [rewrite-clj.node.stringz :refer [StringNode]]
             [rewrite-clj.node.keyword :refer [KeywordNode]]
-            [quark.cogs.editor.analyzer :refer [analyze-full]]
-            [quark.cogs.editor.utils :refer [essential-children node-walker node-interesting? leaf-nodes ancestor-count make-path make-zipper collect-all-right]])
-  (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
-                   [quark.macros.glue :refer [react! dispatch]]
-                   [cljs.core.async.macros :refer [go]]))
+            [quark.cogs.editor.utils :refer [essential-children]])
+  (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 (defonce ^:dynamic scope-id 0)
 
@@ -23,10 +15,10 @@
 (declare analyze-scope)
 
 (def scope-openers
-  {'defn :params
+  {'defn  :params
    'defn- :params
-   'fn   :params
-   'let  :pairs})
+   'fn    :params
+   'let   :pairs})
 
 (defn filter-non-args [arg-nodes]
   (let [arg? (fn [[node _]]

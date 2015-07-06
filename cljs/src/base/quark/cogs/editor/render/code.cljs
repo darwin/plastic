@@ -29,13 +29,16 @@
   (string/replace text #":" "<span class=\"colon\">:</span>"))
 
 (defn code-element-component [node]
-  (let [{:keys [decl-scope tag text shadows decl? def-name? def-doc?]} node]
+  (let [{:keys [decl-scope tag text shadows decl? def-name? def-doc? cursor]} node]
     (cond
       (= tag :newline) [:br]
       (= tag :whitespace) [:div.token " "]
       (= tag :keyword) [:div.token.keyword (raw-html (visualise-keyword text))]
       text [:div.token (merge
-                         {:class (classv (name tag) (if decl-scope (str "decl-scope " "decl-scope-" decl-scope)))}
+                         {:class (classv
+                                   (name tag)
+                                   (if decl-scope (str "decl-scope " "decl-scope-" decl-scope))
+                                   (if cursor "cursor"))}
                          (raw-html (-> text
                                      wrap-specials
                                      (visualise-doc def-doc?)
@@ -47,9 +50,10 @@
                              ^{:key (id!)} [code-component child])])))
 
 (defn wrap [open close tree]
-  (let [{:keys [scope depth tag]} tree]
+  (let [{:keys [scope depth tag cursor]} tree]
     [:div.compound {:class (classv
                              (name tag)
+                             (if cursor "cursor")
                              (if scope (str "scope " "scope-" scope))
                              (if depth (str "depth " "depth-" depth)))}
      [:div.token.punctuation.vat {:class (name tag)} open]
