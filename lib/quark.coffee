@@ -22,12 +22,20 @@ module.exports = Quark =
 
     @subscriptions = new CompositeDisposable
 
-    @subscriptions.add atom.commands.add 'atom-workspace', 'quark:toggle': => @toggle()
+    @addCommands [
+      'quark:toggle-docs'
+      'quark:toggle-code'
+    ]
 
   deactivate: ->
     @subscriptions.dispose()
 
   serialize: ->
 
-  toggle: ->
-    console.log 'Quark!'
+  addCommands: (commands) ->
+    handler = (command) =>
+      (event) =>
+        bridge.send "command", command, event
+    
+    for command in commands
+      @subscriptions.add(atom.commands.add 'atom-workspace', command, handler(command))

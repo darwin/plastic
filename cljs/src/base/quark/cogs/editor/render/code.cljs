@@ -64,6 +64,6 @@
     :map (wrap "{" "}" tree)
     (code-element-component tree)))
 
-(defn code-component-wrapper [form]
+(defn code-wrapper-component [form]
   [:div.code
    [code-component (:code-tree form)]])

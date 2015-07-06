@@ -34,7 +34,7 @@ class QuarkEditorView extends ScrollView
     # version: 2
     # uri: @uri
 
-  addCommands: (commands) =>
+  addCommands: (commands) ->
     handler = (command) =>
       (event) =>
         bridge.send "editor-command", @, command, event

@@ -45,6 +45,11 @@
     (dispatch :editor-command editor-id internal-command)
     (.stopPropagation event)))
 
+(defmethod process :command [_ command event]
+  (let [internal-command (keyword (string/replace command #"^quark:" ""))]
+    (dispatch :command internal-command)
+    (.stopPropagation event)))
+
 ; -------------------------------------------------------------------------------------------
 
 (defn ^:export send [& args]

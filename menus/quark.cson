@@ -1,21 +1,30 @@
 # See https://atom.io/docs/latest/hacking-atom-package-word-count#menus for more details
 'context-menu':
-  'atom-text-editor': [
+  '.quark-editor-view': [
     {
-      'label': 'Toggle quark'
-      'command': 'quark:toggle'
+      'label': 'Toggle Code'
+      'command': 'quark:toggle-code'
+    },
+    {
+      'label': 'Toggle Docs'
+      'command': 'quark:toggle-docs'
     }
   ]
 'menu': [
   {
     'label': 'Packages'
     'submenu': [
-      'label': 'quark'
+      'label': 'Quark (ClojureScript)'
       'submenu': [
         {
-          'label': 'Toggle'
-          'command': 'quark:toggle'
+          'label': 'Toggle Code'
+          'command': 'quark:toggle-code'
+        },
+        {
+          'label': 'Toggle Docs'
+          'command': 'quark:toggle-docs'
         }
+        
       ]
     ]
   }

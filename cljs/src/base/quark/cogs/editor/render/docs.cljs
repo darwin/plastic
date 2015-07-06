@@ -16,6 +16,6 @@
    (for [doc-info doc-info-list]
      (doc-component doc-info))])
 
-(defn docs-component-wrapper [form]
+(defn docs-wrapper-component [form]
   [:div.docs
    [docs-component (:docs-tree form)]])

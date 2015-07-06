@@ -8,7 +8,8 @@
 # For more detailed documentation see
 # https://atom.io/docs/latest/behind-atom-keymaps-in-depth
 'atom-workspace':
-  'ctrl-alt-o': 'quark:toggle'
+  'ctrl-alt-c': 'quark:toggle-code'
+  'ctrl-alt-d': 'quark:toggle-docs'
   
 '.quark-editor-view':
   'left': 'quark:move-left'

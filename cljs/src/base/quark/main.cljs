@@ -3,6 +3,7 @@
             [quark.onion.core]
             [quark.cogs.boot.core]
             [quark.cogs.editor.core]
+            [quark.cogs.commands.core]
             [quark.db :refer [app-db]])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
