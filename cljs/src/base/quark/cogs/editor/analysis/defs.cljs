@@ -3,16 +3,18 @@
             [rewrite-clj.node :as node]
             [rewrite-clj.node.stringz :refer [StringNode]]
             [rewrite-clj.node.token :refer [TokenNode]]
-            [quark.cogs.editor.utils :refer [essential-nodes node-children-unwrap-metas essential-children node-walker]])
+            [quark.cogs.editor.utils :refer [unwrap-metas node-walker noop]])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 (defn first-child-sexpr [node]
   (first (node/child-sexprs node)))
 
+(defn essential-nodes [nodes]
+  (filter #(not (or (node/whitespace? %) (node/comment? %))) nodes))
+
 (defn is-def? [node]
-  (and
-    (= (node/tag node) :list)
-    (re-find #"^def" (str (first-child-sexpr node)))))
+  {:pre  [(= (node/tag node) :list)]}
+  (re-find #"^def" (str (first-child-sexpr node))))
 
 (defn string-node? [node]
   (instance? StringNode node))
@@ -21,7 +23,7 @@
   (instance? TokenNode node))
 
 (defn extract-sym-doc [node]
-  (let [children (essential-nodes (node-children-unwrap-metas node))
+  (let [children (essential-nodes (unwrap-metas (node/children node)))
         first-string-node (first (filter string-node? children))
         first-symbol-node (first (rest (filter symbol-node? children)))]
     [(if first-symbol-node
@@ -36,6 +38,9 @@
   (when (is-def? node)
     (extract-sym-doc node)))
 
+(defn list-children [node]
+  (filter #(= (node/tag %) :list) (node/children node)))
+
 (defn analyze-defs [node info]
-  (let [walker (node-walker def-info (fn [] []) helpers/deep-merge essential-children)]
+  (let [walker (node-walker def-info noop helpers/deep-merge list-children)]
     (helpers/deep-merge info (walker node))))

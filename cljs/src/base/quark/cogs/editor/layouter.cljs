@@ -14,26 +14,30 @@
             [rewrite-clj.node.stringz :refer [StringNode]]
             [rewrite-clj.node.keyword :refer [KeywordNode]]
             [quark.cogs.editor.analyzer :refer [analyze-full]]
-            [quark.cogs.editor.utils :refer [layouting-children-zip layouting-children essential-children node-walker node-interesting? leaf-nodes ancestor-count loc->path make-zipper collect-all-right]]
+            [quark.cogs.editor.utils :refer [ancestor-count loc->path leaf-nodes make-zipper collect-all-right]]
             [clojure.zip :as z])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [react! dispatch]]
                    [cljs.core.async.macros :refer [go]]))
 
+(defn soup-movement-policy [loc]
+  (let [node (zip/node loc)]
+    (not (or (node/whitespace? node) (node/comment? node)))))
+
 (defn item-info [loc]
   (let [node (zip/node loc)]
     (if (node/comment? node)
       {:tag   :newline
-       :depth (ancestor-count loc)
+       :depth (ancestor-count soup-movement-policy loc)
        :path  (loc->path loc)
        :text  ("\n")}
       {:string (zip/string loc)
        :tag    (node/tag node)
-       :depth  (ancestor-count loc)
+       :depth  (ancestor-count soup-movement-policy loc)
        :path   (loc->path loc)})))
 
 (defn build-soup [node]
-  (map item-info (leaf-nodes (make-zipper node))))
+  (map item-info (leaf-nodes soup-movement-policy (make-zipper node))))
 
 (defn strip-double-quotes [s]
   (-> s
@@ -73,6 +77,15 @@
             prev-node-analysis (get analysis prev-node)]
         (:def-doc? prev-node-analysis)))))
 
+(defn layout-affecting-children [loc]
+  (let [first (zip/down loc)
+        children (take-while (complement nil?)
+                   (iterate z/right first))
+        interesting? (fn [loc]
+                       (let [node (zip/node loc)]
+                         (or (node/linebreak? node) (not (node/whitespace? node)))))]
+    (filter interesting? children)))
+
 (defn build-node-code-tree [depth scope-id analysis loc]
   (let [node (zip/node loc)
         node-analysis (get analysis node)
@@ -86,7 +99,7 @@
         {:tag   (node/tag node)
          :depth depth}
         (if (node/inner? node)
-          {:children (remove nil? (map (partial build-node-code-tree (inc depth) new-scope-id analysis) (layouting-children-zip loc)))}
+          {:children (remove nil? (map (partial build-node-code-tree (inc depth) new-scope-id analysis) (layout-affecting-children loc)))}
           {:text (node/string node)})
         (if (node/comment? node)
           {:tag  :newline
@@ -117,13 +130,18 @@
         name (if name-node (node/string name-node))
         doc-node (:def-doc-node info)
         doc (if doc-node (node/string doc-node))]
-  (merge
-    (if name {:name name})
-    (if doc {:doc (prepare-string-for-display doc)}))))
+    (merge
+      (if name {:name name})
+      (if doc {:doc (prepare-string-for-display doc)}))))
 
 (defn build-docs-tree [analysis _node]
   (let [docs (filter (fn [[_node info]] (:def? info)) analysis)]
     (map doc-item docs)))
+
+(defn debug-print-analysis [node analysis]
+  (group "ANALYSIS of" (:id node) (node/string node))
+  (doall (map (fn [[n info]] (log (:id n) (first (string/split (node/string n) #"\s")) info)) (sort (fn [[a _] [b _]] (- (:id a) (:id b))) analysis)))
+  (group-end))
 
 (defn form-layout-info [editor loc]
   (let [node (zip/node loc)
@@ -132,7 +150,7 @@
                    (analyze-symbols node)
                    (analyze-defs node)
                    (analyze-cursors editor))]
-    (log "ANALYSIS:" analysis)
+    (debug-print-analysis node analysis)
     {:text      (zip/string loc)
      :soup      (build-soup node)
      :code-tree (build-code-tree analysis loc)
@@ -140,7 +158,7 @@
 
 (defn prepare-top-level-forms [editor]
   (let [node (get editor :parse-tree)
-        top (make-zipper node) ; root "forms" node
+        top (make-zipper node)                              ; root "forms" node
         loc (zip/down top)
         right-siblinks (collect-all-right loc)]
     (map (partial form-layout-info editor) right-siblinks)))

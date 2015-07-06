@@ -1,5 +1,6 @@
 (ns quark.cogs.editor.render.debug
-  (:require [quark.cogs.editor.utils :as utils])
+  (:require [quark.cogs.editor.utils :as utils]
+            [quark.util.helpers :as helpers])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 (defn plaintext-debug-component [form]
@@ -8,16 +9,16 @@
 
 (defn parser-debug-component [parse-tree]
   [:div.state
-   [:div (utils/print-node parse-tree)]])
+   [:div (helpers/print parse-tree)]])
 
 (defn code-debug-component [form]
   [:div.code-debug
-   [:div (utils/print-node (:code-tree form))]])
+   [:div (helpers/print (:code-tree form))]])
 
 (defn docs-debug-component [form]
   [:div.docs-debug
-   [:div (utils/print-node (:docs-tree form))]])
+   [:div (helpers/print (:docs-tree form))]])
 
 (defn debug-component [form]
   [:div.debug
-   [:div (utils/print-node (:debug form))]])
+   [:div (helpers/print (:debug form))]])

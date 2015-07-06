@@ -1,9 +1,6 @@
 (ns quark.cogs.editor.analysis.scopes
   (:require [quark.util.helpers :as helpers]
-            [rewrite-clj.node :as node]
-            [rewrite-clj.node.stringz :refer [StringNode]]
-            [rewrite-clj.node.keyword :refer [KeywordNode]]
-            [quark.cogs.editor.utils :refer [essential-children]])
+            [rewrite-clj.node :as node])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 (defonce ^:dynamic scope-id 0)
@@ -11,8 +8,6 @@
 (defn next-scope-id! []
   (set! scope-id (inc scope-id))
   scope-id)
-
-(declare analyze-scope)
 
 (def scope-openers
   {'defn  :params
@@ -54,21 +49,23 @@
       {:id     (next-scope-id!)
        :locals (collect-params node opener-type)})))
 
-(defn child-scopes [scope node]
-  (if (node/inner? node)
-    (let [res (map (partial analyze-scope scope) (essential-children node))]
-      (apply merge res))
-    {}))
+(defn scope-related-nodes [nodes]
+  (remove #(or (node/whitespace? %) (node/comment? %)) nodes))
 
 (defn analyze-scope [scope-info node]
-  (if-let [new-scope (node-scope node)]
-    (let [new-scope-info {:scope new-scope :parent-scope scope-info}]
+  (let [child-scopes (fn [scope node]
+                       (if (node/inner? node)
+                         (let [res (map (partial analyze-scope scope) (scope-related-nodes (node/children node)))]
+                           (apply merge res))
+                         {}))]
+    (if-let [new-scope (node-scope node)]
+      (let [new-scope-info {:scope new-scope :parent-scope scope-info}]
+        (merge
+          {node new-scope-info}
+          (child-scopes new-scope-info node)))
       (merge
-        {node new-scope-info}
-        (child-scopes new-scope-info node)))
-    (merge
-      {node scope-info}
-      (child-scopes scope-info node))))
+        {node scope-info}
+        (child-scopes scope-info node)))))
 
 (defn analyze-scopes [node info]
   (binding [scope-id 0]

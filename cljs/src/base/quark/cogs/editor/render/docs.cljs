@@ -8,7 +8,8 @@
   (let [{:keys [name doc]} doc-info]
     ^{:key (id!)}
     [:div.doc
-     (if name [:div.name name])
+     (if name [:div.name
+               [:div name]])
      (if doc [:div.docstring (raw-html (wrap-specials doc))])]))
 
 (defn docs-component [doc-info-list]

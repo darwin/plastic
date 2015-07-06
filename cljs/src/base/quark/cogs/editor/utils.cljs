@@ -20,60 +20,14 @@
     (make-zipper* node)
     (recur (node/forms-node [node]))))
 
-; interesting nodes are non-whitespace nodes and new lines
-(defn node-interesting? [node]
-  (or (node/linebreak? node) (not (node/whitespace? node))))
-
-(defn loc-interesting? [loc]
-  (node-interesting? (zip/node loc)))
-
-(defn layouting-children [node]
-  (filter node-interesting? (node/children node)))
-
-(defn layouting-children-zip [loc]
-  (let [first (zip/down loc)
-        children (take-while (complement nil?)
-                   (iterate z/right first))]
-    (filter #(node-interesting? (zip/node %)) children)))
-
-(defn essential-nodes [nodes]
-  (filter #(not (or (node/whitespace? %) (node/comment? %))) nodes))
-
-(defn essential-children [node]
-  (essential-nodes (node/children node)))
-
 (defn valid-loc? [loc]
-  (not (or (nil? loc) (z/end? loc) (zip/end? loc))))
+  (not (or (nil? loc) (z/end? loc) (zip/end? loc))))        ; why is zip/end? doing it differently than z/end?
 
 ; perform the given movement while the given policy predicate returns true
 (defn skip [movement policy loc]
   (first
     (drop-while #(and (valid-loc? %) (not (policy %)))
       (iterate movement loc))))
-
-(defn skip-not-interesting [f loc]
-  (skip f loc-interesting? loc))
-
-(defn skip-not-interesting-by-moving-left [loc]
-  (skip-not-interesting z/left loc))
-
-(defn skip-not-interesting-by-moving-right [loc]
-  (skip-not-interesting z/right loc))
-
-(defn move-right [loc]
-  (some-> loc z/right skip-not-interesting-by-moving-right))
-
-(defn move-left [loc]
-  (some-> loc z/left skip-not-interesting-by-moving-left))
-
-(defn move-down [loc]
-  (some-> loc z/down skip-not-interesting-by-moving-right))
-
-(defn move-up [loc]
-  (some-> loc z/up skip-not-interesting-by-moving-left))
-
-(defn move-next [loc]
-  (some-> loc z/next skip-not-interesting-by-moving-right))
 
 (defn zip-right [policy loc]
   (some->> loc z/right (skip z/right policy)))
@@ -90,19 +44,16 @@
 (defn zip-next [policy loc]
   (some->> loc z/next (skip z/right policy)))
 
-(defn leaf-nodes [loc]
+(defn leaf-nodes [policy loc]
   (filter (complement z/branch?)                            ; filter only non-branch nodes
-    (take-while (complement z/end?)                         ; take until the :end
-      (iterate move-next loc))))
+    (take-while valid-loc?                                  ; take until the :end
+      (iterate (partial zip-next policy) loc))))
 
-(defn ancestor-count [loc]
-  (dec (count (take-while move-up (iterate move-up loc)))))
+(defn ancestor-count [policy loc]
+  (dec (count (take-while valid-loc? (iterate (partial zip-up policy) loc)))))
 
 (defn left-siblings-count [loc]
   (count (take-while z/left (iterate z/left loc))))
-
-(defn root? [loc]
-  (nil? (move-up loc)))
 
 (defn loc->path [loc]
   (let [parent-loc (z/up loc)
@@ -126,26 +77,7 @@
 (defn collect-all-parents [loc]
   (take-while valid-loc? (iterate z/up loc)))
 
-(defn- type-dispatcher [obj]
-  (cond
-    (fn? obj) :fn
-    :default :default))
-
-(defmulti clean-dispatch type-dispatcher)
-
-(defmethod clean-dispatch :default [thing]
-  (pprint/simple-dispatch thing))
-
-(defmethod clean-dispatch :fn []
-  (-write cljs.core/*out* "..."))
-
-(defn print-node [node]
-  (with-out-str
-    (pprint/with-pprint-dispatch clean-dispatch
-      (binding [pprint/*print-pretty* true
-                pprint/*print-suppress-namespaces* true
-                pprint/*print-lines* true]
-        (pprint node)))))
+(def noop (fn [] []))
 
 (defn node-walker [inner-fn leaf-fn reducer child-selector]
   (let [walker (fn walk [node]
@@ -158,10 +90,9 @@
     (fn [node]
       (apply reducer (walker node)))))
 
-(defn node-children-unwrap-metas [node]
-  (let [children (node/children node)
-        unwrap-meta-node (fn [node]
+(defn unwrap-metas [nodes]
+  (let [unwrap-meta-node (fn [node]
                            (if (= (node/tag node) :meta)
-                             (node-children-unwrap-metas node)
+                             (unwrap-metas (node/children node))
                              [node]))]
-    (mapcat unwrap-meta-node children)))
+    (mapcat unwrap-meta-node nodes)))

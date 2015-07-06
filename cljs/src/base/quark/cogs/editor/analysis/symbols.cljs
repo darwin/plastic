@@ -1,9 +1,5 @@
 (ns quark.cogs.editor.analysis.symbols
-  (:require [rewrite-clj.node :as node]
-            [rewrite-clj.node.stringz :refer [StringNode]]
-            [rewrite-clj.node.keyword :refer [KeywordNode]]
-            [quark.cogs.editor.analyzer :refer [analyze-full]]
-            [quark.cogs.editor.utils :refer []])
+  (:require [rewrite-clj.node :as node])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 (defn matching-local? [node [decl-node after-id]]
