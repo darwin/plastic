@@ -8,9 +8,6 @@
 @scope-highlight-base: hsl(207, 100%, 70%);
 @scope-angle: 70;
 
-@depth-base: hsl(0, 0%, 5%);
-@depth-multiplier: 3;
-
 .quark-editor-view {
   font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
   font-size: 13px;
@@ -136,10 +133,10 @@
 
 .quark-editor-view .doc .name {
   text-decoration: underline;
-  margin-bottom: 1em;
 }
 
 .quark-editor-view .doc .docstring {
+  margin-top: 1em;
   white-space: pre;
   color: #aaa;
   margin-left: 30px;
@@ -293,14 +290,43 @@
 .makeScope(7, hsl(240, 100%, 80%));
 .makeScope(8, hsl(300, 100%, 80%));
 
-.makeDepths(@i) when (@i > 0) {
-    @depth: @i - 1;
+@scope-color-shift: 20;
+
+.makeScope( 9, hsl(210+@scope-color-shift, 100%, 80%));
+.makeScope(10, hsl(0+@scope-color-shift, 100%, 80%));
+.makeScope(11, hsl(50+@scope-color-shift, 100%, 80%));
+.makeScope(12, hsl(180+@scope-color-shift, 100%, 80%));
+.makeScope(13, hsl(330+@scope-color-shift, 100%, 80%));
+.makeScope(14, hsl(20+@scope-color-shift, 100%, 80%));
+.makeScope(15, hsl(240+@scope-color-shift, 100%, 80%));
+.makeScope(16, hsl(300+@scope-color-shift, 100%, 80%));
+
+@depth-base1: hsl(0,  0%,   5%);
+@depth-base2: hsl(0,  0%,  40%);
+@depth-base3: hsl(200, 50%, 5%);
+@depth-base4: hsl(200, 50%, 30%);
+@depth-base5: hsl(0, 50%,  5%);
+@depth-base6: hsl(0, 50%, 30%);
+@depth-multiplier: 3;
+
+@depth-steps: 10;
+@depth-increment: (100 / @depth-steps);
+
+.makeDepths(@start, @end, @base-index, @i) when (@i > 0) {
+    @depth: @base-index + @i - 1;
 
     .quark-editor-view .depth-@{depth} {
-        background-color: lighten(@depth-base, percentage((@depth*@depth-multiplier)/100));
+      background-color: mix(@start, @end, (@depth-steps - @i)*@depth-increment);
+      //background-color: spin(hsl(210, 100%, 80%), @i*);
+      //background-color: lighten(@color, percentage((@i*@depth-multiplier)/100));
     }
 
-    .makeDepths((@i - 1));
+    .makeDepths(@start, @end, @base-index, (@i - 1));
 }
  
-.makeDepths(20);
+.makeDepths(@depth-base1, @depth-base2, 0, @depth-steps);
+.makeDepths(@depth-base2, @depth-base3, 1*@depth-steps, @depth-steps);
+.makeDepths(@depth-base3, @depth-base4, 2*@depth-steps, @depth-steps);
+.makeDepths(@depth-base4, @depth-base5, 3*@depth-steps, @depth-steps);
+.makeDepths(@depth-base5, @depth-base6, 4*@depth-steps, @depth-steps);
+

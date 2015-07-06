@@ -19,8 +19,6 @@
                    [quark.macros.glue :refer [react! dispatch]]
                    [cljs.core.async.macros :refer [go]]))
 
-(devtools-formatting!)
-
 (defn item-info [loc]
   (let [node (zip/node loc)]
     (if (node/comment? node)
@@ -111,7 +109,7 @@
 (defn build-code-tree [analysis node]
   (build-node-code-tree 0 nil analysis node))
 
-(defn doc-item [[node info]]
+(defn doc-item [[_node info]]
   (let [name-node (:def-name-node info)
         name (if name-node (node/string name-node))
         doc-node (:def-doc-node info)
@@ -120,8 +118,8 @@
     (if name {:name name})
     (if doc {:doc (prepare-string-for-display doc)}))))
 
-(defn build-docs-tree [analysis node]
-  (let [docs (filter (fn [[node info]] (:def? info)) analysis)]
+(defn build-docs-tree [analysis _node]
+  (let [docs (filter (fn [[_node info]] (:def? info)) analysis)]
     (map doc-item docs)))
 
 (defn form-layout-info [loc]
