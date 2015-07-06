@@ -64,6 +64,12 @@
     :map (wrap "{" "}" tree)
     (code-element-component tree)))
 
+(defn extract-first-child-name [node]
+  (:text (first (:children node))))
+
 (defn code-wrapper-component [form]
-  [:div.code
-   [code-component (:code-tree form)]])
+  (let [node (:code-tree form)
+        name (extract-first-child-name node)]
+    [:div.code-wrapper
+     [:div.code {:class (if name (str "sexpr-" name))}
+      [code-component node]]]))

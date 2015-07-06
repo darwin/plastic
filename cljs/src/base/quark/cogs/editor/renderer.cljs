@@ -16,22 +16,22 @@
         (log "R!" code-visible docs-visible forms)
         [:table.form-group
          [:tbody
-         (for [form forms]
-           ^{:key (id!)} [:tr.form
-                          ;[plain-text-component form]
+          (for [form forms]
+            ^{:key (id!)} [:tr.form
+                           ;[plain-text-component form]
 
-                          [:td.docs-cell
-                           (if docs-visible
-                             [docs-wrapper-component form])]
-                          [:td.code-cell
-                           (if code-visible
-                             [code-wrapper-component form])]
+                           [:td.form-cell
+                            [:div.form-box
+                             (if docs-visible
+                               [docs-wrapper-component form])
+                             (if code-visible
+                               [code-wrapper-component form])
+                             [docs-debug-component form]
+                             [code-debug-component form]]]
 
-                          ;[docs-debug-component form]
-                          ;[code-debug-component form]
-                          ;[debug-component form]
-                          ;[soup-component form]
-                          ])]]))))
+                           ;[debug-component form]
+                           ;[soup-component form]
+                           ])]]))))
 
 (defn editor-root-component [editor-id]
   (let [state (subscribe [:editor-render-state editor-id])]

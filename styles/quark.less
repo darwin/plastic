@@ -4,9 +4,7 @@
 // for a full listing of what's available.
 @import "ui-variables";
 
-@scope-base: hsl(207, 100%, 70%);
-@scope-highlight-base: hsl(207, 100%, 70%);
-@scope-angle: 70;
+@doc-indent: 60px;
 
 .quark-editor-view {
   font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
@@ -110,25 +108,31 @@
   border-radius: 2px;
 }
 
-.quark-editor-view .code {
-  padding: 4px;
-  display: block;
-  background-color: #000;
-  color: white;
-  clear: both;
+.quark-editor-view .form-box {
+  background-color: black;
+  border-radius: 2px;
 }
 
-.quark-editor-view .docs-cell,
-.quark-editor-view .code-cell {
+.quark-editor-view .code {
+  padding: 4px;
+  color: white;
+  margin-left: @doc-indent+6;
+}
+
+.quark-editor-view .code.sexpr-ns {
+  margin-left: 0;
+}
+
+.quark-editor-view .form-cell {
   vertical-align: top;
 }
 
 .quark-editor-view .doc {
   padding: 4px;
   display: block;
-  background-color: #000;
   color: #fff;
   clear: both;
+  padding-bottom: 1em;
 }
 
 .quark-editor-view .doc .name {
@@ -136,12 +140,13 @@
 }
 
 .quark-editor-view .doc .docstring {
+  display: inline-block;
   margin-top: 1em;
   white-space: pre;
   color: #aaa;
-  margin-left: 30px;
+  margin-left: @doc-indent;
   padding: 4px 6px;
-  background-color: #111;
+  background-color: #161616;
   border-radius: 2px;
 }
 
@@ -217,8 +222,8 @@
   font-style: italic;
 }
 
-.quark-editor-view .token.keyword {
-  color: hsl(280, 100%, 70%);
+.quark-editor-view .token.bold {
+  color: hsl(280, 50%, 80%);
 }
 
 // keyword colon

@@ -17,5 +17,5 @@
      (doc-component doc-info))])
 
 (defn docs-wrapper-component [form]
-  [:div.docs
+  [:div.docs-wrapper
    [docs-component (:docs-tree form)]])
