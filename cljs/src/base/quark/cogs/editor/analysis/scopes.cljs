@@ -24,6 +24,7 @@
 
 (def scope-openers
   {'defn :params
+   'defn- :params
    'fn   :params
    'let  :pairs})
 

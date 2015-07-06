@@ -8,7 +8,7 @@
             [rewrite-clj.node.keyword :refer [KeywordNode]]
             [rewrite-clj.node.token :refer [TokenNode]]
             [quark.cogs.editor.analyzer :refer [analyze-full]]
-            [quark.cogs.editor.utils :refer [layouting-children essential-children node-walker node-interesting? leaf-nodes ancestor-count make-path make-zipper collect-all-right]])
+            [quark.cogs.editor.utils :refer [essential-nodes node-children-unwrap-metas layouting-children essential-children node-walker node-interesting? leaf-nodes ancestor-count make-path make-zipper collect-all-right]])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [react! dispatch]]
                    [cljs.core.async.macros :refer [go]]))
@@ -28,7 +28,7 @@
   (instance? TokenNode node))
 
 (defn extract-sym-doc [node]
-  (let [children (essential-children node)
+  (let [children (essential-nodes (node-children-unwrap-metas node))
         first-string-node (first (filter string-node? children))
         first-symbol-node (first (rest (filter symbol-node? children)))]
     [(if first-symbol-node

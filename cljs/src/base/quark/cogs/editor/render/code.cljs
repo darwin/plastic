@@ -70,6 +70,6 @@
 (defn code-wrapper-component [form]
   (let [node (:code-tree form)
         name (extract-first-child-name node)]
-    [:div.code-wrapper
+    [:div.code-wrapper.noselect
      [:div.code {:class (if name (str "sexpr-" name))}
       [code-component node]]]))

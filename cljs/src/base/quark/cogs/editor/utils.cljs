@@ -39,8 +39,11 @@
                    (iterate z/right first))]
     (filter #(node-interesting? (zip/node %)) children)))
 
+(defn essential-nodes [nodes]
+  (filter #(not (or (node/whitespace? %) (node/comment? %))) nodes))
+
 (defn essential-children [node]
-  (filter #(not (or (node/whitespace? %) (node/comment? %))) (node/children node)))
+  (essential-nodes (node/children node)))
 
 ; perform the given movement while the given predicate returns true
 (defn skip [f p? loc]
@@ -130,3 +133,11 @@
                 (leaf-fn node)))]
     (fn [node]
       (apply reducer (walker node)))))
+
+(defn node-children-unwrap-metas [node]
+  (let [children (node/children node)
+        unwrap-meta-node (fn [node]
+                           (if (= (node/tag node) :meta)
+                             (node-children-unwrap-metas node)
+                             [node]))]
+    (mapcat unwrap-meta-node children)))
