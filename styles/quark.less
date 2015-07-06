@@ -11,339 +11,322 @@
   font-size: 13px;
   overflow: auto;
   line-height: 12px;
-}
 
-.quark-editor-view .quark-editor-root {
-  margin-left: 10px;
-}
+  .root {
+    margin-left: 10px;
+  }
 
-.quark-editor-view .noselect {
-  -moz-user-select: -moz-none;
-  -khtml-user-select: none;
-  -webkit-user-select: none;
-}
+  .noselect {
+    -moz-user-select: -moz-none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+  }
 
-.quark-editor-view sub {
-  font-size: 8px;
-}
+  sub {
+    font-size: 8px;
+  }
 
-.quark-editor-view .fancy {
-  margin-bottom: 20px;
-  padding: 2px 6px;
-  display: inline-block;
-  background-color: #444;
-  color: white;
-  white-space: pre;
-  float: left;
-  clear: both;
-  border-radius: 4px;
-}
+  .fancy {
+    margin-bottom: 20px;
+    padding: 2px 6px;
+    display: inline-block;
+    background-color: #444;
+    color: white;
+    white-space: pre;
+    float: left;
+    clear: both;
+    border-radius: 4px;
+  }
 
-.quark-editor-view .state {
-  font-size: 9px;
-  margin-bottom: 20px;
-  padding: 2px 6px;
-  display: inline-block;
-  background-color: #494;
-  color: white;
-  float: left;
-  clear: both;
-  border-radius: 4px;
-  white-space: pre;
-}
+  .state {
+    font-size: 9px;
+    margin-bottom: 20px;
+    padding: 2px 6px;
+    display: inline-block;
+    background-color: #494;
+    color: white;
+    float: left;
+    clear: both;
+    border-radius: 4px;
+    white-space: pre;
+  }
 
-.quark-editor-view .form-group {
-  border-collapse: separate; // allow spacing between cell borders
-  border-spacing: 0 10px;
-}
+  .form-group {
+    border-collapse: separate; // allow spacing between cell borders
+    border-spacing: 0 10px;
+  }
 
-.quark-editor-view .debug {
-  font-size: 9px;
-  margin-bottom: 20px;
-  padding: 2px 6px;
-  display: inline-block;
-  background-color: #449;
-  color: white;
-  float: left;
-  clear: both;
-  border-radius: 4px;
-  white-space: pre;
-}
+  .debug {
+    font-size: 9px;
+    margin-bottom: 20px;
+    padding: 2px 6px;
+    display: inline-block;
+    background-color: #449;
+    color: white;
+    float: left;
+    clear: both;
+    border-radius: 4px;
+    white-space: pre;
+  }
 
-.quark-editor-view .code-debug {
-  font-size: 9px;
-  margin-bottom: 20px;
-  padding: 2px 6px;
-  background-color: #944;
-  color: white;
-  clear: both;
-  border-radius: 4px;
-  white-space: pre;
-}
+  .code-debug {
+    font-size: 9px;
+    margin-bottom: 20px;
+    padding: 2px 6px;
+    background-color: #944;
+    color: white;
+    clear: both;
+    border-radius: 4px;
+    white-space: pre;
+  }
 
-.quark-editor-view .docs-debug {
-  font-size: 9px;
-  margin-bottom: 20px;
-  padding: 2px 6px;
-  background-color: #449;
-  color: white;
-  clear: both;
-  border-radius: 4px;
-  white-space: pre;
-}
+  .docs-debug {
+    font-size: 9px;
+    margin-bottom: 20px;
+    padding: 2px 6px;
+    background-color: #449;
+    color: white;
+    clear: both;
+    border-radius: 4px;
+    white-space: pre;
+  }
 
-.quark-editor-view .soup {
-  margin-bottom: 20px;
-  padding: 2px;
-  padding-top: 4px;
-  padding-left: 4px;
-  display: inline-block;
-  background-color: #449;
-  color: white;
-  float: left;
-  clear: both;
-  border-radius: 4px;
-}
+  .soup {
+    margin-bottom: 20px;
+    padding: 2px;
+    padding-top: 4px;
+    padding-left: 4px;
+    display: inline-block;
+    background-color: #449;
+    color: white;
+    float: left;
+    clear: both;
+    border-radius: 4px;
+  }
 
-.quark-editor-view .soup-item {
-  margin-bottom: 2px;
-  margin-right: 2px;
-  padding: 1px 4px;
-  display: inline-block;
-  background-color: #944;
-  clear: both;
-  border-radius: 2px;
-}
+  .soup-item {
+    margin-bottom: 2px;
+    margin-right: 2px;
+    padding: 1px 4px;
+    display: inline-block;
+    background-color: #944;
+    clear: both;
+    border-radius: 2px;
+  }
 
-.quark-editor-view .form-box {
-  background-color: black;
-  border-radius: 2px;
-}
+  .form-box {
+    background-color: black;
+    border-radius: 2px;
+  }
 
-.quark-editor-view .code {
-  padding: 4px;
-  color: white;
-  margin-left: @doc-indent;
-}
+  .code {
+    padding: 4px;
+    color: white;
+    margin-left: @doc-indent;
+  }
 
-.quark-editor-view .code.sexpr-ns {
-  margin-left: 0;
-}
+  .code.sexpr-ns {
+    margin-left: 0;
+  }
 
-.quark-editor-view .form-cell {
-  vertical-align: top;
-}
+  .form-cell {
+    vertical-align: top;
+  }
 
-.quark-editor-view .doc {
-  padding: 4px;
-  display: block;
-  color: #fff;
-  clear: both;
-  padding-bottom: 1em;
-}
+  .doc {
+    padding: 4px;
+    display: block;
+    color: #fff;
+    clear: both;
+    padding-bottom: 1em;
+  }
 
-.quark-editor-view .doc .name {
-  text-decoration: underline;
-}
+  .doc .name {
+    text-decoration: underline;
+  }
 
-.quark-editor-view .doc .docstring {
-  display: inline-block;
-  margin-top: 1em;
-  white-space: pre;
-  color: #aaa;
-  margin-left: @doc-indent;
-  padding: 4px 6px;
-  background-color: #161616;
-  border-radius: 2px;
-}
+  .doc .docstring {
+    display: inline-block;
+    margin-top: 1em;
+    white-space: pre;
+    color: #aaa;
+    margin-left: @doc-indent;
+    padding: 4px 6px;
+    background-color: #161616;
+    border-radius: 2px;
+  }
 
-.quark-editor-view .doc i {
-  opacity: 0.2;
-}
+  .doc i {
+    opacity: 0.2;
+  }
 
-.quark-editor-view .vat {
-  vertical-align: top;
-}
+  .vat {
+    vertical-align: top;
+  }
 
-.quark-editor-view .vab {
-  vertical-align: bottom !important;
-}
+  .vab {
+    vertical-align: bottom !important;
+  }
 
-.quark-editor-view .compound {
-  display: inline-block;
-  vertical-align: top;
-  white-space: nowrap;
-  margin-bottom: 2px;
-  border-radius: 2px;
-}
+  .compound {
+    display: inline-block;
+    vertical-align: top;
+    white-space: nowrap;
+    margin-bottom: 2px;
+    border-radius: 2px;
+  }
 
-/*
-.quark-editor-view .compound.list {
-  border-left-style: dashed;
-  border-right-style: dashed;
-}
+  .wrap {
+    display: inline-block;
+    white-space: nowrap;
+    //border: 1px solid red;
+  }
 
-.quark-editor-view .compound.map {
-  border-left-style: dotted;
-  border-right-style: dotted;
-}
+  .token {
+    vertical-align: top;
+    white-space: pre;
+    margin-top: 2px;
+    margin-left: 0px;
+    margin-bottom: 2px;
+    margin-right: 6px;
+    padding: 0px 2px;
+    display: inline-block;
+    border-radius: 2px;
+  }
 
-.quark-editor-view .compound.set {
-  border-left-style: dotted;
-  border-right-style: dotted;
-}
-*/
+  .token.vab,
+  .token.vat,
+  .token:last-child {
+    margin-right: 0px;
+  }
 
-.quark-editor-view .wrap {
-  display: inline-block;
-  white-space: nowrap;
-  //border: 1px solid red;
-}
-
-.quark-editor-view .token {
-  vertical-align: top;
-  white-space: pre;
-  margin-top: 2px;
-  margin-left: 0px;
-  margin-bottom: 2px;
-  margin-right: 6px;
-  padding: 0px 2px;
-  display: inline-block;
-  border-radius: 2px;
-}
-
-.quark-editor-view .token.vab,
-.quark-editor-view .token.vat,
-.quark-editor-view .token:last-child {
-  margin-right: 0px;
-}
-
-.quark-editor-view .punctuation.list {
-  opacity: 0.05;
-  //display: none;
-}
+  .punctuation.list {
+    opacity: 0.05;
+    //display: none;
+  }
 
 
-.quark-editor-view .compound.list > .wrap > .token:first-child {
-  //font-weight: bold;
-  font-style: italic;
-}
+  .compound.list > .wrap > .token:first-child {
+    //*font-weight: bold;
+    font-style: italic;
+  }
 
-.quark-editor-view .token.bold {
-  color: hsl(280, 50%, 80%);
-}
+  .token.bold {
+    color: hsl(280, 50%, 80%);
+  }
 
-// keyword colon
-.quark-editor-view .token.keyword .colon {
-  opacity: 0.2;
-//  display: none;
-}
+  // keyword colon
+  .token.keyword .colon {
+    opacity: 0.2;
+  //  display: none;
+  }
 
-.quark-editor-view .token.string {
-  color: hsl(130, 100%, 80%);
-}
+  .token.string {
+    color: hsl(130, 100%, 80%);
+  }
 
-.quark-editor-view .token.string i {
-  opacity: 0.2;
-}
+  .token.string i {
+    opacity: 0.2;
+  }
 
-.quark-editor-view .token .decl {
- font-weight: bold;
-}
+  .token .decl {
+   font-weight: bold;
+  }
 
-.quark-editor-view .token .def-name {
-  font-weight: bold;
-  text-decoration: underline;
-}
+  .token .def-name {
+    font-weight: bold;
+    text-decoration: underline;
+  }
 
-.quark-editor-view .token .def-doc {
-  background-color: black;
-  color: #888;
-}
+  .token .def-doc {
+    background-color: black;
+    color: #888;
+  }
 
-.quark-editor-view .punctuation {
-  padding: 0px 0px;
-  opacity: 0.4;
-  font-weight: bold;
-}
+  .punctuation {
+    padding: 0px 0px;
+    opacity: 0.4;
+    font-weight: bold;
+  }
 
-.quark-editor-view .scope {
-  border-left: 2px solid;
-  padding-left: 20px;
-}
+  .scope {
+    border-left: 2px solid;
+    padding-left: 20px;
+  }
 
-.quark-editor-view .decl-scope {
-  //text-shadow: 0px 0px 4px;
-}
+  .decl-scope {
+    //text-shadow: 0px 0px 4px;
+  }
 
-.makeScope(@scope, @color) {
-    .quark-editor-view .scope-@{scope} {
-        border-color: darken(@color, 10);
-    }
+  .makeScope(@scope, @color) {
+      .scope-@{scope} {
+          border-color: darken(@color, 10);
+      }
 
-    .quark-editor-view .decl-scope-@{scope} {
-        color: @color;
-    }
+      .decl-scope-@{scope} {
+          color: @color;
+      }
 
-    .quark-editor-view .decl-scope-@{scope} .decl {
-        color: darken(@color, 10);
-    }
-}
+      .decl-scope-@{scope} .decl {
+          color: darken(@color, 10);
+      }
+  }
 
-.quark-editor-view .cursor {
-  background-color: darken(yellow, 20%) !important;
-}
+  // temporary
+  .cursor {
+    background-color: darken(yellow, 20%) !important;
+  }
 
+  // purple is keywords
+  // green is strings
+  // -- other colors are avail
+  .makeScope(1, hsl(210, 100%, 80%));
+  .makeScope(2, hsl(0, 100%, 80%));
+  .makeScope(3, hsl(50, 100%, 80%));
+  .makeScope(4, hsl(180, 100%, 80%));
+  .makeScope(5, hsl(330, 100%, 80%));
+  .makeScope(6, hsl(20, 100%, 80%));
+  .makeScope(7, hsl(240, 100%, 80%));
+  .makeScope(8, hsl(300, 100%, 80%));
 
-// purple is keywords
-// green is strings
-// -- other colors are avail
-.makeScope(1, hsl(210, 100%, 80%));
-.makeScope(2, hsl(0, 100%, 80%));
-.makeScope(3, hsl(50, 100%, 80%));
-.makeScope(4, hsl(180, 100%, 80%));
-.makeScope(5, hsl(330, 100%, 80%));
-.makeScope(6, hsl(20, 100%, 80%));
-.makeScope(7, hsl(240, 100%, 80%));
-.makeScope(8, hsl(300, 100%, 80%));
+  @scope-color-shift: 20;
 
-@scope-color-shift: 20;
+  .makeScope( 9, hsl(210+@scope-color-shift, 100%, 80%));
+  .makeScope(10, hsl(0+@scope-color-shift, 100%, 80%));
+  .makeScope(11, hsl(50+@scope-color-shift, 100%, 80%));
+  .makeScope(12, hsl(180+@scope-color-shift, 100%, 80%));
+  .makeScope(13, hsl(330+@scope-color-shift, 100%, 80%));
+  .makeScope(14, hsl(20+@scope-color-shift, 100%, 80%));
+  .makeScope(15, hsl(240+@scope-color-shift, 100%, 80%));
+  .makeScope(16, hsl(300+@scope-color-shift, 100%, 80%));
 
-.makeScope( 9, hsl(210+@scope-color-shift, 100%, 80%));
-.makeScope(10, hsl(0+@scope-color-shift, 100%, 80%));
-.makeScope(11, hsl(50+@scope-color-shift, 100%, 80%));
-.makeScope(12, hsl(180+@scope-color-shift, 100%, 80%));
-.makeScope(13, hsl(330+@scope-color-shift, 100%, 80%));
-.makeScope(14, hsl(20+@scope-color-shift, 100%, 80%));
-.makeScope(15, hsl(240+@scope-color-shift, 100%, 80%));
-.makeScope(16, hsl(300+@scope-color-shift, 100%, 80%));
+  @depth-base1: hsl(0,  0%,   5%);
+  @depth-base2: hsl(0,  0%,  40%);
+  @depth-base3: hsl(200, 50%, 5%);
+  @depth-base4: hsl(200, 50%, 30%);
+  @depth-base5: hsl(0, 50%,  5%);
+  @depth-base6: hsl(0, 50%, 30%);
+  @depth-multiplier: 3;
 
-@depth-base1: hsl(0,  0%,   5%);
-@depth-base2: hsl(0,  0%,  40%);
-@depth-base3: hsl(200, 50%, 5%);
-@depth-base4: hsl(200, 50%, 30%);
-@depth-base5: hsl(0, 50%,  5%);
-@depth-base6: hsl(0, 50%, 30%);
-@depth-multiplier: 3;
+  @depth-steps: 10;
+  @depth-increment: (100 / @depth-steps);
 
-@depth-steps: 10;
-@depth-increment: (100 / @depth-steps);
+  .makeDepths(@start, @end, @base-index, @i) when (@i > 0) {
+      @depth: @base-index + @i - 1;
 
-.makeDepths(@start, @end, @base-index, @i) when (@i > 0) {
-    @depth: @base-index + @i - 1;
+      .depth-@{depth} {
+        background-color: mix(@start, @end, (@depth-steps - @i)*@depth-increment);
+        //background-color: spin(hsl(210, 100%, 80%), @i*);
+        //background-color: lighten(@color, percentage((@i*@depth-multiplier)/100));
+      }
 
-    .quark-editor-view .depth-@{depth} {
-      background-color: mix(@start, @end, (@depth-steps - @i)*@depth-increment);
-      //background-color: spin(hsl(210, 100%, 80%), @i*);
-      //background-color: lighten(@color, percentage((@i*@depth-multiplier)/100));
-    }
-
-    .makeDepths(@start, @end, @base-index, (@i - 1));
-}
+      .makeDepths(@start, @end, @base-index, (@i - 1));
+  }
  
-.makeDepths(@depth-base1, @depth-base2, 0, @depth-steps);
-.makeDepths(@depth-base2, @depth-base3, 1*@depth-steps, @depth-steps);
-.makeDepths(@depth-base3, @depth-base4, 2*@depth-steps, @depth-steps);
-.makeDepths(@depth-base4, @depth-base5, 3*@depth-steps, @depth-steps);
-.makeDepths(@depth-base5, @depth-base6, 4*@depth-steps, @depth-steps);
+  .makeDepths(@depth-base1, @depth-base2, 0, @depth-steps);
+  .makeDepths(@depth-base2, @depth-base3, 1*@depth-steps, @depth-steps);
+  .makeDepths(@depth-base3, @depth-base4, 2*@depth-steps, @depth-steps);
+  .makeDepths(@depth-base4, @depth-base5, 3*@depth-steps, @depth-steps);
+  .makeDepths(@depth-base5, @depth-base6, 4*@depth-steps, @depth-steps);
 
+} // .quark-editor-view 

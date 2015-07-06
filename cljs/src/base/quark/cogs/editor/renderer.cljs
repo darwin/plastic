@@ -38,7 +38,7 @@
       (let [forms (:forms @state)
             {:keys [parser-debug-visible]} @settings
             parse-tree (if parser-debug-visible (:parse-tree @state) nil)]
-        ^{:key (id!)} [:div.quark-editor-root
+        ^{:key (id!)} [:div.root
                        [forms-component forms]
                        (if parser-debug-visible
                          [parser-debug-component parse-tree])]))))
