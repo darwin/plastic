@@ -14,6 +14,18 @@
 (defmethod handle :toggle-docs [_ settings]
   (toggle-setting settings :docs-visible))
 
+(defmethod handle :toggle-docs-debug [_ settings]
+  (toggle-setting settings :docs-debug-visible))
+
+(defmethod handle :toggle-code-debug [_ settings]
+  (toggle-setting settings :code-debug-visible))
+
+(defmethod handle :toggle-parser-debug [_ settings]
+  (toggle-setting settings :parser-debug-visible))
+
+(defmethod handle :toggle-plaintext-debug [_ settings]
+  (toggle-setting settings :plaintext-debug-visible))
+
 ; ----------------------------------------------------------------------------------------------------------------
 
 (defmethod handle :default [command]

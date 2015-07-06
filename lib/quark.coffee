@@ -25,6 +25,10 @@ module.exports = Quark =
     @addCommands [
       'quark:toggle-docs'
       'quark:toggle-code'
+      'quark:toggle-docs-debug'
+      'quark:toggle-code-debug'
+      'quark:toggle-plaintext-debug'
+      'quark:toggle-parser-debug'
     ]
 
   deactivate: ->

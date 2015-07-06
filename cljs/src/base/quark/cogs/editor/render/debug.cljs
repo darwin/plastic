@@ -2,11 +2,11 @@
   (:require [quark.cogs.editor.utils :as utils])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
-(defn plain-text-component [form]
+(defn plaintext-debug-component [form]
   [:div.fancy
    [:div (:text form)]])
 
-(defn state-component [parse-tree]
+(defn parser-debug-component [parse-tree]
   [:div.state
    [:div (utils/print-node parse-tree)]])
 

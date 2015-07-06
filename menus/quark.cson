@@ -8,6 +8,22 @@
     {
       'label': 'Toggle Docs'
       'command': 'quark:toggle-docs'
+    },
+    {
+      'label': 'Toggle Plain Text (debug)'
+      'command': 'quark:toggle-plaintext-debug'
+    },
+    {
+      'label': 'Toggle Code Tree (debug)'
+      'command': 'quark:toggle-code-debug'
+    },
+    {
+      'label': 'Toggle Docs Tree (debug)'
+      'command': 'quark:toggle-docs-debug'
+    },
+    {
+      'label': 'Toggle Parser Tree (debug)'
+      'command': 'quark:toggle-parser-debug'
     }
   ]
 'menu': [
