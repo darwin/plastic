@@ -25,12 +25,12 @@
                    (analyze-defs node)
                    (analyze-cursors editor))]
     (debug-print-analysis node analysis)
-    {:id      (:id node)
-     :text    (zip/string loc)
-     :soup    (build-soup-render-info node)
-     :code    (build-code-render-info analysis loc)
-     :docs    (build-docs-render-info analysis loc)
-     :headers (build-headers-render-info analysis loc)}))
+    {:id       (:id node)
+     :text     (zip/string loc)
+     :analysis analysis
+     :skelet   {:code    (build-code-render-info analysis loc)
+                :docs    (build-docs-render-info analysis loc)
+                :headers (build-headers-render-info analysis loc)}}))
 
 (defn prepare-top-level-forms [editor]
   (let [node (get editor :parse-tree)

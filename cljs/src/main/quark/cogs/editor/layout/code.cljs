@@ -21,7 +21,7 @@
                    (iterate z/right first))
         interesting? (fn [loc]
                        (let [node (zip/node loc)]
-                         (or (node/linebreak? node) (not (node/whitespace? node)))))]
+                         (or (node/linebreak? node) (not (node/whitespace? node)))))] ; skip whitespaces but keep line breaks
     (filter interesting? children)))
 
 (defn build-node-code-render-info [depth scope-id analysis loc]
@@ -40,14 +40,14 @@
         (if (node/inner? node)
           {:children (remove nil? (map (partial build-node-code-render-info (inc depth) new-scope-id analysis) (layout-affecting-children loc)))}
           {:text (node/string node)})
-        (if (node/comment? node)
-          {:tag  :newline
+        (if (or (node/linebreak? node) (node/comment? node)) ; comments have newlines embedded
+          {:type :newline
            :text "\n"})
         (if (instance? StringNode node)
           {:text (prepare-string-for-display (node/string node))
-           :tag  :string})
+           :type :string})
         (if (instance? KeywordNode node)
-          {:tag :keyword})
+          {:type :keyword})
         (if (not= new-scope-id scope-id)
           {:scope new-scope-id})
         (if def-name?

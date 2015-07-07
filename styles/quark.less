@@ -124,10 +124,23 @@
     clear: both;
     border-radius: 2px;
   }
+  
+  .form-anchor {
+    position: relative; // important for form overlays
+  }
 
-  .form-box {
+  .form-token-overlay {
+    position: absolute;
+    color: white;
+  }
+
+  .form-skelet {
     background-color: black;
     border-radius: 2px;
+  }
+  
+  .form-skelet .token {
+    opacity: 0.3;
   }
 
   .code {
@@ -199,7 +212,7 @@
     border-radius: 2px;
   }
 
-  .wrap {
+  .children {
     display: inline-block;
     white-space: nowrap;
     //border: 1px solid red;
@@ -229,7 +242,7 @@
   }
 
 
-  .compound.list > .wrap > .token:first-child {
+  .compound.list > .children > .token:first-child {
     //*font-weight: bold;
     font-style: italic;
   }
@@ -240,7 +253,7 @@
 
   // keyword colon
   .token.keyword .colon {
-    opacity: 0.2;
+    opacity:  ;
   //  display: none;
   }
 
@@ -249,7 +262,7 @@
   }
 
   .token.string i {
-    opacity: 0.2;
+    opacity:  ;
   }
 
   .token .decl {
@@ -267,6 +280,15 @@
   }
 
   .punctuation {
+    vertical-align: top;
+    white-space: pre;
+    margin-top: 2px;
+    margin-left: 0px;
+    margin-bottom: 2px;
+    margin-right: 6px;
+    padding: 0px 2px;
+    display: inline-block;
+
     padding: 0px 0px;
     opacity: 0.4;
     font-weight: bold;

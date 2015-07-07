@@ -1,6 +1,8 @@
 (ns quark.util.helpers
-  (:require-macros [quark.macros.logging :refer [log info warn error group group-end]])
-  (:require [cljs.pprint :as pprint :refer [pprint]]))
+  (:require [cljs.pprint :as pprint :refer [pprint]]
+            [cljs.core.async :refer [put! <! chan timeout close!]])
+  (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
+                   [cljs.core.async.macros :refer [go]]))
 
 (defn deep-merge
   "Recursively merges maps. If keys are not maps, the last value wins."
@@ -35,3 +37,20 @@
                 pprint/*print-suppress-namespaces* true
                 pprint/*print-lines* true]
         (pprint o)))))
+
+
+
+; --------------------------------------------------------
+
+; underscore-like debounce
+(defn debounce [f wait]
+  (let [counter (atom 0)
+        chan (atom (chan))]
+    (fn [& args]
+      (swap! counter inc)
+      (let [snapshot @counter]
+        (go
+          (swap! chan (fn [c] (do (close! c) (timeout wait))))
+          (<! @chan)
+          (if (= snapshot @counter)
+            (apply f args)))))))
