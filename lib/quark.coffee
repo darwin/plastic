@@ -30,6 +30,7 @@ module.exports = Quark =
       'quark:toggle-code-debug'
       'quark:toggle-plaintext-debug'
       'quark:toggle-parser-debug'
+      'quark:toggle-selections-debug'
     ]
 
   deactivate: ->

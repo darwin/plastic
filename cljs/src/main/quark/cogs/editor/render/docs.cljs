@@ -6,7 +6,10 @@
   (let [{:keys [doc id]} doc-info]
     ^{:key id}
     [:div.doc
-     (if doc [:div.docstring (raw-html (wrap-specials doc))])]))
+     (if doc [:div.docstring.selectable
+              (merge
+                {:data-qid id}
+                (raw-html (wrap-specials doc)))])]))
 
 (defn docs-component [doc-info-list]
   [:div.docs-group

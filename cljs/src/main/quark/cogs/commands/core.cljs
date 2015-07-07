@@ -29,6 +29,9 @@
 (defmethod handle :toggle-plaintext-debug [_ settings]
   (toggle-setting settings :plaintext-debug-visible))
 
+(defmethod handle :toggle-selections-debug [_ settings]
+  (toggle-setting settings :selections-debug-visible))
+
 ; ----------------------------------------------------------------------------------------------------------------
 
 (defmethod handle :default [command]

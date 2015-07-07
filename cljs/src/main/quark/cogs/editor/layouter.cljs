@@ -23,11 +23,14 @@
     [(:id node) node]
     (flatten (map extract-tokens (:children node)))))
 
-(defn extract-selectables [node]
-  (let [selectables-from-children (flatten (map extract-selectables (:children node)))]
+(defn extract-selectables-from-code [node]
+  (let [selectables-from-children (flatten (map extract-selectables-from-code (:children node)))]
     (if (:selectable node)
       (concat [(:id node) node] selectables-from-children)
       selectables-from-children)))
+
+(defn extract-selectables-from-docs [docs-infos]
+  (flatten (map (fn [info] [(:id info) info]) docs-infos)))
 
 (defn form-layout-info [old-info loc]
   (let [node (zip/node loc)
@@ -39,7 +42,7 @@
         docs-info (build-docs-render-info analysis loc)
         headers-info (build-headers-render-info analysis loc)
         tokens (apply hash-map (extract-tokens code-info))
-        selectables (apply hash-map (extract-selectables code-info))]
+        selectables (apply hash-map (concat (extract-selectables-from-code code-info) (extract-selectables-from-docs docs-info)))]
     (debug-print-analysis node analysis)
     (merge
       old-info
@@ -99,7 +102,7 @@
     new-editors))
 
 (defn update-form-selectables-geometry [form geometry]
-  (assoc form :selectables (build-selections-render-info (:selectables form) geometry)))
+  (assoc form :all-selections (build-selections-render-info (:selectables form) geometry)))
 
 (defn update-selectables-geometry [editors [editor-id form-id geometry]]
   (let [forms (get-in editors [editor-id :render-state :forms])

@@ -26,6 +26,10 @@
       'command': 'quark:toggle-headers-debug'
     },
     {
+      'label': 'Toggle Selections (debug)'
+      'command': 'quark:toggle-selections-debug'
+    },
+    {
       'label': 'Toggle Parser Data (debug)'
       'command': 'quark:toggle-parser-debug'
     }

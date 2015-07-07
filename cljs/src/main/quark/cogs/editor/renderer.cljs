@@ -8,7 +8,7 @@
             [quark.cogs.editor.render.code :refer [code-wrapper-component]]
             [quark.cogs.editor.render.soup :refer [form-soup-overlay-component]]
             [quark.cogs.editor.render.selections :refer [form-selections-overlay-component]]
-            [quark.cogs.editor.render.debug :refer [parser-debug-component plaintext-debug-component docs-debug-component code-debug-component headers-debug-component]]
+            [quark.cogs.editor.render.debug :refer [parser-debug-component plaintext-debug-component docs-debug-component code-debug-component headers-debug-component selections-debug-overlay-component]]
             [quark.cogs.editor.render.utils :refer [raw-html classv]]
             [quark.util.helpers :as helpers])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
@@ -81,14 +81,18 @@
              [code-debug-component skelet])])))))
 
 (defn form-component []
-  (fn [form]
-    (log "R! form" (:id form) form)
-    [:tr.form {:data-qid (:id form)}
-     [:td.form-cell
-      [:div.form-anchor
-       [form-soup-overlay-component (:soup form)]
-       [form-selections-overlay-component (:selections form)]
-       [form-skelet-component (:skelet form)]]]]))
+  (let [settings (subscribe [:settings])]
+    (fn [form]
+      (let [{:keys [selections-debug-visible]} @settings]
+        (log "R! form" (:id form) form)
+        [:tr.form {:data-qid (:id form)}
+         [:td.form-cell
+          [:div.form-anchor
+           [form-soup-overlay-component (:soup form)]
+           [form-selections-overlay-component (:selections form)]
+           (if selections-debug-visible
+             [selections-debug-overlay-component (:all-selections form)])
+           [form-skelet-component (:skelet form)]]]]))))
 
 (defn forms-component []
   (fn [forms]

@@ -7,6 +7,7 @@
   (let [doc-node (:def-doc-node info)
         doc (if doc-node (node/string doc-node))]
     (if doc {:id (:id doc-node)
+             :selectable true
              :doc (prepare-string-for-display doc)})))
 
 (defn build-docs-render-info [analysis _node]
