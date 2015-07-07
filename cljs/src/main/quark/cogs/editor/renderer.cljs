@@ -10,31 +10,37 @@
                    [quark.macros.glue :refer [react! dispatch]]
                    [reagent.ratom :refer [reaction]]))
 
-(defn forms-component []
+(defn form-component []
   (let [settings (subscribe [:settings])]
-    (fn [forms]
+    (fn [form]
+      (log "R! form" (:id form))
       (let [{:keys [code-visible docs-visible
                     headers-debug-visible docs-debug-visible code-debug-visible plaintext-debug-visible]} @settings]
-        [:table.form-group
-         [:tbody
-          (for [form forms]
-            ^{:key (:id form)}
-            [:tr.form
-             [:td.form-cell
-              [:div.form-box
-               [headers-wrapper-component form]             ; headers are always visoble
-               (if docs-visible
-                 [docs-wrapper-component form])
-               (if code-visible
-                 [code-wrapper-component form])
-               (if plaintext-debug-visible
-                 [plaintext-debug-component form])
-               (if headers-debug-visible
-                 [headers-debug-component form])
-               (if docs-debug-visible
-                 [docs-debug-component form])
-               (if code-debug-visible
-                 [code-debug-component form])]]])]]))))
+        [:tr.form
+         [:td.form-cell
+          [:div.form-box
+           [headers-wrapper-component form]                 ; headers are always visible
+           (if docs-visible
+             [docs-wrapper-component form])
+           (if code-visible
+             [code-wrapper-component form])
+           (if plaintext-debug-visible
+             [plaintext-debug-component form])
+           (if headers-debug-visible
+             [headers-debug-component form])
+           (if docs-debug-visible
+             [docs-debug-component form])
+           (if code-debug-visible
+             [code-debug-component form])]]]))))
+
+(defn forms-component []
+  (fn [forms]
+    (log "R! forms")
+    [:table.form-group
+     [:tbody
+      (for [form forms]
+        ^{:key (:id form)}
+        [form-component form])]]))
 
 (defn editor-root-component [editor-id]
   (let [state (subscribe [:editor-render-state editor-id])

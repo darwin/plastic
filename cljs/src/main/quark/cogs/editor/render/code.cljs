@@ -30,6 +30,7 @@
 
 (defn code-element-component [node]
   (let [{:keys [decl-scope tag text shadows decl? def-name? def-doc? cursor id]} node]
+    (log "R! code" id)
     (cond
       (= tag :newline) [:br]
       (= tag :whitespace) [:div.token " "]
