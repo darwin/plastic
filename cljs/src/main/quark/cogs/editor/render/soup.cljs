@@ -1,5 +1,5 @@
 (ns quark.cogs.editor.render.soup
-  (:require [quark.cogs.editor.render.utils :refer [raw-html wrap-specials id! classv]])
+  (:require [quark.cogs.editor.render.utils :refer [raw-html wrap-specials classv]])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 (defn soup-component [form]

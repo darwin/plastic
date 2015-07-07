@@ -7,7 +7,8 @@
   (let [name-node (:def-name-node info)
         name (if name-node (node/string name-node))]
     (if name
-      {:name name})))
+      {:id (:id name-node)
+       :name name})))
 
 (defn build-headers-render-info [analysis _node]
   (let [headers (filter (fn [[_node info]] (:def? info)) analysis)]

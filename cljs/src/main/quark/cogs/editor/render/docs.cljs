@@ -1,12 +1,10 @@
 (ns quark.cogs.editor.render.docs
-  (:require [quark.cogs.editor.render.utils :refer [raw-html wrap-specials id! classv]])
-  (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
-                   [quark.macros.glue :refer [react! dispatch]]
-                   [reagent.ratom :refer [reaction]]))
+  (:require [quark.cogs.editor.render.utils :refer [raw-html wrap-specials classv]])
+  (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 (defn doc-component [doc-info]
-  (let [{:keys [doc]} doc-info]
-    ^{:key (id!)}
+  (let [{:keys [doc id]} doc-info]
+    ^{:key id}
     [:div.doc
      (if doc [:div.docstring (raw-html (wrap-specials doc))])]))
 

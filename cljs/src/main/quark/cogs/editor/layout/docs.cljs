@@ -6,7 +6,8 @@
 (defn doc-item [[_node info]]
   (let [doc-node (:def-doc-node info)
         doc (if doc-node (node/string doc-node))]
-    (if doc {:doc (prepare-string-for-display doc)})))
+    (if doc {:id (:id doc-node)
+             :doc (prepare-string-for-display doc)})))
 
 (defn build-docs-render-info [analysis _node]
   (let [docs (filter (fn [[_node info]] (:def? info)) analysis)]

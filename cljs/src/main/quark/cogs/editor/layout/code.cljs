@@ -34,7 +34,8 @@
     (if (or def-doc? (is-whitespace-or-nl-after-def-doc? analysis loc))
       nil
       (merge
-        {:tag   (node/tag node)
+        {:id    (:id node)
+         :tag   (node/tag node)
          :depth depth}
         (if (node/inner? node)
           {:children (remove nil? (map (partial build-node-code-render-info (inc depth) new-scope-id analysis) (layout-affecting-children loc)))}

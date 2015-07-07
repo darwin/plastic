@@ -25,7 +25,8 @@
                    (analyze-defs node)
                    (analyze-cursors editor))]
     (debug-print-analysis node analysis)
-    {:text    (zip/string loc)
+    {:id      (:id node)
+     :text    (zip/string loc)
      :soup    (build-soup-render-info node)
      :code    (build-code-render-info analysis loc)
      :docs    (build-docs-render-info analysis loc)

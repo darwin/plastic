@@ -1,6 +1,5 @@
 (ns quark.cogs.editor.render.debug
-  (:require [quark.cogs.editor.utils :as utils]
-            [quark.util.helpers :as helpers])
+  (:require [quark.util.helpers :as helpers])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 (defn plaintext-debug-component [form]

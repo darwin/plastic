@@ -1,5 +1,5 @@
 (ns quark.cogs.editor.render.code
-  (:require [quark.cogs.editor.render.utils :refer [raw-html wrap-specials id! classv]]
+  (:require [quark.cogs.editor.render.utils :refer [raw-html wrap-specials classv]]
             [clojure.string :as string])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
@@ -29,7 +29,7 @@
   (string/replace text #":" "<span class=\"colon\">:</span>"))
 
 (defn code-element-component [node]
-  (let [{:keys [decl-scope tag text shadows decl? def-name? def-doc? cursor]} node]
+  (let [{:keys [decl-scope tag text shadows decl? def-name? def-doc? cursor id]} node]
     (cond
       (= tag :newline) [:br]
       (= tag :whitespace) [:div.token " "]
@@ -45,9 +45,9 @@
                                      (visualise-shadowing shadows)
                                      (visualize-decl decl?)
                                      (visualize-def-name def-name?))))]
-      :else ^{:key (id!)} [:div.wrap
-                           (for [child (:children node)]
-                             ^{:key (id!)} [code-component child])])))
+      :else ^{:key id} [:div.wrap
+                        (for [child (:children node)]
+                          ^{:key (:id child)} [code-component child])])))
 
 (defn wrap [open close tree]
   (let [{:keys [scope depth tag cursor]} tree]

@@ -1,20 +1,17 @@
 (ns quark.cogs.editor.render.headers
-  (:require [quark.cogs.editor.render.utils :refer [raw-html wrap-specials id! classv]])
-  (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
-                   [quark.macros.glue :refer [react! dispatch]]
-                   [reagent.ratom :refer [reaction]]))
+  (:require [quark.cogs.editor.render.utils :refer [raw-html wrap-specials classv]])
+  (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
-(defn header-component [doc-info]
-  (let [{:keys [name]} doc-info]
-    ^{:key (id!)}
+(defn header-component [header-info]
+  (let [{:keys [name id]} header-info]
+    ^{:key id}
     [:div.header
-     (if name [:div.name
-               [:div name]])]))
+     (if name [:div.name [:div name]])]))
 
-(defn headers-component [doc-info-list]
+(defn headers-component [header-info-list]
   [:div.headers-group
-   (for [doc-info doc-info-list]
-     (header-component doc-info))])
+   (for [header-info header-info-list]
+     (header-component header-info))])
 
 (defn headers-wrapper-component [form]
   [:div.headers-wrapper

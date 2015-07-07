@@ -2,12 +2,6 @@
   (:require [clojure.string :as string])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
-(defonce ^:dynamic id 0)
-
-(defn id! []
-  (set! id (inc id))
-  id)
-
 (defn wrap-specials [s]
   (-> s
     (string/replace #"\\\"" "\"")
