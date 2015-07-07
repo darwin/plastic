@@ -30,16 +30,14 @@
   (string/replace text #":" "<span class=\"colon\">:</span>"))
 
 (defn code-token-component [node]
-  (let [{:keys [decl-scope call selectable type text shadows decl? def-name? def-doc? cursor id geometry]} node
+  (let [{:keys [decl-scope call selectable type text shadows decl? def-name? def-doc? id geometry]} node
         props (merge
                 {:data-qid id
                  :class    (classv
-                             (if cursor "cursor")
                              (if call "call")
                              (if selectable "selectable")
                              (if decl-scope (str "decl-scope decl-scope-" decl-scope)))}
-                (if geometry
-                  {:style {:transform (str "translateY(" (:top geometry) "px)" "translateX(" (:left geometry) "px)")}}))]
+                (if geometry {:style {:transform (str "translateY(" (:top geometry) "px)" "translateX(" (:left geometry) "px)")}}))]
     (log "R! token" id)
     (cond
       (= type :keyword)
@@ -78,14 +76,13 @@
                           ^{:key (:id child)} [code-component child])])))
 
 (defn wrap [open close tree]
-  (let [{:keys [id scope selectable depth tag cursor]} tree]
+  (let [{:keys [id scope selectable depth tag]} tree]
     [:div.compound {:data-qid id
-                    :class (classv
-                             (name tag)
-                             (if cursor "cursor")
-                             (if selectable "selectable")
-                             (if scope (str "scope scope-" scope))
-                             (if depth (str "depth-" depth)))}
+                    :class    (classv
+                                (name tag)
+                                (if selectable "selectable")
+                                (if scope (str "scope scope-" scope))
+                                (if depth (str "depth-" depth)))}
      [:div.punctuation.vat {:class (name tag)} open]
      (code-element-component tree)
      [:div.punctuation.vab {:class (name tag)} close]]))

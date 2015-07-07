@@ -7,7 +7,6 @@
             [quark.cogs.editor.analysis.scopes :refer [analyze-scopes]]
             [quark.cogs.editor.analysis.symbols :refer [analyze-symbols]]
             [quark.cogs.editor.analysis.defs :refer [analyze-defs]]
-            [quark.cogs.editor.analysis.cursors :refer [analyze-cursors]]
             [quark.cogs.editor.layout.soup :refer [build-soup-render-info]]
             [quark.cogs.editor.layout.code :refer [build-code-render-info]]
             [quark.cogs.editor.layout.docs :refer [build-docs-render-info]]
@@ -30,37 +29,37 @@
       (concat [(:id node) node] selectables-from-children)
       selectables-from-children)))
 
-(defn form-layout-info [editor old-info loc]
-  (log "old-info" old-info)
+(defn form-layout-info [old-info loc]
   (let [node (zip/node loc)
         analysis (->> {}
                    (analyze-scopes node)
                    (analyze-symbols node)
-                   (analyze-defs node)
-                   (analyze-cursors editor))
+                   (analyze-defs node))
         code-info (build-code-render-info analysis loc)
         docs-info (build-docs-render-info analysis loc)
-        headers-info (build-headers-render-info analysis loc)]
+        headers-info (build-headers-render-info analysis loc)
+        tokens (apply hash-map (extract-tokens code-info))
+        selectables (apply hash-map (extract-selectables code-info))]
     (debug-print-analysis node analysis)
     (merge
       old-info
       {:id          (:id node)
        :text        (zip/string loc)
        :analysis    analysis
-       :tokens      (apply hash-map (extract-tokens code-info))
-       :selectables (apply hash-map (extract-selectables code-info))
+       :tokens      tokens                                  ; will be used for soup generation
+       :selectables selectables                             ; will be used for selections
        :skelet      {:code    code-info
                      :docs    docs-info
                      :headers headers-info}})))
 
 (defn prepare-top-level-forms [editor]
   (let [tree (:parse-tree editor)
-        old-forms (get-in editor [:render-state :forms])
         top (make-zipper tree)                              ; root "forms" node
         loc (zip/down top)
         right-siblinks (collect-all-right loc)
+        old-forms (get-in editor [:render-state :forms])
         find-old (fn [{:keys [id]}] (some #(if (= (:id %) id) %) old-forms))]
-    (map #(form-layout-info editor (find-old (first %)) %) right-siblinks)))
+    (map #(form-layout-info (find-old (first %)) %) right-siblinks)))
 
 (defn analyze-with-delay [editor-id delay]
   (go
@@ -100,7 +99,7 @@
     new-editors))
 
 (defn update-form-selectables-geometry [form geometry]
-  (assoc form :selections (build-selections-render-info (:selectables form) geometry)))
+  (assoc form :selectables (build-selections-render-info (:selectables form) geometry)))
 
 (defn update-selectables-geometry [editors [editor-id form-id geometry]]
   (let [forms (get-in editors [editor-id :render-state :forms])
