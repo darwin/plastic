@@ -17,7 +17,7 @@
   :plugins [[lein-cljsbuild "1.0.5"]
             [lein-figwheel "0.3.3"]]
 
-  :source-paths ["src/base"
+  :source-paths ["src/main"
                  "src/dev"
                  "target/classes"
                  "checkouts/tools.reader/src/main/clojure"]
@@ -29,7 +29,7 @@
              :server-logfile ".tmp/figwheel_server.log"}
 
   :cljsbuild {:builds [{:id           "dev"
-                        :source-paths ["src/base"
+                        :source-paths ["src/main"
                                        "src/dev"
                                        "checkouts/clojurescript/src/main/cljs"
                                        ;"checkouts/clojurescript/src/main/clojure"
