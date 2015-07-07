@@ -7,6 +7,7 @@
             [quark.cogs.editor.render.docs :refer [docs-wrapper-component]]
             [quark.cogs.editor.render.code :refer [code-wrapper-component]]
             [quark.cogs.editor.render.soup :refer [form-soup-overlay-component]]
+            [quark.cogs.editor.render.selections :refer [form-selections-overlay-component]]
             [quark.cogs.editor.render.debug :refer [parser-debug-component plaintext-debug-component docs-debug-component code-debug-component headers-debug-component]]
             [quark.cogs.editor.render.utils :refer [raw-html classv]]
             [quark.util.helpers :as helpers])
@@ -14,15 +15,25 @@
                    [quark.macros.glue :refer [react! dispatch]]
                    [reagent.ratom :refer [reaction]]))
 
-(defn retrieve-token-layout [token-dom-node]
-  (if-let [token-id (.getAttribute token-dom-node "data-qid")]
-    [(int token-id) {:left (.-offsetLeft token-dom-node)
-                     :top  (.-offsetTop token-dom-node)}]))
+(defn retrieve-token-geometry [token-dom-node]
+  (if-let [node-id (.getAttribute token-dom-node "data-qid")]
+    [(int node-id) {:left (.-offsetLeft token-dom-node)
+                    :top  (.-offsetTop token-dom-node)}]))
 
-(defn retrieve-tokens-layout [token-dom-nodes]
-  (apply hash-map (mapcat retrieve-token-layout token-dom-nodes)))
+(defn retrieve-tokens-geometry [token-dom-nodes]
+  (apply hash-map (mapcat retrieve-token-geometry token-dom-nodes)))
 
-(defn capture-layout [react-component]
+(defn retrieve-selectable-geometry [selectable-dom-node]
+  (if-let [node-id (.getAttribute selectable-dom-node "data-qid")]
+    [(int node-id) {:left   (.-offsetLeft selectable-dom-node)
+                    :top    (.-offsetTop selectable-dom-node)
+                    :width  (.-offsetWidth selectable-dom-node)
+                    :height (.-offsetHeight selectable-dom-node)}]))
+
+(defn retrieve-selectables-geometry [selectable-dom-nodes]
+  (apply hash-map (mapcat retrieve-selectable-geometry selectable-dom-nodes)))
+
+(defn capture-geometry [react-component]
   (let [dom-node (.getDOMNode react-component)              ; TODO: deprecated!
         _ (assert dom-node)
         form-node (aget (.closest ($ dom-node) ".form") 0)
@@ -34,14 +45,17 @@
         editor-id (.getAttribute editor-node "data-qid")
         _ (assert editor-id)
         token-dom-nodes (.getElementsByClassName dom-node "token")
-        layout (retrieve-tokens-layout token-dom-nodes)]
-    (dispatch :editor-update-soup (int editor-id) (int form-id) layout)))
+        tokens-geometry (retrieve-tokens-geometry token-dom-nodes)
+        selectable-dom-nodes (.getElementsByClassName dom-node "selectable")
+        selectables-geometry (retrieve-selectables-geometry selectable-dom-nodes)]
+    (dispatch :editor-update-soup-geometry (int editor-id) (int form-id) tokens-geometry)
+    (dispatch :editor-update-selectables-geometry (int editor-id) (int form-id) selectables-geometry)))
 
 (defn form-scaffold [render-fn]
-  (let [debounced-capture-layout (helpers/debounce capture-layout 200)]
+  (let [debounced-capture-geometry (helpers/debounce capture-geometry 30)]
     (reagent/create-class
-      {:component-did-mount  (fn [& args] (apply debounced-capture-layout args))
-       :component-did-update (fn [& args] (apply debounced-capture-layout args))
+      {:component-did-mount  (fn [& args] (apply debounced-capture-geometry args))
+       :component-did-update (fn [& args] (apply debounced-capture-geometry args))
        :reagent-render       render-fn})))
 
 (defn form-skelet-component []
@@ -73,6 +87,7 @@
      [:td.form-cell
       [:div.form-anchor
        [form-soup-overlay-component (:soup form)]
+       [form-selections-overlay-component (:selections form)]
        [form-skelet-component (:skelet form)]]]]))
 
 (defn forms-component []

@@ -12,6 +12,7 @@
             [quark.cogs.editor.layout.code :refer [build-code-render-info]]
             [quark.cogs.editor.layout.docs :refer [build-docs-render-info]]
             [quark.cogs.editor.layout.headers :refer [build-headers-render-info]]
+            [quark.cogs.editor.layout.selections :refer [build-selections-render-info]]
             [quark.cogs.editor.analyzer :refer [analyze-full]]
             [quark.cogs.editor.utils :refer [debug-print-analysis ancestor-count loc->path leaf-nodes make-zipper collect-all-right]])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
@@ -22,6 +23,12 @@
   (if (= (:tag node) :token)
     [(:id node) node]
     (flatten (map extract-tokens (:children node)))))
+
+(defn extract-selectables [node]
+  (let [selectables-from-children (flatten (map extract-selectables (:children node)))]
+    (if (:selectable node)
+      (concat [(:id node) node] selectables-from-children)
+      selectables-from-children)))
 
 (defn form-layout-info [editor old-info loc]
   (log "old-info" old-info)
@@ -37,13 +44,14 @@
     (debug-print-analysis node analysis)
     (merge
       old-info
-      {:id       (:id node)
-       :text     (zip/string loc)
-       :analysis analysis
-       :tokens   (apply hash-map (extract-tokens code-info))
-       :skelet   {:code    code-info
-                  :docs    docs-info
-                  :headers headers-info}})))
+      {:id          (:id node)
+       :text        (zip/string loc)
+       :analysis    analysis
+       :tokens      (apply hash-map (extract-tokens code-info))
+       :selectables (apply hash-map (extract-selectables code-info))
+       :skelet      {:code    code-info
+                     :docs    docs-info
+                     :headers headers-info}})))
 
 (defn prepare-top-level-forms [editor]
   (let [tree (:parse-tree editor)
@@ -82,12 +90,21 @@
 (defn set-layout [editors [editor-id state]]
   (assoc-in editors [editor-id :render-state] state))
 
-(defn update-form-soup [form captured-layout]
-  (assoc form :soup (build-soup-render-info (:tokens form) captured-layout)))
+(defn update-form-soup-geometry [form geometry]
+  (assoc form :soup (build-soup-render-info (:tokens form) geometry)))
 
-(defn update-soup [editors [editor-id form-id captured-layout]]
+(defn update-soup-geometry [editors [editor-id form-id captured-layout]]
   (let [forms (get-in editors [editor-id :render-state :forms])
-        new-forms (map #(if (= (:id %) form-id) (update-form-soup % captured-layout) %) forms)
+        new-forms (map #(if (= (:id %) form-id) (update-form-soup-geometry % captured-layout) %) forms)
+        new-editors (assoc-in editors [editor-id :render-state :forms] new-forms)]
+    new-editors))
+
+(defn update-form-selectables-geometry [form geometry]
+  (assoc form :selections (build-selections-render-info (:selectables form) geometry)))
+
+(defn update-selectables-geometry [editors [editor-id form-id geometry]]
+  (let [forms (get-in editors [editor-id :render-state :forms])
+        new-forms (map #(if (= (:id %) form-id) (update-form-selectables-geometry % geometry) %) forms)
         new-editors (assoc-in editors [editor-id :render-state :forms] new-forms)]
     new-editors))
 
@@ -102,4 +119,5 @@
 (register-handler :editor-layout paths/editors-path layout)
 (register-handler :editor-set-layout paths/editors-path set-layout)
 (register-handler :editor-analyze paths/editors-path analyze)
-(register-handler :editor-update-soup paths/editors-path update-soup)
+(register-handler :editor-update-soup-geometry paths/editors-path update-soup-geometry)
+(register-handler :editor-update-selectables-geometry paths/editors-path update-selectables-geometry)

@@ -27,46 +27,35 @@
 (defn is-call? [loc]
   (if-let [parent-loc (z/up loc)]
     (if (= (node/tag (zip/node parent-loc)) :list)
-      (do (log loc (first (layout-affecting-children parent-loc)) (= loc (first (layout-affecting-children parent-loc))))
-      (= loc (first (layout-affecting-children parent-loc)))))))
+      (= loc (first (layout-affecting-children parent-loc))))))
 
 (defn build-node-code-render-info [depth scope-id analysis loc]
   (let [node (zip/node loc)
         node-analysis (get analysis node)
         new-scope-id (get-in node-analysis [:scope :id])
+        tag (node/tag node)
         {:keys [declaration-scope def-name? def-doc? cursor]} node-analysis
         {:keys [shadows decl?]} declaration-scope]
     (if (or def-doc? (is-whitespace-or-nl-after-def-doc? analysis loc))
       nil
       (merge
         {:id    (:id node)
-         :tag   (node/tag node)
+         :tag   tag
          :depth depth}
         (if (node/inner? node)
           {:children (remove nil? (map (partial build-node-code-render-info (inc depth) new-scope-id analysis) (layout-affecting-children loc)))}
           {:text (node/string node)})
-        (if (or (node/linebreak? node) (node/comment? node)) ; comments have newlines embedded
-          {:type :newline
-           :text "\n"})
-        (if (is-call? loc)
-          {:call true})
-        (if (instance? StringNode node)
-          {:text (prepare-string-for-display (node/string node))
-           :type :string})
-        (if (instance? KeywordNode node)
-          {:type :keyword})
-        (if (not= new-scope-id scope-id)
-          {:scope new-scope-id})
-        (if def-name?
-          {:def-name? true})
-        (if declaration-scope
-          {:decl-scope (:id declaration-scope)})
-        (if cursor
-          {:cursor true})
-        (if shadows
-          {:shadows shadows})
-        (if decl?
-          {:decl? decl?})))))
+        (if (or (node/linebreak? node) (node/comment? node)) {:type :newline :text "\n"}) ; comments have newlines embedded
+        (if (#{:token :list :map :vector :set} tag) {:selectable true})
+        (if (is-call? loc) {:call true})
+        (if (instance? StringNode node) {:text (prepare-string-for-display (node/string node)) :type :string})
+        (if (instance? KeywordNode node) {:type :keyword})
+        (if (not= new-scope-id scope-id) {:scope new-scope-id})
+        (if def-name? {:def-name? true})
+        (if declaration-scope {:decl-scope (:id declaration-scope)})
+        (if cursor {:cursor true})
+        (if shadows {:shadows shadows})
+        (if decl? {:decl? decl?})))))
 
 (defn build-code-render-info [analysis node]
   (build-node-code-render-info 0 nil analysis node))
