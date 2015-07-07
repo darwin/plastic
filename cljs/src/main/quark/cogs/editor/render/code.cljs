@@ -8,7 +8,7 @@
 
 (defn visualise-shadowing [text shadows]
   (cond
-    (>= shadows 2) (str text "<sub>" shadows "</sub>")
+    (>= shadows 2) (str text "<span class=\"shadowed\">" shadows "</span>")
     :default text))
 
 (defn visualize-decl [text decl?]
@@ -30,32 +30,36 @@
   (string/replace text #":" "<span class=\"colon\">:</span>"))
 
 (defn code-token-component [node]
-  (let [{:keys [decl-scope type text shadows decl? def-name? def-doc? cursor id]} node
-        props {:data-qid id
-               :class    (if cursor "cursor")}]
+  (let [{:keys [decl-scope call type text shadows decl? def-name? def-doc? cursor id pos]} node
+        props (merge
+                {:data-qid id
+                 :class    (classv
+                             (if cursor "cursor")
+                             (if call "call")
+                             (if decl-scope (str "decl-scope decl-scope-" decl-scope)))}
+                (if pos
+                  {:style {:transform (str "translateY(" (:top pos) "px)" "translateX(" (:left pos) "px)")}}))]
     (log "R! token" id)
     (cond
       (= type :keyword)
       [:div.token.keyword
-       (helpers/deep-merge
+       (merge
          props
          (raw-html (-> text
-                     visualise-keyword)))]
+                     (visualise-keyword))))]
 
       (= type :string)
       [:div.token.string
-       (helpers/deep-merge
+       (merge
          props
          (raw-html (-> text
-                     wrap-specials
+                     (wrap-specials)
                      (visualise-doc def-doc?))))]
 
       :else
       [:div.token
-       (helpers/deep-merge
+       (merge
          props
-         {:class (classv
-                   (if decl-scope (str "decl-scope decl-scope-" decl-scope)))}
          (raw-html (-> text
                      (visualise-shadowing shadows)
                      (visualize-decl decl?)

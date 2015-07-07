@@ -1,11 +1,12 @@
 (ns quark.cogs.editor.render.soup
-  (:require [quark.cogs.editor.render.utils :refer [raw-html wrap-specials classv]])
+  (:require [quark.cogs.editor.render.code :refer [code-token-component]]
+            [quark.cogs.editor.render.utils :refer [raw-html wrap-specials classv]])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
-(defn soup-component [form]
-  [:div.soup
-   (for [item (:soup form)]
-     (if (= (:tag item) :newline)
-       ^{:key (id!)} [:br]
-       ^{:key (id!)} [:div.soup-item
-                      (:string item)]))])
+(defn form-soup-overlay-component []
+  (fn [soup]
+    (log "R! soup-overlay" soup)
+    [:div.form-soup-overlay
+     (for [token soup]
+       ^{:key (:id token)}
+       [code-token-component token])]))

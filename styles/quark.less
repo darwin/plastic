@@ -12,7 +12,7 @@
   overflow: auto;
   line-height: 12px;
 
-  .root {
+  .quark-editor {
     margin-left: 10px;
   }
 
@@ -20,10 +20,6 @@
     -moz-user-select: -moz-none;
     -khtml-user-select: none;
     -webkit-user-select: none;
-  }
-
-  sub {
-    font-size: 8px;
   }
 
   .fancy {
@@ -102,45 +98,50 @@
     white-space: pre;
   }
 
-  .soup {
-    margin-bottom: 20px;
-    padding: 2px;
-    padding-top: 4px;
-    padding-left: 4px;
-    display: inline-block;
-    background-color: #449;
-    color: white;
-    float: left;
-    clear: both;
-    border-radius: 4px;
-  }
-
-  .soup-item {
-    margin-bottom: 2px;
-    margin-right: 2px;
-    padding: 1px 4px;
-    display: inline-block;
-    background-color: #944;
-    clear: both;
-    border-radius: 2px;
-  }
-  
   .form-anchor {
     position: relative; // important for form overlays
   }
 
-  .form-token-overlay {
-    position: absolute;
-    color: white;
-  }
-
   .form-skelet {
+    z-index: 0;
     background-color: black;
     border-radius: 2px;
+    position: relative;
   }
   
   .form-skelet .token {
-    opacity: 0.3;
+    visibility: hidden;
+  }
+
+  .form-soup-overlay {
+    //display: none;
+    margin-top: -2px; // ad-hoc correction TODO: figure out this shift
+    position: absolute;
+    z-index: 10;
+    color: white;
+  }
+  
+  // -------------------------- DEBUG
+  // .form-soup-overlay .token {
+  //   border: 1px dashed #888;
+  //   background-color: red;
+  //   position: relative;
+  //   top: -1px;
+  //   left: -1px;
+  // }
+  //
+  // .form-skelet .token {
+  //   visibility: visible;
+  // }
+  //
+  // .form-soup-overlay {
+  //   display: none;
+  // }
+  // -------------------------- DEBUG
+
+  .form-soup-overlay .token {
+    position: absolute;
+    transition: transform 1s ease-in-out;
   }
 
   .code {
@@ -185,6 +186,7 @@
   .doc .docstring {
     display: inline-block;
     white-space: pre;
+    line-height: 14px;
     color: #aaa;
     margin-left: @doc-indent;
     padding: 4px 6px;
@@ -217,23 +219,22 @@
     white-space: nowrap;
     //border: 1px solid red;
   }
+  
+  .children > * {
+    margin-right: 6px !important;
+  }
+  
+  .children > *:last-child {
+    margin-right: 0px !important;
+  }
 
   .token {
     vertical-align: top;
     white-space: pre;
-    margin-top: 2px;
-    margin-left: 0px;
-    margin-bottom: 2px;
-    margin-right: 6px;
-    padding: 0px 2px;
+    margin: 2px 0px;
+    padding: 0px 0px;
     display: inline-block;
     border-radius: 2px;
-  }
-
-  .token.vab,
-  .token.vat,
-  .token:last-child {
-    margin-right: 0px;
   }
 
   .punctuation.list {
@@ -241,9 +242,7 @@
     //display: none;
   }
 
-
-  .compound.list > .children > .token:first-child {
-    //*font-weight: bold;
+  .token.call {
     font-style: italic;
   }
 
@@ -251,10 +250,8 @@
     color: hsl(280, 50%, 80%);
   }
 
-  // keyword colon
   .token.keyword .colon {
-    opacity:  ;
-  //  display: none;
+    opacity: 0.5;
   }
 
   .token.string {
@@ -262,7 +259,13 @@
   }
 
   .token.string i {
-    opacity:  ;
+    opacity: 0.2;
+  }
+
+  .shadowed {
+    font-size: 8px;
+    position: relative;
+    top: 3px;
   }
 
   .token .decl {
@@ -285,7 +288,6 @@
     margin-top: 2px;
     margin-left: 0px;
     margin-bottom: 2px;
-    margin-right: 6px;
     padding: 0px 2px;
     display: inline-block;
 

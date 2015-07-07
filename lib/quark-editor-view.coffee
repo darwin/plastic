@@ -1,7 +1,6 @@
 path = require 'path'
-{View, $} = require 'space-pen'
+{View} = require 'space-pen'
 {Disposable} = require 'atom'
-#{Subscriber} = require 'emissary'
 bridge = require './bridge'
 {ScrollView} = require 'atom-space-pen-views'
 

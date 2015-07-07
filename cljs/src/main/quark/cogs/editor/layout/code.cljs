@@ -24,13 +24,18 @@
                          (or (node/linebreak? node) (not (node/whitespace? node)))))] ; skip whitespaces but keep line breaks
     (filter interesting? children)))
 
+(defn is-call? [loc]
+  (if-let [parent-loc (z/up loc)]
+    (if (= (node/tag (zip/node parent-loc)) :list)
+      (do (log loc (first (layout-affecting-children parent-loc)) (= loc (first (layout-affecting-children parent-loc))))
+      (= loc (first (layout-affecting-children parent-loc)))))))
+
 (defn build-node-code-render-info [depth scope-id analysis loc]
   (let [node (zip/node loc)
         node-analysis (get analysis node)
         new-scope-id (get-in node-analysis [:scope :id])
         {:keys [declaration-scope def-name? def-doc? cursor]} node-analysis
         {:keys [shadows decl?]} declaration-scope]
-
     (if (or def-doc? (is-whitespace-or-nl-after-def-doc? analysis loc))
       nil
       (merge
@@ -43,6 +48,8 @@
         (if (or (node/linebreak? node) (node/comment? node)) ; comments have newlines embedded
           {:type :newline
            :text "\n"})
+        (if (is-call? loc)
+          {:call true})
         (if (instance? StringNode node)
           {:text (prepare-string-for-display (node/string node))
            :type :string})

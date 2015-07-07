@@ -1,7 +1,5 @@
 (ns quark.onion.api
-  (:require [quark.cogs.editor.renderer :refer [mount-editor]])
-  (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
-                   [quark.macros.glue :refer [dispatch react!]]))
+  (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 ; these apis will be provided by Atom during runtime, see :apis inface message
 
@@ -9,8 +7,15 @@
 
 (defonce ^:dynamic File nil)
 (defonce ^:dynamic Directory nil)
+(defonce ^:dynamic $ nil)
+(defonce ^:dynamic $$ nil)
+(defonce ^:dynamic $$$ nil)
 
 (defn register-apis! [apis]
   (set! *apis* apis)
+
   (set! File (.-File apis))
-  (set! Directory (.-Directory apis)))
+  (set! Directory (.-Directory apis))
+  (set! $ (.-$ apis))
+  (set! $$ (.-$$ apis))
+  (set! $$$ (.-$$$ apis)))

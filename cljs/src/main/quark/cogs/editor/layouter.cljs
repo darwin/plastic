@@ -3,6 +3,7 @@
             [rewrite-clj.zip :as zip]
             [quark.frame.core :refer [subscribe register-handler]]
             [quark.schema.paths :as paths]
+            [quark.util.helpers :as helpers]
             [quark.cogs.editor.analysis.scopes :refer [analyze-scopes]]
             [quark.cogs.editor.analysis.symbols :refer [analyze-symbols]]
             [quark.cogs.editor.analysis.defs :refer [analyze-defs]]
@@ -17,27 +18,41 @@
                    [quark.macros.glue :refer [react! dispatch]]
                    [cljs.core.async.macros :refer [go]]))
 
-(defn form-layout-info [editor loc]
+(defn extract-tokens [node]
+  (if (= (:tag node) :token)
+    [(:id node) node]
+    (flatten (map extract-tokens (:children node)))))
+
+(defn form-layout-info [editor old-info loc]
+  (log "old-info" old-info)
   (let [node (zip/node loc)
         analysis (->> {}
                    (analyze-scopes node)
                    (analyze-symbols node)
                    (analyze-defs node)
-                   (analyze-cursors editor))]
+                   (analyze-cursors editor))
+        code-info (build-code-render-info analysis loc)
+        docs-info (build-docs-render-info analysis loc)
+        headers-info (build-headers-render-info analysis loc)]
     (debug-print-analysis node analysis)
-    {:id       (:id node)
-     :text     (zip/string loc)
-     :analysis analysis
-     :skelet   {:code    (build-code-render-info analysis loc)
-                :docs    (build-docs-render-info analysis loc)
-                :headers (build-headers-render-info analysis loc)}}))
+    (merge
+      old-info
+      {:id       (:id node)
+       :text     (zip/string loc)
+       :analysis analysis
+       :tokens   (apply hash-map (extract-tokens code-info))
+       :skelet   {:code    code-info
+                  :docs    docs-info
+                  :headers headers-info}})))
 
 (defn prepare-top-level-forms [editor]
-  (let [node (get editor :parse-tree)
-        top (make-zipper node)                              ; root "forms" node
+  (let [tree (:parse-tree editor)
+        old-forms (get-in editor [:render-state :forms])
+        top (make-zipper tree)                              ; root "forms" node
         loc (zip/down top)
-        right-siblinks (collect-all-right loc)]
-    (map (partial form-layout-info editor) right-siblinks)))
+        right-siblinks (collect-all-right loc)
+        find-old (fn [{:keys [id]}] (some #(if (= (:id %) id) %) old-forms))]
+    (map #(form-layout-info editor (find-old (first %)) %) right-siblinks)))
 
 (defn analyze-with-delay [editor-id delay]
   (go
@@ -45,7 +60,7 @@
     (dispatch :editor-analyze editor-id)))
 
 (defn layout-editor [editor editor-id]
-  (let [parse-tree (get editor :parse-tree)
+  (let [parse-tree (:parse-tree editor)
         top-level-forms (prepare-top-level-forms editor)
         state {:forms      top-level-forms
                :parse-tree parse-tree}]
@@ -67,6 +82,15 @@
 (defn set-layout [editors [editor-id state]]
   (assoc-in editors [editor-id :render-state] state))
 
+(defn update-form-soup [form captured-layout]
+  (assoc form :soup (build-soup-render-info (:tokens form) captured-layout)))
+
+(defn update-soup [editors [editor-id form-id captured-layout]]
+  (let [forms (get-in editors [editor-id :render-state :forms])
+        new-forms (map #(if (= (:id %) form-id) (update-form-soup % captured-layout) %) forms)
+        new-editors (assoc-in editors [editor-id :render-state :forms] new-forms)]
+    new-editors))
+
 (defn analyze [editors [editor-id]]
   (let [ast (analyze-full (get-in editors [editor-id :text]) {:atom-path (get-in editors [editor-id :def :uri])})]
     (log "AST>" ast))
@@ -78,3 +102,4 @@
 (register-handler :editor-layout paths/editors-path layout)
 (register-handler :editor-set-layout paths/editors-path set-layout)
 (register-handler :editor-analyze paths/editors-path analyze)
+(register-handler :editor-update-soup paths/editors-path update-soup)
