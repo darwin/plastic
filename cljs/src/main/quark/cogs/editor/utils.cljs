@@ -1,7 +1,8 @@
 (ns quark.cogs.editor.utils
   (:require [rewrite-clj.zip :as zip]
             [rewrite-clj.node :as node]
-            [clojure.zip :as z])
+            [clojure.zip :as z]
+            [clojure.string :as string])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 (defn make-zipper* [node]
@@ -92,3 +93,44 @@
                              (unwrap-metas (node/children node))
                              [node]))]
     (mapcat unwrap-meta-node nodes)))
+
+(defn first-word [s]
+  (first (string/split s #"\s")))
+
+(defn debug-print-analysis [node analysis]
+  (let [sorter (fn [[a _] [b _]] (- (:id a) (:id b)))
+        sorted-analysis (sort sorter analysis)]
+    (group "ANALYSIS of" (:id node) "\n" (node/string node))
+    (doseq [[n info] sorted-analysis]
+      (log (:id n) (first-word (node/string n)) info))
+    (group-end)))
+
+(defn strip-double-quotes [s]
+  (-> s
+    (string/replace #"^\"" "")
+    (string/replace #"\"$" "")))
+
+; TODO: this should be more robust by reading previous whitespace Node before string node
+; here we do indent heuristics from string itself by looking at second line
+; and assuming it doesn't have extra indent against first line
+(defn strip-indent [s]
+  (let [lines (string/split-lines s)
+        second-line (second lines)]
+    (if second-line
+      (let [indent-match (.match second-line #"^[ ]*")
+            indent (first indent-match)
+            re (js/RegExp. (str "^" indent) "g")]
+        (string/join "\n" (map #(string/replace % re "") lines)))
+      s)))
+
+(defn replace-whitespace-characters [s]
+  (-> s
+    (string/replace #"\n" "↵\n")
+    (string/replace #" " "␣")
+    (string/replace #"\t" "⇥")))
+
+(defn prepare-string-for-display [s]
+  (-> s
+    strip-indent
+    strip-double-quotes
+    replace-whitespace-characters))

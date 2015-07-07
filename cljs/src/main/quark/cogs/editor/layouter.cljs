@@ -1,153 +1,21 @@
 (ns quark.cogs.editor.layouter
   (:require [cljs.core.async :refer [<! timeout]]
+            [rewrite-clj.zip :as zip]
             [quark.frame.core :refer [subscribe register-handler]]
             [quark.schema.paths :as paths]
-            [quark.util.helpers :as helpers]
             [quark.cogs.editor.analysis.scopes :refer [analyze-scopes]]
             [quark.cogs.editor.analysis.symbols :refer [analyze-symbols]]
             [quark.cogs.editor.analysis.defs :refer [analyze-defs]]
             [quark.cogs.editor.analysis.cursors :refer [analyze-cursors]]
-            [quark.dev.formatting :refer [devtools-formatting!]]
-            [rewrite-clj.zip :as zip]
-            [rewrite-clj.node :as node]
-            [clojure.string :as string]
-            [rewrite-clj.node.stringz :refer [StringNode]]
-            [rewrite-clj.node.keyword :refer [KeywordNode]]
+            [quark.cogs.editor.layout.soup :refer [build-soup-render-info]]
+            [quark.cogs.editor.layout.code :refer [build-code-render-info]]
+            [quark.cogs.editor.layout.docs :refer [build-docs-render-info]]
+            [quark.cogs.editor.layout.headers :refer [build-headers-render-info]]
             [quark.cogs.editor.analyzer :refer [analyze-full]]
-            [quark.cogs.editor.utils :refer [ancestor-count loc->path leaf-nodes make-zipper collect-all-right]]
-            [clojure.zip :as z])
+            [quark.cogs.editor.utils :refer [debug-print-analysis ancestor-count loc->path leaf-nodes make-zipper collect-all-right]])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [react! dispatch]]
                    [cljs.core.async.macros :refer [go]]))
-
-(defn soup-movement-policy [loc]
-  (let [node (zip/node loc)]
-    (not (or (node/whitespace? node) (node/comment? node)))))
-
-(defn item-info [loc]
-  (let [node (zip/node loc)]
-    (if (node/comment? node)
-      {:tag   :newline
-       :depth (ancestor-count soup-movement-policy loc)
-       :path  (loc->path loc)
-       :text  ("\n")}
-      {:string (zip/string loc)
-       :tag    (node/tag node)
-       :depth  (ancestor-count soup-movement-policy loc)
-       :path   (loc->path loc)})))
-
-(defn build-soup [node]
-  (map item-info (leaf-nodes soup-movement-policy (make-zipper node))))
-
-(defn strip-double-quotes [s]
-  (-> s
-    (string/replace #"^\"" "")
-    (string/replace #"\"$" "")))
-
-; TODO: this should be more robust by reading previous whitespace Node before string node
-; here we do indent heuristics from string itself by looking at second line
-; and assuming it doesn't have extra indent against first line
-(defn strip-indent [s]
-  (let [lines (string/split-lines s)
-        second-line (second lines)]
-    (if second-line
-      (let [indent-match (.match second-line #"^[ ]*")
-            indent (first indent-match)
-            re (js/RegExp. (str "^" indent) "g")]
-        (string/join "\n" (map #(string/replace % re "") lines)))
-      s)))
-
-(defn replace-whitespace-characters [s]
-  (-> s
-    (string/replace #"\n" "↵\n")
-    (string/replace #" " "␣")
-    (string/replace #"\t" "⇥")))
-
-(defn prepare-string-for-display [s]
-  (-> s
-    strip-indent
-    strip-double-quotes
-    replace-whitespace-characters))
-
-(defn is-whitespace-or-nl-after-def-doc? [analysis loc]
-  (let [node (zip/node loc)]
-    (if (or (node/whitespace? node) (node/linebreak? node))
-      (let [prev (z/left loc)
-            prev-node (zip/node prev)
-            prev-node-analysis (get analysis prev-node)]
-        (:def-doc? prev-node-analysis)))))
-
-(defn layout-affecting-children [loc]
-  (let [first (zip/down loc)
-        children (take-while (complement nil?)
-                   (iterate z/right first))
-        interesting? (fn [loc]
-                       (let [node (zip/node loc)]
-                         (or (node/linebreak? node) (not (node/whitespace? node)))))]
-    (filter interesting? children)))
-
-(defn build-node-code-render-info [depth scope-id analysis loc]
-  (let [node (zip/node loc)
-        node-analysis (get analysis node)
-        new-scope-id (get-in node-analysis [:scope :id])
-        {:keys [declaration-scope def-name? def-doc? cursor]} node-analysis
-        {:keys [shadows decl?]} declaration-scope]
-
-    (if (or def-doc? (is-whitespace-or-nl-after-def-doc? analysis loc))
-      nil
-      (merge
-        {:tag   (node/tag node)
-         :depth depth}
-        (if (node/inner? node)
-          {:children (remove nil? (map (partial build-node-code-render-info (inc depth) new-scope-id analysis) (layout-affecting-children loc)))}
-          {:text (node/string node)})
-        (if (node/comment? node)
-          {:tag  :newline
-           :text "\n"})
-        (if (instance? StringNode node)
-          {:text (prepare-string-for-display (node/string node))
-           :tag  :string})
-        (if (instance? KeywordNode node)
-          {:tag :keyword})
-        (if (not= new-scope-id scope-id)
-          {:scope new-scope-id})
-        (if def-name?
-          {:def-name? true})
-        (if declaration-scope
-          {:decl-scope (:id declaration-scope)})
-        (if cursor
-          {:cursor true})
-        (if shadows
-          {:shadows shadows})
-        (if decl?
-          {:decl? decl?})))))
-
-(defn build-code-render-info [analysis node]
-  (build-node-code-render-info 0 nil analysis node))
-
-(defn header-item [[_node info]]
-  (let [name-node (:def-name-node info)
-        name (if name-node (node/string name-node))]
-    (if name
-      {:name name})))
-
-(defn build-headers-render-info [analysis _node]
-  (let [headers (filter (fn [[_node info]] (:def? info)) analysis)]
-    (map header-item headers)))
-
-(defn doc-item [[_node info]]
-  (let [doc-node (:def-doc-node info)
-        doc (if doc-node (node/string doc-node))]
-    (if doc {:doc (prepare-string-for-display doc)})))
-
-(defn build-docs-render-info [analysis _node]
-  (let [docs (filter (fn [[_node info]] (:def? info)) analysis)]
-    (map doc-item docs)))
-
-(defn debug-print-analysis [node analysis]
-  (group "ANALYSIS of" (:id node) "\n" (node/string node))
-  (doall (map (fn [[n info]] (log (:id n) (first (string/split (node/string n) #"\s")) info)) (sort (fn [[a _] [b _]] (- (:id a) (:id b))) analysis)))
-  (group-end))
 
 (defn form-layout-info [editor loc]
   (let [node (zip/node loc)
@@ -158,7 +26,7 @@
                    (analyze-cursors editor))]
     (debug-print-analysis node analysis)
     {:text    (zip/string loc)
-     :soup    (build-soup node)
+     :soup    (build-soup-render-info node)
      :code    (build-code-render-info analysis loc)
      :docs    (build-docs-render-info analysis loc)
      :headers (build-headers-render-info analysis loc)}))
