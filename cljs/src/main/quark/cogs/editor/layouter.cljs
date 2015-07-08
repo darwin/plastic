@@ -56,12 +56,12 @@
         selectables (apply hash-map (concat (extract-selectables-from-code code-info) (extract-selectables-from-docs docs-info)))]
     (debug-print-analysis root-node nodes analysis)
     {:id          (:id root-node)
-     :text        (zip/string loc)                          ; for plain text debug view
      :nodes       nodes
      :analysis    analysis
      :tokens      tokens                                    ; will be used for soup generation
      :selectables selectables                               ; will be used for selections
-     :skelet      {:code    code-info
+     :skelet      {:text    (zip/string loc)                ; for plain text debug view
+                   :code    code-info
                    :docs    docs-info
                    :headers headers-info}}))
 

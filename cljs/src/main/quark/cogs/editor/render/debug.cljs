@@ -2,9 +2,9 @@
   (:require [quark.util.helpers :as helpers])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
-(defn plaintext-debug-component [form]
-  [:div.fancy
-   [:div (:text form)]])
+(defn plaintext-debug-component [form-render-info]
+  [:div.plain-text
+   [:div (:text form-render-info)]])
 
 (defn parser-debug-component [parse-tree]
   [:div.state
