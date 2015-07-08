@@ -55,19 +55,21 @@
         all-tokens (extract-tokens code-info)
         all-token-ids (map :id all-tokens)
         tokens (zipmap all-token-ids all-tokens)
-        lines-tokens (group-by :line all-tokens)
-        selectables (apply hash-map (concat (extract-selectables-from-code code-info) (extract-selectables-from-docs docs-info)))]
+        selectables (apply hash-map (concat (extract-selectables-from-code code-info) (extract-selectables-from-docs docs-info)))
+        lines-selectables (group-by :line (filter #(= (:tag %) :token) (vals selectables)))
+        form-info {:id                (:id root-node)
+                   :nodes             nodes
+                   :analysis          analysis
+                   :tokens            tokens                              ; will be used for soup generation
+                   :lines-selectables lines-selectables
+                   :selectables       selectables                         ; will be used for selections
+                   :skelet            {:text    (zip/string loc)          ; for plain text debug view
+                                       :code    code-info
+                                       :docs    docs-info
+                                       :headers headers-info}}]
     (debug-print-analysis root-node nodes analysis)
-    {:id           (:id root-node)
-     :nodes        nodes
-     :analysis     analysis
-     :tokens       tokens                                   ; will be used for soup generation
-     :lines-tokens lines-tokens
-     :selectables  selectables                              ; will be used for selections
-     :skelet       {:text    (zip/string loc)               ; for plain text debug view
-                    :code    code-info
-                    :docs    docs-info
-                    :headers headers-info}}))
+    (log "  =>" form-info)
+    form-info))
 
 (defn prepare-render-infos-of-top-level-forms [editor]
   (let [tree (:parse-tree editor)

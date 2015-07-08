@@ -25,47 +25,47 @@
 
 (defmethod op :move-down [_ cursel form-info]
   (let [sel-node-id (first cursel)
-        {:keys [lines-tokens all-selections]} form-info
+        {:keys [lines-selectables all-selections]} form-info
         sel-node (get all-selections sel-node-id)
         sel-line (:line sel-node)
         next-line (inc sel-line)
-        line-tokens (get lines-tokens next-line)
-        line-selections (map #(get all-selections (:id %)) line-tokens)
+        line-selectables (get lines-selectables next-line)
+        line-selections (map #(get all-selections (:id %)) line-selectables)
         result (find-best-spatial-match sel-node line-selections)]
     (if result
       #{(:id result)})))
 
 (defmethod op :move-up [_ cursel form-info]
   (let [sel-node-id (first cursel)
-        {:keys [lines-tokens all-selections]} form-info
+        {:keys [lines-selectables all-selections]} form-info
         sel-node (get all-selections sel-node-id)
         sel-line (:line sel-node)
         next-line (dec sel-line)
-        line-tokens (get lines-tokens next-line)
-        line-selections (map #(get all-selections (:id %)) line-tokens)
+        line-selectables (get lines-selectables next-line)
+        line-selections (map #(get all-selections (:id %)) line-selectables)
         result (find-best-spatial-match sel-node line-selections)]
     (if result
       #{(:id result)})))
 
 (defmethod op :move-right [_ cursel form-info]
   (let [sel-node-id (first cursel)
-        {:keys [lines-tokens all-selections]} form-info
+        {:keys [lines-selectables all-selections]} form-info
         sel-node (get all-selections sel-node-id)
         sel-line (:line sel-node)
-        line-tokens (get lines-tokens sel-line)
-        _ (assert line-tokens)
-        result (first-node-right line-tokens sel-node-id)]
+        line-selectables (get lines-selectables sel-line)
+        _ (assert line-selectables)
+        result (first-node-right line-selectables sel-node-id)]
     (if result
       #{(:id result)})))
 
 (defmethod op :move-left [_ cursel form-info]
   (let [sel-node-id (first cursel)
-        {:keys [lines-tokens all-selections]} form-info
+        {:keys [lines-selectables all-selections]} form-info
         sel-node (get all-selections sel-node-id)
         sel-line (:line sel-node)
-        line-tokens (get lines-tokens sel-line)
-        _ (assert line-tokens)
-        result (first-node-left line-tokens sel-node-id)]
+        line-selectables (get lines-selectables sel-line)
+        _ (assert line-selectables)
+        result (first-node-left line-selectables sel-node-id)]
     (if result
       #{(:id result)})))
 
