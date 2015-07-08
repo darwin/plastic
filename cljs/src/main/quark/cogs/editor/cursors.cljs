@@ -6,7 +6,7 @@
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [react! dispatch]]))
 
-; editor's :cursor is a path into rewrite-cljs tree
+; editor's :cursors is a path into rewrite-cljs tree
 
 ; cursor skips all whitespace and comments
 (defn cursor-movement-policy [loc]

@@ -36,13 +36,13 @@
 (defn capture-geometry [react-component]
   (let [dom-node (.getDOMNode react-component)              ; TODO: deprecated!
         _ (assert dom-node)
-        form-node (aget (.closest ($ dom-node) ".form") 0)
-        _ (assert form-node)
-        form-id (.getAttribute form-node "data-qid")
+        form-dom-node (aget (.closest ($ dom-node) ".form") 0)
+        _ (assert form-dom-node)
+        form-id (.getAttribute form-dom-node "data-qid")
         _ (assert form-id)
-        editor-node (aget (.closest ($ form-node) ".quark-editor") 0)
-        _ (assert editor-node)
-        editor-id (.getAttribute editor-node "data-qid")
+        editor-dom-node (aget (.closest ($ form-dom-node) ".quark-editor") 0)
+        _ (assert editor-dom-node)
+        editor-id (.getAttribute editor-dom-node "data-qid")
         _ (assert editor-id)
         token-dom-nodes (.getElementsByClassName dom-node "token")
         tokens-geometry (retrieve-tokens-geometry token-dom-nodes)
@@ -80,12 +80,28 @@
            (if code-debug-visible
              [code-debug-component skelet])])))))
 
+(defn handle-form-click [form event]
+  (let [target-dom-node (.-target event)
+        _ (assert target-dom-node)
+        selectable-dom-node (aget (.closest ($ target-dom-node) ".selectable") 0)]
+    (if selectable-dom-node
+      (let [selected-node-id (.getAttribute selectable-dom-node "data-qid")
+            _ (assert selected-node-id)
+            editor-node (aget (.closest ($ selectable-dom-node) ".quark-editor") 0)
+            _ (assert editor-node)
+            editor-id (.getAttribute editor-node "data-qid")
+            _ (assert editor-id)]
+        (.stopPropagation event)
+        (dispatch :editor-select (int editor-id) (:id form) [(int selected-node-id)])))))
+
 (defn form-component []
   (let [settings (subscribe [:settings])]
     (fn [form]
       (let [{:keys [selections-debug-visible]} @settings]
         (log "R! form" (:id form) form)
-        [:tr.form {:data-qid (:id form)}
+        [:tr.form
+         {:data-qid (:id form)
+          :on-click (partial handle-form-click form)}
          [:td.form-cell
           [:div.form-anchor
            [form-soup-overlay-component (:soup form)]
@@ -103,6 +119,10 @@
         ^{:key (:id form)}
         [form-component form])]]))
 
+(defn handle-editor-click [editor-id event]
+  (.stopPropagation event)
+  (dispatch :editor-clear-all-selections editor-id))
+
 (defn editor-root-component [editor-id]
   (let [state (subscribe [:editor-render-state editor-id])
         settings (subscribe [:settings])]
@@ -110,7 +130,9 @@
       (let [forms (:forms @state)
             {:keys [parser-debug-visible]} @settings
             parse-tree (if parser-debug-visible (:parse-tree @state) nil)]
-        [:div.quark-editor {:data-qid editor-id}            ; editor class is taken by Atom
+        [:div.quark-editor                                  ; .editor class is taken by Atom
+         {:data-qid editor-id
+          :on-click (partial handle-editor-click editor-id)}
          [forms-component forms]
          (if parser-debug-visible
            [parser-debug-component parse-tree])]))))

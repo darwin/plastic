@@ -13,7 +13,11 @@
   line-height: 12px;
 
   .quark-editor {
-    margin-left: 10px;
+    padding: 0px 10px;
+    // important for quark-editor to serve as a full-background clickable area
+    display: inline-block;
+    min-width: 100%;
+    min-height: 100%;
   }
 
   .noselect {
@@ -50,6 +54,7 @@
   .form-group {
     border-collapse: separate; // allow spacing between cell borders
     border-spacing: 0 10px;
+    margin: 0px;
   }
 
   .debug {
@@ -111,6 +116,10 @@
   
   .form-skelet .token {
     visibility: hidden;
+  }
+  
+  .form-overlay {
+    pointer-events: none;
   }
 
   .form-soup-overlay {

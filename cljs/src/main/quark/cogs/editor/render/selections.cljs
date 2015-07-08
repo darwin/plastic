@@ -14,7 +14,7 @@
 (defn form-selections-overlay-component []
   (fn [selections]
     (log "R! selections-overlay" selections)
-    [:div.form-selections-overlay
+    [:div.form-overlay.form-selections-overlay
      (for [item selections]
        ^{:key (:id item)}
        [selection-component item])]))

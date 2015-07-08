@@ -6,7 +6,7 @@
 (defn form-soup-overlay-component []
   (fn [soup]
     (log "R! soup-overlay" soup)
-    [:div.form-soup-overlay
+    [:div.form-overlay.form-soup-overlay
      (for [token soup]
        ^{:key (:id token)}
        [code-token-component token])]))
