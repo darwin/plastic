@@ -10,10 +10,11 @@
   *scope-id*)
 
 (def scope-openers
-  {'defn  :params
-   'defn- :params
-   'fn    :params
-   'let   :pairs})
+  {'defn      :params
+   'defn-     :params
+   'fn        :params
+   'defmethod :params
+   'let       :pairs})
 
 (defn filter-non-args [arg-nodes]
   (let [arg? (fn [[node _]]
@@ -46,8 +47,8 @@
 (defn node-scope [node]
   (condp = (node/tag node)
     :list (if-let [opener-type (scope-openers (node/sexpr (first (node/children node))))]
-                                {:id     (next-scope-id!)
-                                 :locals (collect-params node opener-type)})
+            {:id     (next-scope-id!)
+             :locals (collect-params node opener-type)})
     :fn {:id     (next-scope-id!)
          :locals [[#(re-find #"^%" (node/string %)) (:id node)]]}
     nil))
