@@ -32,7 +32,7 @@
 (defn extract-selectables-from-docs [docs-infos]
   (flatten (map (fn [info] [(:id info) info]) docs-infos)))
 
-(defn form-layout-info [loc]
+(defn prepare-form-render-info [loc]
   (let [node (zip/node loc)
         analysis (->> {}
                    (analyze-scopes node)
@@ -53,14 +53,14 @@
                    :docs    docs-info
                    :headers headers-info}}))
 
-(defn prepare-top-level-forms [editor]
+(defn prepare-render-infos-of-top-level-forms [editor]
   (let [tree (:parse-tree editor)
         top (make-zipper tree)                              ; root "forms" node
         loc (zip/down top)
         right-siblinks (collect-all-right loc)
         old-forms (get-in editor [:render-state :forms])
         find-old (fn [{:keys [id]}] (some #(if (= (:id %) id) %) old-forms))]
-    (map #(merge (find-old (first %)) (form-layout-info %)) right-siblinks)))
+    (map #(merge (find-old (first %)) (prepare-form-render-info %)) right-siblinks)))
 
 (defn analyze-with-delay [editor-id delay]
   (go
@@ -69,8 +69,8 @@
 
 (defn layout-editor [editor editor-id]
   (let [parse-tree (:parse-tree editor)
-        top-level-forms (prepare-top-level-forms editor)
-        state {:forms      top-level-forms
+        render-infos (prepare-render-infos-of-top-level-forms editor)
+        state {:forms      render-infos
                :parse-tree parse-tree}]
     (dispatch :editor-set-layout editor-id state)
     #_(analyze-with-delay editor-id 1000))
