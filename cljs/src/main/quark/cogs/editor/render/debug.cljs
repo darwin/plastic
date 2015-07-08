@@ -37,6 +37,6 @@
 (defn selections-debug-overlay-component []
   (fn [selections]
     [:div.form-selections-debug-overlay
-     (for [item selections]
+     (for [item (vals selections)]
        ^{:key (:id item)}
        [selection-component item])]))

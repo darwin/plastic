@@ -1,7 +1,7 @@
 (ns quark.cogs.editor.commands
   (:require [quark.frame.core :refer [subscribe register-handler]]
             [quark.schema.paths :as paths]
-            [quark.cogs.editor.cursors :as cursors])
+            [quark.cogs.editor.selections :as selections])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 (defmulti handle (fn [command & _] command))
@@ -9,16 +9,16 @@
 ; ----------------------------------------------------------------------------------------------------------------
 
 (defmethod handle :move-up [_ editor]
-  (cursors/move-up editor))
+  (selections/move-up editor))
 
 (defmethod handle :move-down [_ editor]
-  (cursors/move-down editor))
+  (selections/move-down editor))
 
 (defmethod handle :move-left [_ editor]
-  (cursors/move-left editor))
+  (selections/move-left editor))
 
 (defmethod handle :move-right [_ editor]
-  (cursors/move-right editor))
+  (selections/move-right editor))
 
 ; ----------------------------------------------------------------------------------------------------------------
 
@@ -27,9 +27,12 @@
   nil)
 
 (defn dispatch-command [editors [editor-id command]]
-  (if-let [new-editor (handle command (get editors editor-id))]
-    (assoc-in editors [editor-id] new-editor)
-    editors))
+  (let [old-editor (get editors editor-id)
+        _ (assert old-editor)
+        new-editor (handle command old-editor)]
+    (if new-editor
+      (assoc-in editors [editor-id] new-editor)
+      editors)))
 
 ; ----------------------------------------------------------------------------------------------------------------
 ; register handlers

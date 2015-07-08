@@ -3,11 +3,11 @@
             [rewrite-clj.node :as node])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
-(defonce ^:dynamic scope-id 0)
+(defonce ^:dynamic *scope-id* 0)
 
 (defn next-scope-id! []
-  (set! scope-id (inc scope-id))
-  scope-id)
+  (set! *scope-id* (inc *scope-id*))
+  *scope-id*)
 
 (def scope-openers
   {'defn  :params
@@ -71,5 +71,5 @@
         (child-scopes scope-info node)))))
 
 (defn analyze-scopes [node info]
-  (binding [scope-id 0]
+  (binding [*scope-id* 0]
     (helpers/deep-merge info (analyze-scope {:scope nil :parent-scope nil} node))))

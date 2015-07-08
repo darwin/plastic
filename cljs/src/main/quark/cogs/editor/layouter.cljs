@@ -21,7 +21,7 @@
 
 (defn extract-tokens [node]
   (if (= (:tag node) :token)
-    [(:id node) node]
+    [node]
     (flatten (map extract-tokens (:children node)))))
 
 (defn extract-selectables-from-code [node]
@@ -52,18 +52,22 @@
         code-info (build-code-render-info analysis loc)
         docs-info (build-docs-render-info analysis loc)
         headers-info (build-headers-render-info analysis loc)
-        tokens (apply hash-map (extract-tokens code-info))
+        all-tokens (extract-tokens code-info)
+        all-token-ids (map :id all-tokens)
+        tokens (zipmap all-token-ids all-tokens)
+        lines-tokens (group-by :line all-tokens)
         selectables (apply hash-map (concat (extract-selectables-from-code code-info) (extract-selectables-from-docs docs-info)))]
     (debug-print-analysis root-node nodes analysis)
-    {:id          (:id root-node)
-     :nodes       nodes
-     :analysis    analysis
-     :tokens      tokens                                    ; will be used for soup generation
-     :selectables selectables                               ; will be used for selections
-     :skelet      {:text    (zip/string loc)                ; for plain text debug view
-                   :code    code-info
-                   :docs    docs-info
-                   :headers headers-info}}))
+    {:id           (:id root-node)
+     :nodes        nodes
+     :analysis     analysis
+     :tokens       tokens                                   ; will be used for soup generation
+     :lines-tokens lines-tokens
+     :selectables  selectables                              ; will be used for selections
+     :skelet       {:text    (zip/string loc)               ; for plain text debug view
+                    :code    code-info
+                    :docs    docs-info
+                    :headers headers-info}}))
 
 (defn prepare-render-infos-of-top-level-forms [editor]
   (let [tree (:parse-tree editor)
@@ -136,7 +140,7 @@
 (defn update-form-selections [form selected-node-ids]
   {:pre [(or (nil? selected-node-ids) (set? selected-node-ids))]}
   (let [all-selections (:all-selections form)
-        matching-selections (filter #(contains? selected-node-ids (:id %)) all-selections)]
+        matching-selections (filter #(contains? selected-node-ids (first %)) all-selections)]
     (assoc form :active-selections (vec matching-selections))))
 
 (defn update-form-focus-flag [form focused-form-id]

@@ -7,6 +7,18 @@
             [clojure.zip :as z])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
+(defonce ^:dynamic *line-id* 0)
+
+(defn next-line-id! []
+  (set! *line-id* (inc *line-id*))
+  *line-id*)
+
+(defn reset-line-id! []
+  (set! *line-id* 0))
+
+(defn current-line-id []
+  *line-id*)
+
 (defn is-whitespace-or-nl-after-def-doc? [analysis loc]
   (let [node (zip/node loc)]
     (if (or (node/whitespace? node) (node/linebreak? node))
@@ -29,6 +41,9 @@
     (if (= (node/tag (zip/node parent-loc)) :list)
       (= loc (first (layout-affecting-children parent-loc))))))
 
+(defn is-selectable? [tag]
+  (#{:token :fn :list :map :vector :set} tag))
+
 (defn build-node-code-render-info [depth scope-id analysis loc]
   (let [node (zip/node loc)
         node-id (:id node)
@@ -42,12 +57,13 @@
       (merge
         {:id    node-id
          :tag   tag
-         :depth depth}
+         :depth depth
+         :line  (current-line-id)}
+        (when (or (node/linebreak? node) (node/comment? node)) (next-line-id!) {:type :newline :text "\n"}) ; comments have newlines embedded
         (if (node/inner? node)
-          {:children (remove nil? (map (partial build-node-code-render-info (inc depth) new-scope-id analysis) (layout-affecting-children loc)))}
+          {:children (doall (remove nil? (map (partial build-node-code-render-info (inc depth) new-scope-id analysis) (layout-affecting-children loc))))}
           {:text (node/string node)})
-        (if (or (node/linebreak? node) (node/comment? node)) {:type :newline :text "\n"}) ; comments have newlines embedded
-        (if (#{:token :fn :list :map :vector :set} tag) {:selectable true})
+        (if (is-selectable? tag) {:selectable true})
         (if (is-call? loc) {:call true})
         (if (instance? StringNode node) {:text (prepare-string-for-display (node/string node)) :type :string})
         (if (instance? KeywordNode node) {:type :keyword})
@@ -59,4 +75,5 @@
         (if decl? {:decl? decl?})))))
 
 (defn build-code-render-info [analysis node]
-  (build-node-code-render-info 0 nil analysis node))
+  (reset-line-id!)
+  (doall (build-node-code-render-info 0 nil analysis node)))
