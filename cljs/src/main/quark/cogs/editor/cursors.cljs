@@ -1,4 +1,4 @@
-(ns quark.cogs.editor.cursor
+(ns quark.cogs.editor.cursors
   (:require [rewrite-clj.zip :as zip]
             [rewrite-clj.node :as node]
             [quark.cogs.editor.utils :refer [make-zipper path->loc loc->path] :as utils]
@@ -40,7 +40,7 @@
         moved-loc (move-cursor cursor-loc movement)
         path (loc->path moved-loc)]
     (log "cursor moved to" moved-loc path)
-    (assoc editor :cursor path)))
+    (assoc editor :cursors path)))
 
 (defn move-up [editor]
   (apply-move-cursor editor zip-up))

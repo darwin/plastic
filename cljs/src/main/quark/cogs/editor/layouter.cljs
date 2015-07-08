@@ -70,9 +70,9 @@
         top (make-zipper tree)                              ; root "forms" node
         loc (zip/down top)                                  ; TODO: here we should skip possible whitespace
         right-siblinks (collect-all-right loc)              ; TODO: here we should use explicit zipping policy
-        old-forms (get-in editor [:render-state :forms])
-        find-old-form (fn [{:keys [id]}] (some #(if (= (:id %) id) %) old-forms))]
-    (map #(merge (find-old-form (first %)) (prepare-form-render-info %)) right-siblinks)))
+        old-form-render-infos (get-in editor [:render-state :forms])
+        find-old-form-render-info (fn [{:keys [id]}] (some #(if (= (:id %) id) %) old-form-render-infos))]
+    (map #(merge (find-old-form-render-info (first %)) (prepare-form-render-info %)) right-siblinks)))
 
 (defn analyze-with-delay [editor-id delay]
   (go

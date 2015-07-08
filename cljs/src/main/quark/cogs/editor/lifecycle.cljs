@@ -22,17 +22,17 @@
       (when-let [parsed @parsed-subscription]
         (dispatch :editor-layout editor-id parsed)))))
 
-(defn watch-cursor [editor-id]
-  (let [cursor-subscription (subscribe [:editor-cursor editor-id])]
+(defn watch-cursors [editor-id]
+  (let [cursor-subscription (subscribe [:editor-cursors editor-id])]
     (react!
-      (when-let [_ @cursor-subscription]
-        (dispatch :editor-layout editor-id)))))
+      (when-let [cursors @cursor-subscription]
+        (log "cursors changed" editor-id cursors)))))
 
 (defn wire-editor [editor-id]
   (watch-uri editor-id)
   (watch-raw-text editor-id)
   (watch-parse-tree editor-id)
-  (watch-cursor editor-id))
+  (watch-cursors editor-id))
 
 (defn add-editor [editors [id editor-def]]
   (let [editors (if (map? editors) editors {})
