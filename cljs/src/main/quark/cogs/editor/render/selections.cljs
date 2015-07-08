@@ -6,10 +6,13 @@
 (defn selection-component [item]
   (let [{:keys [id geometry]} item
         {:keys [left top width height]} geometry]
-    [:div.selection {:data-id id
-                     :style   {:transform (str "translateY(" top "px) translateX(" left "px)")
-                               :width     (str width "px")
-                               :height    (str height "px")}}]))
+    [:div.selection-placeholder
+     {:style {:transform (str "translateY(" top "px) translateX(" left "px)")}}
+     [:div.selection-ring
+      [:div.selection-box
+       {:data-id id
+        :style   {:width  (str width "px")
+                  :height (str height "px")}}]]]))
 
 (defn form-selections-overlay-component []
   (fn [selections]

@@ -3,7 +3,6 @@
             [rewrite-clj.zip :as zip]
             [quark.frame.core :refer [subscribe register-handler]]
             [quark.schema.paths :as paths]
-            [quark.util.helpers :as helpers]
             [quark.cogs.editor.analysis.scopes :refer [analyze-scopes]]
             [quark.cogs.editor.analysis.symbols :refer [analyze-symbols]]
             [quark.cogs.editor.analysis.defs :refer [analyze-defs]]
@@ -105,9 +104,9 @@
 (defn update-form-soup-geometry [form geometry]
   (assoc form :soup (build-soup-render-info (:tokens form) geometry)))
 
-(defn update-soup-geometry [editors [editor-id form-id captured-layout]]
+(defn update-soup-geometry [editors [editor-id form-id geometry]]
   (let [forms (get-in editors [editor-id :render-state :forms])
-        new-forms (map #(if (= (:id %) form-id) (update-form-soup-geometry % captured-layout) %) forms)
+        new-forms (map #(if (= (:id %) form-id) (update-form-soup-geometry % geometry) %) forms)
         new-editors (assoc-in editors [editor-id :render-state :forms] new-forms)]
     new-editors))
 
@@ -117,6 +116,21 @@
 (defn update-selectables-geometry [editors [editor-id form-id geometry]]
   (let [forms (get-in editors [editor-id :render-state :forms])
         new-forms (map #(if (= (:id %) form-id) (update-form-selectables-geometry % geometry) %) forms)
+        new-editors (assoc-in editors [editor-id :render-state :forms] new-forms)]
+    (dispatch :editor-update-selections editor-id)
+    new-editors))
+
+(defn update-form-selections [form selected-node-ids]
+  {:pre [(or (nil? selected-node-ids) (set? selected-node-ids))]}
+  (let [all-selections (:all-selections form)
+        matching-selections (filter #(contains? selected-node-ids (:id %)) all-selections)]
+    (assoc form :active-selections (vec matching-selections))))
+
+(defn update-selections [editors [editor-id]]
+  (let [forms (get-in editors [editor-id :render-state :forms])
+        selections (or (get-in editors [editor-id :selections]) {})
+        get-form-selected-node-ids (fn [form] (get selections (:id form)))
+        new-forms (map (fn [form] (update-form-selections form (get-form-selected-node-ids form))) forms)
         new-editors (assoc-in editors [editor-id :render-state :forms] new-forms)]
     new-editors))
 
@@ -133,3 +147,4 @@
 (register-handler :editor-analyze paths/editors-path analyze)
 (register-handler :editor-update-soup-geometry paths/editors-path update-soup-geometry)
 (register-handler :editor-update-selectables-geometry paths/editors-path update-selectables-geometry)
+(register-handler :editor-update-selections paths/editors-path update-selections)

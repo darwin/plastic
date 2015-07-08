@@ -32,7 +32,8 @@
   (let [selections-subscription (subscribe [:editor-selections editor-id])]
     (react!
       (when-let [selections @selections-subscription]
-        (log "selections in" editor-id "changed to" selections)))))
+        (log "selections in" editor-id "changed to" selections)
+        (dispatch :editor-update-selections editor-id)))))
 
 (defn wire-editor [editor-id]
   (watch-uri editor-id)
