@@ -105,16 +105,20 @@
 
   .form {
     position: relative; // important for form overlays
+    -webkit-filter: grayscale(100%);
     opacity: 0.8;
   }
   
+  .form:hover {
+    -webkit-filter: grayscale(50%);
+    opacity: 1;
+  }
+
   .form.focused {
-    opacity: 1 !important;
+    -webkit-filter: none;
+    opacity: 1;
   }
   
-  .form:hover {
-    opacity: 0.9;
-  }
 
   .form-skelet {
     z-index: 0;
@@ -284,6 +288,10 @@
     border-radius: 0;
     border-bottom-right-radius: 2px;
     border-top-left-radius: 2px;
+  }
+  
+  .form.focused .header .name div {
+    background-color: #ff8;
   }
 
   .doc .docstring {
