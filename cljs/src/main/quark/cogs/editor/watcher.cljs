@@ -8,7 +8,7 @@
 
 (def editors-subscription (subscribe [:editors]))
 
-(react!
+#_(react!
   (when-let [editors @editors-subscription]
     (log "editors changed:" (data/diff prev editors) editors)
     (set! prev editors)))

@@ -13,7 +13,8 @@
             [quark.cogs.editor.layout.selections :refer [build-selections-render-info]]
             [quark.cogs.editor.analyzer :refer [analyze-full]]
             [quark.cogs.editor.utils :refer [debug-print-analysis ancestor-count loc->path leaf-nodes make-zipper collect-all-right]]
-            [rewrite-clj.node :as node])
+            [rewrite-clj.node :as node]
+            [quark.util.helpers :as helpers])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [react! dispatch]]
                    [cljs.core.async.macros :refer [go]]))
@@ -113,11 +114,23 @@
 (defn update-form-selectables-geometry [form geometry]
   (assoc form :all-selections (build-selections-render-info (:selectables form) geometry)))
 
+(defonce debounced-selection-updaters ^:dynamic {})
+
+(defn dispatch-dispatch-editor-update-selections [editor-id]
+  (dispatch :editor-update-selections editor-id))
+
+(defn debounced-dispatch-editor-update-selections [editor-id]
+  (if-let [updater (get debounced-selection-updaters editor-id)]
+    (updater)
+    (let [new-updater (helpers/debounce (partial dispatch-dispatch-editor-update-selections editor-id) 30)]
+      (set! debounced-selection-updaters (assoc debounced-selection-updaters editor-id new-updater))
+      (new-updater))))
+
 (defn update-selectables-geometry [editors [editor-id form-id geometry]]
   (let [forms (get-in editors [editor-id :render-state :forms])
         new-forms (map #(if (= (:id %) form-id) (update-form-selectables-geometry % geometry) %) forms)
         new-editors (assoc-in editors [editor-id :render-state :forms] new-forms)]
-    (dispatch :editor-update-selections editor-id)
+    (debounced-dispatch-editor-update-selections editor-id) ; coalesce update-requests here
     new-editors))
 
 (defn update-form-selections [form selected-node-ids]

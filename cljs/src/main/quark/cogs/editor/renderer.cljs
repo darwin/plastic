@@ -91,7 +91,6 @@
             _ (assert editor-node)
             editor-id (.getAttribute editor-node "data-qid")
             _ (assert editor-id)]
-        (log "click!" target-dom-node)
         (.stopPropagation event)
         (dispatch :editor-select (int editor-id) (:id form) #{(int selected-node-id)})))))
 
