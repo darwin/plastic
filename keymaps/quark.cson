@@ -16,3 +16,5 @@
   'right': 'quark:move-right'
   'up': 'quark:move-up'
   'down': 'quark:move-down'
+  'ctrl-up': 'quark:level-up'
+  'ctrl-down': 'quark:level-down'

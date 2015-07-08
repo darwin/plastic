@@ -1,8 +1,8 @@
 path = require 'path'
 {View} = require 'space-pen'
-{Disposable} = require 'atom'
+{Disposable, TextEditor} = require 'atom'
 bridge = require './bridge'
-{ScrollView} = require 'atom-space-pen-views'
+{ScrollView, TextEditorView} = require 'atom-space-pen-views'
 
 lastId = 0
 
@@ -11,11 +11,14 @@ class QuarkEditorView extends ScrollView
   @content: ->
     @div class: 'quark-editor-view', tabindex: -1, =>
       @div class: 'react-land'
+      @div class: 'mini-editor'
 
   initialize: ({@uri}={}) ->
     super
     lastId += 1
     @id = lastId
+    
+    @createMiniEditor()
 
     bridge.send "register-editor", @
     
@@ -24,8 +27,15 @@ class QuarkEditorView extends ScrollView
       'quark:move-right'
       'quark:move-up'
       'quark:move-down'
+      'quark:level-up'
+      'quark:level-down'
     ]
 
+  createMiniEditor: ->
+    @miniEditor = new TextEditor({})
+    @miniEditorElement = atom.views.getView(@miniEditor)
+    @find('.mini-editor').append(@miniEditorElement)
+    
   detached: ->
     bridge.send "unregister-editor", @
 

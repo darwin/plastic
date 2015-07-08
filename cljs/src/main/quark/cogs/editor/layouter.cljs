@@ -12,9 +12,10 @@
             [quark.cogs.editor.layout.headers :refer [build-headers-render-info]]
             [quark.cogs.editor.layout.selections :refer [build-selections-render-info]]
             [quark.cogs.editor.analyzer :refer [analyze-full]]
-            [quark.cogs.editor.utils :refer [debug-print-analysis ancestor-count loc->path leaf-nodes make-zipper collect-all-right]]
+            [quark.cogs.editor.utils :refer [debug-print-analysis ancestor-count loc->path leaf-nodes make-zipper collect-all-right collect-all-parents collect-all-children valid-loc?]]
             [rewrite-clj.node :as node]
-            [quark.util.helpers :as helpers])
+            [quark.util.helpers :as helpers]
+            [clojure.zip :as z])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [react! dispatch]]
                    [cljs.core.async.macros :refer [go]]))
@@ -40,6 +41,12 @@
                         (flatten (map collect-nodes (relevant-nodes (node/children node))))))]
     (concat [(:id node) node] (child-nodes node))))
 
+(defn build-selectable-parents [loc selectables]
+  (let [selectable? (fn [loc] (get selectables (:id (zip/node loc))))
+        selectable-locs (filter selectable? (take-while valid-loc? (iterate z/next loc)))
+        emit-item (fn [loc] [(:id (zip/node loc)) (first (rest (map #(:id (zip/node %)) (filter selectable? (collect-all-parents loc)))))])]
+    (apply hash-map (mapcat emit-item selectable-locs))))
+
 (defn prepare-form-render-info [loc]
   {:pre [(= (node/tag (zip/node (zip/up loc))) :forms)]}    ; parent has to be :forms
   (let [root-node (zip/node loc)
@@ -57,16 +64,18 @@
         tokens (zipmap all-token-ids all-tokens)
         selectables (apply hash-map (concat (extract-selectables-from-code code-info) (extract-selectables-from-docs docs-info)))
         lines-selectables (group-by :line (filter #(= (:tag %) :token) (vals selectables)))
-        form-info {:id                (:id root-node)
-                   :nodes             nodes
-                   :analysis          analysis
-                   :tokens            tokens                              ; will be used for soup generation
-                   :lines-selectables lines-selectables
-                   :selectables       selectables                         ; will be used for selections
-                   :skelet            {:text    (zip/string loc)          ; for plain text debug view
-                                       :code    code-info
-                                       :docs    docs-info
-                                       :headers headers-info}}]
+        selectable-parents (build-selectable-parents loc selectables)
+        form-info {:id                  (:id root-node)
+                   :nodes               nodes
+                   :analysis            analysis
+                   :tokens              tokens              ; used for soup generation
+                   :selectables         selectables         ; used for selections
+                   :lines-selectables   lines-selectables   ; used for left/right, up/down movement
+                   :selectable-parents  selectable-parents  ; used for level-up movement
+                   :skelet              {:text    (zip/string loc) ; used for plain text debug view
+                                         :code    code-info
+                                         :docs    docs-info
+                                         :headers headers-info}}]
     (debug-print-analysis root-node nodes analysis)
     (log "  =>" form-info)
     form-info))

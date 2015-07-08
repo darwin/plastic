@@ -16,13 +16,13 @@
   (let [selections (:selections editor)
         focused-form-id (:focused-form-id selections)
         find-form-info (fn [id] (some #(if (= (:id %) id) %) (get-in editor [:render-state :forms])))
-        form-info (find-form-info focused-form-id)
-        _ (assert form-info)
-        cursel (get selections focused-form-id)
-        result (model/op movement cursel form-info)]
-    (if result
-      (assoc-in editor [:selections focused-form-id] result)
-      editor)))
+        form-info (find-form-info focused-form-id)]
+    (if form-info
+      (let [cursel (get selections focused-form-id)
+            result (model/op movement cursel form-info)]
+        (if result
+          (assoc-in editor [:selections focused-form-id] result)
+          editor)))))
 
 (defn move-up [editor]
   (apply-move-selection editor :move-up))
@@ -36,6 +36,11 @@
 (defn move-right [editor]
   (apply-move-selection editor :move-right))
 
+(defn level-up [editor]
+  (apply-move-selection editor :level-up))
+
+(defn level-down [editor]
+  (apply-move-selection editor :level-down))
 
 ; ----------------------------------------------------------------------------------------------------------------
 

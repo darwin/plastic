@@ -20,6 +20,12 @@
 (defmethod handle :move-right [_ editor]
   (selections/move-right editor))
 
+(defmethod handle :level-up [_ editor]
+  (selections/level-up editor))
+
+(defmethod handle :level-down [_ editor]
+  (selections/level-down editor))
+
 ; ----------------------------------------------------------------------------------------------------------------
 
 (defmethod handle :default [command]

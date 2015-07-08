@@ -74,6 +74,9 @@
 (defn collect-all-parents [loc]
   (take-while valid-loc? (iterate z/up loc)))
 
+(defn collect-all-children [loc]
+  (collect-all-right (z/down loc)))
+
 (def noop (fn [] []))
 
 (defn node-walker [inner-fn leaf-fn reducer child-selector]
