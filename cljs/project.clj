@@ -35,8 +35,9 @@
                                        ;"checkouts/clojurescript/src/main/clojure"
                                        "checkouts/tools.reader/src/main/cljs"
                                        "checkouts/reagent/src"
-                                       "checkouts/figwheel/src"
-                                       "checkouts/rewrite-cljs/src"]
+                                       ;"checkouts/figwheel/src"
+                                       ;"checkouts/rewrite-cljs/src"
+                                       ]
                         :compiler     {:main           quark.init
                                        :output-to      "../lib/_build/quark.js"
                                        :output-dir     "../lib/_build"
