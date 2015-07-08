@@ -9,7 +9,8 @@ lastId = 0
 module.exports =
 class QuarkEditorView extends ScrollView
   @content: ->
-    @div class: 'quark-editor-view', tabindex: -1
+    @div class: 'quark-editor-view', tabindex: -1, =>
+      @div class: 'react-land'
 
   initialize: ({@uri}={}) ->
     super

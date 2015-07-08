@@ -1,6 +1,7 @@
 (ns quark.onion.inface
   (:require [quark.cogs.editor.renderer :refer [mount-editor]]
             [quark.onion.api :as api]
+            [quark.util.dom-shim]
             [clojure.string :as string])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [dispatch react!]]))
@@ -12,6 +13,12 @@
 
 (defn unregister-view [editor-id]
   (swap! ids->views dissoc editor-id))
+
+(defn find-mount-point [dom-node]
+  (let [react-land-dom-nodes (.getElementsByClassName dom-node "react-land")]
+    (assert react-land-dom-nodes)
+    (assert (= (count react-land-dom-nodes) 1))
+    (first react-land-dom-nodes)))
 
 ; -------------------------------------------------------------------------------------------
 
@@ -32,7 +39,7 @@
                     :uri (.-uri atom-view)}]
     (register-view editor-id atom-view)
     (dispatch :add-editor editor-id editor-def)
-    (mount-editor (.-element atom-view) editor-id)))
+    (mount-editor (find-mount-point (.-element atom-view)) editor-id)))
 
 (defmethod process :unregister-editor [_ atom-view]
   (let [editor-id (.-id atom-view)]
