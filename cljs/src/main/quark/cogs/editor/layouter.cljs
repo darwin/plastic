@@ -32,7 +32,7 @@
 (defn extract-selectables-from-docs [docs-infos]
   (flatten (map (fn [info] [(:id info) info]) docs-infos)))
 
-(defn form-layout-info [old-info loc]
+(defn form-layout-info [loc]
   (let [node (zip/node loc)
         analysis (->> {}
                    (analyze-scopes node)
@@ -44,16 +44,14 @@
         tokens (apply hash-map (extract-tokens code-info))
         selectables (apply hash-map (concat (extract-selectables-from-code code-info) (extract-selectables-from-docs docs-info)))]
     (debug-print-analysis node analysis)
-    (merge
-      old-info
-      {:id          (:id node)
-       :text        (zip/string loc)
-       :analysis    analysis
-       :tokens      tokens                                  ; will be used for soup generation
-       :selectables selectables                             ; will be used for selections
-       :skelet      {:code    code-info
-                     :docs    docs-info
-                     :headers headers-info}})))
+    {:id          (:id node)
+     :text        (zip/string loc)
+     :analysis    analysis
+     :tokens      tokens                                    ; will be used for soup generation
+     :selectables selectables                               ; will be used for selections
+     :skelet      {:code    code-info
+                   :docs    docs-info
+                   :headers headers-info}}))
 
 (defn prepare-top-level-forms [editor]
   (let [tree (:parse-tree editor)
@@ -62,7 +60,7 @@
         right-siblinks (collect-all-right loc)
         old-forms (get-in editor [:render-state :forms])
         find-old (fn [{:keys [id]}] (some #(if (= (:id %) id) %) old-forms))]
-    (map #(form-layout-info (find-old (first %)) %) right-siblinks)))
+    (map #(merge (find-old (first %)) (form-layout-info %)) right-siblinks)))
 
 (defn analyze-with-delay [editor-id delay]
   (go
