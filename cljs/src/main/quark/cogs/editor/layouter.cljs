@@ -41,22 +41,22 @@
     (concat [(:id node) node] (child-nodes node))))
 
 (defn prepare-form-render-info [loc]
-  {:pre [(= (node/tag (zip/node (zip/up loc))) :forms)]}
-  (let [node (zip/node loc)
-        _ (assert node)
-        nodes (apply hash-map (collect-nodes node))
+  {:pre [(= (node/tag (zip/node (zip/up loc))) :forms)]}    ; parent has to be :forms
+  (let [root-node (zip/node loc)
+        _ (assert root-node)
+        nodes (apply hash-map (collect-nodes root-node))
         analysis (->> {}
-                   (analyze-scopes node)
-                   (analyze-symbols node)
-                   (analyze-defs node))
+                   (analyze-scopes root-node)
+                   (analyze-symbols nodes)
+                   (analyze-defs root-node))
         code-info (build-code-render-info analysis loc)
         docs-info (build-docs-render-info analysis loc)
         headers-info (build-headers-render-info analysis loc)
         tokens (apply hash-map (extract-tokens code-info))
         selectables (apply hash-map (concat (extract-selectables-from-code code-info) (extract-selectables-from-docs docs-info)))]
-    (debug-print-analysis node analysis)
-    {:id          (:id node)
-     :text        (zip/string loc)
+    (debug-print-analysis root-node nodes analysis)
+    {:id          (:id root-node)
+     :text        (zip/string loc)                          ; for plain text debug view
      :nodes       nodes
      :analysis    analysis
      :tokens      tokens                                    ; will be used for soup generation

@@ -22,12 +22,14 @@
             {:decl? true}))
         (find-symbol-declaration node (:parent-scope scope-info))))))
 
-(defn resolve-symbol [[node info]]
-  (if (= (node/tag node) :token)
-    (if-let [declaration-scope (find-symbol-declaration node info)]
-      {node (assoc info :declaration-scope declaration-scope)}
-      {node info})
-    {node info}))
+(defn resolve-symbol [nodes record]
+  (let [[id info] record
+        node (get nodes id)]
+    (if (= (node/tag node) :token)
+      (if-let [declaration-scope (find-symbol-declaration node info)]
+        {id (assoc info :declaration-scope declaration-scope)}
+        record)
+      record)))
 
-(defn analyze-symbols [_ info]
-  (into {} (map resolve-symbol info)))
+(defn analyze-symbols [nodes info]
+  (into {} (map (partial resolve-symbol nodes) info)))

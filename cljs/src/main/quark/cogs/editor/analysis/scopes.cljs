@@ -61,10 +61,10 @@
     (if-let [new-scope (node-scope node)]
       (let [new-scope-info {:scope new-scope :parent-scope scope-info}]
         (merge
-          {node new-scope-info}
+          {(:id node) new-scope-info}
           (child-scopes new-scope-info node)))
       (merge
-        {node scope-info}
+        {(:id node) scope-info}
         (child-scopes scope-info node)))))
 
 (defn analyze-scopes [node info]

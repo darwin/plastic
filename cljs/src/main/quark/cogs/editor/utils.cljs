@@ -97,13 +97,11 @@
 (defn first-word [s]
   (first (string/split s #"\s")))
 
-(defn debug-print-analysis [node analysis]
-  (let [sorter (fn [[a _] [b _]] (- (:id a) (:id b)))
-        sorted-analysis (sort sorter analysis)]
+(defn debug-print-analysis [node nodes analysis]
     (group "ANALYSIS of" (:id node) "\n" (node/string node))
-    (doseq [[n info] sorted-analysis]
-      (log (:id n) (first-word (node/string n)) info))
-    (group-end)))
+    (doseq [[id info] (sort analysis)]
+      (log id (first-word (node/string (get nodes id))) info))
+    (group-end))
 
 (defn strip-double-quotes [s]
   (-> s

@@ -12,7 +12,7 @@
     (if (or (node/whitespace? node) (node/linebreak? node))
       (let [prev (z/left loc)
             prev-node (zip/node prev)
-            prev-node-analysis (get analysis prev-node)]
+            prev-node-analysis (get analysis (:id prev-node))]
         (:def-doc? prev-node-analysis)))))
 
 (defn layout-affecting-children [loc]
@@ -31,7 +31,8 @@
 
 (defn build-node-code-render-info [depth scope-id analysis loc]
   (let [node (zip/node loc)
-        node-analysis (get analysis node)
+        node-id (:id node)
+        node-analysis (get analysis node-id)
         new-scope-id (get-in node-analysis [:scope :id])
         tag (node/tag node)
         {:keys [declaration-scope def-name? def-doc? cursor]} node-analysis
@@ -39,7 +40,7 @@
     (if (or def-doc? (is-whitespace-or-nl-after-def-doc? analysis loc))
       nil
       (merge
-        {:id    (:id node)
+        {:id    node-id
          :tag   tag
          :depth depth}
         (if (node/inner? node)
