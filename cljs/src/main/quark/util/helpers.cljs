@@ -38,8 +38,6 @@
                 pprint/*print-lines* true]
         (pprint o)))))
 
-
-
 ; --------------------------------------------------------
 
 ; underscore-like debounce
@@ -54,3 +52,6 @@
           (<! @chan)
           (if (= snapshot @counter)
             (apply f args)))))))
+
+(defn abs [x]
+  (if (neg? x) (- x) x))
