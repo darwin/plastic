@@ -117,7 +117,7 @@
   .form-skelet .token {
     // do not use visibility: hidden;
     // this is important for tokens to be still clickable
-    opacity: 0;
+    opacity: 0 !important;
   }
   
   .form-overlay {
@@ -228,7 +228,16 @@
   .selectable {
     cursor: pointer;
   }
-
+  
+  .token.selectable {
+    opacity: 0.8;
+    pointer-events: auto;
+  }
+  
+  .token.selectable:hover {
+    opacity: 1;
+  }
+  
   .code {
     padding: 4px;
     color: white;

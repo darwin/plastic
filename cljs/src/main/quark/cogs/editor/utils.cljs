@@ -132,3 +132,7 @@
     strip-indent
     strip-double-quotes
     replace-whitespace-characters))
+
+(defn wrap-in-span
+  ([text class] (wrap-in-span true text class))
+  ([pred text class] (if pred (str "<span class=\"" class "\">" text "</span>") text)))

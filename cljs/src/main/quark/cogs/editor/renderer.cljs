@@ -67,18 +67,12 @@
                       headers-debug-visible docs-debug-visible code-debug-visible plaintext-debug-visible]} @settings]
           [:div.form-skelet
            [headers-wrapper-component skelet]               ; headers are always visible
-           (if docs-visible
-             [docs-wrapper-component skelet])
-           (if code-visible
-             [code-wrapper-component skelet])
-           (if plaintext-debug-visible
-             [plaintext-debug-component skelet])
-           (if headers-debug-visible
-             [headers-debug-component skelet])
-           (if docs-debug-visible
-             [docs-debug-component skelet])
-           (if code-debug-visible
-             [code-debug-component skelet])])))))
+           (if docs-visible [docs-wrapper-component skelet])
+           (if code-visible [code-wrapper-component skelet])
+           (if plaintext-debug-visible [plaintext-debug-component skelet])
+           (if headers-debug-visible [headers-debug-component skelet])
+           (if docs-debug-visible [docs-debug-component skelet])
+           (if code-debug-visible [code-debug-component skelet])])))))
 
 (defn handle-form-click [form event]
   (let [target-dom-node (.-target event)
@@ -134,8 +128,7 @@
          {:data-qid editor-id
           :on-click (partial handle-editor-click editor-id)}
          [forms-component forms]
-         (if parser-debug-visible
-           [parser-debug-component parse-tree])]))))
+         (if parser-debug-visible [parser-debug-component parse-tree])]))))
 
 (defn mount-editor [element editor-id]
   (let [editor (partial editor-root-component editor-id)]

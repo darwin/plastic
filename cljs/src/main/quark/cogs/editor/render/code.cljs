@@ -1,30 +1,23 @@
 (ns quark.cogs.editor.render.code
   (:require [quark.cogs.editor.render.utils :refer [raw-html wrap-specials classv]]
             [clojure.string :as string]
-            [quark.util.helpers :as helpers])
+            [quark.util.helpers :as helpers]
+            [quark.cogs.editor.utils :as utils])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 (declare code-component)
 
 (defn visualise-shadowing [text shadows]
-  (cond
-    (>= shadows 2) (str text "<span class=\"shadowed\">" shadows "</span>")
-    :default text))
+  (str text (utils/wrap-in-span (>= shadows 2) shadows "shadowed")))
 
 (defn visualize-decl [text decl?]
-  (if decl?
-    (str "<span class=\"decl\">" text "</span>")
-    text))
+  (utils/wrap-in-span decl? text "decl"))
 
 (defn visualize-def-name [text def-name?]
-  (if def-name?
-    (str "<span class=\"def-name\">" text "</span>")
-    text))
+  (utils/wrap-in-span def-name? text "def-name"))
 
 (defn visualise-doc [text doc?]
-  (if doc?
-    (str "<span class=\"def-doc\">" text "</span>")
-    text))
+  (utils/wrap-in-span doc? text "def-doc"))
 
 (defn visualise-keyword [text]
   (string/replace text #":" "<span class=\"colon\">:</span>"))
@@ -34,35 +27,18 @@
         props (merge
                 {:data-qid id
                  :class    (classv
-                             (if call "call")
+                             "token"
                              (if selectable "selectable")
+                             (if type (name type))
+                             (if call "call")
                              (if decl-scope (str "decl-scope decl-scope-" decl-scope)))}
-                (if geometry {:style {:transform (str "translateY(" (:top geometry) "px)" "translateX(" (:left geometry) "px)")}}))]
+                (if geometry {:style {:transform (str "translateY(" (:top geometry) "px) translateX(" (:left geometry) "px)")}}))
+        emit-token (fn [raw-text] [:div (merge props (raw-html raw-text))])]
     (log "R! token" id)
-    (cond
-      (= type :keyword)
-      [:div.token.keyword
-       (merge
-         props
-         (raw-html (-> text
-                     (visualise-keyword))))]
-
-      (= type :string)
-      [:div.token.string
-       (merge
-         props
-         (raw-html (-> text
-                     (wrap-specials)
-                     (visualise-doc def-doc?))))]
-
-      :else
-      [:div.token
-       (merge
-         props
-         (raw-html (-> text
-                     (visualise-shadowing shadows)
-                     (visualize-decl decl?)
-                     (visualize-def-name def-name?))))])))
+    (condp = type
+      :keyword (emit-token (-> text (visualise-keyword)))
+      :string (emit-token (-> text (wrap-specials) (visualise-doc def-doc?)))
+      (emit-token (-> text (visualise-shadowing shadows) (visualize-decl decl?) (visualize-def-name def-name?))))))
 
 (defn code-element-component [node]
   (let [{:keys [tag type id]} node]
@@ -75,25 +51,26 @@
                         (for [child (:children node)]
                           ^{:key (:id child)} [code-component child])])))
 
-(defn wrap [open close tree]
-  (let [{:keys [id scope selectable depth tag]} tree]
+(defn wrap [open close node]
+  (let [{:keys [id scope selectable depth tag]} node
+        tag-name (name tag)]
     [:div.compound {:data-qid id
                     :class    (classv
-                                (name tag)
+                                tag-name
                                 (if selectable "selectable")
                                 (if scope (str "scope scope-" scope))
                                 (if depth (str "depth-" depth)))}
-     [:div.punctuation.vat {:class (name tag)} open]
-     (code-element-component tree)
-     [:div.punctuation.vab {:class (name tag)} close]]))
+     [:div.punctuation.vat {:class tag-name} open]
+     (code-element-component node)
+     [:div.punctuation.vab {:class tag-name} close]]))
 
-(defn code-component [tree]
-  (condp = (:tag tree)
-    :list (wrap "(" ")" tree)
-    :vector (wrap "[" "]" tree)
-    :set (wrap "#{" "}" tree)
-    :map (wrap "{" "}" tree)
-    (code-element-component tree)))
+(defn code-component [node]
+  (condp = (:tag node)
+    :list (wrap "(" ")" node)
+    :vector (wrap "[" "]" node)
+    :set (wrap "#{" "}" node)
+    :map (wrap "{" "}" node)
+    (code-element-component node)))
 
 (defn extract-first-child-name [node]
   (:text (first (:children node))))
