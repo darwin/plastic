@@ -8,7 +8,9 @@
 (declare code-component)
 
 (defn visualise-shadowing [text shadows]
-  (str text (utils/wrap-in-span (>= shadows 2) shadows "shadowed")))
+  (if (>= shadows 2)
+    (str text (utils/wrap-in-span shadows "shadowed"))
+    text))
 
 (defn visualize-decl [text decl?]
   (utils/wrap-in-span decl? text "decl"))
@@ -70,6 +72,7 @@
     :vector (wrap "[" "]" node)
     :set (wrap "#{" "}" node)
     :map (wrap "{" "}" node)
+    :fn (wrap "#(" ")" node)
     (code-element-component node)))
 
 (defn extract-first-child-name [node]

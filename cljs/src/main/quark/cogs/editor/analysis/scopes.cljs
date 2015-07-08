@@ -44,10 +44,13 @@
       :pairs (collect-vector-pairs first-vector))))
 
 (defn node-scope [node]
-  (if (= (node/tag node) :list)
-    (if-let [opener-type (scope-openers (node/sexpr (first (node/children node))))]
-      {:id     (next-scope-id!)
-       :locals (collect-params node opener-type)})))
+  (condp = (node/tag node)
+    :list (if-let [opener-type (scope-openers (node/sexpr (first (node/children node))))]
+                                {:id     (next-scope-id!)
+                                 :locals (collect-params node opener-type)})
+    :fn {:id     (next-scope-id!)
+         :locals [[#(re-find #"^%" (node/string %)) (:id node)]]}
+    nil))
 
 (defn scope-related-nodes [nodes]
   (remove #(or (node/whitespace? %) (node/comment? %)) nodes))

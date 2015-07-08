@@ -3,11 +3,13 @@
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 (defn matching-local? [node [decl-node after-id]]
-  (or
-    (identical? node decl-node)
-    (and
-      (> (:id node) after-id)
-      (= (node/string decl-node) (node/string node)))))
+  (if (fn? decl-node)
+    (decl-node node)
+    (or
+      (identical? node decl-node)
+      (and
+        (> (:id node) after-id)
+        (= (node/string node) (node/string decl-node))))))
 
 (defn find-symbol-declaration [node scope-info]
   (if scope-info

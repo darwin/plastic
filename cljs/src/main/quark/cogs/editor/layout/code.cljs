@@ -47,7 +47,7 @@
           {:children (remove nil? (map (partial build-node-code-render-info (inc depth) new-scope-id analysis) (layout-affecting-children loc)))}
           {:text (node/string node)})
         (if (or (node/linebreak? node) (node/comment? node)) {:type :newline :text "\n"}) ; comments have newlines embedded
-        (if (#{:token :list :map :vector :set} tag) {:selectable true})
+        (if (#{:token :fn :list :map :vector :set} tag) {:selectable true})
         (if (is-call? loc) {:call true})
         (if (instance? StringNode node) {:text (prepare-string-for-display (node/string node)) :type :string})
         (if (instance? KeywordNode node) {:type :keyword})
