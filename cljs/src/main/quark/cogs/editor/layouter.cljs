@@ -13,7 +13,8 @@
             [quark.cogs.editor.layout.headers :refer [build-headers-render-info]]
             [quark.cogs.editor.layout.selections :refer [build-selections-render-info]]
             [quark.cogs.editor.analyzer :refer [analyze-full]]
-            [quark.cogs.editor.utils :refer [debug-print-analysis ancestor-count loc->path leaf-nodes make-zipper collect-all-right]])
+            [quark.cogs.editor.utils :refer [debug-print-analysis ancestor-count loc->path leaf-nodes make-zipper collect-all-right]]
+            [rewrite-clj.node :as node])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [react! dispatch]]
                    [cljs.core.async.macros :refer [go]]))
@@ -32,8 +33,18 @@
 (defn extract-selectables-from-docs [docs-infos]
   (flatten (map (fn [info] [(:id info) info]) docs-infos)))
 
+(defn collect-nodes [node]
+  (let [relevant-nodes (fn [nodes] (remove #(or (node/whitespace? %) (node/comment? %)) nodes))
+        child-nodes (fn [node]
+                      (if (node/inner? node)
+                        (flatten (map collect-nodes (relevant-nodes (node/children node))))))]
+    (concat [(:id node) node] (child-nodes node))))
+
 (defn prepare-form-render-info [loc]
+  {:pre [(= (node/tag (zip/node (zip/up loc))) :forms)]}
   (let [node (zip/node loc)
+        _ (assert node)
+        nodes (apply hash-map (collect-nodes node))
         analysis (->> {}
                    (analyze-scopes node)
                    (analyze-symbols node)
@@ -46,6 +57,7 @@
     (debug-print-analysis node analysis)
     {:id          (:id node)
      :text        (zip/string loc)
+     :nodes       nodes
      :analysis    analysis
      :tokens      tokens                                    ; will be used for soup generation
      :selectables selectables                               ; will be used for selections
@@ -56,11 +68,11 @@
 (defn prepare-render-infos-of-top-level-forms [editor]
   (let [tree (:parse-tree editor)
         top (make-zipper tree)                              ; root "forms" node
-        loc (zip/down top)
-        right-siblinks (collect-all-right loc)
+        loc (zip/down top)                                  ; TODO: here we should skip possible whitespace
+        right-siblinks (collect-all-right loc)              ; TODO: here we should use explicit zipping policy
         old-forms (get-in editor [:render-state :forms])
-        find-old (fn [{:keys [id]}] (some #(if (= (:id %) id) %) old-forms))]
-    (map #(merge (find-old (first %)) (prepare-form-render-info %)) right-siblinks)))
+        find-old-form (fn [{:keys [id]}] (some #(if (= (:id %) id) %) old-forms))]
+    (map #(merge (find-old-form (first %)) (prepare-form-render-info %)) right-siblinks)))
 
 (defn analyze-with-delay [editor-id delay]
   (go
