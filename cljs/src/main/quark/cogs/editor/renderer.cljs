@@ -91,18 +91,20 @@
 (defn form-component []
   (let [settings (subscribe [:settings])]
     (fn [form]
-      (let [{:keys [selections-debug-visible]} @settings]
+      (let [{:keys [selections-debug-visible]} @settings
+            {:keys [focused soup active-selections all-selections skelet]} form]
         (log "R! form" (:id form) form)
-        [:tr.form
-         {:data-qid (:id form)
-          :on-click (partial handle-form-click form)}
+        [:tr.form-row
          [:td.form-cell
-          [:div.form-anchor
-           [form-soup-overlay-component (:soup form)]
-           [form-selections-overlay-component (:active-selections form)]
+          [:div.form
+           {:data-qid (:id form)
+            :class    (classv (if focused "focused"))
+            :on-click (partial handle-form-click form)}
+           [form-soup-overlay-component soup]
+           [form-selections-overlay-component active-selections]
            (if selections-debug-visible
-             [selections-debug-overlay-component (:all-selections form)])
-           [form-skelet-component (:skelet form)]]]]))))
+             [selections-debug-overlay-component all-selections])
+           [form-skelet-component skelet]]]]))))
 
 (defn forms-component []
   (fn [forms]

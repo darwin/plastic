@@ -139,11 +139,17 @@
         matching-selections (filter #(contains? selected-node-ids (:id %)) all-selections)]
     (assoc form :active-selections (vec matching-selections))))
 
+(defn update-form-focus-flag [form focused-form-id]
+  (assoc form :focused (= (:id form) focused-form-id)))
+
 (defn update-selections [editors [editor-id]]
   (let [forms (get-in editors [editor-id :render-state :forms])
         selections (or (get-in editors [editor-id :selections]) {})
         get-form-selected-node-ids (fn [form] (get selections (:id form)))
-        new-forms (map (fn [form] (update-form-selections form (get-form-selected-node-ids form))) forms)
+        process-form (fn [form] (-> form
+                                  (update-form-selections (get-form-selected-node-ids form))
+                                  (update-form-focus-flag (:focused-form-id selections))))
+        new-forms (map process-form forms)
         new-editors (assoc-in editors [editor-id :render-state :forms] new-forms)]
     new-editors))
 
