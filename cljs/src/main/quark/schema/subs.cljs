@@ -18,5 +18,6 @@
 (register-sub :editor-parse-tree (path-query-factory (editor-selector [:parse-tree])))
 (register-sub :editor-cursors (path-query-factory (editor-selector [:cursors])))
 (register-sub :editor-selections (path-query-factory (editor-selector [:selections])))
+(register-sub :editor-editing (path-query-factory (editor-selector [:editing])))
 
 (register-sub :settings (path-query-factory paths/settings))

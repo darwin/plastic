@@ -1,6 +1,6 @@
 (ns quark.onion.inface
-  (:require [quark.cogs.editor.renderer :refer [mount-editor]]
-            [quark.onion.api :as api]
+  (:require [quark.onion.api :as api]
+            [quark.db :refer [app-db]]
             [quark.util.dom-shim]
             [clojure.string :as string])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
@@ -39,7 +39,7 @@
                     :uri (.-uri atom-view)}]
     (register-view editor-id atom-view)
     (dispatch :add-editor editor-id editor-def)
-    (mount-editor (find-mount-point (.-element atom-view)) editor-id)))
+    (dispatch :mount-editor editor-id (find-mount-point (.-element atom-view)))))
 
 (defmethod process :unregister-editor [_ atom-view]
   (let [editor-id (.-id atom-view)]

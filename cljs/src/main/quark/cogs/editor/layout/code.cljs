@@ -3,7 +3,7 @@
             [rewrite-clj.node :as node]
             [rewrite-clj.node.stringz :refer [StringNode]]
             [rewrite-clj.node.keyword :refer [KeywordNode]]
-            [quark.cogs.editor.utils :refer [prepare-string-for-display ancestor-count loc->path leaf-nodes make-zipper collect-all-right]]
+            [quark.cogs.editor.utils :refer [is-selectable? prepare-string-for-display ancestor-count loc->path leaf-nodes make-zipper collect-all-right]]
             [clojure.zip :as z])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
@@ -41,16 +41,13 @@
     (if (= (node/tag (zip/node parent-loc)) :list)
       (= loc (first (layout-affecting-children parent-loc))))))
 
-(defn is-selectable? [tag]
-  (#{:token :fn :list :map :vector :set} tag))
-
 (defn build-node-code-render-info [depth scope-id analysis loc]
   (let [node (zip/node loc)
         node-id (:id node)
         node-analysis (get analysis node-id)
         new-scope-id (get-in node-analysis [:scope :id])
         tag (node/tag node)
-        {:keys [declaration-scope def-name? def-doc? cursor]} node-analysis
+        {:keys [declaration-scope def-name? def-doc? cursor editing?]} node-analysis
         {:keys [shadows decl?]} declaration-scope]
     (if (or def-doc? (is-whitespace-or-nl-after-def-doc? analysis loc))
       nil
@@ -64,6 +61,7 @@
           {:children (doall (remove nil? (map (partial build-node-code-render-info (inc depth) new-scope-id analysis) (layout-affecting-children loc))))}
           {:text (node/string node)})
         (if (is-selectable? tag) {:selectable true})
+        (if editing? {:editing? true})
         (if (is-call? loc) {:call true})
         (if (instance? StringNode node) {:text (prepare-string-for-display (node/string node)) :type :string})
         (if (instance? KeywordNode node) {:type :keyword})

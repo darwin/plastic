@@ -62,7 +62,6 @@
   (let [settings (subscribe [:settings])]
     (form-scaffold
       (fn [skelet]
-        (log "R! form skelet" skelet)
         (let [{:keys [code-visible docs-visible
                       headers-debug-visible docs-debug-visible code-debug-visible plaintext-debug-visible]} @settings]
           [:div.form-skelet
@@ -92,13 +91,14 @@
   (let [settings (subscribe [:settings])]
     (fn [form]
       (let [{:keys [selections-debug-visible]} @settings
-            {:keys [focused soup active-selections all-selections skelet]} form]
-        (log "R! form" (:id form) form)
+            {:keys [focused soup active-selections all-selections skelet editing]} form]
         [:tr.form-row
          [:td.form-cell
           [:div.form.noselect
            {:data-qid (:id form)
-            :class    (classv (if focused "focused"))
+            :class    (classv
+                        (if focused "focused")
+                        (if editing "editing"))
             :on-click (partial handle-form-click form)}
            [form-soup-overlay-component soup]
            [form-selections-overlay-component active-selections]
@@ -108,7 +108,6 @@
 
 (defn forms-component []
   (fn [forms]
-    (log "R! forms")
     [:table.form-group
      [:tbody
       (for [form forms]

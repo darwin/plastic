@@ -139,3 +139,6 @@
 (defn wrap-in-span
   ([text class] (wrap-in-span true text class))
   ([pred text class] (if pred (str "<span class=\"" class "\">" text "</span>") text)))
+
+(defn is-selectable? [tag]
+  (#{:token :fn :list :map :vector :set} tag))

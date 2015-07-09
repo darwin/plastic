@@ -2,16 +2,52 @@ path = require 'path'
 {View} = require 'space-pen'
 {Disposable, TextEditor} = require 'atom'
 bridge = require './bridge'
-{ScrollView, TextEditorView} = require 'atom-space-pen-views'
+{ScrollView} = require 'atom-space-pen-views'
 
 lastId = 0
 
+monkeyPatchPresenterInstance = (editorView) ->
+  presenter = editorView.component.presenter
+  throw "presenter on editorView.component not found" unless presenter
+  originalMethod = presenter.updateContentDimensions
+  throw "presenter.updateContentDimensions not found" unless originalMethod
+  presenter.updateContentDimensions = ->
+    if @lineHeight?
+      oldContentHeight = @contentHeight
+      @contentHeight = @lineHeight * @model.getScreenLineCount()
+
+    if @baseCharacterWidth?
+      oldContentWidth = @contentWidth
+      clip = @model.tokenizedLineForScreenRow(@model.getLongestScreenRow())?.isSoftWrapped()
+      @contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), @model.getMaxScreenLineLength()], clip).left
+      @contentWidth += @scrollLeft
+      @contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
+
+    if @contentHeight isnt oldContentHeight
+      @updateHeight()
+      @updateScrollbarDimensions()
+      @updateScrollHeight()
+
+    if @contentWidth isnt oldContentWidth
+      # <<<<<<<<<< next line seamlesly expands editor content frame as user is typing
+      @setContentFrameWidth(@contentWidth+1) # +1px for cursor
+      # >>>>>>>>>>
+      @updateScrollbarDimensions()
+      @updateScrollWidth()
+      
+monkeyPatchEditorInstance = (editorView) ->
+  originalMethod = editorView.mountComponent
+  throw "editorView.mountComponent not found" unless originalMethod
+  monkeyPatchPresenterInstance(editorView)
+  editorView.mountComponent = ->
+    originalMethod.apply(@, arguments)
+    monkeyPatchPresenterInstance(@)
+      
 module.exports =
 class QuarkEditorView extends ScrollView
   @content: ->
     @div class: 'quark-editor-view', tabindex: -1, =>
       @div class: 'react-land'
-      @div class: 'mini-editor'
 
   initialize: ({@uri}={}) ->
     super
@@ -29,12 +65,15 @@ class QuarkEditorView extends ScrollView
       'quark:move-down'
       'quark:level-up'
       'quark:level-down'
+      'quark:stop-editing'
+      'quark:prev-token'
+      'quark:next-token'
     ]
 
   createMiniEditor: ->
-    @miniEditor = new TextEditor({})
-    @miniEditorElement = atom.views.getView(@miniEditor)
-    @find('.mini-editor').append(@miniEditorElement)
+    @miniEditor = new TextEditor(softWrapped: false, tabLength: 2, softTabs: true, lineNumberGutterVisible: false)
+    @miniEditorView = atom.views.getView(@miniEditor)
+    monkeyPatchEditorInstance(@miniEditorView)
     
   detached: ->
     bridge.send "unregister-editor", @

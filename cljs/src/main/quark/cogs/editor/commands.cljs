@@ -1,8 +1,10 @@
 (ns quark.cogs.editor.commands
   (:require [quark.frame.core :refer [subscribe register-handler]]
             [quark.schema.paths :as paths]
+            [quark.cogs.editor.editing :as editing]
             [quark.cogs.editor.selections :as selections])
-  (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
+  (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
+                   [quark.macros.glue :refer [react! dispatch]]))
 
 (defmulti handle (fn [command & _] command))
 
@@ -24,7 +26,21 @@
   (selections/level-up editor))
 
 (defmethod handle :level-down [_ editor]
-  (selections/level-down editor))
+  (let [new-editor (selections/level-down editor)]
+    (if (= new-editor editor)
+      (dispatch :editor-command (:id editor) :toggle-editing))
+    new-editor))
+
+(defmethod handle :toggle-editing [_ editor]
+  (if (empty? (:editing editor))
+    (editing/start-editing editor)
+    (editing/stop-editing editor)))
+
+(defmethod handle :start-editing [_ editor]
+  (editing/start-editing editor))
+
+(defmethod handle :stop-editing [_ editor]
+  (editing/stop-editing editor))
 
 ; ----------------------------------------------------------------------------------------------------------------
 

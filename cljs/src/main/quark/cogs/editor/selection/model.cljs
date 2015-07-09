@@ -79,8 +79,7 @@
 (defmethod op :level-down [_ cursel form-info]
   (let [sel-node-id (first cursel)
         {:keys [selectable-parents]} form-info
-        candidates (sort (map first (filter (fn [[nid pid]] (= pid sel-node-id)) selectable-parents)))
-        _ (log "ccc" candidates)
+        candidates (sort (map first (filter (fn [[_nid pid]] (= pid sel-node-id)) selectable-parents)))
         result (first candidates)]
     (if result
       #{result})))

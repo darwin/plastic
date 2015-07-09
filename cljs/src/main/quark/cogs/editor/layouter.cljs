@@ -5,6 +5,7 @@
             [quark.schema.paths :as paths]
             [quark.cogs.editor.analysis.scopes :refer [analyze-scopes]]
             [quark.cogs.editor.analysis.symbols :refer [analyze-symbols]]
+            [quark.cogs.editor.analysis.editing :refer [analyze-editing]]
             [quark.cogs.editor.analysis.defs :refer [analyze-defs]]
             [quark.cogs.editor.layout.soup :refer [build-soup-render-info]]
             [quark.cogs.editor.layout.code :refer [build-code-render-info]]
@@ -47,15 +48,18 @@
         emit-item (fn [loc] [(:id (zip/node loc)) (first (rest (map #(:id (zip/node %)) (filter selectable? (collect-all-parents loc)))))])]
     (apply hash-map (mapcat emit-item selectable-locs))))
 
-(defn prepare-form-render-info [loc]
+(defn prepare-form-render-info [editor loc]
   {:pre [(= (node/tag (zip/node (zip/up loc))) :forms)]}    ; parent has to be :forms
   (let [root-node (zip/node loc)
         _ (assert root-node)
+        root-id (:id root-node)
+        editing (or (get-in editor [:editing]) #{})
         nodes (apply hash-map (collect-nodes root-node))
         analysis (->> {}
                    (analyze-scopes root-node)
                    (analyze-symbols nodes)
-                   (analyze-defs root-node))
+                   (analyze-defs root-node)
+                   (analyze-editing editing nodes))
         code-info (build-code-render-info analysis loc)
         docs-info (build-docs-render-info analysis loc)
         headers-info (build-headers-render-info analysis loc)
@@ -65,19 +69,20 @@
         selectables (apply hash-map (concat (extract-selectables-from-code code-info) (extract-selectables-from-docs docs-info)))
         lines-selectables (group-by :line (filter #(= (:tag %) :token) (vals selectables)))
         selectable-parents (build-selectable-parents loc selectables)
-        form-info {:id                  (:id root-node)
-                   :nodes               nodes
-                   :analysis            analysis
-                   :tokens              tokens              ; used for soup generation
-                   :selectables         selectables         ; used for selections
-                   :lines-selectables   lines-selectables   ; used for left/right, up/down movement
-                   :selectable-parents  selectable-parents  ; used for level-up movement
-                   :skelet              {:text    (zip/string loc) ; used for plain text debug view
-                                         :code    code-info
-                                         :docs    docs-info
-                                         :headers headers-info}}]
-    (debug-print-analysis root-node nodes analysis)
-    (log "  =>" form-info)
+        form-info {:id                 root-id
+                   :editing            (not (empty? editing))
+                   :nodes              nodes
+                   :analysis           analysis
+                   :tokens             tokens               ; used for soup generation
+                   :selectables        selectables          ; used for selections
+                   :lines-selectables  lines-selectables    ; used for left/right, up/down movement
+                   :selectable-parents selectable-parents   ; used for level-up movement
+                   :skelet             {:text    (zip/string loc) ; used for plain text debug view
+                                        :code    code-info
+                                        :docs    docs-info
+                                        :headers headers-info}}]
+    ;(debug-print-analysis root-node nodes analysis)
+    (log "form" root-id "=> render-info:" form-info)
     form-info))
 
 (defn prepare-render-infos-of-top-level-forms [editor]
@@ -87,7 +92,7 @@
         right-siblinks (collect-all-right loc)              ; TODO: here we should use explicit zipping policy
         old-form-render-infos (get-in editor [:render-state :forms])
         find-old-form-render-info (fn [{:keys [id]}] (some #(if (= (:id %) id) %) old-form-render-infos))]
-    (map #(merge (find-old-form-render-info (first %)) (prepare-form-render-info %)) right-siblinks)))
+    (map #(merge (find-old-form-render-info (z/node %)) (prepare-form-render-info editor %)) right-siblinks)))
 
 (defn analyze-with-delay [editor-id delay]
   (go
