@@ -20,7 +20,8 @@
   :source-paths ["src/main"
                  "src/dev"
                  "target/classes"
-                 "checkouts/tools.reader/src/main/clojure"]
+                 ;"checkouts/tools.reader/src/main/clojure"
+                ]
 
   :clean-targets ^{:protect false} ["../lib/_build" "target" ".tmp"]
 
@@ -31,10 +32,10 @@
   :cljsbuild {:builds [{:id           "dev"
                         :source-paths ["src/main"
                                        "src/dev"
-                                       "checkouts/clojurescript/src/main/cljs"
+                                       ;"checkouts/clojurescript/src/main/cljs"
                                        ;"checkouts/clojurescript/src/main/clojure"
-                                       "checkouts/tools.reader/src/main/cljs"
-                                       "checkouts/reagent/src"
+                                       ;"checkouts/tools.reader/src/main/cljs"
+                                       ;"checkouts/reagent/src"
                                        ;"checkouts/figwheel/src"
                                        ;"checkouts/rewrite-cljs/src"
                                        ]

@@ -6,15 +6,19 @@ cd "$(dirname "${BASH_SOURCE[0]}")"; cd ..
 
 ROOT=`pwd`
 SRC="$ROOT/src"
-TMP="$ROOT/.tmp"
-ATOM="$ROOT/.atom"
 
-# atom is started in dev mode, if ROOT is ~/github/plastic/cljs that means
-#   ATOM_DEV_RESOURCE_PATH is ~/github/atom (checkout of atom repo)
-#   ATOM_HOME is ~/github/plastic/cljs/.atom
+# this folder is plastic/cljs
+WORKSPACE="$ROOT/../.." # workspace is parent folder of our root folder
+ATOM_HOME="$WORKSPACE/.atom"
+ATOM_DEV_RESOURCE_PATH="$WORKSPACE/atom"
+TMP="$WORKSPACE/.tmp"
+
+# atom is started in dev mode, if ROOT is ~/workspace/plastic/cljs that means
+#   ATOM_DEV_RESOURCE_PATH is ~/workspace/atom (checkout of atom repo)
+#   ATOM_HOME is ~/workspace/plastic/cljs/.atom
 #
-# you have to build atom from ~/github/atom, follow official build instructions
+# you have to build atom from ~/workspace/atom, follow official build instructions
 #
 # running atom in --dev mode will enable dev-live-reload package, which will provide live reloading of css (less)
 
-ATOM_HOME="$ATOM" ATOM_DEV_RESOURCE_PATH="$ROOT/../../atom" /Applications/Atom.app/Contents/MacOS/Atom --dev --log-file "$TMP/atom.log" $SRC
+ATOM_HOME="$ATOM_HOME" ATOM_DEV_RESOURCE_PATH="$ATOM_DEV_RESOURCE_PATH" /Applications/Atom.app/Contents/MacOS/Atom --dev --log-file "$TMP/atom.log" $SRC

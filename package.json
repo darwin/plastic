@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "async": "~0.2.9",
+    "atom-space-pen-views": "^2.0.5",
     "emissary": "1.x",
     "pathwatcher": "^4.4.1",
     "source-map-support": "^0.3.2",

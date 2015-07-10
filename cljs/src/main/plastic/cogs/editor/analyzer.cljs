@@ -21,6 +21,7 @@
                    [plastic.macros.glue :refer [react! dispatch]]
                    [cljs.env.macros :refer [ensure with-compiler-env]]
                    [cljs.analyzer.macros :refer [no-warn wrapping-errors]]))
+(comment
 
 (defonce fs (js/require "fs"))
 (defonce path (js/require "path"))
@@ -367,3 +368,7 @@
     (log "analyze-full" args "compiler:" compiler-env)
     (with-compiler-env compiler-env
       (apply analyze-file args))))
+      
+)
+
+(defn analyze-full [& args])
