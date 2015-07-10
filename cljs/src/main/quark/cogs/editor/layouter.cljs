@@ -100,11 +100,10 @@
     (dispatch :editor-analyze editor-id)))
 
 (defn layout-editor [editor editor-id]
-  (let [parse-tree (:parse-tree editor)
-        render-infos (prepare-render-infos-of-top-level-forms editor)
+  (let [render-infos (prepare-render-infos-of-top-level-forms editor)
         state {:forms      render-infos
-               :parse-tree parse-tree}]
-    (dispatch :editor-set-layout editor-id state)
+               :debug-parse-tree (:parse-tree editor)}]
+    (dispatch :editor-update-render-state editor-id state)
     #_(analyze-with-delay editor-id 1000))
   editor)
 
@@ -114,12 +113,12 @@
       (for [[editor-id editor] editors]
         [editor-id (f editor editor-id)]))))
 
-(defn layout [editors [editor-id]]
+(defn update-layout [editors [editor-id]]
   (if editor-id
     (assoc editors editor-id (layout-editor (get editors editor-id) editor-id))
     (for-each-editor editors layout-editor)))
 
-(defn set-layout [editors [editor-id state]]
+(defn update-render-state [editors [editor-id state]]
   (assoc-in editors [editor-id :render-state] state))
 
 (defn update-form-soup-geometry [form geometry]
@@ -181,9 +180,9 @@
 ; ----------------------------------------------------------------------------------------------------------------
 ; register handlers
 
-(register-handler :editor-layout paths/editors-path layout)
-(register-handler :editor-set-layout paths/editors-path set-layout)
-(register-handler :editor-analyze paths/editors-path analyze)
+(register-handler :editor-update-layout paths/editors-path update-layout)
+(register-handler :editor-update-render-state paths/editors-path update-render-state)
 (register-handler :editor-update-soup-geometry paths/editors-path update-soup-geometry)
 (register-handler :editor-update-selectables-geometry paths/editors-path update-selectables-geometry)
 (register-handler :editor-update-selections paths/editors-path update-selections)
+(register-handler :editor-analyze paths/editors-path analyze)

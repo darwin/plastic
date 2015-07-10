@@ -58,7 +58,7 @@
 
 (defn on-js-load []
   ;(.remount-editors js/quark.onion.remounter)
-  (dispatch :editor-layout)
+  (dispatch :editor-update-layout)
   )
 
 (figwheel/start

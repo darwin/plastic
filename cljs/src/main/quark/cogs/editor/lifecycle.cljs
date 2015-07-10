@@ -21,7 +21,7 @@
   (let [parsed-subscription (subscribe [:editor-parse-tree editor-id])]
     (react!
       (when-let [_ @parsed-subscription]
-        (dispatch :editor-layout editor-id)))))
+        (dispatch :editor-update-layout editor-id)))))
 
 (defn watch-cursors [editor-id]
   (let [cursors-subscription (subscribe [:editor-cursors editor-id])]
@@ -40,7 +40,7 @@
   (let [editing-subscription (subscribe [:editor-editing editor-id])]
     (react!
       (when-let [_ @editing-subscription]
-        (dispatch :editor-layout editor-id)))))
+        (dispatch :editor-update-layout editor-id)))))
 
 (defn wire-editor [editor-id]
   (watch-uri editor-id)

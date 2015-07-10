@@ -124,7 +124,7 @@
     (fn []
       (let [forms (:forms @state)
             {:keys [parser-debug-visible]} @settings
-            parse-tree (if parser-debug-visible (:parse-tree @state) nil)]
+            parse-tree (if parser-debug-visible (:debug-parse-tree @state) nil)]
         [:div.quark-editor                                  ; .editor class is taken by Atom
          {:data-qid editor-id
           :on-click (partial handle-editor-click editor-id)}
