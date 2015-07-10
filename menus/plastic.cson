@@ -1,0 +1,55 @@
+# See https://atom.io/docs/latest/hacking-atom-package-word-count#menus for more details
+'context-menu':
+  '.plastic-editor-view': [
+    {
+      'label': 'Toggle Code'
+      'command': 'plastic:toggle-code'
+    },
+    {
+      'label': 'Toggle Docs'
+      'command': 'plastic:toggle-docs'
+    },
+    {
+      'label': 'Toggle Plain Text (debug)'
+      'command': 'plastic:toggle-plaintext-debug'
+    },
+    {
+      'label': 'Toggle Code Render Info (debug)'
+      'command': 'plastic:toggle-code-debug'
+    },
+    {
+      'label': 'Toggle Docs Render Info (debug)'
+      'command': 'plastic:toggle-docs-debug'
+    },
+    {
+      'label': 'Toggle Headers Render Info (debug)'
+      'command': 'plastic:toggle-headers-debug'
+    },
+    {
+      'label': 'Toggle Selections (debug)'
+      'command': 'plastic:toggle-selections-debug'
+    },
+    {
+      'label': 'Toggle Parser Data (debug)'
+      'command': 'plastic:toggle-parser-debug'
+    }
+  ]
+'menu': [
+  {
+    'label': 'Packages'
+    'submenu': [
+      'label': 'Plastic (ClojureScript)'
+      'submenu': [
+        {
+          'label': 'Toggle Code'
+          'command': 'plastic:toggle-code'
+        },
+        {
+          'label': 'Toggle Docs'
+          'command': 'plastic:toggle-docs'
+        }
+
+      ]
+    ]
+  }
+]

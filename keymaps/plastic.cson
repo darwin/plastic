@@ -1,0 +1,33 @@
+# Keybindings require three things to be fully defined: A selector that is
+# matched against the focused element, the keystroke and the command to
+# execute.
+#
+# Below is a basic keybinding which registers on all platforms by applying to
+# the root workspace element.
+
+# For more detailed documentation see
+# https://atom.io/docs/latest/behind-atom-keymaps-in-depth
+
+# global plastic commands
+'atom-workspace':
+  'ctrl-alt-c': 'plastic:toggle-code'
+  'ctrl-alt-d': 'plastic:toggle-docs'
+
+# plastic editor
+'.plastic-editor-view':
+  'left': 'plastic:move-left'
+  'right': 'plastic:move-right'
+  'up': 'plastic:move-up'
+  'down': 'plastic:move-down'
+  'ctrl-up': 'plastic:level-up'
+  'ctrl-down': 'plastic:level-down'
+
+# inlined text editor
+'.plastic-editor-view atom-text-editor':
+  'left': 'core:move-left'
+  'right': 'core:move-right'
+  'up': 'core:move-up'
+  'down': 'core:move-down'
+  'escape': 'plastic:stop-editing'
+  'tab': 'plastic:next-token'
+  'alt+tab': 'plastic:prev-token'

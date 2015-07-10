@@ -1,6 +1,6 @@
-(defproject quark "0.1.0-SNAPSHOT"
-  :description "Quark - Experimental ClojureScript editor component for Atom"
-  :url "http://github.com/darwin/quark"
+(defproject plastic "0.1.0-SNAPSHOT"
+  :description "Plastic - Experimental ClojureScript editor component for Atom"
+  :url "http://github.com/darwin/plastic"
 
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [org.clojure/clojurescript "0.0-3422"]
@@ -38,8 +38,8 @@
                                        ;"checkouts/figwheel/src"
                                        ;"checkouts/rewrite-cljs/src"
                                        ]
-                        :compiler     {:main           quark.init
-                                       :output-to      "../lib/_build/quark.js"
+                        :compiler     {:main           plastic.init
+                                       :output-to      "../lib/_build/plastic.js"
                                        :output-dir     "../lib/_build"
                                        :optimizations  :none
                                        :target         :nodejs

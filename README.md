@@ -1,5 +1,5 @@
-# QUARK - ClojureScript editor for Atom
+# PLASTIC - ClojureScript editor for Atom
 
 ## EXPERIMENTAL (work in progress)
 
-<img src="https://dl.dropboxusercontent.com/u/559047/quark-p1.png">
+<img src="https://dl.dropboxusercontent.com/u/559047/plastic-p1.png">

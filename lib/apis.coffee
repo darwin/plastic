@@ -3,7 +3,7 @@
 {TextEditor} = require 'atom'
 
 # select APIs we want to publish to ClojureScript
-# see quark.onion.apis
+# see plastic.onion.apis
 
 module.exports =
   atom: atom

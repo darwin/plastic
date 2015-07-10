@@ -1,12 +1,12 @@
 {
-  "name": "quark-clojurescript",
-  "main": "./lib/quark",
+  "name": "plastic-clojurescript",
+  "main": "./lib/plastic",
   "version": "0.0.1",
   "description": "An experimental ClojureScript editor implemented as Atom package.",
   "keywords": [
     "ClojureScript"
   ],
-  "repository": "https://github.com/darwin/quark",
+  "repository": "https://github.com/darwin/plastic",
   "license": "MIT",
   "engines": {
     "atom": ">=1.0.0 <2.0.0"

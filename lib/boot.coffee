@@ -3,7 +3,7 @@ fs = require 'fs'
 require('source-map-support').install
   retrieveFile: (path) ->
     fs.readFileSync path, 'utf8'
-    
+
   retrieveSourceMap: (source) ->
     mapPath = source + ".map"
     if fs.existsSync mapPath
@@ -33,5 +33,5 @@ global.React = require("./_build/react.inc.js")
 
 require("./_build/cljs_deps.js")
 
-goog.require("quark.init")
-goog.require("quark.main")
+goog.require("plastic.init")
+goog.require("plastic.main")

@@ -9,9 +9,9 @@ SRC="$ROOT/src"
 TMP="$ROOT/.tmp"
 ATOM="$ROOT/.atom"
 
-# atom is started in dev mode, if ROOT is ~/github/quark/cljs that means
+# atom is started in dev mode, if ROOT is ~/github/plastic/cljs that means
 #   ATOM_DEV_RESOURCE_PATH is ~/github/atom (checkout of atom repo)
-#   ATOM_HOME is ~/github/quark/cljs/.atom
+#   ATOM_HOME is ~/github/plastic/cljs/.atom
 #
 # you have to build atom from ~/github/atom, follow official build instructions
 #
