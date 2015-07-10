@@ -85,23 +85,26 @@
     (log "form" root-id "=> render-info:" form-info)
     form-info))
 
-(defn prepare-render-infos-of-top-level-forms [editor]
+(defn prepare-render-infos-of-top-level-forms [editor form-id]
   (let [tree (:parse-tree editor)
         top (make-zipper tree)                              ; root "forms" node
         loc (zip/down top)                                  ; TODO: here we should skip possible whitespace
         right-siblinks (collect-all-right loc)              ; TODO: here we should use explicit zipping policy
         old-form-render-infos (get-in editor [:render-state :forms])
-        find-old-form-render-info (fn [{:keys [id]}] (some #(if (= (:id %) id) %) old-form-render-infos))]
-    (map #(merge (find-old-form-render-info (z/node %)) (prepare-form-render-info editor %)) right-siblinks)))
+        find-old-form-render-info (fn [{:keys [id]}] (some #(if (= (:id %) id) %) old-form-render-infos))
+        prepare-item #(merge (find-old-form-render-info (z/node %)) (prepare-form-render-info editor %))]
+    (if form-id
+      (map #(if (= (:id (z/node %)) form-id) (prepare-item %) (find-old-form-render-info (z/node %))) right-siblinks)
+      (map prepare-item right-siblinks))))
 
 (defn analyze-with-delay [editor-id delay]
   (go
     (<! (timeout delay))                                    ; give it some time to render UI (next requestAnimationFrame)
     (dispatch :editor-analyze editor-id)))
 
-(defn layout-editor [editor editor-id]
-  (let [render-infos (prepare-render-infos-of-top-level-forms editor)
-        state {:forms      render-infos
+(defn layout-editor [form-id editor editor-id]
+  (let [render-infos (prepare-render-infos-of-top-level-forms editor form-id)
+        state {:forms            render-infos
                :debug-parse-tree (:parse-tree editor)}]
     (dispatch :editor-update-render-state editor-id state)
     #_(analyze-with-delay editor-id 1000))
@@ -113,10 +116,15 @@
       (for [[editor-id editor] editors]
         [editor-id (f editor editor-id)]))))
 
-(defn update-layout [editors [editor-id]]
+(defn update-layout [editors [editor-id form-id]]
   (if editor-id
-    (assoc editors editor-id (layout-editor (get editors editor-id) editor-id))
-    (for-each-editor editors layout-editor)))
+    (assoc editors editor-id (layout-editor form-id (get editors editor-id) editor-id))
+    (for-each-editor editors (partial layout-editor form-id))))
+
+(defn update-layout-for-focused-form [editors [editor-id]]
+  {:pre [editor-id]}
+  (let [focused-form-id (get-in editors [editor-id :selections :focused-form-id])]
+    (update-layout editors [editor-id focused-form-id])))
 
 (defn update-render-state [editors [editor-id state]]
   (assoc-in editors [editor-id :render-state] state))
@@ -181,6 +189,7 @@
 ; register handlers
 
 (register-handler :editor-update-layout paths/editors-path update-layout)
+(register-handler :editor-update-layout-for-focused-form paths/editors-path update-layout-for-focused-form)
 (register-handler :editor-update-render-state paths/editors-path update-render-state)
 (register-handler :editor-update-soup-geometry paths/editors-path update-soup-geometry)
 (register-handler :editor-update-selectables-geometry paths/editors-path update-selectables-geometry)

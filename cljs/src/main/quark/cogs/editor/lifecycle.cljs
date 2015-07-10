@@ -40,7 +40,7 @@
   (let [editing-subscription (subscribe [:editor-editing editor-id])]
     (react!
       (when-let [_ @editing-subscription]
-        (dispatch :editor-update-layout editor-id)))))
+        (dispatch :editor-update-layout-for-focused-form editor-id)))))
 
 (defn wire-editor [editor-id]
   (watch-uri editor-id)
