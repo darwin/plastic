@@ -1,4 +1,5 @@
 (ns quark.onion.api
+  (:refer-clojure :exclude [atom])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 ; these apis will be provided by Atom during runtime, see :apis inface message

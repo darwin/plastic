@@ -1,6 +1,6 @@
 (ns quark.cogs.editor.render.selections
   (:require [quark.cogs.editor.render.code :refer [code-token-component]]
-            [quark.cogs.editor.render.utils :refer [raw-html wrap-specials classv]])
+            [quark.cogs.editor.render.utils :refer [classv]])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 (defn selection-component [item]

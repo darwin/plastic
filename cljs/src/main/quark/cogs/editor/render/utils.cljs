@@ -9,7 +9,7 @@
     (string/replace #"␣" "<i>.</i>")
     (string/replace #"⇥" "<i>»</i>")))
 
-(defn raw-html [html]
+(defn dangerously-set-html [html]
   {:dangerouslySetInnerHTML {:__html html}})
 
 (defn classv [& v]

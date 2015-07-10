@@ -1,33 +1,20 @@
 (ns quark.cogs.editor.render.code
   (:require [quark.cogs.editor.render.utils :refer [wrap-specials classv]]
-            [clojure.string :as string]
-            [quark.cogs.editor.utils :as utils]
             [quark.cogs.editor.render.inline-editor :refer [inline-editor-component]]
-            [quark.cogs.editor.render.reusables :refer [raw-html-component]])
+            [quark.cogs.editor.render.reusables :refer [raw-html-component]]
+            [quark.cogs.editor.utils :as utils])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 (declare code-component)
 
-(defn visualise-shadowing [text shadows]
+(defn apply-shadowing-subscripts [text shadows]
   (if (>= shadows 2)
     (str text (utils/wrap-in-span shadows "shadowed"))
     text))
 
-(defn visualize-decl [text decl?]
-  (utils/wrap-in-span decl? text "decl"))
-
-(defn visualize-def-name [text def-name?]
-  (utils/wrap-in-span def-name? text "def-name"))
-
-(defn visualise-doc [text doc?]
-  (utils/wrap-in-span doc? text "def-doc"))
-
-(defn visualise-keyword [text]
-  (string/replace text #":" "<span class=\"colon\">:</span>"))
-
 (defn code-token-component []
   (fn [node]
-    (let [{:keys [decl-scope call selectable type text shadows decl? def-name? def-doc? id geometry editing?]} node
+    (let [{:keys [decl-scope call selectable type text shadows decl? def-name? id geometry editing?]} node
           props (merge
                   {:data-qid id
                    :class    (classv
@@ -35,16 +22,17 @@
                                (if type (name type))
                                (if call "call")
                                (if editing? "editing")
-                               (if decl-scope (str "decl-scope decl-scope-" decl-scope)))}
+                               (if decl-scope (str "decl-scope decl-scope-" decl-scope))
+                               (if def-name? "def-name")
+                               (if decl? "decl"))}
                   (if geometry {:style {:transform (str "translateY(" (:top geometry) "px) translateX(" (:left geometry) "px)")}}))
           emit-token (fn [html] [:div.token props
                                  (if editing?
                                    [inline-editor-component text]
                                    [raw-html-component html])])]
       (condp = type
-        :keyword (emit-token (-> text (visualise-keyword)))
-        :string (emit-token (-> text (wrap-specials) (visualise-doc def-doc?)))
-        (emit-token (-> text (visualise-shadowing shadows) (visualize-decl decl?) (visualize-def-name def-name?)))))))
+        :string (emit-token (-> text (wrap-specials)))
+        (emit-token (-> text (apply-shadowing-subscripts shadows)))))))
 
 (defn code-element-component [node]
   (let [{:keys [tag type id]} node]

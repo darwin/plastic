@@ -1,10 +1,7 @@
 (ns quark.cogs.editor.render.inline-editor
-  (:require [quark.cogs.editor.render.utils :refer [raw-html wrap-specials classv]]
-            [clojure.string :as string]
+  (:require [reagent.core :as reagent]
+            [quark.cogs.editor.render.utils :refer [dangerously-set-html wrap-specials classv]]
             [quark.onion.api :refer [$]]
-            [quark.util.helpers :as helpers]
-            [quark.cogs.editor.utils :as utils]
-            [reagent.core :as reagent]
             [quark.onion.core :as onion])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
@@ -17,23 +14,20 @@
           _ (assert editor-dom-node)
           editor-id (.getAttribute editor-dom-node "data-qid")
           _ (assert editor-id)
-          {:keys [editor view]} (onion/prepare-editor-instance (int editor-id))
-          $view ($ view)]
+          {:keys [editor view]} (onion/prepare-editor-instance (int editor-id))]
       (log "activate inline editor")
       (.setUpdatedSynchronously view true)
       (.setText editor (.data $dom-node "text"))
       (.selectAll editor)
       (.setUpdatedSynchronously view false)
       (.append $dom-node view)
-      ;(.show $view)
       (.focus view))))
 
 (defn deactivate-inline-editor [$dom-node]
-  (when-let [inline-editor-view (inline-editor-present? $dom-node)]
-    (log "deactivate inline editor")
+  (if (inline-editor-present? $dom-node)
     (let [editor-dom-node (aget (.closest $dom-node ".quark-editor-view") 0)
           _ (assert editor-dom-node)]
-      (log "focus" editor-dom-node)
+      (log "deactivate inline editor")
       (.focus editor-dom-node))))
 
 (defn inline-editor-action [action react-component]

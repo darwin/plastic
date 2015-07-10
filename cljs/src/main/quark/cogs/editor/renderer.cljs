@@ -9,7 +9,7 @@
             [quark.cogs.editor.render.soup :refer [form-soup-overlay-component]]
             [quark.cogs.editor.render.selections :refer [form-selections-overlay-component]]
             [quark.cogs.editor.render.debug :refer [parser-debug-component plaintext-debug-component docs-debug-component code-debug-component headers-debug-component selections-debug-overlay-component]]
-            [quark.cogs.editor.render.utils :refer [raw-html classv]]
+            [quark.cogs.editor.render.utils :refer [dangerously-set-html classv]]
             [quark.util.helpers :as helpers])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [react! dispatch]]

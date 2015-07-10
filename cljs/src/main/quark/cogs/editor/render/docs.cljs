@@ -1,5 +1,5 @@
 (ns quark.cogs.editor.render.docs
-  (:require [quark.cogs.editor.render.utils :refer [raw-html wrap-specials classv]])
+  (:require [quark.cogs.editor.render.utils :refer [dangerously-set-html wrap-specials classv]])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 (defn doc-component [doc-info]
@@ -9,7 +9,7 @@
      (if doc [:div.docstring.selectable
               (merge
                 {:data-qid id}
-                (raw-html (wrap-specials doc)))])]))
+                (dangerously-set-html (wrap-specials doc)))])]))
 
 (defn docs-component [doc-info-list]
   [:div.docs-group
