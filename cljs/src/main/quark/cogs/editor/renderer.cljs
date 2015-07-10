@@ -10,46 +10,40 @@
             [quark.cogs.editor.render.selections :refer [form-selections-overlay-component]]
             [quark.cogs.editor.render.debug :refer [parser-debug-component plaintext-debug-component docs-debug-component code-debug-component headers-debug-component selections-debug-overlay-component]]
             [quark.cogs.editor.render.utils :refer [dangerously-set-html classv]]
+            [quark.cogs.editor.dom :refer [lookup-form-id lookup-editor-id dom-node-from-react read-node-id find-closest]]
             [quark.util.helpers :as helpers])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [react! dispatch]]
                    [reagent.ratom :refer [reaction]]))
 
 (defn retrieve-token-geometry [token-dom-node]
-  (if-let [node-id (.getAttribute token-dom-node "data-qid")]
-    [(int node-id) {:left (.-offsetLeft token-dom-node)
-                    :top  (.-offsetTop token-dom-node)}]))
+  (if-let [node-id (read-node-id token-dom-node)]
+    [node-id {:left (.-offsetLeft token-dom-node)
+              :top  (.-offsetTop token-dom-node)}]))
 
 (defn retrieve-tokens-geometry [token-dom-nodes]
   (apply hash-map (mapcat retrieve-token-geometry token-dom-nodes)))
 
 (defn retrieve-selectable-geometry [selectable-dom-node]
-  (if-let [node-id (.getAttribute selectable-dom-node "data-qid")]
-    [(int node-id) {:left   (.-offsetLeft selectable-dom-node)
-                    :top    (.-offsetTop selectable-dom-node)
-                    :width  (.-offsetWidth selectable-dom-node)
-                    :height (.-offsetHeight selectable-dom-node)}]))
+  (if-let [node-id (read-node-id selectable-dom-node)]
+    [node-id {:left   (.-offsetLeft selectable-dom-node)
+              :top    (.-offsetTop selectable-dom-node)
+              :width  (.-offsetWidth selectable-dom-node)
+              :height (.-offsetHeight selectable-dom-node)}]))
 
 (defn retrieve-selectables-geometry [selectable-dom-nodes]
   (apply hash-map (mapcat retrieve-selectable-geometry selectable-dom-nodes)))
 
 (defn capture-geometry [react-component]
-  (let [dom-node (.getDOMNode react-component)              ; TODO: deprecated!
-        _ (assert dom-node)
-        form-dom-node (aget (.closest ($ dom-node) ".form") 0)
-        _ (assert form-dom-node)
-        form-id (.getAttribute form-dom-node "data-qid")
-        _ (assert form-id)
-        editor-dom-node (aget (.closest ($ form-dom-node) ".quark-editor") 0)
-        _ (assert editor-dom-node)
-        editor-id (.getAttribute editor-dom-node "data-qid")
-        _ (assert editor-id)
-        token-dom-nodes (.getElementsByClassName dom-node "token")
-        tokens-geometry (retrieve-tokens-geometry token-dom-nodes)
-        selectable-dom-nodes (.getElementsByClassName dom-node "selectable")
-        selectables-geometry (retrieve-selectables-geometry selectable-dom-nodes)]
-    (dispatch :editor-update-soup-geometry (int editor-id) (int form-id) tokens-geometry)
-    (dispatch :editor-update-selectables-geometry (int editor-id) (int form-id) selectables-geometry)))
+  (let [dom-node (dom-node-from-react react-component)
+        form-id (lookup-form-id dom-node)
+        editor-id (lookup-editor-id dom-node)]
+    (let [selectable-dom-nodes (.getElementsByClassName dom-node "selectable")
+          selectables-geometry (retrieve-selectables-geometry selectable-dom-nodes)]
+      (dispatch :editor-update-selectables-geometry (int editor-id) (int form-id) selectables-geometry))
+    (let [token-dom-nodes (.getElementsByClassName dom-node "token")
+          tokens-geometry (retrieve-tokens-geometry token-dom-nodes)]
+      (dispatch :editor-update-soup-geometry (int editor-id) (int form-id) tokens-geometry))))
 
 (defn form-scaffold [render-fn]
   (let [debounced-capture-geometry (helpers/debounce capture-geometry 30)]
@@ -76,14 +70,11 @@
 (defn handle-form-click [form event]
   (let [target-dom-node (.-target event)
         _ (assert target-dom-node)
-        selectable-dom-node (aget (.closest ($ target-dom-node) ".selectable") 0)]
+        selectable-dom-node (find-closest target-dom-node ".selectable")]
     (if selectable-dom-node
-      (let [selected-node-id (.getAttribute selectable-dom-node "data-qid")
+      (let [selected-node-id (read-node-id selectable-dom-node)
             _ (assert selected-node-id)
-            editor-node (aget (.closest ($ selectable-dom-node) ".quark-editor") 0)
-            _ (assert editor-node)
-            editor-id (.getAttribute editor-node "data-qid")
-            _ (assert editor-id)]
+            editor-id (lookup-editor-id selectable-dom-node)]
         (.stopPropagation event)
         (dispatch :editor-select (int editor-id) (:id form) #{(int selected-node-id)})))))
 

@@ -2,19 +2,17 @@
   (:require [reagent.core :as reagent]
             [quark.cogs.editor.render.utils :refer [dangerously-set-html wrap-specials classv]]
             [quark.onion.api :refer [$]]
+            [quark.cogs.editor.dom :refer [skelet-node? find-closest-quark-editor-view single-result? lookup-form-id lookup-editor-id dom-node-from-react read-node-id find-closest]]
             [quark.onion.core :as onion])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 (defn inline-editor-present? [$dom-node]
-  (aget (.children $dom-node ".editor") 0))
+  (single-result? (.children $dom-node ".editor")))
 
 (defn activate-inline-editor [$dom-node]
   (when-not (inline-editor-present? $dom-node)
-    (let [editor-dom-node (aget (.closest $dom-node ".quark-editor") 0)
-          _ (assert editor-dom-node)
-          editor-id (.getAttribute editor-dom-node "data-qid")
-          _ (assert editor-id)
-          {:keys [editor view]} (onion/prepare-editor-instance (int editor-id))]
+    (let [editor-id (lookup-editor-id $dom-node)
+          {:keys [editor view]} (onion/prepare-editor-instance editor-id)]
       (log "activate inline editor")
       (.setUpdatedSynchronously view true)
       (.setText editor (.data $dom-node "text"))
@@ -25,17 +23,13 @@
 
 (defn deactivate-inline-editor [$dom-node]
   (if (inline-editor-present? $dom-node)
-    (let [editor-dom-node (aget (.closest $dom-node ".quark-editor-view") 0)
-          _ (assert editor-dom-node)]
+    (let [root-view (find-closest-quark-editor-view $dom-node)]
       (log "deactivate inline editor")
-      (.focus editor-dom-node))))
+      (.focus root-view))))
 
 (defn inline-editor-action [action react-component]
-  (let [dom-node (.getDOMNode react-component)              ; TODO: deprecated!
-        _ (assert dom-node)
-        $dom-node ($ dom-node)
-        skelet-dom-node (aget (.closest $dom-node ".form-skelet") 0)]
-    (if skelet-dom-node
+  (let [$dom-node ($ (dom-node-from-react react-component))]
+    (if (skelet-node? $dom-node)
       (condp = action
         :activate (activate-inline-editor $dom-node)
         :deactivate (deactivate-inline-editor $dom-node)))

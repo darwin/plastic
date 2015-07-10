@@ -156,3 +156,7 @@
         (if (selector-matches-editor? editor-id id-or-ids)
           [editor-id (f editor)]
           [editor-id editor])))))
+
+(defn hide-selections-until-next-update-if-needed [editor]
+  (if-not (empty? (:editing editor))
+    (let [focused-form-id (get-in editor [:selections :focused-form-id])])))
