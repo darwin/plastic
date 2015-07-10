@@ -67,7 +67,7 @@
         all-token-ids (map :id all-tokens)
         tokens (zipmap all-token-ids all-tokens)
         selectables (apply hash-map (concat (extract-selectables-from-code code-info) (extract-selectables-from-docs docs-info)))
-        lines-selectables (group-by :line (filter #(= (:tag %) :token) (vals selectables)))
+        lines-selectables (group-by :line (sort-by :id (filter #(= (:tag %) :token) (vals selectables))))
         selectable-parents (build-selectable-parents loc selectables)
         form-info {:id                 root-id
                    :editing            (not (empty? editing))
