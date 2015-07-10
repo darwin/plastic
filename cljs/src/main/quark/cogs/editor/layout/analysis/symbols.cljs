@@ -1,4 +1,4 @@
-(ns quark.cogs.editor.analysis.symbols
+(ns quark.cogs.editor.layout.analysis.symbols
   (:require [rewrite-clj.node :as node])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 

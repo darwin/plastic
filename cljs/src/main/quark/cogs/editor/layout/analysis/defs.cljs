@@ -1,4 +1,4 @@
-(ns quark.cogs.editor.analysis.defs
+(ns quark.cogs.editor.layout.analysis.defs
   (:require [quark.util.helpers :as helpers]
             [rewrite-clj.node :as node]
             [rewrite-clj.node.stringz :refer [StringNode]]
