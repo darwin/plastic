@@ -4,7 +4,7 @@
             [quark.cogs.boot.core]
             [quark.cogs.editor.core]
             [quark.cogs.commands.core]
-            [quark.db :refer [app-db]])
+            [quark.db])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 (log "===================== QUARK ENTERING EVENT LOOP =====================")

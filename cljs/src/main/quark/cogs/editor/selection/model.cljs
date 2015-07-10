@@ -16,7 +16,6 @@
   (let [node-point (mid-point node)
         score (fn [candidate] (helpers/abs (- node-point (mid-point candidate))))
         scores (map (fn [candidate] {:score (score candidate) :candidate candidate}) candidates)
-        _ (log scores)
         best-match (first (sort-by :score scores))]
     (:candidate best-match)))
 

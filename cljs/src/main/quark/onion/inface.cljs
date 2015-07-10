@@ -1,6 +1,5 @@
 (ns quark.onion.inface
   (:require [quark.onion.api :as api]
-            [quark.db :refer [app-db]]
             [quark.util.dom-shim]
             [clojure.string :as string])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]

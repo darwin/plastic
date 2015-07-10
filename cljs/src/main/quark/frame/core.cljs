@@ -29,6 +29,7 @@
 (def trim-v middleware/trim-v)
 (def after middleware/after)
 (def log-ex middleware/log-ex)
+(def realize middleware/realize)
 
 
 ;; ALPHA - EXPERIMENTAL MIDDLEWARE
@@ -41,6 +42,6 @@
 ;; register with "pure" middleware in the correct (left-hand-side) position.
 (defn register-handler
   ([id handler]
-   (handlers/register-base id [pure trim-v log-ex] handler))
+   (handlers/register-base id [pure realize trim-v log-ex] handler))
   ([id middleware handler]
-   (handlers/register-base id [pure trim-v log-ex middleware] handler)))
+   (handlers/register-base id [pure realize trim-v log-ex middleware] handler)))

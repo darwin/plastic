@@ -1,6 +1,8 @@
 (ns quark.cogs.editor.dom
+  (:refer-clojure :exclude [find])
   (:require [quark.util.dom-shim]
-            [quark.onion.api :refer [$]])
+            [quark.onion.api :refer [$]]
+            [quark.cogs.editor.model :as editor])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 (defn dom-node-from-react [react-component]
@@ -31,8 +33,7 @@
     (read-editor-id $editor-dom-node)))
 
 (defn try-find-closest [dom-node selector]
-  (let [$match (.closest ($ dom-node) selector)]
-    (aget $match 0)))
+  (aget (.closest ($ dom-node) selector) 0))
 
 (defn find-closest [dom-node selector]
   (let [result (try-find-closest dom-node selector)]
@@ -42,5 +43,27 @@
 (defn find-closest-quark-editor-view [dom-node]
   (find-closest dom-node ".quark-editor-view"))
 
+(defn try-find [selector]
+  (aget (.find $ selector) 0))
+
+(defn find [selector]
+  (let [result (try-find selector)]
+    (assert result)
+    result))
+
+(defn find-quark-editor [editor-id]
+  (find (str ".quark-editor[data-qeid=" editor-id "]")))
+
+(defn find-quark-editor-view [editor-id]
+  (find-closest-quark-editor-view (find-quark-editor editor-id)))
+
 (defn skelet-node? [dom-node]
   (boolean (try-find-closest dom-node ".form-skelet")))
+
+(defn postpone-selection-overlay-display-until-next-update [editor]
+  (let [$root-view ($ (find-quark-editor-view (editor/get-id editor)))]
+    (.addClass $root-view ".temporarily-hide-selection-overlay")))
+
+(defn reenable-selection-overlay-display [dom-node]
+  (let [$root-view ($ (find-closest-quark-editor-view dom-node))]
+    (.removeClass $root-view ".temporarily-hide-selection-overlay")))

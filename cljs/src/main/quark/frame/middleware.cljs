@@ -35,6 +35,13 @@
           (if-not (identical? db new-db)
             (reset! app-db new-db)))))))
 
+(defn realize
+  "This is a debug handler useful when doing logging inside handlers.
+  Logging is a side effect, dorun will make sure we execute all operations before commit."
+  [handler]
+  (fn dorun-handler
+    [db v]
+    (doall (handler db v))))
 
 (defn log-ex
   "Middleware which catches and prints any handler-generated exceptions to console.

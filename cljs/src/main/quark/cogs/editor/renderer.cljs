@@ -81,6 +81,7 @@
 (defn form-component []
   (let [settings (subscribe [:settings])]
     (fn [form]
+      (log "R! form" (:id form))
       (let [{:keys [selections-debug-visible]} @settings
             {:keys [focused soup active-selections all-selections skelet editing]} form]
         [:tr.form-row
@@ -113,6 +114,7 @@
   (let [state (subscribe [:editor-render-state editor-id])
         settings (subscribe [:settings])]
     (fn []
+      (log "R! editor-root" editor-id)
       (let [forms (:forms @state)
             {:keys [parser-debug-visible]} @settings
             parse-tree (if parser-debug-visible (:debug-parse-tree @state) nil)]

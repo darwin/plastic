@@ -3,6 +3,7 @@
             [rewrite-clj.zip :as zip]
             [quark.frame.core :refer [subscribe register-handler]]
             [quark.schema.paths :as paths]
+            [quark.cogs.editor.model :as editor]
             [quark.cogs.editor.layout.analysis.scopes :refer [analyze-scopes]]
             [quark.cogs.editor.layout.analysis.symbols :refer [analyze-symbols]]
             [quark.cogs.editor.layout.analysis.editing :refer [analyze-editing]]
@@ -53,13 +54,13 @@
   (let [root-node (zip/node loc)
         _ (assert root-node)
         root-id (:id root-node)
-        editing (or (get-in editor [:editing]) #{})
+        editing-set (editor/get-editing-set editor)
         nodes (apply hash-map (collect-nodes root-node))
         analysis (->> {}
                    (analyze-scopes root-node)
                    (analyze-symbols nodes)
                    (analyze-defs root-node)
-                   (analyze-editing editing nodes))
+                   (analyze-editing editing-set nodes))
         code-info (build-code-render-info analysis loc)
         docs-info (build-docs-render-info analysis loc)
         headers-info (build-headers-render-info analysis loc)
@@ -70,7 +71,7 @@
         lines-selectables (group-by :line (sort-by :id (filter #(= (:tag %) :token) (vals selectables))))
         selectable-parents (build-selectable-parents loc selectables)
         form-info {:id                 root-id
-                   :editing            (not (empty? editing))
+                   :editing            (editor/editing? editor)
                    :nodes              nodes
                    :analysis           analysis
                    :tokens             tokens               ; used for soup generation
@@ -82,7 +83,7 @@
                                         :docs    docs-info
                                         :headers headers-info}}]
     ;(debug-print-analysis root-node nodes analysis)
-    (log "form" root-id "=> render-info:" form-info)
+    (log "form #" root-id "=> render-info:" form-info)
     form-info))
 
 (defn prepare-render-infos-of-top-level-forms [editor form-id]
@@ -92,7 +93,9 @@
         right-siblinks (collect-all-right loc)              ; TODO: here we should use explicit zipping policy
         old-form-render-infos (get-in editor [:render-state :forms])
         find-old-form-render-info (fn [{:keys [id]}] (some #(if (= (:id %) id) %) old-form-render-infos))
-        prepare-item #(merge (find-old-form-render-info (z/node %)) (prepare-form-render-info editor %))]
+        prepare-item #(merge
+                       (find-old-form-render-info (z/node %))
+                       (prepare-form-render-info editor %))]
     (if form-id
       (map #(if (= (:id (z/node %)) form-id) (prepare-item %) (find-old-form-render-info (z/node %))) right-siblinks)
       (map prepare-item right-siblinks))))
@@ -103,18 +106,15 @@
     (dispatch :editor-analyze editor-id)))
 
 (defn layout-editor [form-id editor]
-  (let [render-infos (prepare-render-infos-of-top-level-forms editor form-id)
-        state {:forms            render-infos
-               :debug-parse-tree (:parse-tree editor)}]
-    (dispatch :editor-update-render-state (:id editor) state)
-    #_(analyze-with-delay editor-id 1000))
-  editor)
+  (let [render-state {:forms            (prepare-render-infos-of-top-level-forms editor form-id)
+                      :debug-parse-tree (:parse-tree editor)}]
+    (editor/set-render-state editor render-state)))
 
 (defn update-layout [editors [editor-id form-id]]
   (apply-to-selected-editors (partial layout-editor form-id) editors editor-id))
 
 (defn update-editor-layout-for-focused-form [editor]
-  (let [focused-form-id (get-in editor [:selections :focused-form-id])]
+  (let [focused-form-id (:focused-form-id (editor/get-selections editor))]
     (layout-editor focused-form-id editor)))
 
 (defn update-layout-for-focused-form [editors [editor-id]]
@@ -164,13 +164,14 @@
   (assoc form :focused (= (:id form) focused-form-id)))
 
 (defn update-selections [editors [editor-id]]
-  (let [forms (get-in editors [editor-id :render-state :forms])
-        selections (or (get-in editors [editor-id :selections]) {})
+  (let [editor (get editors editor-id)
+        selections (editor/get-selections editor)
         get-form-selected-node-ids (fn [form] (get selections (:id form)))
         process-form (fn [form] (-> form
                                   (update-form-selections (get-form-selected-node-ids form))
                                   (update-form-focus-flag (:focused-form-id selections))))
-        new-forms (map process-form forms)
+        old-forms (get-in editor [:render-state :forms])
+        new-forms (map process-form old-forms)
         new-editors (assoc-in editors [editor-id :render-state :forms] new-forms)]
     new-editors))
 
@@ -184,7 +185,6 @@
 
 (register-handler :editor-update-layout paths/editors-path update-layout)
 (register-handler :editor-update-layout-for-focused-form paths/editors-path update-layout-for-focused-form)
-(register-handler :editor-update-render-state paths/editors-path update-render-state)
 (register-handler :editor-update-soup-geometry paths/editors-path update-soup-geometry)
 (register-handler :editor-update-selectables-geometry paths/editors-path update-selectables-geometry)
 (register-handler :editor-update-selections paths/editors-path update-selections)
