@@ -4,7 +4,8 @@
             [quark.cogs.editor.render.utils :refer [dangerously-set-html wrap-specials classv]]
             [quark.cogs.editor.render.dom :refer [skelet-node? find-closest-quark-editor-view single-result? lookup-form-id lookup-editor-id dom-node-from-react read-node-id find-closest]]
             [quark.onion.core :as onion])
-  (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
+  (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
+                   [quark.macros.glue :refer [react! dispatch]]))
 
 (defn inline-editor-present? [$dom-node]
   (single-result? (.children $dom-node ".editor")))
@@ -23,7 +24,12 @@
 
 (defn deactivate-inline-editor [$dom-node]
   (if (inline-editor-present? $dom-node)
-    (let [root-view (find-closest-quark-editor-view $dom-node)]
+    (let [root-view (find-closest-quark-editor-view $dom-node)
+          editor-id (lookup-editor-id $dom-node)
+          form-id (lookup-form-id $dom-node)
+          node-id (read-node-id $dom-node)
+          {:keys [editor]} (onion/prepare-editor-instance editor-id)
+          value (.getText editor)]
       (log "deactivate inline editor")
       (.focus root-view))))
 
@@ -44,6 +50,7 @@
 
 (defn inline-editor-component []
   (inline-editor-scaffold
-    (fn [text]
+    (fn [text node-id]
       [:div.inline-editor
-       {:data-text text}])))
+       {:data-text text
+        :data-qnid node-id}])))

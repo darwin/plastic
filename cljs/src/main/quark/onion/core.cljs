@@ -20,3 +20,17 @@
         _ (assert mini-editor-view)]
     {:editor mini-editor
      :view   mini-editor-view}))
+
+(defn get-inline-editor-instance [editor-id]
+  (let [atom-editor-view (get @inface/ids->views editor-id)
+        _ (assert atom-editor-view)
+        mini-editor (.-miniEditor atom-editor-view)]
+    (assert mini-editor)
+    mini-editor))
+
+(defn get-inline-editor-view-instance [editor-id]
+  (let [atom-editor-view (get @inface/ids->views editor-id)
+        _ (assert atom-editor-view)
+        mini-editor-view (.-miniEditorView atom-editor-view)]
+    (assert mini-editor-view)
+    mini-editor-view))

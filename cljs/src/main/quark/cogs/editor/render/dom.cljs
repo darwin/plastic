@@ -16,11 +16,18 @@
 (defn single-result? [$node]
   (= (.-length $node) 1))
 
+(defn valid-id? [id]
+  (pos? id))
+
 (defn read-node-id [dom-node]
-  (int (.data ($ dom-node) "qnid")))
+  (let [id (int (.data ($ dom-node) "qnid"))]
+    (assert (valid-id? id))
+    id))
 
 (defn read-editor-id [dom-node]
-  (int (.data ($ dom-node) "qeid")))
+  (let [id (int (.data ($ dom-node) "qeid"))]
+    (assert (valid-id? id))
+    id))
 
 (defn lookup-form-id [dom-node]
   (let [$form-dom-node (.closest ($ dom-node) ".form")

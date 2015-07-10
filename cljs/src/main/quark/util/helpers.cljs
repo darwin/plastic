@@ -55,3 +55,18 @@
 
 (defn abs [x]
   (if (neg? x) (- x) x))
+
+(defn selector-match? [selector-spec val]
+  (cond
+    (vector? selector-spec) (some #{val} selector-spec)
+    (set? selector-spec) (contains? selector-spec val)
+    :default (= val selector-spec)))
+
+(defn key-selector [k selector-spec]
+  (fn [o]
+    (let [key-val (get o k)]
+      (selector-match? selector-spec key-val))))
+
+(defn update-selected [f selector coll]
+  (map #(if (selector %) (f %) %) coll))
+
