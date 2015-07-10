@@ -86,7 +86,7 @@
         [:tr.form-row
          [:td.form-cell
           [:div.form.noselect
-           {:data-qid (:id form)
+           {:data-qnid (:id form)
             :class    (classv
                         (if focused "focused")
                         (if editing "editing"))
@@ -117,7 +117,7 @@
             {:keys [parser-debug-visible]} @settings
             parse-tree (if parser-debug-visible (:debug-parse-tree @state) nil)]
         [:div.quark-editor                                  ; .editor class is taken by Atom
-         {:data-qid editor-id
+         {:data-qeid editor-id
           :on-click (partial handle-editor-click editor-id)}
          [forms-component forms]
          (if parser-debug-visible [parser-debug-component parse-tree])]))))

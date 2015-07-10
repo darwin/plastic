@@ -8,7 +8,7 @@
     [:div.doc
      (if doc [:div.docstring.selectable
               (merge
-                {:data-qid id}
+                {:data-qnid id}
                 (dangerously-set-html (wrap-specials doc)))])]))
 
 (defn docs-component [doc-info-list]

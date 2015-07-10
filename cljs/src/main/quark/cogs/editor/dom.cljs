@@ -14,20 +14,21 @@
 (defn single-result? [$node]
   (= (.-length $node) 1))
 
+(defn read-node-id [dom-node]
+  (int (.data ($ dom-node) "qnid")))
+
+(defn read-editor-id [dom-node]
+  (int (.data ($ dom-node) "qeid")))
+
 (defn lookup-form-id [dom-node]
   (let [$form-dom-node (.closest ($ dom-node) ".form")
-        _ (assert (single-result? $form-dom-node))
-        form-id (.data $form-dom-node "qid")]
-    (int form-id)))
+        _ (assert (single-result? $form-dom-node))]
+    (read-node-id $form-dom-node)))
 
 (defn lookup-editor-id [dom-node]
   (let [$editor-dom-node (.closest ($ dom-node) ".quark-editor")
-        _ (assert (single-result? $editor-dom-node))
-        editor-id (.data $editor-dom-node "qid")]
-    (int editor-id)))
-
-(defn read-node-id [dom-node]
-  (.data ($ dom-node) "qid"))
+        _ (assert (single-result? $editor-dom-node))]
+    (read-editor-id $editor-dom-node)))
 
 (defn try-find-closest [dom-node selector]
   (let [$match (.closest ($ dom-node) selector)]

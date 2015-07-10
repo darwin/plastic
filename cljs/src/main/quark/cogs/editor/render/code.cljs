@@ -16,15 +16,15 @@
   (fn [node]
     (let [{:keys [decl-scope call selectable type text shadows decl? def-name? id geometry editing?]} node
           props (merge
-                  {:data-qid id
-                   :class    (classv
-                               (if selectable "selectable")
-                               (if type (name type))
-                               (if call "call")
-                               (if editing? "editing")
-                               (if decl-scope (str "decl-scope decl-scope-" decl-scope))
-                               (if def-name? "def-name")
-                               (if decl? "decl"))}
+                  {:data-qnid id
+                   :class     (classv
+                                (if selectable "selectable")
+                                (if type (name type))
+                                (if call "call")
+                                (if editing? "editing")
+                                (if decl-scope (str "decl-scope decl-scope-" decl-scope))
+                                (if def-name? "def-name")
+                                (if decl? "decl"))}
                   (if geometry {:style {:transform (str "translateY(" (:top geometry) "px) translateX(" (:left geometry) "px)")}}))
           emit-token (fn [html] [:div.token props
                                  (if editing?
@@ -47,12 +47,12 @@
 (defn wrap [open close node]
   (let [{:keys [id scope selectable depth tag]} node
         tag-name (name tag)]
-    [:div.compound {:data-qid id
-                    :class    (classv
-                                tag-name
-                                (if selectable "selectable")
-                                (if scope (str "scope scope-" scope))
-                                (if depth (str "depth-" depth)))}
+    [:div.compound {:data-qnid id
+                    :class     (classv
+                                 tag-name
+                                 (if selectable "selectable")
+                                 (if scope (str "scope scope-" scope))
+                                 (if depth (str "depth-" depth)))}
      [:div.punctuation.vat {:class tag-name} open]
      (code-element-component node)
      [:div.punctuation.vab {:class tag-name} close]]))
