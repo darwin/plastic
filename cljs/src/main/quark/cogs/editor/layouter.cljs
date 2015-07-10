@@ -1,6 +1,12 @@
 (ns quark.cogs.editor.layouter
+  (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
+                   [quark.macros.glue :refer [react! dispatch]]
+                   [cljs.core.async.macros :refer [go]])
   (:require [cljs.core.async :refer [<! timeout]]
             [rewrite-clj.zip :as zip]
+            [rewrite-clj.node :as node]
+            [clojure.zip :as z]
+            [quark.util.helpers :as helpers]
             [quark.frame.core :refer [subscribe register-handler]]
             [quark.schema.paths :as paths]
             [quark.cogs.editor.model :as editor]
@@ -14,13 +20,7 @@
             [quark.cogs.editor.layout.headers :refer [build-headers-render-info]]
             [quark.cogs.editor.layout.selections :refer [build-selections-render-info]]
             [quark.cogs.editor.analyzer :refer [analyze-full]]
-            [quark.cogs.editor.layout.utils :refer [apply-to-selected-editors debug-print-analysis ancestor-count loc->path leaf-nodes make-zipper collect-all-right collect-all-parents collect-all-children valid-loc?]]
-            [rewrite-clj.node :as node]
-            [quark.util.helpers :as helpers]
-            [clojure.zip :as z])
-  (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
-                   [quark.macros.glue :refer [react! dispatch]]
-                   [cljs.core.async.macros :refer [go]]))
+            [quark.cogs.editor.layout.utils :refer [apply-to-selected-editors debug-print-analysis ancestor-count loc->path leaf-nodes make-zipper collect-all-right collect-all-parents collect-all-children valid-loc?]]))
 
 (defn extract-tokens [node]
   (if (= (:tag node) :token)
@@ -87,18 +87,15 @@
     form-info))
 
 (defn prepare-render-infos-of-top-level-forms [editor form-id]
-  (let [tree (:parse-tree editor)
-        top (make-zipper tree)                              ; root "forms" node
-        loc (zip/down top)                                  ; TODO: here we should skip possible whitespace
-        right-siblinks (collect-all-right loc)              ; TODO: here we should use explicit zipping policy
-        old-form-render-infos (get-in editor [:render-state :forms])
-        find-old-form-render-info (fn [{:keys [id]}] (some #(if (= (:id %) id) %) old-form-render-infos))
+  (let [top-level-forms-locs (editor/get-top-level-locs editor)
+        previous-render-info #(editor/get-render-info-by-id editor (:id (z/node %)))
         prepare-item #(merge
-                       (find-old-form-render-info (z/node %))
-                       (prepare-form-render-info editor %))]
-    (if form-id
-      (map #(if (= (:id (z/node %)) form-id) (prepare-item %) (find-old-form-render-info (z/node %))) right-siblinks)
-      (map prepare-item right-siblinks))))
+                       (previous-render-info %)
+                       (prepare-form-render-info editor %))
+        needs-update? #(or (nil? form-id) (= (:id (z/node %)) form-id))]
+    (map #(if (needs-update? %)
+           (prepare-item %)
+           (previous-render-info %)) top-level-forms-locs)))
 
 (defn analyze-with-delay [editor-id delay]
   (go
@@ -110,29 +107,26 @@
                       :debug-parse-tree (:parse-tree editor)}]
     (editor/set-render-state editor render-state)))
 
-(defn update-layout [editors [editor-id form-id]]
-  (apply-to-selected-editors (partial layout-editor form-id) editors editor-id))
+(defn update-layout [editors [editor-selector form-id]]
+  (apply-to-selected-editors (partial layout-editor form-id) editors editor-selector))
 
 (defn update-editor-layout-for-focused-form [editor]
-  (let [focused-form-id (:focused-form-id (editor/get-selections editor))]
-    (layout-editor focused-form-id editor)))
+  (layout-editor (editor/get-focused-form-id editor) editor))
 
-(defn update-layout-for-focused-form [editors [editor-id]]
-  (apply-to-selected-editors update-editor-layout-for-focused-form editors editor-id))
+(defn update-layout-for-focused-form [editors [editor-selector]]
+  (apply-to-selected-editors update-editor-layout-for-focused-form editors editor-selector))
 
-(defn update-render-state [editors [editor-id state]]
-  (assoc-in editors [editor-id :render-state] state))
-
-(defn update-form-soup-geometry [form geometry]
+(defn update-form-soup-geometry [geometry form]
   (assoc form :soup (build-soup-render-info (:tokens form) geometry)))
 
 (defn update-soup-geometry [editors [editor-id form-id geometry]]
-  (let [forms (get-in editors [editor-id :render-state :forms])
-        new-forms (map #(if (= (:id %) form-id) (update-form-soup-geometry % geometry) %) forms)
-        new-editors (assoc-in editors [editor-id :render-state :forms] new-forms)]
+  (let [editor (get editors editor-id)
+        old-forms (editor/get-render-infos editor)
+        new-forms (helpers/update-selected #(= (:id %) form-id) (partial update-form-soup-geometry geometry) old-forms)
+        new-editors (assoc editors editor-id (editor/set-render-infos editor new-forms))]
     new-editors))
 
-(defn update-form-selectables-geometry [form geometry]
+(defn update-form-selectables-geometry [geometry form]
   (assoc form :all-selections (build-selections-render-info (:selectables form) geometry)))
 
 (defonce debounced-selection-updaters ^:dynamic {})
@@ -148,9 +142,10 @@
       (new-updater))))
 
 (defn update-selectables-geometry [editors [editor-id form-id geometry]]
-  (let [forms (get-in editors [editor-id :render-state :forms])
-        new-forms (map #(if (= (:id %) form-id) (update-form-selectables-geometry % geometry) %) forms)
-        new-editors (assoc-in editors [editor-id :render-state :forms] new-forms)]
+  (let [editor (get editors editor-id)
+        old-forms (editor/get-render-infos editor)
+        new-forms (helpers/update-selected #(= (:id %) form-id) (partial update-form-selectables-geometry geometry) old-forms)
+        new-editors (assoc editors editor-id (editor/set-render-infos editor new-forms))]
     (debounced-dispatch-editor-update-selections editor-id) ; coalesce update-requests here
     new-editors))
 
@@ -167,12 +162,12 @@
   (let [editor (get editors editor-id)
         selections (editor/get-selections editor)
         get-form-selected-node-ids (fn [form] (get selections (:id form)))
-        process-form (fn [form] (-> form
-                                  (update-form-selections (get-form-selected-node-ids form))
-                                  (update-form-focus-flag (:focused-form-id selections))))
-        old-forms (get-in editor [:render-state :forms])
-        new-forms (map process-form old-forms)
-        new-editors (assoc-in editors [editor-id :render-state :forms] new-forms)]
+        update-render-info (fn [form] (-> form
+                                        (update-form-selections (get-form-selected-node-ids form))
+                                        (update-form-focus-flag (:focused-form-id selections))))
+        old-forms (editor/get-render-infos editor)
+        new-forms (map update-render-info old-forms)
+        new-editors (assoc editors editor-id (editor/set-render-infos editor new-forms))]
     new-editors))
 
 (defn analyze [editors [editor-id]]

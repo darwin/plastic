@@ -6,7 +6,8 @@
             [quark.cogs.editor.parser :as parser]
             [rewrite-clj.node.protocols :as node]
             [clojure.walk :refer [prewalk]]
-            [quark.cogs.editor.layout.utils :as utils]))
+            [quark.cogs.editor.layout.utils :as utils]
+            [quark.util.helpers :as helpers]))
 
 (defn get-parse-tree [editor]
   (let [parse-tree (get editor :parse-tree)]
@@ -57,7 +58,7 @@
   (let [editing (:editing editor)]
     (and editing (not (empty? editing)))))
 
-(defn get-top-level-form-locs [editor]
+(defn get-top-level-locs [editor]
   (let [top-loc (utils/make-zipper (get-parse-tree editor)) ; root "forms" node
         first-top-level-form-loc (zip/down top-loc)]
     (utils/collect-all-right first-top-level-form-loc)))    ; TODO: here we should use explicit zipping policy
@@ -83,3 +84,12 @@
         (-> editor
           (set-parse-tree parse-tree)
           (shift-selections id-shift))))))
+
+(defn get-render-infos [editor]
+  (get-in editor [:render-state :forms]))
+
+(defn set-render-infos [editor render-infos]
+  (assoc-in editor [:render-state :forms] render-infos))
+
+(defn get-render-info-by-id [editor form-id]
+  (helpers/get-by-id (get-render-infos editor) form-id))

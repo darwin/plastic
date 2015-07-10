@@ -67,6 +67,9 @@
     (let [key-val (get o k)]
       (selector-match? selector-spec key-val))))
 
-(defn update-selected [f selector coll]
+(defn update-selected [selector f coll]
   (map #(if (selector %) (f %) %) coll))
+
+(defn get-by-id [seq id]
+  (some #(if (= (:id %) id) %) seq))
 
