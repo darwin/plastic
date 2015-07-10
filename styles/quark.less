@@ -198,6 +198,8 @@
     position: absolute;
   }
 
+  // note: there is also extra 2px right padding on .token for pixel-perfect inline-editor
+  // count for it
   .form-selections-overlay .selection-ring {
     opacity: 1;
     border: 2px solid yellow;
@@ -206,7 +208,7 @@
     // padding + correction #1
     padding: 1px 2px;
     top: -3px;
-    left: -4px;
+    left: -5px;
     // padding + correction #2
     // padding: 2px 4px;
     // top: -4px;
@@ -217,7 +219,7 @@
     from {
       padding: 1px 2px;
       top: -3px;
-      left: -4px;
+      left: -5px;
     }
     to {
       padding: 2px 4px;
@@ -395,7 +397,6 @@
   .token.editing {
     padding-right: 0px; // correction for inline atom editor
   }
-  
   
   .punctuation.list {
     opacity: 0.05;
