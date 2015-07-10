@@ -3,11 +3,10 @@
   (:require [rewrite-clj.zip :as zip]
             [rewrite-clj.zip.findz :as findz]
             [rewrite-clj.zip.editz :as editz]
-            [quark.cogs.editor.utils :as utils]
             [quark.cogs.editor.parser :as parser]
             [rewrite-clj.node.protocols :as node]
             [clojure.walk :refer [prewalk]]
-            [clojure.zip :as z]))
+            [quark.cogs.editor.layout.utils :as utils]))
 
 (defn get-parse-tree [editor]
   (let [parse-tree (get editor :parse-tree)]

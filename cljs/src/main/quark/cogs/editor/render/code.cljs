@@ -2,7 +2,7 @@
   (:require [quark.cogs.editor.render.utils :refer [wrap-specials classv]]
             [quark.cogs.editor.render.inline-editor :refer [inline-editor-component]]
             [quark.cogs.editor.render.reusables :refer [raw-html-component]]
-            [quark.cogs.editor.utils :as utils])
+            [quark.cogs.editor.layout.utils :as utils])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 (declare code-component)

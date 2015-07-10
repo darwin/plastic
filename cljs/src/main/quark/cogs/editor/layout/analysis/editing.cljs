@@ -1,6 +1,6 @@
 (ns quark.cogs.editor.layout.analysis.editing
   (:require [rewrite-clj.node :as node]
-            [quark.cogs.editor.utils :refer [is-selectable? prepare-string-for-display ancestor-count loc->path leaf-nodes make-zipper collect-all-right]])
+            [quark.cogs.editor.layout.utils :refer [is-selectable? prepare-string-for-display ancestor-count loc->path leaf-nodes make-zipper collect-all-right]])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 (defn process-node [edited nodes record]

@@ -2,8 +2,6 @@
   (:require [quark.cogs.editor.render.dom :as dom]
             [quark.frame.core :refer [subscribe register-handler]]
             [quark.cogs.editor.model :as editor]
-            [quark.schema.paths :as paths]
-            [quark.cogs.editor.utils :as utils]
             [quark.onion.core :as onion])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 

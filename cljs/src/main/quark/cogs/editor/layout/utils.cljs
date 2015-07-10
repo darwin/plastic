@@ -1,4 +1,4 @@
-(ns quark.cogs.editor.utils
+(ns quark.cogs.editor.layout.utils
   (:require [rewrite-clj.zip :as zip]
             [rewrite-clj.node :as node]
             [clojure.zip :as z]

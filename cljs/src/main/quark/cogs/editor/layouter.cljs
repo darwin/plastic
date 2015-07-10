@@ -14,7 +14,7 @@
             [quark.cogs.editor.layout.headers :refer [build-headers-render-info]]
             [quark.cogs.editor.layout.selections :refer [build-selections-render-info]]
             [quark.cogs.editor.analyzer :refer [analyze-full]]
-            [quark.cogs.editor.utils :refer [apply-to-selected-editors debug-print-analysis ancestor-count loc->path leaf-nodes make-zipper collect-all-right collect-all-parents collect-all-children valid-loc?]]
+            [quark.cogs.editor.layout.utils :refer [apply-to-selected-editors debug-print-analysis ancestor-count loc->path leaf-nodes make-zipper collect-all-right collect-all-parents collect-all-children valid-loc?]]
             [rewrite-clj.node :as node]
             [quark.util.helpers :as helpers]
             [clojure.zip :as z])

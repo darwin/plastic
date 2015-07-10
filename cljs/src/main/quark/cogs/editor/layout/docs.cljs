@@ -1,6 +1,6 @@
 (ns quark.cogs.editor.layout.docs
   (:require [rewrite-clj.node :as node]
-            [quark.cogs.editor.utils :refer [prepare-string-for-display ancestor-count loc->path leaf-nodes make-zipper collect-all-right]])
+            [quark.cogs.editor.layout.utils :refer [prepare-string-for-display ancestor-count loc->path leaf-nodes make-zipper collect-all-right]])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 (defn doc-item [[_node info]]

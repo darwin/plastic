@@ -1,5 +1,4 @@
 (ns quark.cogs.editor.layout.selections
-  (:require [quark.cogs.editor.utils :refer []])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 (defn emit-item [id selectable info]

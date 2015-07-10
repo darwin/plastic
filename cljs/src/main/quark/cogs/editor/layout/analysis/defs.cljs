@@ -3,7 +3,7 @@
             [rewrite-clj.node :as node]
             [rewrite-clj.node.stringz :refer [StringNode]]
             [rewrite-clj.node.token :refer [TokenNode]]
-            [quark.cogs.editor.utils :refer [unwrap-metas node-walker noop]])
+            [quark.cogs.editor.layout.utils :refer [unwrap-metas node-walker noop]])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 (defn first-child-sexpr [node]
