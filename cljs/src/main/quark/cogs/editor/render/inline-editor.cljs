@@ -1,8 +1,8 @@
 (ns quark.cogs.editor.render.inline-editor
   (:require [reagent.core :as reagent]
-            [quark.cogs.editor.render.utils :refer [dangerously-set-html wrap-specials classv]]
             [quark.onion.api :refer [$]]
-            [quark.cogs.editor.dom :refer [skelet-node? find-closest-quark-editor-view single-result? lookup-form-id lookup-editor-id dom-node-from-react read-node-id find-closest]]
+            [quark.cogs.editor.render.utils :refer [dangerously-set-html wrap-specials classv]]
+            [quark.cogs.editor.render.dom :refer [skelet-node? find-closest-quark-editor-view single-result? lookup-form-id lookup-editor-id dom-node-from-react read-node-id find-closest]]
             [quark.onion.core :as onion])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 

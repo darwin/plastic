@@ -1,5 +1,5 @@
 (ns quark.cogs.editor.editing
-  (:require [quark.cogs.editor.dom :as dom]
+  (:require [quark.cogs.editor.render.dom :as dom]
             [quark.cogs.editor.model :as editor])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 

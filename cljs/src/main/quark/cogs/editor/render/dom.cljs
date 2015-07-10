@@ -1,4 +1,4 @@
-(ns quark.cogs.editor.dom
+(ns quark.cogs.editor.render.dom
   (:refer-clojure :exclude [find])
   (:require [quark.util.dom-shim]
             [quark.onion.api :refer [$]]
