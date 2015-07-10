@@ -1,9 +1,5 @@
 (ns quark.cogs.editor.editing
-  (:require [quark.cogs.editor.utils :refer [make-zipper path->loc loc->path] :as utils]
-            [quark.onion.core :as onion]
-            [rewrite-clj.node :as node])
-  (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
-                   [quark.macros.glue :refer [react! dispatch]]))
+  (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
 (defn apply-editing [editor op]
   (let [editing? (= op :start)

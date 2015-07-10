@@ -11,19 +11,29 @@
 ; ----------------------------------------------------------------------------------------------------------------
 
 (defmethod handle :move-up [_ editor]
-  (selections/move-up editor))
+  (-> editor
+    editing/stop-editing
+    selections/move-up))
 
 (defmethod handle :move-down [_ editor]
-  (selections/move-down editor))
+  (-> editor
+    editing/stop-editing
+    selections/move-down))
 
 (defmethod handle :move-left [_ editor]
-  (selections/move-left editor))
+  (-> editor
+    editing/stop-editing
+    selections/move-left))
 
 (defmethod handle :move-right [_ editor]
-  (selections/move-right editor))
+  (-> editor
+    editing/stop-editing
+    selections/move-right))
 
 (defmethod handle :level-up [_ editor]
-  (selections/level-up editor))
+  (-> editor
+    editing/stop-editing
+    selections/level-up))
 
 (defmethod handle :level-down [_ editor]
   (let [new-editor (selections/level-down editor)]

@@ -13,7 +13,7 @@
             [quark.cogs.editor.layout.headers :refer [build-headers-render-info]]
             [quark.cogs.editor.layout.selections :refer [build-selections-render-info]]
             [quark.cogs.editor.analyzer :refer [analyze-full]]
-            [quark.cogs.editor.utils :refer [debug-print-analysis ancestor-count loc->path leaf-nodes make-zipper collect-all-right collect-all-parents collect-all-children valid-loc?]]
+            [quark.cogs.editor.utils :refer [apply-to-selected-editors debug-print-analysis ancestor-count loc->path leaf-nodes make-zipper collect-all-right collect-all-parents collect-all-children valid-loc?]]
             [rewrite-clj.node :as node]
             [quark.util.helpers :as helpers]
             [clojure.zip :as z])
@@ -102,29 +102,23 @@
     (<! (timeout delay))                                    ; give it some time to render UI (next requestAnimationFrame)
     (dispatch :editor-analyze editor-id)))
 
-(defn layout-editor [form-id editor editor-id]
+(defn layout-editor [form-id editor]
   (let [render-infos (prepare-render-infos-of-top-level-forms editor form-id)
         state {:forms            render-infos
                :debug-parse-tree (:parse-tree editor)}]
-    (dispatch :editor-update-render-state editor-id state)
+    (dispatch :editor-update-render-state (:id editor) state)
     #_(analyze-with-delay editor-id 1000))
   editor)
 
-(defn for-each-editor [editors f]
-  (apply array-map
-    (flatten
-      (for [[editor-id editor] editors]
-        [editor-id (f editor editor-id)]))))
-
 (defn update-layout [editors [editor-id form-id]]
-  (if editor-id
-    (assoc editors editor-id (layout-editor form-id (get editors editor-id) editor-id))
-    (for-each-editor editors (partial layout-editor form-id))))
+  (apply-to-selected-editors (partial layout-editor form-id) editors editor-id))
+
+(defn update-editor-layout-for-focused-form [editor]
+  (let [focused-form-id (get-in editor [:selections :focused-form-id])]
+    (layout-editor focused-form-id editor)))
 
 (defn update-layout-for-focused-form [editors [editor-id]]
-  {:pre [editor-id]}
-  (let [focused-form-id (get-in editors [editor-id :selections :focused-form-id])]
-    (update-layout editors [editor-id focused-form-id])))
+  (apply-to-selected-editors update-editor-layout-for-focused-form editors editor-id))
 
 (defn update-render-state [editors [editor-id state]]
   (assoc-in editors [editor-id :render-state] state))

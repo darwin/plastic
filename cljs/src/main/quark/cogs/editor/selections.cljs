@@ -1,11 +1,7 @@
 (ns quark.cogs.editor.selections
   (:require [quark.frame.core :refer [subscribe register-handler]]
             [quark.schema.paths :as paths]
-            [rewrite-clj.zip :as zip]
-            [rewrite-clj.node :as node]
-            [quark.cogs.editor.utils :refer [make-zipper path->loc loc->path] :as utils]
-            [quark.cogs.editor.selection.model :as model]
-            [clojure.zip :as z])
+            [quark.cogs.editor.selection.model :as model])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [react! dispatch]]))
 
@@ -43,6 +39,10 @@
   (apply-move-selection editor :level-down))
 
 ; ----------------------------------------------------------------------------------------------------------------
+
+(defn clear-all-selections-in-editor [editor]
+  (let [last-focused-form-id (get-in editor [:selections :focused-form-id])]
+    (assoc-in editor [:selections] {:focused-form-id last-focused-form-id})))
 
 (defn clear-all-selections [editors [editor-id]]
   (let [last-focused-form-id (get-in editors [editor-id :selections :focused-form-id])]

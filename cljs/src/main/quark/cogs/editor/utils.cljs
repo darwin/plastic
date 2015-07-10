@@ -101,10 +101,10 @@
   (first (string/split s #"\s")))
 
 (defn debug-print-analysis [node nodes analysis]
-    (group "ANALYSIS of" (:id node) "\n" (node/string node))
-    (doseq [[id info] (sort analysis)]
-      (log id (first-word (node/string (get nodes id))) info))
-    (group-end))
+  (group "ANALYSIS of" (:id node) "\n" (node/string node))
+  (doseq [[id info] (sort analysis)]
+    (log id (first-word (node/string (get nodes id))) info))
+  (group-end))
 
 (defn strip-double-quotes [s]
   (-> s
@@ -142,3 +142,17 @@
 
 (defn is-selectable? [tag]
   (#{:token :fn :list :map :vector :set} tag))
+
+(defn selector-matches-editor? [editor-id selector]
+  (cond
+    (vector? selector) (some #{editor-id} selector)
+    (set? selector) (contains? selector editor-id)
+    :default (= editor-id selector)))
+
+(defn apply-to-selected-editors [f editors id-or-ids]
+  (apply array-map
+    (flatten
+      (for [[editor-id editor] editors]
+        (if (selector-matches-editor? editor-id id-or-ids)
+          [editor-id (f editor)]
+          [editor-id editor])))))
