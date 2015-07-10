@@ -62,8 +62,8 @@
 
 (defn postpone-selection-overlay-display-until-next-update [editor]
   (let [$root-view ($ (find-quark-editor-view (editor/get-id editor)))]
-    (.addClass $root-view ".temporarily-hide-selection-overlay")))
+    (.addClass $root-view "temporarily-hide-selection-overlay")))
 
 (defn reenable-selection-overlay-display [dom-node]
   (let [$root-view ($ (find-closest-quark-editor-view dom-node))]
-    (.removeClass $root-view ".temporarily-hide-selection-overlay")))
+    (.removeClass $root-view "temporarily-hide-selection-overlay")))

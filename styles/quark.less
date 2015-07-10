@@ -177,6 +177,8 @@
   
   .form-overlay {
     pointer-events: none;
+    width: 100%;
+    height: 100%;
   }
 
   .form-soup-overlay {
@@ -190,7 +192,6 @@
   .form-selections-overlay {
     position: absolute;
     z-index: 11;
-    color: white;
   }
   
   .form-selections-overlay .selection-placeholder {
@@ -245,6 +246,10 @@
     -webkit-animation-timing-function: ease-in-out;
     -webkit-animation-direction: alternate;
     -webkit-animation-duration: 0.5s;
+  }
+  
+  &.temporarily-hide-selection-overlay .form-selections-overlay {
+    display: none !important;
   }
   
   .form-selections-debug-overlay {
