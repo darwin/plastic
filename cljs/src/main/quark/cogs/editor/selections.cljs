@@ -1,7 +1,9 @@
 (ns quark.cogs.editor.selections
   (:require [quark.frame.core :refer [subscribe register-handler]]
             [quark.schema.paths :as paths]
-            [quark.cogs.editor.selection.model :as model])
+            [quark.cogs.editor.selection.model :as model]
+            [quark.cogs.editor.utils :refer [apply-to-selected-editors]]
+            [quark.cogs.editor.editing :as editing])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [react! dispatch]]))
 
@@ -42,15 +44,21 @@
 
 (defn clear-all-selections-in-editor [editor]
   (let [last-focused-form-id (get-in editor [:selections :focused-form-id])]
-    (assoc-in editor [:selections] {:focused-form-id last-focused-form-id})))
+    (-> editor
+      (editing/stop-editing)
+      (assoc-in [:selections] {:focused-form-id last-focused-form-id}))))
 
-(defn clear-all-selections [editors [editor-id]]
-  (let [last-focused-form-id (get-in editors [editor-id :selections :focused-form-id])]
-    (assoc-in editors [editor-id :selections] {:focused-form-id last-focused-form-id})))
+(defn clear-all-selections [editors [editor-selector]]
+  (apply-to-selected-editors clear-all-selections-in-editor editors editor-selector))
 
-(defn select [editors [editor-id form-id selections]]
-  (assoc-in editors [editor-id :selections] {:focused-form-id form-id
-                                             form-id          selections}))
+(defn select-in-editor [form-id selections editor]
+  (-> editor
+    (editing/stop-editing)
+    (assoc-in [:selections] {:focused-form-id form-id
+                             form-id          selections})))
+
+(defn select [editors [editor-selector form-id selections]]
+  (apply-to-selected-editors (partial select-in-editor form-id selections) editors editor-selector))
 
 ; ----------------------------------------------------------------------------------------------------------------
 ; register handlers
