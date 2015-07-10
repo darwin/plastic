@@ -14,18 +14,20 @@
   position: relative;
   
   atom-text-editor {
-    background-color: transparent;
+    background-color: inherit;
+    color: inherit;
     font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
     font-size: 13px;
     line-height: 14px;
   }
   
   atom-text-editor::shadow .line {
-    background-color: transparent;
+    background-color: inherit;
   }
   
   atom-text-editor::shadow .selection .region {
-    background-color: hsl(60, 100%, 50%);
+    background-color: hsl(60, 100%, 70%);
+    opacity: 0.3;
   }
 
   .quark-editor {
