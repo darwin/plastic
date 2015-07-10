@@ -1,7 +1,7 @@
 (ns quark.cogs.editor.render.selections
   (:require [quark.cogs.editor.render.code :refer [code-token-component]]
             [quark.cogs.editor.render.utils :refer [classv]]
-            [quark.cogs.editor.render.dom :as dom :refer [dom-node-from-react]]
+            [quark.cogs.editor.render.dom :as dom :refer [node-from-react]]
             [reagent.core :as reagent])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [react! dispatch]]))
@@ -18,7 +18,7 @@
                   :height (str height "px")}}]]]))
 
 (defn announce-selections-ready [react-component]
-  (let [dom-node (dom-node-from-react react-component)]
+  (let [dom-node (node-from-react react-component)]
     (dom/reenable-selection-overlay-display dom-node)))
 
 (defn selections-overlay-scaffold [render-fn]

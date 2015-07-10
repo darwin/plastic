@@ -5,7 +5,7 @@
             [quark.cogs.editor.model :as editor])
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]))
 
-(defn dom-node-from-react [react-component]
+(defn node-from-react [react-component]
   (let [dom-node (.getDOMNode react-component)]             ; TODO: deprecated!
     (assert dom-node)
     dom-node))
@@ -15,6 +15,10 @@
 
 (defn single-result? [$node]
   (= (.-length $node) 1))
+
+(defn has-class? [node class]
+  {:pre [node]}
+  (.hasClass ($ node) class))
 
 (defn valid-id? [id]
   (pos? id))
@@ -74,3 +78,6 @@
 (defn reenable-selection-overlay-display [dom-node]
   (let [$root-view ($ (find-closest-quark-editor-view dom-node))]
     (.removeClass $root-view "temporarily-hide-selection-overlay")))
+
+(defn inline-editor-present? [dom-node]
+  (single-result? (.children ($ dom-node) "atom-text-editor")))

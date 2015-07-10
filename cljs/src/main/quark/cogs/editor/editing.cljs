@@ -21,7 +21,7 @@
 (defn stop-editing [editor]
   (if-not (editor/editing? editor)
     editor
-    (let [inline-editor (onion/get-inline-editor-instance (editor/get-id editor))
+    (let [inline-editor (onion/get-atom-inline-editor-instance (editor/get-id editor))
           value (.getText inline-editor)]
       (dom/postpone-selection-overlay-display-until-next-update editor)
       (-> editor
