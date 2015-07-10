@@ -4,7 +4,7 @@
             [quark.cogs.editor.watcher]
             [quark.cogs.editor.loader]
             [quark.cogs.editor.parser]
-            [quark.cogs.editor.layouter]
+            [quark.cogs.editor.layout.core]
             [quark.cogs.editor.analyzer]
             [quark.cogs.editor.commands]
             [quark.cogs.editor.cursors]

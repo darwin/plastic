@@ -1,4 +1,4 @@
-(ns quark.cogs.editor.layouter
+(ns quark.cogs.editor.layout.core
   (:require-macros [quark.macros.logging :refer [log info warn error group group-end]]
                    [quark.macros.glue :refer [react! dispatch]]
                    [cljs.core.async.macros :refer [go]])
