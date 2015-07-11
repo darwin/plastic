@@ -1,4 +1,4 @@
-(ns plastic.cogs.editor.parser
+(ns plastic.cogs.editor.parser.core
   (:require [plastic.frame.core :refer [subscribe register-handler]]
             [plastic.schema.paths :as paths]
             [rewrite-clj.parser :as parser]

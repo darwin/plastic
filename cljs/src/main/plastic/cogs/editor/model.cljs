@@ -3,7 +3,7 @@
   (:require [rewrite-clj.zip :as zip]
             [rewrite-clj.zip.findz :as findz]
             [rewrite-clj.zip.editz :as editz]
-            [plastic.cogs.editor.parser :as parser]
+            [plastic.cogs.editor.parser.core :as parser]
             [rewrite-clj.node.protocols :as node]
             [clojure.walk :refer [prewalk]]
             [plastic.cogs.editor.layout.utils :as utils]
