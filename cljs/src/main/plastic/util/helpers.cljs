@@ -70,6 +70,7 @@
 (defn update-selected [selector f coll]
   (map #(if (selector %) (f %) %) coll))
 
-(defn get-by-id [seq id]
-  (some #(if (= (:id %) id) %) seq))
+(defn get-by-key [key val coll]
+  (some #(if (= (key %) val) %) coll))
 
+(def get-by-id (partial get-by-key :id))

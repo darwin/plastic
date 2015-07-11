@@ -70,15 +70,15 @@
 
 (defmethod op :level-up [_ cursel form-info]
   (let [sel-node-id (first cursel)
-        {:keys [selectable?]} form-info
-        result (get selectable? sel-node-id)]
+        {:keys [selectable-parents]} form-info
+        result (get selectable-parents sel-node-id)]
     (if result
       #{result})))
 
 (defmethod op :level-down [_ cursel form-info]
   (let [sel-node-id (first cursel)
-        {:keys [selectable?]} form-info
-        candidates (sort (map first (filter (fn [[_nid pid]] (= pid sel-node-id)) selectable?)))
+        {:keys [selectables]} form-info
+        candidates (sort (map first (filter (fn [[_nid pid]] (= pid sel-node-id)) selectables)))
         result (first candidates)]
     (if result
       #{result})))

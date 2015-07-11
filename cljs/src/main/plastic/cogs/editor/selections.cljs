@@ -3,7 +3,8 @@
             [plastic.schema.paths :as paths]
             [plastic.cogs.editor.selection.model :as model]
             [plastic.cogs.editor.layout.utils :refer [apply-to-selected-editors]]
-            [plastic.cogs.editor.editing :as editing])
+            [plastic.cogs.editor.editing :as editing]
+            [plastic.cogs.editor.model :as editor])
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
                    [plastic.macros.glue :refer [react! dispatch]]))
 
@@ -11,16 +12,10 @@
 ; also has key :focused-form-id pointing to currently focused form
 
 (defn apply-move-selection [editor movement]
-  (let [selections (:selections editor)
-        focused-form-id (:focused-form-id selections)
-        find-form-info (fn [id] (some #(if (= (:id %) id) %) (get-in editor [:render-state :forms])))
-        form-info (find-form-info focused-form-id)]
-    (if form-info
-      (let [cursel (get selections focused-form-id)
-            result (model/op movement cursel form-info)]
-        (if result
-          (assoc-in editor [:selections focused-form-id] result)
-          editor)))))
+  (if-let [render-info (editor/get-focused-render-info editor)]
+    (if-let [result-selection (model/op movement (editor/get-focused-selection editor) render-info)]
+      (editor/set-focused-selection editor result-selection)
+      editor)))
 
 (defn move-up [editor]
   (apply-move-selection editor :move-up))

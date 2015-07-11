@@ -27,8 +27,7 @@
 (defn shift-selections [editor shift]
   (let [selections (get-selections editor)
         shift #(if (number? %) (+ % shift) %)
-        shifter (fn [x] (shift x))
-        shifted-selections (prewalk shifter selections)]
+        shifted-selections (prewalk shift selections)]
     (set-selections editor shifted-selections)))
 
 (defn get-focused-form-id [editor]
@@ -38,6 +37,11 @@
   (let [selections (get-selections editor)
         focused-form-id (get-focused-form-id editor)]
     (get selections focused-form-id)))
+
+(defn set-focused-selection [editor selection]
+  (let [selections (get-selections editor)
+        new-selections (assoc selections (get-focused-form-id editor) selection)]
+    (set-selections editor new-selections)))
 
 (defn set-render-state [editor render-state]
   (assoc-in editor [:render-state] render-state))
@@ -92,7 +96,10 @@
   (assoc-in editor [:render-state :forms] render-infos))
 
 (defn get-render-info-by-id [editor form-id]
-  (helpers/get-by-id (get-render-infos editor) form-id))
+  (helpers/get-by-id form-id (get-render-infos editor)))
+
+(defn get-focused-render-info [editor]
+  (get-render-info-by-id editor (get-focused-form-id editor)))
 
 (defn get-input-text [editor]
   (let [text (get editor :text)]
