@@ -49,9 +49,9 @@
         emit-item (fn [loc] [(:id (zip/node loc)) (first (rest (map #(:id (zip/node %)) (filter selectable? (collect-all-parents loc)))))])]
     (apply hash-map (mapcat emit-item selectable-locs))))
 
-(defn compose-render-trees [headers docs code]
+(defn compose-render-trees [root-id headers docs code]
   {:tag      :tree
-   :id       0
+   :id       root-id
    :children [headers docs code]})
 
 (defn prepare-form-render-info [editor loc]
@@ -72,7 +72,7 @@
         code-render-tree (build-code-render-tree analysis loc)
         docs-render-tree (build-docs-render-tree analysis nodes)
         headers-render-tree (build-headers-render-tree analysis loc)
-        full-render-tree (compose-render-trees headers-render-tree docs-render-tree code-render-tree)
+        full-render-tree (compose-render-trees root-id headers-render-tree docs-render-tree code-render-tree)
 
         selectables (reduce-render-tree extract-selectables {} full-render-tree)
         lines-selectables (group-by :line (sort-by :id (filter #(= (:tag %) :token) (vals selectables))))
@@ -107,9 +107,9 @@
     (dispatch :editor-analyze editor-id)))
 
 (defn layout-editor [form-id editor]
-  (let [render-state {:forms            (prepare-render-infos-of-top-level-forms editor form-id)
-                      :debug-parse-tree (editor/get-parse-tree editor)
-                      :debug-text-input (editor/get-input-text editor)
+  (let [render-state {:forms             (prepare-render-infos-of-top-level-forms editor form-id)
+                      :debug-parse-tree  (editor/get-parse-tree editor)
+                      :debug-text-input  (editor/get-input-text editor)
                       :debug-text-output (editor/get-output-text editor)}]
     (editor/set-render-state editor render-state)))
 

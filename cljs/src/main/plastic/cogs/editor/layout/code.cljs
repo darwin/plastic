@@ -3,6 +3,7 @@
             [rewrite-clj.node :as node]
             [rewrite-clj.node.stringz :refer [StringNode]]
             [rewrite-clj.node.keyword :refer [KeywordNode]]
+            [plastic.cogs.editor.parser.utils :refer [next-node-id!]]
             [plastic.cogs.editor.layout.utils :refer [is-selectable? prepare-string-for-display ancestor-count loc->path leaf-nodes make-zipper collect-all-right]]
             [clojure.zip :as z])
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]))
@@ -75,6 +76,6 @@
 
 (defn build-code-render-tree [analysis node]
   (reset-line-id!)
-  {:tag :code
-   :id -3
+  {:tag      :code
+   :id       (next-node-id!)
    :children [(doall (build-node-code-render-tree-node 0 nil analysis node))]})
