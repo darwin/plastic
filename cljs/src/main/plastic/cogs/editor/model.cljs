@@ -121,7 +121,8 @@
     (= (:tag item) :token)))                                ; we have also :tree node in selectables
 
 (defn can-edit-focused-selection? [editor]
-  (every? (partial can-edit-node? editor (get-focused-render-info editor)) (get-focused-selection editor)))
+  (if-let [render-info (get-focused-render-info editor)]
+    (every? (partial can-edit-node? editor render-info) (get-focused-selection editor))))
 
 (defn get-top-level-form-ids [editor]
   (let [render-infos (get-render-infos editor)]
