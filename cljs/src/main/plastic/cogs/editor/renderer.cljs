@@ -88,8 +88,8 @@
       (log "R! form" (:id form))
       (let [{:keys [selections-debug-visible render-tree-debug-visible]} @settings
             {:keys [focused soup active-selections all-selections render-tree editing]} form]
-        [:tr.form-row
-         [:td.form-cell
+        [:tr
+         [:td
           [:div.form.noselect
            {:data-qnid (:id form)
             :class     (classv
@@ -106,7 +106,7 @@
 
 (defn forms-component []
   (fn [forms]
-    [:table.form-group
+    [:table.form-table
      [:tbody
       (for [form forms]
         ^{:key (:id form)}

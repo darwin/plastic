@@ -44,7 +44,7 @@
                         (for [child children]
                           ^{:key (:id child)} [code-block-component child])])))
 
-(defn code-block [open close node]
+(defn code-block [opener closer node]
   (let [{:keys [id scope selectable? depth tag]} node
         tag-name (name tag)]
     [:div.block {:data-qnid id
@@ -53,9 +53,9 @@
                               (if selectable? "selectable")
                               (if scope (str "scope scope-" scope))
                               (if depth (str "depth-" depth)))}
-     [:div.punctuation.vat {:class tag-name} open]
+     [:div.punctuation.opener opener]
      (code-element-component node)
-     [:div.punctuation.vab {:class tag-name} close]]))
+     [:div.punctuation.closer closer]]))
 
 (defn code-block-component [node]
   (condp = (:tag node)

@@ -1,0 +1,53 @@
+@import "./config";
+
+.plastic-editor-view {
+ 
+  .token {
+    display: inline-block;
+    vertical-align: top;
+    white-space: pre;
+    margin: 2px 0px;
+    border-radius: 2px;
+  }
+
+  .token {
+    padding-right: 2px; // placeholder for inline atom editor
+  }
+
+  .token.editing {
+    padding-right: 0px; // correction for inline atom editor
+  }
+
+  .token.call {
+    font-style: italic;
+  }
+
+  .token.string {
+    color: hsl(130, 100%, 80%);
+  }
+
+  .token.string i {
+    opacity: 0.2;
+  }
+
+  .token .shadowed {
+    font-size: 8px;
+    position: relative;
+    top: 3px;
+  }
+
+  .token.decl {
+   font-weight: bold;
+  }
+
+  .token.def-name {
+    font-weight: bold;
+    text-decoration: underline;
+  }
+
+  .token.def-doc {
+    background-color: black;
+    color: #888;
+  }
+
+} // .plastic-editor-view

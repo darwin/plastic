@@ -1,0 +1,62 @@
+@import "./config";
+
+.plastic-editor-view {
+
+  .code-box {
+    padding: 4px;
+    margin-left: @doc-indent;
+  }
+
+  .code-box.sexpr-ns {
+    margin-left: 0;
+  }
+
+  .block {
+    display: inline-block;
+    white-space: nowrap;
+    vertical-align: top;
+    margin-bottom: 2px !important;
+    border-radius: 2px;
+  }
+
+  .elements {
+    display: inline-block;
+    white-space: nowrap;
+    //border: 1px solid red;
+  }
+
+  .elements > * {
+    margin-right: 6px !important;
+  }
+
+  .elements > *:last-child {
+    margin-right: 0px !important;
+  }
+
+  .punctuation {
+    vertical-align: top;
+    white-space: pre;
+    margin-top: 2px;
+    margin-left: 0px;
+    margin-bottom: 2px;
+    padding: 0px 2px;
+    display: inline-block;
+
+    padding: 0px 0px;
+    opacity: 0.4;
+    font-weight: bold;
+  }
+
+  .opener {
+    vertical-align: top;
+  }
+
+  .closer {
+    vertical-align: bottom !important;
+  }
+
+  .block.list > .punctuation {
+    opacity: 0.05;
+  }
+
+} // .plastic-editor-view

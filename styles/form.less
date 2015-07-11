@@ -1,0 +1,36 @@
+@import "./config";
+
+.plastic-editor-view {
+
+  .form-table {
+    border-collapse: separate; // allow spacing between cell borders
+    border-spacing: 0 10px;
+    margin: 0px;
+  }
+
+  .form-table td {
+    vertical-align: top;
+  }
+  
+  .form {
+    border-radius: 2px;
+    background-color: #000;
+    position: relative; // important for form overlays
+    -webkit-filter: grayscale(50%);
+  }
+
+  .form:hover {
+    -webkit-filter: grayscale(50%);
+  }
+
+  .form.focused {
+    -webkit-filter: none;
+  }
+
+  .form-overlay {
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
+  }
+
+} // .plastic-editor-view

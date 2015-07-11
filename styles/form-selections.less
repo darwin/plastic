@@ -1,0 +1,68 @@
+@import "./config";
+
+.plastic-editor-view {
+
+  .form-selections-overlay {
+    position: absolute;
+    z-index: 11;
+  }
+
+  .form-selections-overlay .selection-placeholder {
+    transition: transform 1s ease-in-out;
+    position: absolute;
+  }
+
+  // note: there is also extra 2px right padding on .token for pixel-perfect inline-editor
+  // count for it
+  .form-selections-overlay .selection-ring {
+    opacity: 1;
+    border: 2px solid yellow;
+    border-radius: 4px;
+    position: relative;
+    // padding + correction #1
+    padding: 1px 2px;
+    top: -3px;
+    left: -5px;
+    // padding + correction #2
+    // padding: 2px 4px;
+    // top: -4px;
+    // left: -6px;
+  }
+
+  @-webkit-keyframes pulse-selection-ring {
+    from {
+      padding: 1px 2px;
+      top: -3px;
+      left: -5px;
+    }
+    to {
+      padding: 2px 4px;
+      top: -4px;
+      left: -6px;
+    }
+  }
+
+  @-webkit-keyframes fade-selection-ring {
+    from {
+      opacity: 1;
+      border-color: hsl(60, 100%, 80%);
+    }
+    to {
+      opacity: 0.5;
+      border-color: hsl(180, 100%, 80%);
+    }
+  }
+
+  .form-selections-overlay .selection-ring {
+    -webkit-animation-name: fade-selection-ring;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: ease-in-out;
+    -webkit-animation-direction: alternate;
+    -webkit-animation-duration: 0.5s;
+  }
+
+  &.temporarily-hide-selection-overlay .form-selections-overlay {
+    display: none !important;
+  }
+
+} // .plastic-editor-view

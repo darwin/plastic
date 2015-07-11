@@ -1,0 +1,23 @@
+@import "./config";
+
+.plastic-editor-view {
+
+  atom-text-editor {
+    background-color: inherit;
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    min-width: 1px;
+  }
+
+  atom-text-editor::shadow .line {
+    background-color: inherit;
+  }
+
+  atom-text-editor::shadow .selection .region {
+    background-color: hsl(60, 100%, 70%);
+    opacity: 0.3;
+  }
+  
+} // .plastic-editor-view

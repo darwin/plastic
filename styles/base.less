@@ -1,0 +1,32 @@
+@import "./config";
+
+.plastic-editor-view {
+  position: relative;
+  overflow: auto;
+
+  font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+  font-size: 13px;
+  line-height: 1em;
+  color: white;
+
+  .react-land {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    z-index: 0;
+  }
+
+  .plastic-editor {
+    padding: 0px 10px;
+    // important for plastic-editor to serve as a full-background clickable area
+    display: inline-block;
+    min-width: 100%;
+    min-height: 100%;
+  }
+  
+  .plastic-editor > * {
+    clear: both;
+    float: left;
+  }
+
+} // .plastic-editor-view

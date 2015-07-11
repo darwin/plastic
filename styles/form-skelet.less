@@ -1,0 +1,21 @@
+@import "./config";
+
+.plastic-editor-view {
+
+  .form-skelet {
+    z-index: 0;
+    border-radius: 2px;
+    position: relative;
+  }
+
+  .form-skelet .token {
+    // do not use visibility: hidden;
+    // this is important for tokens to be still clickable
+    // opacity: 0 !important;
+  }
+
+  .form-skelet .token {
+    opacity: 1;
+  }
+
+} // .plastic-editor-view
