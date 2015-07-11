@@ -1,6 +1,6 @@
 (ns plastic.cogs.editor.lifecycle
   (:require [plastic.frame.core :refer [subscribe register-handler]]
-            [plastic.cogs.editor.renderer :as renderer]
+            [plastic.cogs.editor.render.core :as render]
             [plastic.schema.paths :as paths])
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
                    [plastic.macros.glue :refer [dispatch react!]]))
@@ -64,7 +64,7 @@
     {}))
 
 (defn mount-editor [editors [editor-id dom-node]]
-  (renderer/mount-editor dom-node editor-id)
+  (render/mount-editor dom-node editor-id)
   editors)
 
 ; ----------------------------------------------------------------------------------------------------------------

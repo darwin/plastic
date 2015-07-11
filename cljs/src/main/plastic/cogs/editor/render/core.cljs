@@ -1,4 +1,4 @@
-(ns plastic.cogs.editor.renderer
+(ns plastic.cogs.editor.render.core
   (:require [reagent.core :as reagent]
             [plastic.frame.core :refer [register-sub subscribe]]
             [plastic.util.dom-shim]
