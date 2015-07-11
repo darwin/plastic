@@ -33,6 +33,10 @@
 (defn get-focused-form-id [editor]
   (get-in editor [:selections :focused-form-id]))
 
+(defn set-focused-form-id [editor form-id]
+  {:pre [form-id]}
+  (assoc-in editor [:selections :focused-form-id] form-id))
+
 (defn get-focused-selection [editor]
   (let [selections (get-selections editor)
         focused-form-id (get-focused-form-id editor)]
@@ -118,3 +122,21 @@
 
 (defn can-edit-focused-selection? [editor]
   (every? (partial can-edit-node? editor (get-focused-render-info editor)) (get-focused-selection editor)))
+
+(defn get-top-level-form-ids [editor]
+  (let [render-infos (get-render-infos editor)]
+    (map :id render-infos)))
+
+(defn get-first-selectable-id-for-form [editor form-id]
+  {:post [(number? %)]}
+  (let [render-info (get-render-info-by-id editor form-id)
+        _ (assert render-info)
+        selectables (:selectables render-info)]
+    (first (sort (keys selectables)))))
+
+(defn get-last-selectable-id-for-form [editor form-id]
+  {:post [(number? %)]}
+  (let [render-info (get-render-info-by-id editor form-id)
+        _ (assert render-info)
+        selectables (:selectables render-info)]
+    (last (sort (keys selectables)))))

@@ -12,11 +12,10 @@
 ; also has key :focused-form-id pointing to currently focused form
 
 (defn apply-movements [editor movements]
-  (if-let [render-info (editor/get-focused-render-info editor)]
-    (if-let [movement (first movements)]
-      (if-let [result-selection (model/op movement (editor/get-focused-selection editor) render-info)]
-        (editor/set-focused-selection editor result-selection)
-        (recur editor (rest movements))))))
+  (if-let [movement (first movements)]
+    (if-let [result (model/op movement editor)]
+      result
+      (recur editor (rest movements)))))
 
 (defn apply-move-selection [editor & movements]
   (if-let [result (apply-movements editor movements)]
@@ -24,10 +23,10 @@
     editor))
 
 (defn move-up [editor]
-  (apply-move-selection editor :move-up))
+  (apply-move-selection editor :move-up :move-prev-form))
 
 (defn move-down [editor]
-  (apply-move-selection editor :move-down))
+  (apply-move-selection editor :move-down :move-next-form))
 
 (defn move-left [editor]
   (apply-move-selection editor :move-left))

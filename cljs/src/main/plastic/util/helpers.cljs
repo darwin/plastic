@@ -74,3 +74,9 @@
   (some #(if (= (key %) val) %) coll))
 
 (def get-by-id (partial get-by-key :id))
+
+(defn next-item [f coll]
+  (nth (drop-while #(not (f %)) coll) 1 nil))
+
+(defn prev-item [f coll]
+  (last (take-while #(not (f %)) coll)))
