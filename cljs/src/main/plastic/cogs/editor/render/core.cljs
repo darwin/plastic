@@ -54,8 +54,11 @@
 
 (defn render-tree-component []
   (fn [render-tree]
-    (let [{:keys [tag children]} render-tree]
-      [:div {:class tag}
+    (let [{:keys [id tag children selectable?]} render-tree]
+      [:div {:data-qnid id
+             :class     (classv
+                          (name tag)
+                          (if selectable? "selectable"))}
        (condp = tag
          :tree (for [child children]
                  ^{:key (or (:id child) (name (:tag child)))}

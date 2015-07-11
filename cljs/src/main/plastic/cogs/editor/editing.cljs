@@ -10,8 +10,9 @@
     (editor/commit-node-value editor node-id value)))
 
 (defn apply-editing [editor op]
-  (let [should-be-editing? (= op :start)]
-    (editor/set-editing-set editor (if should-be-editing? (editor/get-focused-selection editor)))))
+  (let [should-be-editing? (= op :start)
+        can-edit? (editor/can-edit-focused-selection? editor)]
+    (editor/set-editing-set editor (if (and can-edit? should-be-editing?) (editor/get-focused-selection editor)))))
 
 (defn start-editing [editor]
   (apply-editing editor :start))

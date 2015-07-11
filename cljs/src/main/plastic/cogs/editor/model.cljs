@@ -109,3 +109,12 @@
 (defn get-output-text [editor]
   (node/string (get-parse-tree editor)))
 
+(defn can-edit-node? [editor render-info node-id]
+  {:pre [render-info editor]}
+  (let [{:keys [selectables]} render-info
+        item (get selectables node-id)
+        _ (assert item)]
+    (= (:tag item) :token)))                                ; we have also :tree node in selectables
+
+(defn can-edit-focused-selection? [editor]
+  (every? (partial can-edit-node? editor (get-focused-render-info editor)) (get-focused-selection editor)))
