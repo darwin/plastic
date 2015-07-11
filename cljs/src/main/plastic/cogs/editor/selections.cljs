@@ -11,11 +11,17 @@
 ; editor's :selections is a map of form-ids to sets of selected node-ids
 ; also has key :focused-form-id pointing to currently focused form
 
-(defn apply-move-selection [editor movement]
+(defn apply-movements [editor movements]
   (if-let [render-info (editor/get-focused-render-info editor)]
-    (if-let [result-selection (model/op movement (editor/get-focused-selection editor) render-info)]
-      (editor/set-focused-selection editor result-selection)
-      editor)))
+    (if-let [movement (first movements)]
+      (if-let [result-selection (model/op movement (editor/get-focused-selection editor) render-info)]
+        (editor/set-focused-selection editor result-selection)
+        (recur editor (rest movements))))))
+
+(defn apply-move-selection [editor & movements]
+  (if-let [result (apply-movements editor movements)]
+    result
+    editor))
 
 (defn move-up [editor]
   (apply-move-selection editor :move-up))
