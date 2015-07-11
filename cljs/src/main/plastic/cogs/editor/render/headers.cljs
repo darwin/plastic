@@ -13,6 +13,6 @@
    (for [header-info header-info-list]
      (header-component header-info))])
 
-(defn headers-wrapper-component [form]
+(defn headers-wrapper-component [node]
   [:div.headers-wrapper
-   [headers-component (:headers form)]])
+   [headers-component (:children node)]])

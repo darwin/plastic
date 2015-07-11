@@ -17,11 +17,7 @@
         [inline-editor-component text id]
         [raw-html-component (wrap-specials text)])]]))
 
-(defn docs-component [doc-info-list]
+(defn docs-component [docs-render-info]
   [:div.docs-group
-   (for [doc-info doc-info-list]
+   (for [doc-info (:children docs-render-info)]
      (doc-component doc-info))])
-
-(defn docs-wrapper-component [form]
-  [:div.docs-wrapper
-   [docs-component (:docs form)]])

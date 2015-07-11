@@ -5,7 +5,7 @@
             [plastic.cogs.editor.layout.utils :as utils])
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]))
 
-(declare code-component)
+(declare code-block-component)
 
 (defn apply-shadowing-subscripts [text shadows]
   (if (>= shadows 2)
@@ -35,44 +35,43 @@
         (emit-token (-> text (apply-shadowing-subscripts shadows)))))))
 
 (defn code-element-component [node]
-  (let [{:keys [tag type id]} node]
+  (let [{:keys [tag type id children]} node]
     (cond
       (= type :newline) [:br]
       (= type :whitespace) [:div.ws " "]
       (= tag :token) [code-token-component node]
-      :else ^{:key id} [:div.children
-                        (for [child (:children node)]
-                          ^{:key (:id child)} [code-component child])])))
+      :else ^{:key id} [:div.elements
+                        (for [child children]
+                          ^{:key (:id child)} [code-block-component child])])))
 
-(defn wrap [open close node]
+(defn code-block [open close node]
   (let [{:keys [id scope selectable? depth tag]} node
         tag-name (name tag)]
-    [:div.compound {:data-qnid id
-                    :class     (classv
-                                 tag-name
-                                 (if selectable? "selectable")
-                                 (if scope (str "scope scope-" scope))
-                                 (if depth (str "depth-" depth)))}
+    [:div.block {:data-qnid id
+                 :class     (classv
+                              tag-name
+                              (if selectable? "selectable")
+                              (if scope (str "scope scope-" scope))
+                              (if depth (str "depth-" depth)))}
      [:div.punctuation.vat {:class tag-name} open]
      (code-element-component node)
      [:div.punctuation.vab {:class tag-name} close]]))
 
-(defn code-component [node]
+(defn code-block-component [node]
   (condp = (:tag node)
-    :list (wrap "(" ")" node)
-    :vector (wrap "[" "]" node)
-    :set (wrap "#{" "}" node)
-    :map (wrap "{" "}" node)
-    :fn (wrap "#(" ")" node)
-    :meta (wrap "^" "" node)
+    :list (code-block "(" ")" node)
+    :vector (code-block "[" "]" node)
+    :set (code-block "#{" "}" node)
+    :map (code-block "{" "}" node)
+    :fn (code-block "#(" ")" node)
+    :meta (code-block "^" "" node)
     (code-element-component node)))
 
 (defn extract-first-child-name [node]
   (:text (first (:children node))))
 
-(defn code-wrapper-component [form]
-  (let [node (:code form)
+(defn code-box-component [code-render-info]
+  (let [node (first (:children code-render-info))
         name (extract-first-child-name node)]
-    [:div.code-wrapper
-     [:div.code {:class (if name (str "sexpr-" name))}
-      [code-component node]]]))
+    [:div.code-box {:class (if name (str "sexpr-" name))}
+     [code-block-component node]]))

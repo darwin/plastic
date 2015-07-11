@@ -25,10 +25,9 @@ module.exports = Plastic =
     @addCommands [
       'plastic:toggle-docs'
       'plastic:toggle-code'
-      'plastic:toggle-headers-debug'
-      'plastic:toggle-docs-debug'
-      'plastic:toggle-code-debug'
-      'plastic:toggle-plaintext-debug'
+      'plastic:toggle-text-input-debug'
+      'plastic:toggle-text-output-debug'
+      'plastic:toggle-render-tree-debug'
       'plastic:toggle-parser-debug'
       'plastic:toggle-selections-debug'
     ]

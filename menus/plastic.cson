@@ -10,20 +10,16 @@
       'command': 'plastic:toggle-docs'
     },
     {
-      'label': 'Toggle Plain Text (debug)'
-      'command': 'plastic:toggle-plaintext-debug'
+      'label': 'Toggle Input Text (debug)'
+      'command': 'plastic:toggle-text-input-debug'
     },
     {
-      'label': 'Toggle Code Render Info (debug)'
-      'command': 'plastic:toggle-code-debug'
+      'label': 'Toggle Output Text (debug)'
+      'command': 'plastic:toggle-text-output-debug'
     },
     {
-      'label': 'Toggle Docs Render Info (debug)'
-      'command': 'plastic:toggle-docs-debug'
-    },
-    {
-      'label': 'Toggle Headers Render Info (debug)'
-      'command': 'plastic:toggle-headers-debug'
+      'label': 'Toggle Render Tree (debug)'
+      'command': 'plastic:toggle-render-tree-debug'
     },
     {
       'label': 'Toggle Selections (debug)'

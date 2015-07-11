@@ -15,6 +15,8 @@
             :text        (prepare-string-for-display text)}
       (if editing? {:editing? true}))))
 
-(defn build-docs-render-info [analysis nodes]
+(defn build-docs-render-tree [analysis nodes]
   (let [docs (filter (fn [[_node info]] (:def-doc? info)) analysis)]
-    (map (partial doc-item nodes) docs)))
+    {:tag :docs
+     :id -2
+     :children (map (partial doc-item nodes) docs)}))

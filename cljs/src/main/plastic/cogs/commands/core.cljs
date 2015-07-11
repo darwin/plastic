@@ -14,20 +14,17 @@
 (defmethod handle :toggle-docs [_ settings]
   (toggle-setting settings :docs-visible))
 
-(defmethod handle :toggle-headers-debug [_ settings]
-  (toggle-setting settings :headers-debug-visible))
-
-(defmethod handle :toggle-docs-debug [_ settings]
-  (toggle-setting settings :docs-debug-visible))
-
-(defmethod handle :toggle-code-debug [_ settings]
-  (toggle-setting settings :code-debug-visible))
+(defmethod handle :toggle-render-tree-debug [_ settings]
+  (toggle-setting settings :render-tree-debug-visible))
 
 (defmethod handle :toggle-parser-debug [_ settings]
   (toggle-setting settings :parser-debug-visible))
 
-(defmethod handle :toggle-plaintext-debug [_ settings]
-  (toggle-setting settings :plaintext-debug-visible))
+(defmethod handle :toggle-text-input-debug [_ settings]
+  (toggle-setting settings :text-input-debug-visible))
+
+(defmethod handle :toggle-text-output-debug [_ settings]
+  (toggle-setting settings :text-output-debug-visible))
 
 (defmethod handle :toggle-selections-debug [_ settings]
   (toggle-setting settings :selections-debug-visible))

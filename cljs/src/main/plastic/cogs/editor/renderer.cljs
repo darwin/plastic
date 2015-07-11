@@ -4,11 +4,11 @@
             [plastic.util.dom-shim]
             [plastic.onion.api :refer [$]]
             [plastic.cogs.editor.render.headers :refer [headers-wrapper-component]]
-            [plastic.cogs.editor.render.docs :refer [docs-wrapper-component]]
-            [plastic.cogs.editor.render.code :refer [code-wrapper-component]]
+            [plastic.cogs.editor.render.docs :refer [docs-component]]
+            [plastic.cogs.editor.render.code :refer [code-box-component]]
             [plastic.cogs.editor.render.soup :refer [form-soup-overlay-component]]
             [plastic.cogs.editor.render.selections :refer [form-selections-overlay-component]]
-            [plastic.cogs.editor.render.debug :refer [parser-debug-component plaintext-debug-component docs-debug-component code-debug-component headers-debug-component selections-debug-overlay-component]]
+            [plastic.cogs.editor.render.debug :refer [parser-debug-component text-input-debug-component text-output-debug-component render-tree-debug-component selections-debug-overlay-component]]
             [plastic.cogs.editor.render.utils :refer [dangerously-set-html classv]]
             [plastic.cogs.editor.render.dom :as dom]
             [plastic.util.helpers :as helpers])
@@ -52,20 +52,24 @@
        :component-did-update (fn [& args] (apply debounced-capture-geometry args))
        :reagent-render       render-fn})))
 
+(defn render-tree-component []
+  (fn [render-tree]
+    (let [{:keys [tag children]} render-tree]
+      [:div {:class tag}
+       (condp = tag
+         :tree (for [child children]
+                 ^{:key (or (:id child) (name (:tag child)))}
+                 [render-tree-component child])
+         :code [code-box-component render-tree]
+         :docs [docs-component render-tree]
+         :headers [headers-wrapper-component render-tree]
+         (throw (str "don't know how to render tag " tag " (missing render component implementation)")))])))
+
 (defn form-skelet-component []
-  (let [settings (subscribe [:settings])]
-    (form-scaffold
-      (fn [skelet]
-        (let [{:keys [code-visible docs-visible
-                      headers-debug-visible docs-debug-visible code-debug-visible plaintext-debug-visible]} @settings]
-          [:div.form-skelet
-           [headers-wrapper-component skelet]               ; headers are always visible
-           (if docs-visible [docs-wrapper-component skelet])
-           (if code-visible [code-wrapper-component skelet])
-           (if plaintext-debug-visible [plaintext-debug-component skelet])
-           (if headers-debug-visible [headers-debug-component skelet])
-           (if docs-debug-visible [docs-debug-component skelet])
-           (if code-debug-visible [code-debug-component skelet])])))))
+  (form-scaffold
+    (fn [render-tree]
+      [:div.form-skelet
+       [render-tree-component render-tree]])))
 
 (defn handle-form-click [form event]
   (let [target-dom-node (.-target event)
@@ -82,21 +86,23 @@
   (let [settings (subscribe [:settings])]
     (fn [form]
       (log "R! form" (:id form))
-      (let [{:keys [selections-debug-visible]} @settings
-            {:keys [focused soup active-selections all-selections skelet editing]} form]
+      (let [{:keys [selections-debug-visible text-input-debug-visible text-output-debug-visible render-tree-debug-visible]} @settings
+            {:keys [focused soup active-selections all-selections render-tree editing text-input-debug text-output-debug]} form]
         [:tr.form-row
          [:td.form-cell
           [:div.form.noselect
            {:data-qnid (:id form)
-            :class    (classv
-                        (if focused "focused")
-                        (if editing "editing"))
-            :on-click (partial handle-form-click form)}
+            :class     (classv
+                         (if focused "focused")
+                         (if editing "editing"))
+            :on-click  (partial handle-form-click form)}
            [form-soup-overlay-component soup]
            [form-selections-overlay-component active-selections]
            (if selections-debug-visible
              [selections-debug-overlay-component all-selections])
-           [form-skelet-component skelet]]]]))))
+           [form-skelet-component render-tree]]
+          (if render-tree-debug-visible
+            [render-tree-debug-component render-tree])]]))))
 
 (defn forms-component []
   (fn [forms]
@@ -118,9 +124,9 @@
       (let [forms (:forms @state)
             {:keys [parser-debug-visible]} @settings
             parse-tree (if parser-debug-visible (:debug-parse-tree @state) nil)]
-        [:div.plastic-editor                                  ; .editor class is taken by Atom
+        [:div.plastic-editor                                ; .editor class is taken by Atom
          {:data-qeid editor-id
-          :on-click (partial handle-editor-click editor-id)}
+          :on-click  (partial handle-editor-click editor-id)}
          [forms-component forms]
          (if parser-debug-visible [parser-debug-component parse-tree])]))))
 

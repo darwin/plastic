@@ -2,29 +2,21 @@
   (:require [plastic.util.helpers :as helpers])
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]))
 
-(defn plaintext-debug-component [form-render-info]
-  [:div.plain-text
-   [:div (:debug-text form-render-info)]])
-
 (defn parser-debug-component [parse-tree]
-  [:div.state
+  [:div.debug.parser-debug
    [:div (helpers/nice-print parse-tree)]])
 
-(defn code-debug-component [form]
-  [:div.code-debug
-   [:div (helpers/nice-print (:code form))]])
+(defn text-input-debug-component [plain-text]
+  [:div.debug.text-input-debug
+   [:div plain-text]])
 
-(defn docs-debug-component [form]
-  [:div.docs-debug
-   [:div (helpers/nice-print (:docs form))]])
+(defn text-output-debug-component [plain-text]
+  [:div.debug.text-output-debug
+   [:div plain-text]])
 
-(defn headers-debug-component [form]
-  [:div.headers-debug
-   [:div (helpers/nice-print (:headers form))]])
-
-(defn debug-component [form]
-  [:div.debug
-   [:div (helpers/nice-print (:debug form))]])
+(defn render-tree-debug-component [render-tree]
+  [:div.debug.render-tree-debug
+   [:div (helpers/nice-print render-tree)]])
 
 (defn selection-component [item]
   (let [{:keys [id geometry]} item

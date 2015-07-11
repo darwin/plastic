@@ -300,13 +300,13 @@
     opacity: 1;
   }
 
-  .code {
+  .code-box {
     padding: 4px;
     color: white;
     margin-left: @doc-indent;
   }
 
-  .code.sexpr-ns {
+  .code-box.sexpr-ns {
     margin-left: 0;
   }
 
@@ -365,7 +365,7 @@
     vertical-align: bottom !important;
   }
 
-  .compound {
+  .block {
     display: inline-block;
     vertical-align: top;
     white-space: nowrap;
@@ -373,17 +373,17 @@
     border-radius: 2px;
   }
 
-  .children {
+  .elements {
     display: inline-block;
     white-space: nowrap;
     //border: 1px solid red;
   }
 
-  .children > * {
+  .elements > * {
     margin-right: 6px !important;
   }
 
-  .children > *:last-child {
+  .elements > *:last-child {
     margin-right: 0px !important;
   }
 

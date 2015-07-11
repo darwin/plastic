@@ -16,26 +16,25 @@
             [plastic.cogs.editor.layout.analysis.editing :refer [analyze-editing]]
             [plastic.cogs.editor.layout.analysis.defs :refer [analyze-defs]]
             [plastic.cogs.editor.layout.soup :refer [build-soup-render-info]]
-            [plastic.cogs.editor.layout.code :refer [build-code-render-info]]
-            [plastic.cogs.editor.layout.docs :refer [build-docs-render-info]]
-            [plastic.cogs.editor.layout.headers :refer [build-headers-render-info]]
+            [plastic.cogs.editor.layout.code :refer [build-code-render-tree]]
+            [plastic.cogs.editor.layout.docs :refer [build-docs-render-tree]]
+            [plastic.cogs.editor.layout.headers :refer [build-headers-render-tree]]
             [plastic.cogs.editor.layout.selections :refer [build-selections-render-info]]
             [plastic.cogs.editor.analyzer :refer [analyze-full]]
             [plastic.cogs.editor.layout.utils :refer [apply-to-selected-editors debug-print-analysis ancestor-count loc->path leaf-nodes make-zipper collect-all-right collect-all-parents collect-all-children valid-loc?]]))
 
-(defn extract-tokens [node]
+(defn reduce-render-tree [f val node]
+  (f (reduce (partial reduce-render-tree f) val (:children node)) node))
+
+(defn extract-tokens [res node]
   (if (= (:tag node) :token)
-    [node]
-    (flatten (map extract-tokens (:children node)))))
+    (conj res [(:id node) node])
+    res))
 
-(defn extract-selectables-from-code [node]
-  (let [selectables-from-children (flatten (map extract-selectables-from-code (:children node)))]
-    (if (:selectable? node)
-      (concat [(:id node) node] selectables-from-children)
-      selectables-from-children)))
-
-(defn extract-selectables-from-docs [docs-infos]
-  (flatten (map (fn [info] [(:id info) info]) docs-infos)))
+(defn extract-selectables [res node]
+  (if (:selectable? node)
+    (conj res [(:id node) node])
+    res))
 
 (defn collect-nodes [node]
   (let [relevant-nodes (fn [nodes] (remove #(or (node/whitespace? %) (node/comment? %)) nodes))
@@ -50,6 +49,11 @@
         emit-item (fn [loc] [(:id (zip/node loc)) (first (rest (map #(:id (zip/node %)) (filter selectable? (collect-all-parents loc)))))])]
     (apply hash-map (mapcat emit-item selectable-locs))))
 
+(defn compose-render-trees [headers docs code]
+  {:tag      :tree
+   :id       0
+   :children [headers docs code]})
+
 (defn prepare-form-render-info [editor loc]
   {:pre [(= (node/tag (zip/node (zip/up loc))) :forms)]}    ; parent has to be :forms
   (let [root-node (zip/node loc)
@@ -57,33 +61,31 @@
         root-id (:id root-node)
         editing-set (editor/get-editing-set editor)
         nodes (apply hash-map (collect-nodes root-node))
+
         analysis (->> {}
                    (analyze-selectables nodes)
                    (analyze-scopes root-node)
                    (analyze-symbols nodes)
                    (analyze-defs root-node)
                    (analyze-editing editing-set))
-        code-info (build-code-render-info analysis loc)
-        docs-info (build-docs-render-info analysis nodes)
-        headers-info (build-headers-render-info analysis loc)
-        all-tokens (extract-tokens code-info)
-        all-token-ids (map :id all-tokens)
-        tokens (zipmap all-token-ids all-tokens)
-        selectables (apply hash-map (concat (extract-selectables-from-code code-info) (extract-selectables-from-docs docs-info)))
+
+        code-render-tree (build-code-render-tree analysis loc)
+        docs-render-tree (build-docs-render-tree analysis nodes)
+        headers-render-tree (build-headers-render-tree analysis loc)
+        full-render-tree (compose-render-trees headers-render-tree docs-render-tree code-render-tree)
+
+        selectables (reduce-render-tree extract-selectables {} full-render-tree)
         lines-selectables (group-by :line (sort-by :id (filter #(= (:tag %) :token) (vals selectables))))
         selectable-parents (build-selectable-parents loc selectables)
+
         form-info {:id                 root-id
                    :editing            (editor/editing? editor)
                    :nodes              nodes
                    :analysis           analysis
-                   :tokens             tokens               ; used for soup generation
                    :selectables        selectables          ; used for selections
                    :lines-selectables  lines-selectables    ; used for left/right, up/down movement
                    :selectable-parents selectable-parents   ; used for level-up movement
-                   :skelet             {:debug-text    (node/string root-node) ; used for plain text debug view
-                                        :code    code-info
-                                        :docs    docs-info
-                                        :headers headers-info}}]
+                   :render-tree        full-render-tree}]   ; used for skelet rendering
     ;(debug-print-analysis root-node nodes analysis)
     (log "form #" root-id "=> render-info:" form-info)
     form-info))
@@ -119,7 +121,8 @@
   (apply-to-selected-editors update-editor-layout-for-focused-form editors editor-selector))
 
 (defn update-form-soup-geometry [geometry form]
-  (assoc form :soup (build-soup-render-info (:tokens form) geometry)))
+  (let [tokens (reduce-render-tree extract-tokens {} (:render-tree form))]
+    (assoc form :soup (build-soup-render-info tokens geometry))))
 
 (defn update-soup-geometry [editors [editor-id form-id geometry]]
   (let [editor (get editors editor-id)

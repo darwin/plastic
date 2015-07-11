@@ -41,7 +41,7 @@
     (if (= (node/tag (zip/node parent-loc)) :list)
       (= loc (first (layout-affecting-children parent-loc))))))
 
-(defn build-node-code-render-info [depth scope-id analysis loc]
+(defn build-node-code-render-tree-node [depth scope-id analysis loc]
   (let [node (zip/node loc)
         node-id (:id node)
         node-analysis (get analysis node-id)
@@ -58,12 +58,13 @@
          :line  (current-line-id)}
         (when (or (node/linebreak? node) (node/comment? node)) (next-line-id!) {:type :newline :text "\n"}) ; comments have newlines embedded
         (if (node/inner? node)
-          {:children (doall (remove nil? (map (partial build-node-code-render-info (inc depth) new-scope-id analysis) (layout-affecting-children loc))))}
+          {:children (doall (remove nil? (map (partial build-node-code-render-tree-node (inc depth) new-scope-id analysis) (layout-affecting-children loc))))}
           {:text (node/string node)})
         (if selectable? {:selectable? true})
         (if editing? {:editing? true})
         (if (is-call? loc) {:call true})
-        (if (instance? StringNode node) {:text (prepare-string-for-display (node/string node)) :type :string})
+        (if (instance? StringNode node) {:text (prepare-string-for-display (node/string node))
+                                         :type :string})
         (if (instance? KeywordNode node) {:type :keyword})
         (if (not= new-scope-id scope-id) {:scope new-scope-id})
         (if def-name? {:def-name? true})
@@ -72,6 +73,8 @@
         (if shadows {:shadows shadows})
         (if decl? {:decl? decl?})))))
 
-(defn build-code-render-info [analysis node]
+(defn build-code-render-tree [analysis node]
   (reset-line-id!)
-  (doall (build-node-code-render-info 0 nil analysis node)))
+  {:tag :code
+   :id -3
+   :children [(doall (build-node-code-render-tree-node 0 nil analysis node))]})
