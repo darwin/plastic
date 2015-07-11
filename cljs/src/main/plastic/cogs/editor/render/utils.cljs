@@ -4,10 +4,9 @@
 
 (defn wrap-specials [s]
   (-> s
-    (string/replace #"\\\"" "\"")
-    (string/replace #"↵" "<i>↵</i>")
-    (string/replace #"␣" "<i>.</i>")
-    (string/replace #"⇥" "<i>»</i>")))
+    (string/replace #"\n" "<i>↵</i>\n")
+    (string/replace #" " "<i>.</i>")
+    (string/replace #"\t" "<i>»</i>")))
 
 (defn dangerously-set-html [html]
   {:dangerouslySetInnerHTML {:__html html}})

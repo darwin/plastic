@@ -47,7 +47,7 @@
         node-analysis (get analysis node-id)
         new-scope-id (get-in node-analysis [:scope :id])
         tag (node/tag node)
-        {:keys [declaration-scope def-name? def-doc? cursor editing?]} node-analysis
+        {:keys [declaration-scope def-name? def-doc? cursor editing? selectable?]} node-analysis
         {:keys [shadows decl?]} declaration-scope]
     (if (or def-doc? (is-whitespace-or-nl-after-def-doc? analysis loc))
       nil
@@ -60,7 +60,7 @@
         (if (node/inner? node)
           {:children (doall (remove nil? (map (partial build-node-code-render-info (inc depth) new-scope-id analysis) (layout-affecting-children loc))))}
           {:text (node/string node)})
-        (if (is-selectable? tag) {:selectable true})
+        (if selectable? {:selectable? true})
         (if editing? {:editing? true})
         (if (is-call? loc) {:call true})
         (if (instance? StringNode node) {:text (prepare-string-for-display (node/string node)) :type :string})

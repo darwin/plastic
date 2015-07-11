@@ -29,7 +29,7 @@
     [(if first-symbol-node
        {(:id first-symbol-node) {:def-name? true}})
      (if first-string-node
-       {(:id first-string-node) {:def-doc? true :selectable true}})
+       {(:id first-string-node) {:def-doc? true :selectable? true}})
      {(:id node) {:def?          true
             :def-name-node first-symbol-node
             :def-doc-node  first-string-node}}]))

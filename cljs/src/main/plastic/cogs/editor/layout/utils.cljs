@@ -124,17 +124,14 @@
         (string/join "\n" (map #(string/replace % re "") lines)))
       s)))
 
-(defn replace-whitespace-characters [s]
-  (-> s
-    (string/replace #"\n" "↵\n")
-    (string/replace #" " "␣")
-    (string/replace #"\t" "⇥")))
+(defn replace-unescape-double-quotes [s]
+  (string/replace s #"\\\"" "\""))
 
 (defn prepare-string-for-display [s]
   (-> s
     strip-indent
     strip-double-quotes
-    replace-whitespace-characters))
+    replace-unescape-double-quotes))
 
 (defn wrap-in-span
   ([text class] (wrap-in-span true text class))

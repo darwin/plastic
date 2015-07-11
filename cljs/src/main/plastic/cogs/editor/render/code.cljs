@@ -14,11 +14,11 @@
 
 (defn code-token-component []
   (fn [node]
-    (let [{:keys [decl-scope call selectable type text shadows decl? def-name? id geometry editing?]} node
+    (let [{:keys [decl-scope call selectable? type text shadows decl? def-name? id geometry editing?]} node
           props (merge
                   {:data-qnid id
                    :class     (classv
-                                (if selectable "selectable")
+                                (if selectable? "selectable")
                                 (if type (name type))
                                 (if call "call")
                                 (if editing? "editing")
@@ -45,12 +45,12 @@
                           ^{:key (:id child)} [code-component child])])))
 
 (defn wrap [open close node]
-  (let [{:keys [id scope selectable depth tag]} node
+  (let [{:keys [id scope selectable? depth tag]} node
         tag-name (name tag)]
     [:div.compound {:data-qnid id
                     :class     (classv
                                  tag-name
-                                 (if selectable "selectable")
+                                 (if selectable? "selectable")
                                  (if scope (str "scope scope-" scope))
                                  (if depth (str "depth-" depth)))}
      [:div.punctuation.vat {:class tag-name} open]

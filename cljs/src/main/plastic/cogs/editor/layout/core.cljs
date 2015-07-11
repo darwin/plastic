@@ -10,6 +10,7 @@
             [plastic.frame.core :refer [subscribe register-handler]]
             [plastic.schema.paths :as paths]
             [plastic.cogs.editor.model :as editor]
+            [plastic.cogs.editor.layout.analysis.selectables :refer [analyze-selectables]]
             [plastic.cogs.editor.layout.analysis.scopes :refer [analyze-scopes]]
             [plastic.cogs.editor.layout.analysis.symbols :refer [analyze-symbols]]
             [plastic.cogs.editor.layout.analysis.editing :refer [analyze-editing]]
@@ -29,7 +30,7 @@
 
 (defn extract-selectables-from-code [node]
   (let [selectables-from-children (flatten (map extract-selectables-from-code (:children node)))]
-    (if (:selectable node)
+    (if (:selectable? node)
       (concat [(:id node) node] selectables-from-children)
       selectables-from-children)))
 
@@ -57,12 +58,13 @@
         editing-set (editor/get-editing-set editor)
         nodes (apply hash-map (collect-nodes root-node))
         analysis (->> {}
+                   (analyze-selectables nodes)
                    (analyze-scopes root-node)
                    (analyze-symbols nodes)
                    (analyze-defs root-node)
-                   (analyze-editing editing-set nodes))
+                   (analyze-editing editing-set))
         code-info (build-code-render-info analysis loc)
-        docs-info (build-docs-render-info analysis loc)
+        docs-info (build-docs-render-info analysis nodes)
         headers-info (build-headers-render-info analysis loc)
         all-tokens (extract-tokens code-info)
         all-token-ids (map :id all-tokens)
@@ -78,7 +80,7 @@
                    :selectables        selectables          ; used for selections
                    :lines-selectables  lines-selectables    ; used for left/right, up/down movement
                    :selectable-parents selectable-parents   ; used for level-up movement
-                   :skelet             {:text    (zip/string loc) ; used for plain text debug view
+                   :skelet             {:debug-text    (node/string root-node) ; used for plain text debug view
                                         :code    code-info
                                         :docs    docs-info
                                         :headers headers-info}}]

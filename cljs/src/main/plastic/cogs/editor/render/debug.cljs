@@ -4,7 +4,7 @@
 
 (defn plaintext-debug-component [form-render-info]
   [:div.plain-text
-   [:div (:text form-render-info)]])
+   [:div (:debug-text form-render-info)]])
 
 (defn parser-debug-component [parse-tree]
   [:div.state
