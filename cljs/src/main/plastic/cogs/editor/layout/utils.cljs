@@ -141,7 +141,7 @@
   ([pred text class] (if pred (str "<span class=\"" class "\">" text "</span>") text)))
 
 (defn is-selectable? [tag]
-  (#{:token :fn :list :map :vector :set} tag))
+  (#{:token :fn :list :map :vector :set :meta} tag))
 
 (defn selector-matches-editor? [editor-id selector]
   (cond

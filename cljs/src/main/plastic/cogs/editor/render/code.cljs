@@ -64,6 +64,7 @@
     :set (wrap "#{" "}" node)
     :map (wrap "{" "}" node)
     :fn (wrap "#(" ")" node)
+    :meta (wrap "^" "" node)
     (code-element-component node)))
 
 (defn extract-first-child-name [node]
