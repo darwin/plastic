@@ -127,16 +127,18 @@
   (let [render-infos (get-render-infos editor)]
     (map :id render-infos)))
 
-(defn get-first-selectable-id-for-form [editor form-id]
+(defn get-first-selectable-token-id-for-form [editor form-id]
   {:post [(number? %)]}
   (let [render-info (get-render-info-by-id editor form-id)
         _ (assert render-info)
-        selectables (:selectables render-info)]
-    (first (sort (keys selectables)))))
+        first-line (second (first (:lines-selectables render-info)))
+        _ (assert (vector? first-line))]
+    (:id (first first-line))))
 
-(defn get-last-selectable-id-for-form [editor form-id]
+(defn get-last-selectable-token-id-for-form [editor form-id]
   {:post [(number? %)]}
   (let [render-info (get-render-info-by-id editor form-id)
         _ (assert render-info)
-        selectables (:selectables render-info)]
-    (last (sort (keys selectables)))))
+        last-line (second (last (:lines-selectables render-info)))
+        _ (assert (vector? last-line))]
+    (:id (peek last-line))))

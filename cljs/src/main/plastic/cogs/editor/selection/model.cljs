@@ -93,7 +93,7 @@
         top-level-ids (editor/get-top-level-form-ids editor)
         next-focused-form-id (helpers/prev-item #(= % focused-form-id) top-level-ids)]
     (if next-focused-form-id
-      (let [next-selection (editor/get-last-selectable-id-for-form editor next-focused-form-id)]
+      (let [next-selection (editor/get-last-selectable-token-id-for-form editor next-focused-form-id)]
         (-> editor
           (editor/set-focused-selection #{})
           (editor/set-focused-form-id next-focused-form-id)
@@ -104,7 +104,7 @@
         top-level-ids (editor/get-top-level-form-ids editor)
         next-focused-form-id (helpers/next-item #(= % focused-form-id) top-level-ids)]
     (if next-focused-form-id
-      (let [next-selection (editor/get-first-selectable-id-for-form editor next-focused-form-id)]
+      (let [next-selection (editor/get-first-selectable-token-id-for-form editor next-focused-form-id)]
         (-> editor
           (editor/set-focused-selection #{})
           (editor/set-focused-form-id next-focused-form-id)

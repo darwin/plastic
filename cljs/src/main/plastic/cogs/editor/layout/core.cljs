@@ -53,7 +53,6 @@
   {:tag         :tree
    :id          (dec root-id)
    :selectable? true
-   :line        -2
    :children    [headers docs code]})
 
 (defn link-tree-root-as-parent [tree mapping]
@@ -62,7 +61,7 @@
 
 (defn is-selectable-token? [node]
   (let [tag (:tag node)]
-    (or (= tag :token) (= tag :tree))))
+    (= tag :token)))
 
 (defn prepare-form-render-info [editor loc]
   {:pre [(= (node/tag (zip/node (zip/up loc))) :forms)]}    ; parent has to be :forms
@@ -85,7 +84,7 @@
         full-render-tree (compose-render-trees root-id headers-render-tree docs-render-tree code-render-tree)
 
         selectables (reduce-render-tree extract-selectables {} full-render-tree)
-        lines-selectables (group-by :line (sort-by :id (filter is-selectable-token? (vals selectables))))
+        lines-selectables (into (sorted-map) (group-by :line (sort-by :id (filter is-selectable-token? (vals selectables)))))
         selectable-parents (link-tree-root-as-parent full-render-tree (build-selectable-parents loc selectables))
 
         form-info {:id                 root-id
