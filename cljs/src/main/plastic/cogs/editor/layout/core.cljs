@@ -108,7 +108,9 @@
 
 (defn layout-editor [form-id editor]
   (let [render-state {:forms            (prepare-render-infos-of-top-level-forms editor form-id)
-                      :debug-parse-tree (:parse-tree editor)}]
+                      :debug-parse-tree (editor/get-parse-tree editor)
+                      :debug-text-input (editor/get-input-text editor)
+                      :debug-text-output (editor/get-output-text editor)}]
     (editor/set-render-state editor render-state)))
 
 (defn update-layout [editors [editor-selector form-id]]

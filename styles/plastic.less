@@ -43,6 +43,11 @@
     min-width: 100%;
     min-height: 100%;
   }
+  
+  .plastic-editor > * {
+    clear: both;
+    float: left;
+  }
 
   .react-land {
     position: relative;
@@ -93,51 +98,29 @@
   }
 
   .debug {
-    font-size: 9px;
-    margin-bottom: 20px;
+    font-size: 8px;
+    margin-top: 10px;
     padding: 2px 6px;
     display: inline-block;
-    background-color: #449;
     color: white;
-    float: left;
-    clear: both;
-    border-radius: 4px;
+    background-color: #494;
+    border: 1px dashed white;
     white-space: pre;
   }
-
-  .code-debug {
-    font-size: 9px;
-    margin-bottom: 20px;
-    padding: 2px 6px;
-    background-color: #944;
-    color: white;
-    clear: both;
-    border-radius: 4px;
-    white-space: pre;
+  
+  .text-input-debug {
+    background-color: #444;
+  }
+  
+  .text-output-debug {
+    background-color: #44a;
   }
 
-  .docs-debug {
-    font-size: 9px;
-    margin-bottom: 20px;
-    padding: 2px 6px;
-    background-color: #449;
-    color: white;
-    clear: both;
-    border-radius: 4px;
-    white-space: pre;
+  .render-tree-debug {
+    background-color: #a44;
   }
-
-  .headers-debug {
-    font-size: 9px;
-    margin-bottom: 20px;
-    padding: 2px 6px;
-    background-color: #499;
-    color: white;
-    clear: both;
-    border-radius: 4px;
-    white-space: pre;
-  }
-
+  
+  
   .form {
     position: relative; // important for form overlays
     -webkit-filter: grayscale(50%);

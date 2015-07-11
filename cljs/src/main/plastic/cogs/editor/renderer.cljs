@@ -86,8 +86,8 @@
   (let [settings (subscribe [:settings])]
     (fn [form]
       (log "R! form" (:id form))
-      (let [{:keys [selections-debug-visible text-input-debug-visible text-output-debug-visible render-tree-debug-visible]} @settings
-            {:keys [focused soup active-selections all-selections render-tree editing text-input-debug text-output-debug]} form]
+      (let [{:keys [selections-debug-visible render-tree-debug-visible]} @settings
+            {:keys [focused soup active-selections all-selections render-tree editing]} form]
         [:tr.form-row
          [:td.form-cell
           [:div.form.noselect
@@ -122,13 +122,15 @@
     (fn []
       (log "R! editor-root" editor-id)
       (let [forms (:forms @state)
-            {:keys [parser-debug-visible]} @settings
-            parse-tree (if parser-debug-visible (:debug-parse-tree @state) nil)]
+            {:keys [parser-debug-visible text-input-debug-visible text-output-debug-visible]} @settings
+            {:keys [debug-parse-tree debug-text-input debug-text-output]} @state]
         [:div.plastic-editor                                ; .editor class is taken by Atom
          {:data-qeid editor-id
           :on-click  (partial handle-editor-click editor-id)}
+         (if text-input-debug-visible [text-input-debug-component debug-text-input])
          [forms-component forms]
-         (if parser-debug-visible [parser-debug-component parse-tree])]))))
+         (if parser-debug-visible [parser-debug-component debug-parse-tree])
+         (if text-output-debug-visible [text-output-debug-component debug-text-output])]))))
 
 (defn mount-editor [element editor-id]
   (let [editor (partial editor-root-component editor-id)]

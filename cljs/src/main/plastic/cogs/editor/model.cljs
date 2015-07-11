@@ -93,3 +93,12 @@
 
 (defn get-render-info-by-id [editor form-id]
   (helpers/get-by-id (get-render-infos editor) form-id))
+
+(defn get-input-text [editor]
+  (let [text (get editor :text)]
+    (assert text)
+    text))
+
+(defn get-output-text [editor]
+  (node/string (get-parse-tree editor)))
+
