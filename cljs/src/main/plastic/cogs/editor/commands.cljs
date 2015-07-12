@@ -66,14 +66,11 @@
 ; ----------------------------------------------------------------------------------------------------------------
 
 (defmethod handle :default [command]
-  (error (str "Unknown editor command for dispatch '" command "'"))
-  nil)
+  (error (str "Unknown editor command for dispatch '" command "'")))
 
 (defn dispatch-command [editors [editor-id command]]
-  (let [old-editor (get editors editor-id)
-        _ (assert old-editor)
-        new-editor (handle command old-editor)]
-    (if new-editor
+  (let [old-editor (get editors editor-id)]
+    (if-let [new-editor (handle command old-editor)]
       (assoc-in editors [editor-id] new-editor)
       editors)))
 

@@ -14,7 +14,7 @@
                     (if selectable? "selectable")
                     (if editing? "editing"))}
       (if editing?
-        [inline-editor-component text id]
+        [inline-editor-component id text :doc]
         [raw-html-component (wrap-specials text)])]]))
 
 (defn docs-component [docs-render-info]

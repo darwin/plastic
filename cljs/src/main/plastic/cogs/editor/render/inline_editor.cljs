@@ -3,34 +3,26 @@
                    [plastic.macros.glue :refer [react! dispatch]])
   (:require [reagent.core :as reagent]
             [plastic.onion.api :refer [$]]
-            [plastic.cogs.editor.render.utils :refer [dangerously-set-html wrap-specials classv]]
             [plastic.cogs.editor.render.dom :as dom]
             [plastic.onion.core :as onion]))
 
 ; inline-editor-component is only an empty shell for existing atom editor instance to be attached there
 ; shared atom editor instance is managed by onion (created outside clojurescript land, one instance per editor)
-; hopefully transplanting one single atom editor instance around is faster than creating new ones
+; hopefully transplanting one single atom editor instance around is faster than always creating new ones
 
 (defn activate-inline-editor [$dom-node]
   (when-not (dom/inline-editor-present? $dom-node)
     (let [editor-id (dom/lookup-editor-id $dom-node)
-          inline-editor (onion/get-atom-inline-editor-instance editor-id)
-          inline-editor-view (onion/get-atom-inline-editor-view-instance editor-id)
-          editable-text (.data $dom-node "editable-text")]
-      ; synchronous update prevent interminent jumps
-      ; it has correct dimentsions before it gets appended in the DOM
-      (.setUpdatedSynchronously inline-editor-view true)
-      (.setText inline-editor editable-text)
-      (.selectAll inline-editor)
-      (.setUpdatedSynchronously inline-editor-view false)
-      (.append $dom-node inline-editor-view)
-      (.focus inline-editor-view))))
+          inline-editor-type (.data $dom-node "qtype")
+          inline-editor-text (.data $dom-node "qtext")]
+      (onion/setup-inline-editor-for-editing editor-id inline-editor-type inline-editor-text)
+      (onion/append-inline-editor editor-id $dom-node)
+      (onion/focus-inline-editor editor-id))))
 
 (defn deactivate-inline-editor [$dom-node]
   (if (dom/inline-editor-present? $dom-node)
-    (let [editor-id (dom/lookup-editor-id $dom-node)
-          inline-editor-view (onion/get-atom-inline-editor-view-instance editor-id)]
-      (if (dom/has-class? inline-editor-view "is-focused")
+    (let [editor-id (dom/lookup-editor-id $dom-node)]
+      (if (onion/is-inline-editor-focused? editor-id)
         (let [root-view (dom/find-closest-plastic-editor-view $dom-node)]
           (.focus root-view))))))
 
@@ -50,7 +42,8 @@
 
 (defn inline-editor-component []
   (inline-editor-scaffold
-    (fn [editable-text node-id]
+    (fn [node-id text type]
       [:div.inline-editor
-       {:data-editable-text editable-text
-        :data-qnid          node-id}])))
+       {:data-qnid  node-id
+        :data-qtext text
+        :data-qtype type}])))

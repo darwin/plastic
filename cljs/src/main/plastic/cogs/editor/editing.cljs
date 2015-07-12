@@ -18,11 +18,13 @@
   (apply-editing editor :start))
 
 (defn stop-editing [editor]
-  (if-not (editor/editing? editor)
-    editor
-    (let [inline-editor (onion/get-atom-inline-editor-instance (editor/get-id editor))
-          value (.getText inline-editor)]
-      (dom/postpone-selection-overlay-display-until-next-update editor)
-      (-> editor
-        (commit-value value)
-        (apply-editing :stop)))))
+  (or
+    (if (editor/editing? editor)
+      (let [editor-id (editor/get-id editor)
+            modified-editor (if (or true (onion/is-inline-editor-modified? editor-id))
+                              (commit-value editor (onion/get-postprocessed-text-after-editing editor-id))
+                              (do (log "not modified")
+                                  editor))]
+        (dom/postpone-selection-overlay-display-until-next-update editor)
+        (apply-editing modified-editor :stop)))
+    editor))

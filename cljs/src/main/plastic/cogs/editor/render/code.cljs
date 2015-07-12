@@ -28,7 +28,7 @@
                   (if geometry {:style {:transform (str "translateY(" (:top geometry) "px) translateX(" (:left geometry) "px)")}}))
           emit-token (fn [html] [:div.token props
                                  (if editing?
-                                   [inline-editor-component text id]
+                                   [inline-editor-component id text (or type :symbol)]
                                    [raw-html-component html])])]
       (condp = type
         :string (emit-token (-> text (wrap-specials)))

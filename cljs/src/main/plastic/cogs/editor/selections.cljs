@@ -1,6 +1,7 @@
 (ns plastic.cogs.editor.selections
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
-                   [plastic.macros.glue :refer [react! dispatch]])
+                   [plastic.macros.glue :refer [react! dispatch]]
+                   [plastic.macros.common :refer [*->]])
   (:require [plastic.frame.core :refer [subscribe register-handler]]
             [plastic.schema.paths :as paths]
             [plastic.cogs.editor.selection.model :as model]
