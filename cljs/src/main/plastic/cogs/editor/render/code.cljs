@@ -3,6 +3,7 @@
   (:require [plastic.cogs.editor.render.utils :refer [wrap-specials classv]]
             [plastic.cogs.editor.render.inline-editor :refer [inline-editor-component]]
             [plastic.cogs.editor.render.reusables :refer [raw-html-component]]
+            [plastic.frame.core :refer [subscribe]]
             [plastic.cogs.editor.layout.utils :as utils]))
 
 (declare code-block-component)
@@ -70,8 +71,12 @@
 (defn extract-first-child-name [node]
   (:text (first (:children node))))
 
-(defn code-box-component [code-render-info]
-  (let [node (first (:children code-render-info))
-        name (extract-first-child-name node)]
-    [:div.code-box {:class (if name (str "sexpr-" name))}
-     [code-block-component node]]))
+(defn code-box-component []
+  (let [settings (subscribe [:settings])]
+    (fn [code-render-info]
+      (let [{:keys [code-visible]} @settings
+            node (first (:children code-render-info))
+            name (extract-first-child-name node)]
+        (if code-visible
+          [:div.code-box {:class (if name (str "sexpr-" name))}
+           [code-block-component node]])))))
