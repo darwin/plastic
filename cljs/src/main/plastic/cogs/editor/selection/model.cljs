@@ -28,51 +28,51 @@
 
 (defmulti op (fn [op-type & _] op-type))
 
-(defmethod op :move-down [_ editor]
+(defmethod op :spatial-down [_ editor]
   (let [selected-id (get-selected-node-id editor)
         render-info (editor/get-focused-render-info editor)
-        {:keys [lines-selectables all-selections]} render-info
+        {:keys [spatial-web all-selections]} render-info
         sel-node (get all-selections selected-id)
         sel-line (:line sel-node)
         next-line (inc sel-line)
-        line-selectables (get lines-selectables next-line)
+        line-selectables (get spatial-web next-line)
         line-selections (map #(get all-selections (:id %)) line-selectables)
         result (find-best-spatial-match sel-node line-selections)]
     (if result
       (editor/set-focused-selection editor #{(:id result)}))))
 
-(defmethod op :move-up [_ editor]
+(defmethod op :spatial-up [_ editor]
   (let [selected-id (get-selected-node-id editor)
         render-info (editor/get-focused-render-info editor)
-        {:keys [lines-selectables all-selections]} render-info
+        {:keys [spatial-web all-selections]} render-info
         sel-node (get all-selections selected-id)
         sel-line (:line sel-node)
         next-line (dec sel-line)
-        line-selectables (get lines-selectables next-line)
+        line-selectables (get spatial-web next-line)
         line-selections (map #(get all-selections (:id %)) line-selectables)
         result (find-best-spatial-match sel-node line-selections)]
     (if result
       (editor/set-focused-selection editor #{(:id result)}))))
 
-(defmethod op :move-right [_ editor]
+(defmethod op :spatial-right [_ editor]
   (let [selected-id (get-selected-node-id editor)
         render-info (editor/get-focused-render-info editor)
-        {:keys [lines-selectables all-selections]} render-info
+        {:keys [spatial-web all-selections]} render-info
         sel-node (get all-selections selected-id)
         sel-line (:line sel-node)
-        line-selectables (get lines-selectables sel-line)
+        line-selectables (get spatial-web sel-line)
         _ (assert line-selectables)
         result (helpers/next-item #(= (:id %) selected-id) line-selectables)]
     (if result
       (editor/set-focused-selection editor #{(:id result)}))))
 
-(defmethod op :move-left [_ editor]
+(defmethod op :spatial-left [_ editor]
   (let [selected-id (get-selected-node-id editor)
         render-info (editor/get-focused-render-info editor)
-        {:keys [lines-selectables all-selections]} render-info
+        {:keys [spatial-web all-selections]} render-info
         sel-node (get all-selections selected-id)
         sel-line (:line sel-node)
-        line-selectables (get lines-selectables sel-line)
+        line-selectables (get spatial-web sel-line)
         _ (assert line-selectables)
         result (helpers/prev-item #(= (:id %) selected-id) line-selectables)]
     (if result

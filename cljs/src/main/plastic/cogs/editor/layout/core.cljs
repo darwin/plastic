@@ -21,6 +21,7 @@
             [plastic.cogs.editor.layout.headers :refer [build-headers-render-tree]]
             [plastic.cogs.editor.layout.selections :refer [build-selections-render-info]]
             [plastic.cogs.editor.layout.structural :refer [build-structural-web]]
+            [plastic.cogs.editor.layout.spatial :refer [build-spatial-web]]
             [plastic.cogs.editor.analyzer :refer [analyze-full]]
             [plastic.cogs.editor.layout.utils :refer [apply-to-selected-editors debug-print-analysis ancestor-count loc->path leaf-nodes make-zipper collect-all-right collect-all-parents collect-all-children valid-loc?]]))
 
@@ -44,25 +45,21 @@
                         (flatten (map collect-nodes (relevant-nodes (node/children node))))))]
     (concat [(:id node) node] (child-nodes node))))
 
-(defn compose-render-trees [root-id headers docs code]
+(defn extract-all-selectables [render-tree]
+  (reduce-render-tree extract-selectables {} render-tree))
+
+(defn compose-render-trees [top-id headers docs code]
   {:tag         :tree
-   :id          (dec root-id)
+   :id          top-id
    :selectable? true
    :children    [headers docs code]})
-
-(defn link-tree-root-as-parent [tree mapping]
-  (let [root-id (:id tree)]
-    (into {} (map (fn [[child-id parent-id]] (if (or parent-id (= child-id root-id)) [child-id parent-id] [child-id root-id])) mapping))))
-
-(defn is-selectable-token? [node]
-  (let [tag (:tag node)]
-    (= tag :token)))
 
 (defn prepare-form-render-info [editor loc]
   {:pre [(= (node/tag (zip/node (zip/up loc))) :forms)]}    ; parent has to be :forms
   (let [root-node (zip/node loc)
         _ (assert root-node)
         root-id (:id root-node)
+        top-id (dec root-id)                                ; a hack - root-id was minimal, we rely ids to be assigned by parser in dept-first-order
         editing-set (editor/get-editing-set editor)
         nodes (apply hash-map (collect-nodes root-node))
 
@@ -76,20 +73,21 @@
         code-render-tree (build-code-render-tree analysis loc)
         docs-render-tree (build-docs-render-tree analysis nodes)
         headers-render-tree (build-headers-render-tree analysis loc)
-        full-render-tree (compose-render-trees root-id headers-render-tree docs-render-tree code-render-tree)
+        render-tree (compose-render-trees top-id headers-render-tree docs-render-tree code-render-tree)
 
-        selectables (reduce-render-tree extract-selectables {} full-render-tree)
-        lines-selectables (into (sorted-map) (group-by :line (sort-by :id (filter is-selectable-token? (vals selectables)))))
-        structural-web (build-structural-web (dec root-id) selectables loc)
+        selectables (extract-all-selectables render-tree)
 
-        form-info {:id                root-id
-                   :editing           (editor/editing? editor)
-                   :nodes             nodes
-                   :analysis          analysis
-                   :selectables       selectables           ; used for selections
-                   :lines-selectables lines-selectables     ; used for spatial left/right/up/down movement
-                   :structural-web    structural-web        ; used for structural left/right/up/down movement
-                   :render-tree       full-render-tree}]    ; used for skelet rendering
+        spatial-web (build-spatial-web selectables)
+        structural-web (build-structural-web top-id selectables loc)
+
+        form-info {:id             root-id
+                   :editing        (editor/editing? editor)
+                   :nodes          nodes
+                   :analysis       analysis
+                   :selectables    selectables              ; used for selections
+                   :spatial-web    spatial-web              ; used for spatial left/right/up/down movement
+                   :structural-web structural-web           ; used for structural left/right/up/down movement
+                   :render-tree    render-tree}]            ; used for skelet rendering
     ;(debug-print-analysis root-node nodes analysis)
     (log "form #" root-id "=> render-info:" form-info)
     form-info))

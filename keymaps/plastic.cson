@@ -15,10 +15,10 @@
 
 # plastic editor
 '.plastic-editor-view':
-  'left': 'plastic:move-left'
-  'right': 'plastic:move-right'
-  'up': 'plastic:move-up'
-  'down': 'plastic:move-down'
+  'left': 'plastic:spatial-left'
+  'right': 'plastic:spatial-right'
+  'up': 'plastic:spatial-up'
+  'down': 'plastic:spatial-down'
   'ctrl-up': 'plastic:structural-up'
   'ctrl-down': 'plastic:structural-down'
   'ctrl-left': 'plastic:structural-left'

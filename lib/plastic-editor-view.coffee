@@ -59,10 +59,10 @@ class PlasticEditorView extends ScrollView
     bridge.send "register-editor", @
 
     @addCommands [
-      'plastic:move-left'
-      'plastic:move-right'
-      'plastic:move-up'
-      'plastic:move-down'
+      'plastic:spatial-left'
+      'plastic:spatial-right'
+      'plastic:spatial-up'
+      'plastic:spatial-down'
       'plastic:structural-up'
       'plastic:structural-down'
       'plastic:structural-left'

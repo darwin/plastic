@@ -132,7 +132,7 @@
   {:post [(number? %)]}
   (let [render-info (get-render-info-by-id editor form-id)
         _ (assert render-info)
-        first-line (second (first (:lines-selectables render-info)))
+        first-line (second (first (:spatial-web render-info)))
         _ (assert (vector? first-line))]
     (:id (first first-line))))
 
@@ -140,6 +140,6 @@
   {:post [(number? %)]}
   (let [render-info (get-render-info-by-id editor form-id)
         _ (assert render-info)
-        last-line (second (last (:lines-selectables render-info)))
+        last-line (second (last (:spatial-web render-info)))
         _ (assert (vector? last-line))]
     (:id (peek last-line))))

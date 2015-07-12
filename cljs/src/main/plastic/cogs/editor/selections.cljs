@@ -25,17 +25,17 @@
 ; ---------------------------
 ; spatial movement
 
-(defn move-up [editor]
-  (apply-move-selection editor :move-up :move-prev-form))
+(defn spatial-up [editor]
+  (apply-move-selection editor :spatial-up :move-prev-form))
 
-(defn move-down [editor]
-  (apply-move-selection editor :move-down :move-next-form))
+(defn spatial-down [editor]
+  (apply-move-selection editor :spatial-down :move-next-form))
 
-(defn move-left [editor]
-  (apply-move-selection editor :move-left))
+(defn spatial-left [editor]
+  (apply-move-selection editor :spatial-left))
 
-(defn move-right [editor]
-  (apply-move-selection editor :move-right))
+(defn spatial-right [editor]
+  (apply-move-selection editor :spatial-right))
 
 ; ---------------------------
 ; structural movement

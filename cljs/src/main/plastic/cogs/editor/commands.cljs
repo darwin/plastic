@@ -11,25 +11,25 @@
 
 ; ----------------------------------------------------------------------------------------------------------------
 
-(defmethod handle :move-up [_ editor]
+(defmethod handle :spatial-up [_ editor]
   (-> editor
     editing/stop-editing
-    selections/move-up))
+    selections/spatial-up))
 
-(defmethod handle :move-down [_ editor]
+(defmethod handle :spatial-down [_ editor]
   (-> editor
     editing/stop-editing
-    selections/move-down))
+    selections/spatial-down))
 
-(defmethod handle :move-left [_ editor]
+(defmethod handle :spatial-left [_ editor]
   (-> editor
     editing/stop-editing
-    selections/move-left))
+    selections/spatial-left))
 
-(defmethod handle :move-right [_ editor]
+(defmethod handle :spatial-right [_ editor]
   (-> editor
     editing/stop-editing
-    selections/move-right))
+    selections/spatial-right))
 
 (defmethod handle :structural-left [_ editor]
   (-> editor
