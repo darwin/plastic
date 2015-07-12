@@ -10,6 +10,7 @@
         {:keys [id]} parser-node]
     (merge {:id          id
             :tag         :token
+            :doc?        true
             :selectable? true
             :line        -1
             :text        (prepare-string-for-display text)}

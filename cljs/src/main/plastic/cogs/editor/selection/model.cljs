@@ -17,7 +17,15 @@
 (defn get-selected-node-id [editor]
   (first (editor/get-focused-selection editor)))
 
+(defn structural-movemement [editor op]
+  (let [selected-id (get-selected-node-id editor)
+        render-info (editor/get-focused-render-info editor)
+        structural-web (:structural-web render-info)]
+    (if-let [result-id (op (get structural-web selected-id))]
+      (editor/set-focused-selection editor #{result-id}))))
+
 ; ----------------------------------------------------------------------------------------------------------------
+
 (defmulti op (fn [op-type & _] op-type))
 
 (defmethod op :move-down [_ editor]
@@ -70,23 +78,17 @@
     (if result
       (editor/set-focused-selection editor #{(:id result)}))))
 
-(defmethod op :level-up [_ editor]
-  (let [selected-id (get-selected-node-id editor)
-        render-info (editor/get-focused-render-info editor)
-        {:keys [selectable-parents]} render-info
-        result-id (get selectable-parents selected-id)]
-    (if result-id
-      (editor/set-focused-selection editor #{result-id}))))
+(defmethod op :structural-up [_ editor]
+  (structural-movemement editor :up))
 
-(defmethod op :level-down [_ editor]
-  (let [selected-id (get-selected-node-id editor)
-        render-info (editor/get-focused-render-info editor)
-        {:keys [selectable-parents]} render-info
-        children-ids-having-sel-node-as-parent (map first (filter (fn [[_nid pid]] (= pid selected-id)) selectable-parents))
-        candidates (sort children-ids-having-sel-node-as-parent)
-        result-id (first candidates)]
-    (if result-id
-      (editor/set-focused-selection editor #{result-id}))))
+(defmethod op :structural-down [_ editor]
+  (structural-movemement editor :down))
+
+(defmethod op :structural-left [_ editor]
+  (structural-movemement editor :left))
+
+(defmethod op :structural-right [_ editor]
+  (structural-movemement editor :right))
 
 (defmethod op :move-prev-form [_ editor]
   (let [focused-form-id (editor/get-focused-form-id editor)

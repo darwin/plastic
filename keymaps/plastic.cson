@@ -19,8 +19,10 @@
   'right': 'plastic:move-right'
   'up': 'plastic:move-up'
   'down': 'plastic:move-down'
-  'ctrl-up': 'plastic:level-up'
-  'ctrl-down': 'plastic:level-down'
+  'ctrl-up': 'plastic:structural-up'
+  'ctrl-down': 'plastic:structural-down'
+  'ctrl-left': 'plastic:structural-left'
+  'ctrl-right': 'plastic:structural-right'
 
 # inlined text editor
 '.plastic-editor-view atom-text-editor':

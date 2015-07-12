@@ -31,13 +31,23 @@
     editing/stop-editing
     selections/move-right))
 
-(defmethod handle :level-up [_ editor]
+(defmethod handle :structural-left [_ editor]
   (-> editor
     editing/stop-editing
-    selections/level-up))
+    selections/structural-left))
 
-(defmethod handle :level-down [_ editor]
-  (let [new-editor (selections/level-down editor)]
+(defmethod handle :structural-right [_ editor]
+  (-> editor
+    editing/stop-editing
+    selections/structural-right))
+
+(defmethod handle :structural-up [_ editor]
+  (-> editor
+    editing/stop-editing
+    selections/structural-up))
+
+(defmethod handle :structural-down [_ editor]
+  (let [new-editor (selections/structural-down editor)]
     (if (= new-editor editor)
       (dispatch :editor-command (editor/get-id editor) :toggle-editing))
     new-editor))

@@ -20,6 +20,7 @@
             [plastic.cogs.editor.layout.docs :refer [build-docs-render-tree]]
             [plastic.cogs.editor.layout.headers :refer [build-headers-render-tree]]
             [plastic.cogs.editor.layout.selections :refer [build-selections-render-info]]
+            [plastic.cogs.editor.layout.structural :refer [build-structural-web]]
             [plastic.cogs.editor.analyzer :refer [analyze-full]]
             [plastic.cogs.editor.layout.utils :refer [apply-to-selected-editors debug-print-analysis ancestor-count loc->path leaf-nodes make-zipper collect-all-right collect-all-parents collect-all-children valid-loc?]]))
 
@@ -42,12 +43,6 @@
                       (if (node/inner? node)
                         (flatten (map collect-nodes (relevant-nodes (node/children node))))))]
     (concat [(:id node) node] (child-nodes node))))
-
-(defn build-selectable-parents [loc selectables]
-  (let [selectable? (fn [loc] (get selectables (:id (zip/node loc))))
-        selectable-locs (filter selectable? (take-while valid-loc? (iterate z/next loc)))
-        emit-item (fn [loc] [(:id (zip/node loc)) (first (rest (map #(:id (zip/node %)) (filter selectable? (collect-all-parents loc)))))])]
-    (apply hash-map (mapcat emit-item selectable-locs))))
 
 (defn compose-render-trees [root-id headers docs code]
   {:tag         :tree
@@ -85,16 +80,16 @@
 
         selectables (reduce-render-tree extract-selectables {} full-render-tree)
         lines-selectables (into (sorted-map) (group-by :line (sort-by :id (filter is-selectable-token? (vals selectables)))))
-        selectable-parents (link-tree-root-as-parent full-render-tree (build-selectable-parents loc selectables))
+        structural-web (build-structural-web (dec root-id) selectables loc)
 
-        form-info {:id                 root-id
-                   :editing            (editor/editing? editor)
-                   :nodes              nodes
-                   :analysis           analysis
-                   :selectables        selectables          ; used for selections
-                   :lines-selectables  lines-selectables    ; used for left/right, up/down movement
-                   :selectable-parents selectable-parents   ; used for level-up movement
-                   :render-tree        full-render-tree}]   ; used for skelet rendering
+        form-info {:id                root-id
+                   :editing           (editor/editing? editor)
+                   :nodes             nodes
+                   :analysis          analysis
+                   :selectables       selectables           ; used for selections
+                   :lines-selectables lines-selectables     ; used for spatial left/right/up/down movement
+                   :structural-web    structural-web        ; used for structural left/right/up/down movement
+                   :render-tree       full-render-tree}]    ; used for skelet rendering
     ;(debug-print-analysis root-node nodes analysis)
     (log "form #" root-id "=> render-info:" form-info)
     form-info))
