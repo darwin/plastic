@@ -3,7 +3,7 @@
             [rewrite-clj.node :as node]
             [rewrite-clj.node.stringz :refer [StringNode]]
             [rewrite-clj.node.token :refer [TokenNode]]
-            [plastic.cogs.editor.layout.utils :refer [unwrap-metas node-walker noop]])
+            [plastic.cogs.editor.layout.utils :as layout-utils])
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]))
 
 (defn first-child-sexpr [node]
@@ -23,7 +23,7 @@
   (instance? TokenNode node))
 
 (defn extract-sym-doc [node]
-  (let [children (essential-nodes (unwrap-metas (node/children node)))
+  (let [children (essential-nodes (layout-utils/unwrap-metas (node/children node)))
         first-string-node (first (filter string-node? children))
         first-symbol-node (first (rest (filter symbol-node? children)))]
     [(if first-symbol-node
@@ -42,5 +42,5 @@
   (filter #(= (node/tag %) :list) (node/children node)))
 
 (defn analyze-defs [node info]
-  (let [walker (node-walker def-info noop helpers/deep-merge list-children)]
+  (let [walker (layout-utils/node-walker def-info helpers/noop helpers/deep-merge list-children)]
     (helpers/deep-merge info (walker node))))

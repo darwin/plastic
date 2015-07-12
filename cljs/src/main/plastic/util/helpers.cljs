@@ -4,6 +4,8 @@
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
                    [cljs.core.async.macros :refer [go]]))
 
+(def noop (fn [] []))
+
 (defn deep-merge
   "Recursively merges maps. If keys are not maps, the last value wins."
   [& vals]

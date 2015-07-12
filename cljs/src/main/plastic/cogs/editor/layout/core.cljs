@@ -23,7 +23,7 @@
             [plastic.cogs.editor.layout.structural :refer [build-structural-web]]
             [plastic.cogs.editor.layout.spatial :refer [build-spatial-web]]
             [plastic.cogs.editor.analyzer :refer [analyze-full]]
-            [plastic.cogs.editor.layout.utils :refer [apply-to-selected-editors debug-print-analysis ancestor-count loc->path leaf-nodes make-zipper collect-all-right collect-all-parents collect-all-children valid-loc?]]))
+            [plastic.cogs.editor.layout.utils :as layout-utils]))
 
 (defn reduce-render-tree [f val node]
   (f (reduce (partial reduce-render-tree f) val (:children node)) node))
@@ -116,13 +116,13 @@
     (editor/set-render-state editor render-state)))
 
 (defn update-layout [editors [editor-selector form-id]]
-  (apply-to-selected-editors (partial layout-editor form-id) editors editor-selector))
+  (layout-utils/apply-to-selected-editors (partial layout-editor form-id) editors editor-selector))
 
 (defn update-editor-layout-for-focused-form [editor]
   (layout-editor (editor/get-focused-form-id editor) editor))
 
 (defn update-layout-for-focused-form [editors [editor-selector]]
-  (apply-to-selected-editors update-editor-layout-for-focused-form editors editor-selector))
+  (layout-utils/apply-to-selected-editors update-editor-layout-for-focused-form editors editor-selector))
 
 (defn update-form-soup-geometry [geometry form]
   (let [tokens (reduce-render-tree extract-tokens {} (:render-tree form))]

@@ -6,8 +6,8 @@
             [rewrite-clj.node.protocols :as node]
             [clojure.walk :refer [prewalk]]
             [plastic.cogs.editor.parser.utils :as parser]
-            [plastic.cogs.editor.layout.utils :as utils]
-            [plastic.util.helpers :as helpers]))
+            [plastic.util.helpers :as helpers]
+            [plastic.util.zip :as zip-utils]))
 
 (defn get-parse-tree [editor]
   (let [parse-tree (get editor :parse-tree)]
@@ -67,9 +67,9 @@
     (and editing (not (empty? editing)))))
 
 (defn get-top-level-locs [editor]
-  (let [top-loc (utils/make-zipper (get-parse-tree editor)) ; root "forms" node
+  (let [top-loc (zip-utils/make-zipper (get-parse-tree editor)) ; root "forms" node
         first-top-level-form-loc (zip/down top-loc)]
-    (utils/collect-all-right first-top-level-form-loc)))    ; TODO: here we should use explicit zipping policy
+    (zip-utils/collect-all-right first-top-level-form-loc)))    ; TODO: here we should use explicit zipping policy
 
 (defn loc-id? [id loc]
   (= (:id (zip/node loc)) id))
@@ -77,14 +77,14 @@
 (defn commit-value-to-loc [loc node-id value]
   (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))
         new-value (symbol value)]
-    (assert (utils/valid-loc? node-loc))
+    (assert (zip-utils/valid-loc? node-loc))
     (if (not= (node/sexpr (zip/node node-loc)) new-value)
       (editz/edit node-loc (fn [_prev] new-value)))))
 
 (defn commit-node-value [editor node-id value]
   {:pre [node-id value]}
   (let [old-root (get-parse-tree editor)
-        modified-loc (commit-value-to-loc (utils/make-zipper old-root) node-id value)]
+        modified-loc (commit-value-to-loc (zip-utils/make-zipper old-root) node-id value)]
     (if-not modified-loc
       editor
       (let [parse-tree (parser/make-nodes-unique (zip/root modified-loc))

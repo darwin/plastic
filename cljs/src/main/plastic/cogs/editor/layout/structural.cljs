@@ -1,11 +1,10 @@
 (ns plastic.cogs.editor.layout.structural
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
   (:require [clojure.zip :as z]
-            [plastic.util.zip :as zip-utils]
-            [plastic.cogs.editor.layout.utils :as utils]))
+            [plastic.util.zip :as zip-utils]))
 
 (defn loc-id [loc]
-  (if (utils/valid-loc? loc)
+  (if (zip-utils/valid-loc? loc)
     (let [node (z/node loc)]
       (:id node))))
 
@@ -23,10 +22,10 @@
 
 (defn structural-web-for-item [policy accum loc]
   (let [id (loc-id loc)
-        zip-up (partial utils/zip-up policy)
-        zip-down (partial utils/zip-down policy)
-        zip-left (partial utils/zip-left policy)
-        zip-right (partial utils/zip-right policy)
+        zip-up (partial zip-utils/zip-up policy)
+        zip-down (partial zip-utils/zip-down policy)
+        zip-left (partial zip-utils/zip-left policy)
+        zip-right (partial zip-utils/zip-right policy)
         up-loc (zip-up loc)
         down-loc (zip-down loc)
         left-loc (zip-left loc)

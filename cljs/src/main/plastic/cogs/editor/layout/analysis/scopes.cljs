@@ -1,7 +1,7 @@
 (ns plastic.cogs.editor.layout.analysis.scopes
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
   (:require [plastic.util.helpers :as helpers]
-            [rewrite-clj.node :as node])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]))
+            [rewrite-clj.node :as node]))
 
 (defonce ^:dynamic *scope-id* 0)
 

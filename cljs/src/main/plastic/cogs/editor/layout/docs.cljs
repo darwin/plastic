@@ -1,7 +1,7 @@
 (ns plastic.cogs.editor.layout.docs
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
   (:require [rewrite-clj.node :as node]
-            [plastic.cogs.editor.layout.utils :refer [prepare-string-for-display ancestor-count loc->path leaf-nodes make-zipper collect-all-right]])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]))
+            [plastic.cogs.editor.layout.utils :as layout-utils]))
 
 (defn doc-item [nodes [id info]]
   (let [parser-node (get nodes id)
@@ -13,7 +13,7 @@
             :doc?        true
             :selectable? true
             :line        -1
-            :text        (prepare-string-for-display text)}
+            :text        (layout-utils/prepare-string-for-display text)}
       (if editing? {:editing? true}))))
 
 (defn build-docs-render-tree [analysis nodes]

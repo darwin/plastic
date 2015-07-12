@@ -1,5 +1,4 @@
 (ns plastic.cogs.editor.layout.analysis.editing
-  (:require [plastic.cogs.editor.layout.utils :refer [is-selectable? prepare-string-for-display ancestor-count loc->path leaf-nodes make-zipper collect-all-right]])
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]))
 
 (defn process-node [editing-set node-analysis]

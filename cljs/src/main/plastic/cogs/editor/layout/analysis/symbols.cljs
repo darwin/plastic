@@ -1,6 +1,6 @@
 (ns plastic.cogs.editor.layout.analysis.symbols
-  (:require [rewrite-clj.node :as node])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]))
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
+  (:require [rewrite-clj.node :as node]))
 
 (defn matching-local? [node [decl-node after-id]]
   (if (fn? decl-node)

@@ -8,7 +8,6 @@
             [plastic.cogs.editor.render.core]
             [plastic.cogs.editor.analyzer]
             [plastic.cogs.editor.commands]
-            [plastic.cogs.editor.cursors]
             [plastic.cogs.editor.selections])
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]))
 

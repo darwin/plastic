@@ -1,11 +1,11 @@
 (ns plastic.cogs.editor.layout.code
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
   (:require [rewrite-clj.zip :as zip]
             [rewrite-clj.node :as node]
             [rewrite-clj.node.stringz :refer [StringNode]]
             [rewrite-clj.node.keyword :refer [KeywordNode]]
-            [plastic.cogs.editor.layout.utils :refer [is-selectable? prepare-string-for-display ancestor-count loc->path leaf-nodes make-zipper collect-all-right]]
-            [clojure.zip :as z])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]))
+            [clojure.zip :as z]
+            [plastic.cogs.editor.layout.utils :as layout-utils]))
 
 (defonce ^:dynamic *line-id* 0)
 
@@ -63,7 +63,7 @@
         (if selectable? {:selectable? true})
         (if editing? {:editing? true})
         (if (is-call? loc) {:call true})
-        (if (instance? StringNode node) {:text (prepare-string-for-display (node/string node))
+        (if (instance? StringNode node) {:text (layout-utils/prepare-string-for-display (node/string node))
                                          :type :string})
         (if (instance? KeywordNode node) {:type :keyword})
         (if (not= new-scope-id scope-id) {:scope new-scope-id})
