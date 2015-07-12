@@ -1,11 +1,11 @@
 (ns plastic.cogs.editor.commands
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
+                   [plastic.macros.glue :refer [react! dispatch]])
   (:require [plastic.frame.core :refer [subscribe register-handler]]
             [plastic.schema.paths :as paths]
             [plastic.cogs.editor.editing :as editing]
             [plastic.cogs.editor.model :as editor]
-            [plastic.cogs.editor.selections :as selections])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
-                   [plastic.macros.glue :refer [react! dispatch]]))
+            [plastic.cogs.editor.selections :as selections]))
 
 (defmulti handle (fn [command & _] command))
 

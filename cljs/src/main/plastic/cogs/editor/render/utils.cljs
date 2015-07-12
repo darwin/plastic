@@ -1,6 +1,6 @@
 (ns plastic.cogs.editor.render.utils
-  (:require [clojure.string :as string])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]))
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
+  (:require [clojure.string :as string]))
 
 (defn wrap-specials [s]
   (-> s

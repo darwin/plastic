@@ -1,6 +1,6 @@
 (ns plastic.schema.paths
-  (:require [plastic.frame.middleware :refer [path]])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]))
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
+  (:require [plastic.frame.middleware :refer [path]]))
 
 (def editors [:editors])
 (def editors-path (path editors))

@@ -1,6 +1,6 @@
 (ns plastic.onion.api
-  (:refer-clojure :exclude [atom])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]))
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
+  (:refer-clojure :exclude [atom]))
 
 ; these apis will be provided by Atom during runtime, see :apis inface message
 

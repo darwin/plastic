@@ -1,10 +1,10 @@
 (ns plastic.cogs.editor.render.selections
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
+                   [plastic.macros.glue :refer [react! dispatch]])
   (:require [plastic.cogs.editor.render.code :refer [code-token-component]]
             [plastic.cogs.editor.render.utils :refer [classv]]
             [plastic.cogs.editor.render.dom :as dom :refer [node-from-react]]
-            [reagent.core :as reagent])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
-                   [plastic.macros.glue :refer [react! dispatch]]))
+            [reagent.core :as reagent]))
 
 (defn selection-component [item]
   (let [{:keys [id geometry]} item

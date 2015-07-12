@@ -1,4 +1,5 @@
 (ns plastic.db
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
   (:require [reagent.core :as reagent]))
 
 (def defaults

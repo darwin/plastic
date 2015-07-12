@@ -1,9 +1,9 @@
 (ns plastic.cogs.editor.render.code
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
   (:require [plastic.cogs.editor.render.utils :refer [wrap-specials classv]]
             [plastic.cogs.editor.render.inline-editor :refer [inline-editor-component]]
             [plastic.cogs.editor.render.reusables :refer [raw-html-component]]
-            [plastic.cogs.editor.layout.utils :as utils])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]))
+            [plastic.cogs.editor.layout.utils :as utils]))
 
 (declare code-block-component)
 

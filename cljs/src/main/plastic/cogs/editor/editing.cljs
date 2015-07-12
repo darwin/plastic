@@ -1,9 +1,9 @@
 (ns plastic.cogs.editor.editing
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
   (:require [plastic.cogs.editor.render.dom :as dom]
             [plastic.frame.core :refer [subscribe register-handler]]
             [plastic.cogs.editor.model :as editor]
-            [plastic.onion.core :as onion])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]))
+            [plastic.onion.core :as onion]))
 
 (defn commit-value [editor value]
   (let [node-id (first (editor/get-editing-set editor))]

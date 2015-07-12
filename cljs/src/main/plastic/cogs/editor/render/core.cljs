@@ -1,4 +1,7 @@
 (ns plastic.cogs.editor.render.core
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
+                   [plastic.macros.glue :refer [react! dispatch]]
+                   [reagent.ratom :refer [reaction]])
   (:require [reagent.core :as reagent]
             [plastic.frame.core :refer [register-sub subscribe]]
             [plastic.util.dom-shim]
@@ -11,10 +14,7 @@
             [plastic.cogs.editor.render.debug :refer [parser-debug-component text-input-debug-component text-output-debug-component render-tree-debug-component selections-debug-overlay-component]]
             [plastic.cogs.editor.render.utils :refer [dangerously-set-html classv]]
             [plastic.cogs.editor.render.dom :as dom]
-            [plastic.util.helpers :as helpers])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
-                   [plastic.macros.glue :refer [react! dispatch]]
-                   [reagent.ratom :refer [reaction]]))
+            [plastic.util.helpers :as helpers]))
 
 (defn retrieve-token-geometry [token-dom-node]
   (if-let [node-id (dom/read-node-id token-dom-node)]

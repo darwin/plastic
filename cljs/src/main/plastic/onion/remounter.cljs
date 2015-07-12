@@ -1,7 +1,7 @@
 (ns plastic.onion.remounter
-  (:require [plastic.onion.inface :refer [ids->views find-mount-point]])
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
-                   [plastic.macros.glue :refer [dispatch react!]]))
+                   [plastic.macros.glue :refer [dispatch react!]])
+  (:require [plastic.onion.inface :refer [ids->views find-mount-point]]))
 
 ; for figwheel
 (defn ^:export remount-editors []

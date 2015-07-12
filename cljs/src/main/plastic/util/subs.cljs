@@ -1,7 +1,7 @@
 (ns plastic.util.subs
-  (:require [reagent.ratom])
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
-                   [reagent.ratom :refer [reaction]]))
+                   [reagent.ratom :refer [reaction]])
+  (:require [reagent.ratom]))
 
 (defn path-query-factory [path-or-fn]
   (fn [db [_query-id & args]]

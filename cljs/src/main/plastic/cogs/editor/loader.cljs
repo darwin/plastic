@@ -1,9 +1,9 @@
 (ns plastic.cogs.editor.loader
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
+                   [plastic.macros.glue :refer [react! dispatch]])
   (:require [plastic.frame.core :refer [subscribe register-handler]]
             [plastic.schema.paths :as paths]
-            [plastic.onion.core :as onion])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
-                   [plastic.macros.glue :refer [react! dispatch]]))
+            [plastic.onion.core :as onion]))
 
 (defn fetch-text [editors [editor-id uri]]
   (onion/load-file-content uri #(dispatch :editor-set-text editor-id %))

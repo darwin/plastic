@@ -1,6 +1,6 @@
 (ns plastic.cogs.editor.parser.utils
-  (:require [rewrite-clj.node :as node])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]))
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
+  (:require [rewrite-clj.node :as node]))
 
 (defonce ^:dynamic node-id 0)
 

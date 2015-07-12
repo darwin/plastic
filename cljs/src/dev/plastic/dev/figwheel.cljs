@@ -1,11 +1,11 @@
 (ns plastic.dev.figwheel
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
+                   [plastic.macros.common :refer [defonce]]
+                   [plastic.macros.glue :refer [dispatch]])
   (:require [clojure.string :as string]
             [figwheel.client :as figwheel]
             [figwheel.client.socket :as socket]
-            [figwheel.client.utils :as utils])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
-                   [plastic.macros.common :refer [defonce]]
-                   [plastic.macros.glue :refer [dispatch]]))
+            [figwheel.client.utils :as utils]))
 
 ; note: figwheel does not play well with advanced optimizations, do not include it
 

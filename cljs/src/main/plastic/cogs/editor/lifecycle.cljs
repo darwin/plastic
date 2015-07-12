@@ -1,9 +1,9 @@
 (ns plastic.cogs.editor.lifecycle
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
+                   [plastic.macros.glue :refer [dispatch react!]])
   (:require [plastic.frame.core :refer [subscribe register-handler]]
             [plastic.cogs.editor.render.core :as render]
-            [plastic.schema.paths :as paths])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
-                   [plastic.macros.glue :refer [dispatch react!]]))
+            [plastic.schema.paths :as paths]))
 
 (defn watch-uri [editor-id]
   (let [uri-subscription (subscribe [:editor-uri editor-id])]

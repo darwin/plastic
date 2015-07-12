@@ -1,8 +1,8 @@
 (ns plastic.util.helpers
-  (:require [cljs.pprint :as pprint :refer [pprint]]
-            [cljs.core.async :refer [put! <! chan timeout close!]])
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
-                   [cljs.core.async.macros :refer [go]]))
+                   [cljs.core.async.macros :refer [go]])
+  (:require [cljs.pprint :as pprint :refer [pprint]]
+            [cljs.core.async :refer [put! <! chan timeout close!]]))
 
 (def noop (fn [] []))
 

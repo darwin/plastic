@@ -1,8 +1,8 @@
 (ns plastic.cogs.commands.core
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
   (:require [plastic.frame.core :refer [subscribe register-handler]]
             [plastic.schema.paths :as paths]
-            [plastic.cogs.commands.utils :refer [toggle-setting]])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]))
+            [plastic.cogs.commands.utils :refer [toggle-setting]]))
 
 (defmulti handle (fn [command & _] command))
 

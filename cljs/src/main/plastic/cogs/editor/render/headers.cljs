@@ -1,6 +1,6 @@
 (ns plastic.cogs.editor.render.headers
-  (:require [plastic.cogs.editor.render.utils :refer [wrap-specials classv]])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]))
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
+  (:require [plastic.cogs.editor.render.utils :refer [wrap-specials classv]]))
 
 (defn header-component [header-info]
   (let [{:keys [name id]} header-info]

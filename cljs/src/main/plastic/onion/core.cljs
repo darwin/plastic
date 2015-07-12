@@ -1,9 +1,9 @@
 (ns plastic.onion.core
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
   (:require [plastic.onion.inface :as inface]
             [plastic.onion.api :refer [$ TextEditor atom]]
             [plastic.onion.remounter]
-            [plastic.onion.api :refer [File]])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]))
+            [plastic.onion.api :refer [File]]))
 
 (defn load-file-content [uri cb]
   {:pre [File]}

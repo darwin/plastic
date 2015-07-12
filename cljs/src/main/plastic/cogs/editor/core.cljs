@@ -1,4 +1,5 @@
 (ns plastic.cogs.editor.core
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
   (:require [plastic.cogs.editor.model]
             [plastic.cogs.editor.lifecycle]
             [plastic.cogs.editor.watcher]
@@ -8,6 +9,5 @@
             [plastic.cogs.editor.render.core]
             [plastic.cogs.editor.analyzer]
             [plastic.cogs.editor.commands]
-            [plastic.cogs.editor.selections])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]))
+            [plastic.cogs.editor.selections]))
 

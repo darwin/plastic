@@ -1,6 +1,6 @@
 (ns plastic.cogs.editor.render.debug
-  (:require [plastic.util.helpers :as helpers])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]))
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
+  (:require [plastic.util.helpers :as helpers]))
 
 (defn parser-debug-component [parse-tree]
   [:div.debug.parser-debug

@@ -1,9 +1,9 @@
 (ns plastic.onion.inface
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
+                   [plastic.macros.glue :refer [dispatch react!]])
   (:require [plastic.onion.api :as api]
             [plastic.util.dom-shim]
-            [clojure.string :as string])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
-                   [plastic.macros.glue :refer [dispatch react!]]))
+            [clojure.string :as string]))
 
 (defonce ids->views (atom {}))
 

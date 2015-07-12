@@ -1,11 +1,11 @@
 (ns plastic.cogs.editor.render.inline-editor
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
+                   [plastic.macros.glue :refer [react! dispatch]])
   (:require [reagent.core :as reagent]
             [plastic.onion.api :refer [$]]
             [plastic.cogs.editor.render.utils :refer [dangerously-set-html wrap-specials classv]]
             [plastic.cogs.editor.render.dom :as dom]
-            [plastic.onion.core :as onion])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
-                   [plastic.macros.glue :refer [react! dispatch]]))
+            [plastic.onion.core :as onion]))
 
 ; inline-editor-component is only an empty shell for existing atom editor instance to be attached there
 ; shared atom editor instance is managed by onion (created outside clojurescript land, one instance per editor)

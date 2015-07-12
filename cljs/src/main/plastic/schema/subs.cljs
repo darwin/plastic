@@ -1,10 +1,10 @@
 (ns plastic.schema.subs
-  (:require [plastic.frame.core :refer [register-sub]]
-            [plastic.schema.paths :as paths]
-            [plastic.util.subs :refer [path-query-factory]])
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
                    [plastic.macros.glue :refer [react!]]
-                   [reagent.ratom :refer [reaction]]))
+                   [reagent.ratom :refer [reaction]])
+  (:require [plastic.frame.core :refer [register-sub]]
+            [plastic.schema.paths :as paths]
+            [plastic.util.subs :refer [path-query-factory]]))
 
 (defn editor-selector [path]
   (fn [editor-id]

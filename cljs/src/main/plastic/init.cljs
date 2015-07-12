@@ -1,9 +1,9 @@
 (ns plastic.init
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
   (:require [plastic.dev.devtools]
             [plastic.dev.figwheel]
             [plastic.frame.core]
-            [plastic.schema.core])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]))
+            [plastic.schema.core]))
 
 ; this namespace is :main entry point for cljsbuild
 

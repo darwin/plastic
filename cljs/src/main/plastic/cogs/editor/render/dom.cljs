@@ -1,9 +1,9 @@
 (ns plastic.cogs.editor.render.dom
   (:refer-clojure :exclude [find])
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
   (:require [plastic.util.dom-shim]
             [plastic.onion.api :refer [$]]
-            [plastic.cogs.editor.model :as editor])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]))
+            [plastic.cogs.editor.model :as editor]))
 
 (defn node-from-react [react-component]
   (let [dom-node (.getDOMNode react-component)]             ; TODO: deprecated!

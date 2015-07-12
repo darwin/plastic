@@ -1,12 +1,11 @@
 (ns plastic.cogs.editor.selections
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
+                   [plastic.macros.glue :refer [react! dispatch]])
   (:require [plastic.frame.core :refer [subscribe register-handler]]
             [plastic.schema.paths :as paths]
             [plastic.cogs.editor.selection.model :as model]
             [plastic.cogs.editor.layout.utils :refer [apply-to-selected-editors]]
-            [plastic.cogs.editor.editing :as editing]
-            [plastic.cogs.editor.model :as editor])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
-                   [plastic.macros.glue :refer [react! dispatch]]))
+            [plastic.cogs.editor.editing :as editing]))
 
 ; editor's :selections is a map of form-ids to sets of selected node-ids
 ; also has key :focused-form-id pointing to currently focused form
