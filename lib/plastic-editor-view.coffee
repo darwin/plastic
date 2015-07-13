@@ -70,6 +70,7 @@ class PlasticEditorView extends ScrollView
       'plastic:stop-editing'
       'plastic:prev-token'
       'plastic:next-token'
+      'plastic:delete-selection'
       'plastic:space'
       'plastic:enter'
     ]

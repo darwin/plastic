@@ -64,12 +64,13 @@
   (editing/stop-editing editor))
 
 (defmethod handle :enter [_ editor]
-  (-> editor
-    editing/enter))
+  (editing/enter editor))
 
 (defmethod handle :space [_ editor]
-  (-> editor
-    editing/space))
+  (editing/space editor))
+
+(defmethod handle :delete-selection [_ editor]
+  (editing/delete-selection editor))
 
 ; ----------------------------------------------------------------------------------------------------------------
 

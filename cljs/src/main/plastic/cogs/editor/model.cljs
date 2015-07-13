@@ -160,6 +160,23 @@
       (z/edit node-loc (fn [old-node] (transfer-sticky-attrs old-node new-node)))
       (z/remove node-loc))))
 
+(defn delete-to-loc [loc node-id]
+  (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))]
+    (assert (zip-utils/valid-loc? node-loc))
+    (z/remove node-loc)))
+
+(defn delete-node [editor node-id]
+  (let [old-root (get-parse-tree editor)
+        root-loc (zip-utils/make-zipper old-root)
+        modified-loc (delete-to-loc root-loc node-id)]
+    (if-not modified-loc
+      editor
+      (let [parse-tree (parser/make-nodes-unique (zip/root modified-loc))
+            id-shift (- (:id parse-tree) (:id old-root))]
+        (-> editor
+          (set-parse-tree parse-tree)
+          (shift-selections id-shift))))))
+
 (defn commit-node-value [editor node-id value]
   {:pre [node-id value]}
   (let [old-root (get-parse-tree editor)

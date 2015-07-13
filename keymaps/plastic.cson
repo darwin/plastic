@@ -23,6 +23,7 @@
   'ctrl-down': 'plastic:structural-down'
   'ctrl-left': 'plastic:structural-left'
   'ctrl-right': 'plastic:structural-right'
+  'backspace': 'plastic:delete-selection'
 
 # inlined text editor
 '.plastic-editor-view atom-text-editor':

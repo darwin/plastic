@@ -7,6 +7,9 @@
             [plastic.onion.core :as onion]
             [plastic.util.zip :as zip-utils]))
 
+(defn get-selected-node-id [editor]
+  (first (editor/get-focused-selection editor)))
+
 (defn get-edited-node-id [editor]
   (first (editor/get-editing-set editor)))
 
@@ -67,3 +70,10 @@
 
 (defn space [editor]
   (insert-and-continue-editing editor (editor/node-add-sticker (editor/prepare-placeholder-node) :placeholder)))
+
+(defn delete-selection [editor]
+  {:pre [(not (editor/editing? editor))]}
+  (let [node-id (get-selected-node-id editor)]
+    (-> editor
+      (selection/apply-move-selection :spatial-left :structural-up)
+      (editor/delete-node node-id))))
