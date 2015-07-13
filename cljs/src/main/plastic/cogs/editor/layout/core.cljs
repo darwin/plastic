@@ -55,9 +55,9 @@
    :selectable? true
    :children    (remove nil? [headers docs code])})
 
-(defn prepare-form-render-info [settings editor loc]
-  {:pre [(= (node/tag (zip/node (zip/up loc))) :forms)]}    ; parent has to be :forms
-  (let [root-node (zip/node loc)
+(defn prepare-form-render-info [settings editor root-loc]
+  {:pre [(= (node/tag (zip/node (zip/up root-loc))) :forms)]}    ; parent has to be :forms
+  (let [root-node (zip/node root-loc)
         _ (assert root-node)
         root-id (:id root-node)
         top-id (dec root-id)                                ; a hack - root-id was minimal, we rely ids to be assigned by parser in dept-first-order
@@ -67,20 +67,20 @@
 
         analysis (->> {}
                    (analyze-selectables nodes)
-                   (analyze-scopes root-node)
+                   (analyze-scopes root-loc)
                    (analyze-symbols nodes)
                    (analyze-defs root-node)
                    (analyze-editing editing-set))
 
-        code-render-tree (if code-visible (build-code-render-tree analysis loc))
+        code-render-tree (if code-visible (build-code-render-tree analysis root-loc))
         docs-render-tree (if docs-visible (build-docs-render-tree analysis nodes))
-        headers-render-tree (build-headers-render-tree analysis loc)
+        headers-render-tree (build-headers-render-tree analysis root-loc)
         render-tree (compose-render-trees top-id headers-render-tree docs-render-tree code-render-tree)
 
         selectables (extract-all-selectables render-tree)
 
         spatial-web (build-spatial-web selectables)
-        structural-web (build-structural-web top-id selectables loc)
+        structural-web (build-structural-web top-id selectables root-loc)
 
         form-info {:id             root-id
                    :editing        (editor/editing? editor)

@@ -1,7 +1,10 @@
 (ns plastic.cogs.editor.layout.analysis.scopes
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
   (:require [plastic.util.helpers :as helpers]
-            [rewrite-clj.node :as node]))
+            [rewrite-clj.node :as node]
+            [clojure.zip :as z]
+            [plastic.util.zip :as zip-utils]
+            [rewrite-clj.zip :as zip]))
 
 (defonce ^:dynamic *scope-id* 0)
 
@@ -15,6 +18,16 @@
    'fn        :params
    'defmethod :params
    'let       :pairs})
+
+(defn scope-related? [loc]
+  (let [node (z/node loc)]
+    (not (or (node/whitespace? node) (node/comment? node)))))
+
+(def zip-up (partial zip-utils/zip-up scope-related?))
+(def zip-down (partial zip-utils/zip-down scope-related?))
+(def zip-left (partial zip-utils/zip-left scope-related?))
+(def zip-right (partial zip-utils/zip-right scope-related?))
+(def zip-next (partial zip-utils/zip-next scope-related?))
 
 (defn filter-non-args [arg-nodes]
   (let [arg? (fn [[node _]]
@@ -44,33 +57,32 @@
       :params (collect-vector-params first-vector)
       :pairs (collect-vector-pairs first-vector))))
 
-(defn node-scope [node]
-  (condp = (node/tag node)
-    :list (if-let [opener-type (scope-openers (node/sexpr (first (node/children node))))]
-            {:id     (next-scope-id!)
-             :locals (collect-params node opener-type)})
+(defn collect-all-right [loc]
+  (take-while zip-utils/valid-loc? (iterate zip-right loc)))
+
+(defn child-locs [loc]
+  (collect-all-right (zip-down loc)))
+
+(defn node-scope [loc childs]
+  (condp = (zip/tag loc)
+    :list (if-not (empty? childs)
+            (if-let [opener-type (scope-openers (zip/sexpr (first childs)))]
+              {:id     (next-scope-id!)
+               :locals (collect-params (z/node loc) opener-type)}))
     :fn {:id     (next-scope-id!)
-         :locals [[#(re-find #"^%" (node/string %)) (:id node)]]}
+         :locals [[#(re-find #"^%" (node/string %)) (:id (z/node loc))]]}
     nil))
 
-(defn scope-related-nodes [nodes]
-  (remove #(or (node/whitespace? %) (node/comment? %)) nodes))
-
-(defn analyze-scope [scope-info node]
-  (let [child-scopes (fn [scope node]
-                       (if (node/inner? node)
-                         (let [res (map (partial analyze-scope scope) (scope-related-nodes (node/children node)))]
-                           (apply merge res))
-                         {}))]
-    (if-let [new-scope (node-scope node)]
+(defn analyze-scope [scope-info loc]
+  (let [id (:id (z/node loc))
+        childs (child-locs loc)
+        analyze-child-scopes (fn [scope] (into {} (map (partial analyze-scope scope) childs)))]
+    (if-let [new-scope (node-scope loc childs)]
       (let [new-scope-info {:scope new-scope :parent-scope scope-info}]
-        (merge
-          {(:id node) new-scope-info}
-          (child-scopes new-scope-info node)))
-      (merge
-        {(:id node) scope-info}
-        (child-scopes scope-info node)))))
+        (conj (analyze-child-scopes new-scope-info) [id new-scope-info]))
+      (conj (analyze-child-scopes scope-info) [id scope-info]))))
 
-(defn analyze-scopes [node info]
+(defn analyze-scopes [loc analysis]
   (binding [*scope-id* 0]
-    (helpers/deep-merge info (analyze-scope {:scope nil :parent-scope nil} node))))
+    (let [starting-loc (if-not (scope-related? loc) (zip-next loc) loc)]
+      (helpers/deep-merge analysis (analyze-scope {:scope nil :parent-scope nil} starting-loc)))))
