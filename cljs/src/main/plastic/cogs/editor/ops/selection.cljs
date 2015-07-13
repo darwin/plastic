@@ -18,14 +18,14 @@
     (:candidate best-match)))
 
 (defn get-selected-node-id [editor]
-  (first (editor/get-focused-selection editor)))
+  (first (editor/get-selection editor)))
 
 (defn structural-movemement [editor op]
   (let [selected-id (get-selected-node-id editor)
         render-info (editor/get-focused-render-info editor)
         structural-web (:structural-web render-info)]
     (if-let [result-id (op (get structural-web selected-id))]
-      (editor/set-focused-selection editor #{result-id}))))
+      (editor/set-selection editor #{result-id}))))
 
 ; ----------------------------------------------------------------------------------------------------------------
 
@@ -42,7 +42,7 @@
         line-selections (map #(get all-selections (:id %)) line-selectables)
         result (find-best-spatial-match sel-node line-selections)]
     (if result
-      (editor/set-focused-selection editor #{(:id result)}))))
+      (editor/set-selection editor #{(:id result)}))))
 
 (defmethod op :spatial-up [_ editor]
   (let [selected-id (get-selected-node-id editor)
@@ -55,7 +55,7 @@
         line-selections (map #(get all-selections (:id %)) line-selectables)
         result (find-best-spatial-match sel-node line-selections)]
     (if result
-      (editor/set-focused-selection editor #{(:id result)}))))
+      (editor/set-selection editor #{(:id result)}))))
 
 (defmethod op :spatial-right [_ editor]
   (let [selected-id (get-selected-node-id editor)
@@ -67,7 +67,7 @@
         _ (assert line-selectables)
         result (helpers/next-item #(= (:id %) selected-id) line-selectables)]
     (if result
-      (editor/set-focused-selection editor #{(:id result)}))))
+      (editor/set-selection editor #{(:id result)}))))
 
 (defmethod op :spatial-left [_ editor]
   (let [selected-id (get-selected-node-id editor)
@@ -79,7 +79,7 @@
         _ (assert line-selectables)
         result (helpers/prev-item #(= (:id %) selected-id) line-selectables)]
     (if result
-      (editor/set-focused-selection editor #{(:id result)}))))
+      (editor/set-selection editor #{(:id result)}))))
 
 (defmethod op :structural-up [_ editor]
   (structural-movemement editor :up))
@@ -100,9 +100,9 @@
     (if next-focused-form-id
       (let [next-selection (editor/get-last-selectable-token-id-for-form editor next-focused-form-id)]
         (-> editor
-          (editor/set-focused-selection #{})
+          (editor/set-selection #{})
           (editor/set-focused-form-id next-focused-form-id)
-          (editor/set-focused-selection #{next-selection}))))))
+          (editor/set-selection #{next-selection}))))))
 
 (defmethod op :move-next-form [_ editor]
   (let [focused-form-id (editor/get-focused-form-id editor)
@@ -111,9 +111,9 @@
     (if next-focused-form-id
       (let [next-selection (editor/get-first-selectable-token-id-for-form editor next-focused-form-id)]
         (-> editor
-          (editor/set-focused-selection #{})
+          (editor/set-selection #{})
           (editor/set-focused-form-id next-focused-form-id)
-          (editor/set-focused-selection #{next-selection}))))))
+          (editor/set-selection #{next-selection}))))))
 
 ; ----------------------------------------------------------------------------------------------------------------
 

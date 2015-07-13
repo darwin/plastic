@@ -11,7 +11,7 @@
   (selection/apply-move-selection editor :spatial-left :spatial-right :structural-up))
 
 (defn get-selected-node-id [editor]
-  (first (editor/get-focused-selection editor)))
+  (first (editor/get-selection editor)))
 
 (defn get-edited-node-id [editor]
   (first (editor/get-editing-set editor)))
@@ -19,7 +19,7 @@
 (defn set-selection-to-node-with-sticker-if-still-exists [editor sticker]
   (let [commit-node-loc (editor/find-node-loc-with-sticker editor sticker)]
     (if (zip-utils/valid-loc? commit-node-loc)
-      (editor/set-focused-selection editor #{(editor/loc-id commit-node-loc)})
+      (editor/set-selection editor #{(editor/loc-id commit-node-loc)})
       editor)))
 
 (defn commit-value [editor value]
@@ -31,10 +31,10 @@
       (set-selection-to-node-with-sticker-if-still-exists :commit-node)
       (editor/remove-sticker :commit-node))))
 
-(defn apply-editing [editor op]
-  (let [should-be-editing? (= op :start)
-        can-edit? (editor/can-edit-focused-selection? editor)]
-    (editor/set-editing-set editor (if (and can-edit? should-be-editing?) (editor/get-focused-selection editor)))))
+(defn apply-editing [editor action]
+  (let [should-be-editing? (= action :start)
+        can-edit? (editor/can-edit-selection? editor)]
+    (editor/set-editing-set editor (if (and can-edit? should-be-editing?) (editor/get-selection editor)))))
 
 (defn insert-values-after-edit-point [editor values]
   (let [edit-point-node (editor/find-node-with-sticker editor :edit-point)]

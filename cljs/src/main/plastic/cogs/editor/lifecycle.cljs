@@ -30,11 +30,11 @@
         (log "cursors changed" editor-id cursors)))))
 
 (defn watch-selections [editor-id]
-  (let [selections-subscription (subscribe [:editor-selections editor-id])]
+  (let [selection-subscription (subscribe [:editor-selection editor-id])]
     (react!
-      (when-let [selections @selections-subscription]
+      (when-let [selections @selection-subscription]
         (log "selections in" editor-id "changed to" selections)
-        (dispatch :editor-update-selections editor-id)))))
+        (dispatch :editor-update-selection editor-id)))))
 
 (defn watch-editing [editor-id]
   (let [editing-subscription (subscribe [:editor-editing editor-id])]

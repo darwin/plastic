@@ -151,13 +151,13 @@
 
 (defonce debounced-selection-updaters ^:dynamic {})
 
-(defn dispatch-editor-update-selections [editor-id]
-  (dispatch :editor-update-selections editor-id))
+(defn dispatch-editor-update-selection [editor-id]
+  (dispatch :editor-update-selection editor-id))
 
-(defn debounced-dispatch-editor-update-selections [editor-id]
+(defn debounced-dispatch-editor-update-selection [editor-id]
   (if-let [updater (get debounced-selection-updaters editor-id)]
     (updater)
-    (let [new-updater (helpers/debounce (partial dispatch-editor-update-selections editor-id) 30)]
+    (let [new-updater (helpers/debounce (partial dispatch-editor-update-selection editor-id) 30)]
       (set! debounced-selection-updaters (assoc debounced-selection-updaters editor-id new-updater))
       (new-updater))))
 
@@ -166,7 +166,7 @@
         old-forms (editor/get-render-infos editor)
         new-forms (helpers/update-selected #(= (:id %) form-id) (partial update-form-selectables-geometry geometry) old-forms)
         new-editors (assoc editors editor-id (editor/set-render-infos editor new-forms))]
-    (debounced-dispatch-editor-update-selections editor-id) ; coalesce update-requests here
+    (debounced-dispatch-editor-update-selection editor-id) ; coalesce update-requests here
     new-editors))
 
 (defn update-form-selections [form selected-node-ids]
@@ -178,13 +178,13 @@
 (defn update-form-focus-flag [form focused-form-id]
   (assoc form :focused (= (:id form) focused-form-id)))
 
-(defn update-selections [editors [editor-id]]
+(defn update-selection [editors [editor-id]]
   (let [editor (get editors editor-id)
-        selections (editor/get-selections editor)
-        get-form-selected-node-ids (fn [form] (get selections (:id form)))
+        selections (editor/get-selection editor)
+        focused-form-id (editor/get-focused-form-id editor)
         update-render-info (fn [form] (-> form
-                                        (update-form-selections (get-form-selected-node-ids form))
-                                        (update-form-focus-flag (:focused-form-id selections))))
+                                        (update-form-selections selections)
+                                        (update-form-focus-flag focused-form-id)))
         old-forms (editor/get-render-infos editor)
         new-forms (map update-render-info old-forms)
         new-editors (assoc editors editor-id (editor/set-render-infos editor new-forms))]
@@ -202,5 +202,5 @@
 (register-handler :editor-update-layout-for-focused-form update-layout-for-focused-form)
 (register-handler :editor-update-soup-geometry paths/editors-path update-soup-geometry)
 (register-handler :editor-update-selectables-geometry paths/editors-path update-selectables-geometry)
-(register-handler :editor-update-selections paths/editors-path update-selections)
+(register-handler :editor-update-selection paths/editors-path update-selection)
 (register-handler :editor-analyze paths/editors-path analyze)

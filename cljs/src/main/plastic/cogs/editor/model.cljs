@@ -26,35 +26,23 @@
   {:pre [(= (node/tag parse-tree) :forms)]}
   (assoc editor :parse-tree parse-tree))
 
-(defn get-selections [editor]
-  (or (get editor :selections) {}))
+(defn set-parse-tree-and-reindex [editor parse-tree]
+  {:pre [(= (node/tag parse-tree) :forms)]}
+  (let [reindexed-parse-tree (parser/make-nodes-unique parse-tree)]
+    (set-parse-tree editor reindexed-parse-tree)))
 
-(defn set-selections [editor selections]
-  (assoc editor :selections selections))
+(defn get-selection [editor]
+  (or (get editor :selection) #{}))
 
-(defn shift-selections [editor shift]
-  (let [selections (get-selections editor)
-        shifter #(if (number? %) (+ % shift) %)
-        shifted-selections (prewalk shifter selections)]
-    (log "shift sections" shift "=>" shifted-selections)
-    (set-selections editor shifted-selections)))
+(defn set-selection [editor selection]
+  (assoc editor :selection selection))
 
 (defn get-focused-form-id [editor]
-  (get-in editor [:selections :focused-form-id]))
+  (get editor :focused-form-id))
 
 (defn set-focused-form-id [editor form-id]
   {:pre [form-id]}
-  (assoc-in editor [:selections :focused-form-id] form-id))
-
-(defn get-focused-selection [editor]
-  (let [selections (get-selections editor)
-        focused-form-id (get-focused-form-id editor)]
-    (get selections focused-form-id)))
-
-(defn set-focused-selection [editor selection]
-  (let [selections (get-selections editor)
-        new-selections (assoc selections (get-focused-form-id editor) selection)]
-    (set-selections editor new-selections)))
+  (assoc editor :focused-form-id form-id))
 
 (defn set-render-state [editor render-state]
   (assoc-in editor [:render-state] render-state))
@@ -170,11 +158,8 @@
         modified-loc (delete-to-loc root-loc node-id)]
     (if-not modified-loc
       editor
-      (let [parse-tree (parser/make-nodes-unique (zip/root modified-loc))
-            id-shift (- (:id parse-tree) (:id old-root))]
-        (-> editor
-          (set-parse-tree parse-tree)
-          (shift-selections id-shift))))))
+      (let [parse-tree (zip/root modified-loc)]
+        (set-parse-tree-and-reindex editor parse-tree)))))
 
 (defn commit-node-value [editor node-id value]
   {:pre [node-id value]}
@@ -183,11 +168,7 @@
         modified-loc (commit-value-to-loc root-loc node-id value)]
     (if-not modified-loc
       editor
-      (let [parse-tree (parser/make-nodes-unique (zip/root modified-loc))
-            id-shift (- (:id parse-tree) (:id old-root))]
-        (-> editor
-          (set-parse-tree parse-tree)
-          (shift-selections id-shift))))))
+      (set-parse-tree editor (zip/root modified-loc)))))
 
 (defn insert-values-after-loc [loc node-id values]
   (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))
@@ -201,11 +182,7 @@
         modified-loc (insert-values-after-loc root-loc node-id values)]
     (if-not modified-loc
       editor
-      (let [parse-tree (parser/make-nodes-unique (zip/root modified-loc))
-            id-shift (- (:id parse-tree) (:id old-root))]
-        (-> editor
-          (set-parse-tree parse-tree)
-          (shift-selections id-shift))))))
+      (set-parse-tree-and-reindex editor (zip/root modified-loc)))))
 
 (defn get-render-infos [editor]
   (get-in editor [:render-state :forms]))
@@ -232,8 +209,8 @@
     (if (zip-utils/valid-loc? node-loc)
       (= (:tag (z/node node-loc) :token)))))
 
-(defn can-edit-focused-selection? [editor]
-  (every? (partial can-edit-node? editor) (get-focused-selection editor)))
+(defn can-edit-selection? [editor]
+  (every? (partial can-edit-node? editor) (get-selection editor)))
 
 (defn get-top-level-form-ids [editor]
   (let [render-infos (get-render-infos editor)]
