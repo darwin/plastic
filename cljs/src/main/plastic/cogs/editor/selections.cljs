@@ -26,8 +26,16 @@
 (defn select [editors [editor-selector selection]]
   (apply-to-selected-editors (partial select-in-editor selection) editors editor-selector))
 
+(defn focus-form-in-editor [form-id editor]
+  (-> editor
+    (editor/set-focused-form-id form-id)))
+
+(defn focus-form [editors [editor-selector form-id]]
+  (apply-to-selected-editors (partial focus-form-in-editor form-id) editors editor-selector))
+
 ; ----------------------------------------------------------------------------------------------------------------
 ; register handlers
 
 (register-handler :editor-clear-selection paths/editors-path clear-selection)
 (register-handler :editor-select paths/editors-path select)
+(register-handler :editor-focus-form paths/editors-path focus-form)

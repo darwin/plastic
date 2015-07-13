@@ -74,7 +74,7 @@
       [:div.form-skelet
        [render-tree-component render-tree]])))
 
-(defn handle-form-click [event]
+(defn handle-form-click [form event]
   (let [target-dom-node (.-target event)
         _ (assert target-dom-node)
         selectable-dom-node (dom/find-closest target-dom-node ".selectable")]
@@ -83,7 +83,8 @@
             _ (assert selected-node-id)
             editor-id (dom/lookup-editor-id selectable-dom-node)]
         (.stopPropagation event)
-        (dispatch :editor-select (int editor-id) #{(int selected-node-id)})))))
+        (dispatch :editor-focus-form editor-id (:id form))
+        (dispatch :editor-select editor-id #{selected-node-id})))))
 
 (defn form-component []
   (let [selections-debug-visible (subscribe [:settings :selections-debug-visible])
@@ -98,7 +99,7 @@
             :class     (classv
                          (if focused "focused")
                          (if editing "editing"))
-            :on-click  handle-form-click}
+            :on-click  (partial handle-form-click form)}
            [form-soup-overlay-component soup]
            [form-selections-overlay-component active-selections]
            (if @selections-debug-visible

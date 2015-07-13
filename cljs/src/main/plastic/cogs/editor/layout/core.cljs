@@ -169,10 +169,10 @@
     (debounced-dispatch-editor-update-selection editor-id) ; coalesce update-requests here
     new-editors))
 
-(defn update-form-selections [form selected-node-ids]
-  {:pre [(or (nil? selected-node-ids) (set? selected-node-ids))]}
+(defn update-form-selections [form selection]
+  {:pre [(or (nil? selection) (set? selection))]}
   (let [all-selections (:all-selections form)
-        matching-selections (filter #(contains? selected-node-ids (first %)) all-selections)]
+        matching-selections (filter #(contains? selection (first %)) all-selections)]
     (assoc form :active-selections (vec matching-selections))))
 
 (defn update-form-focus-flag [form focused-form-id]
@@ -180,10 +180,10 @@
 
 (defn update-selection [editors [editor-id]]
   (let [editor (get editors editor-id)
-        selections (editor/get-selection editor)
+        selection (editor/get-selection editor)
         focused-form-id (editor/get-focused-form-id editor)
         update-render-info (fn [form] (-> form
-                                        (update-form-selections selections)
+                                        (update-form-selections selection)
                                         (update-form-focus-flag focused-form-id)))
         old-forms (editor/get-render-infos editor)
         new-forms (map update-render-info old-forms)
