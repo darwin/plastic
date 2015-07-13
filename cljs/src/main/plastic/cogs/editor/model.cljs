@@ -9,6 +9,9 @@
             [plastic.util.helpers :as helpers]
             [plastic.util.zip :as zip-utils]))
 
+(defn parsed? [editor]
+  (contains? editor :parse-tree))
+
 (defn get-parse-tree [editor]
   (let [parse-tree (get editor :parse-tree)]
     (assert parse-tree)

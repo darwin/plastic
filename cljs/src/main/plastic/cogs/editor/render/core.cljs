@@ -53,7 +53,7 @@
        :reagent-render       render-fn})))
 
 (defn render-tree-component []
-  (fn [render-tree code-visible docs-visible]
+  (fn [render-tree]
     (let [{:keys [id tag children selectable?]} render-tree]
       [:div {:data-qnid id
              :class     (classv
@@ -62,19 +62,17 @@
        (condp = tag
          :tree (for [child children]
                  ^{:key (or (:id child) (name (:tag child)))}
-                 [render-tree-component child code-visible docs-visible])
-         :code (if code-visible [code-box-component render-tree])
-         :docs (if docs-visible [docs-component render-tree])
+                 [render-tree-component child])
+         :code [code-box-component render-tree]
+         :docs [docs-component render-tree]
          :headers [headers-wrapper-component render-tree]
          (throw (str "don't know how to render tag " tag " (missing render component implementation)")))])))
 
 (defn form-skelet-component []
-  (let [code-visible (subscribe [:settings :code-visible])
-        docs-visible (subscribe [:settings :docs-visible])]
-    (form-scaffold
-      (fn [render-tree]
-        [:div.form-skelet
-         [render-tree-component render-tree @code-visible @docs-visible]]))))
+  (form-scaffold
+    (fn [render-tree]
+      [:div.form-skelet
+       [render-tree-component render-tree]])))
 
 (defn handle-form-click [form event]
   (let [target-dom-node (.-target event)

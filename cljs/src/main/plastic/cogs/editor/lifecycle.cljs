@@ -48,7 +48,7 @@
     (react!
       (let [_ @code-visible-subscription
             _ @docs-visible-subscription]
-        (dispatch :editor-update-selections editor-id)))))
+        (dispatch :editor-update-layout editor-id)))))
 
 (defn wire-editor [editor-id]
   (watch-uri editor-id)
