@@ -27,6 +27,9 @@
     (if-let [result-id (op (get structural-web selected-id))]
       (editor/set-selection editor #{result-id}))))
 
+(defn find-first-non-empty-line [spatial-web line op]
+  (first (drop-while #(and (not (nil? %)) (empty? %)) (map spatial-web (iterate op (op line))))))
+
 ; ----------------------------------------------------------------------------------------------------------------
 
 (defmulti op (fn [op-type & _] op-type))
@@ -36,9 +39,7 @@
         render-info (editor/get-focused-render-info editor)
         {:keys [spatial-web all-selections]} render-info
         sel-node (get all-selections selected-id)
-        sel-line (:line sel-node)
-        next-line (inc sel-line)
-        line-selectables (get spatial-web next-line)
+        line-selectables (find-first-non-empty-line spatial-web (:line sel-node) inc)
         line-selections (map #(get all-selections (:id %)) line-selectables)
         result (find-best-spatial-match sel-node line-selections)]
     (if result
@@ -49,9 +50,7 @@
         render-info (editor/get-focused-render-info editor)
         {:keys [spatial-web all-selections]} render-info
         sel-node (get all-selections selected-id)
-        sel-line (:line sel-node)
-        next-line (dec sel-line)
-        line-selectables (get spatial-web next-line)
+        line-selectables (find-first-non-empty-line spatial-web (:line sel-node) dec)
         line-selections (map #(get all-selections (:id %)) line-selectables)
         result (find-best-spatial-match sel-node line-selections)]
     (if result
@@ -64,7 +63,6 @@
         sel-node (get all-selections selected-id)
         sel-line (:line sel-node)
         line-selectables (get spatial-web sel-line)
-        _ (assert line-selectables)
         result (helpers/next-item #(= (:id %) selected-id) line-selectables)]
     (if result
       (editor/set-selection editor #{(:id result)}))))
@@ -76,7 +74,6 @@
         sel-node (get all-selections selected-id)
         sel-line (:line sel-node)
         line-selectables (get spatial-web sel-line)
-        _ (assert line-selectables)
         result (helpers/prev-item #(= (:id %) selected-id) line-selectables)]
     (if result
       (editor/set-selection editor #{(:id result)}))))
