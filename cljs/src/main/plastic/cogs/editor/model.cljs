@@ -2,12 +2,13 @@
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
   (:require [rewrite-clj.zip :as zip]
             [rewrite-clj.zip.findz :as findz]
-            [rewrite-clj.zip.editz :as editz]
             [rewrite-clj.node.protocols :as node]
             [clojure.walk :refer [prewalk]]
             [plastic.cogs.editor.parser.utils :as parser]
             [plastic.util.helpers :as helpers]
-            [plastic.util.zip :as zip-utils]))
+            [plastic.util.zip :as zip-utils]
+            [rewrite-clj.node.token :refer [token-node]]
+            [clojure.zip :as z]))
 
 (defn parsed? [editor]
   (contains? editor :parse-tree))
@@ -77,16 +78,84 @@
 (defn loc-id? [id loc]
   (= (:id (zip/node loc)) id))
 
+(defn loc-sticker? [sticker-value loc]
+  (= (:sticker (zip/node loc)) sticker-value))
+
+(defn find-node-loc [editor node-id]
+  (let [parse-tree (get-parse-tree editor)
+        root-loc (zip-utils/make-zipper parse-tree)
+        node-loc (findz/find-depth-first root-loc (partial loc-id? node-id))]
+    node-loc))
+
+(defn find-node [editor node-id]
+  (let [node-loc (find-node-loc editor node-id)]
+    (assert (zip-utils/valid-loc? node-loc))
+    (zip/node node-loc)))
+
+(defn set-node-sticker [editor node-id sticker-value]
+  (let [node-loc (find-node-loc editor node-id)
+        _ (assert (zip-utils/valid-loc? node-loc))
+        modified-loc (z/edit node-loc (fn [node] (assoc node :sticker sticker-value)))
+        modified-parse-tree (zip/root modified-loc)]
+    (set-parse-tree editor modified-parse-tree)))
+
+(defn remove-node-sticker-by-id [editor node-id]
+  (let [node-loc (find-node-loc editor node-id)
+        _ (assert (zip-utils/valid-loc? node-loc))
+        modified-loc (z/edit node-loc (fn [node] (dissoc node :sticker)))
+        modified-parse-tree (zip/root modified-loc)]
+    (set-parse-tree editor modified-parse-tree)))
+
+(defn find-node-loc-with-sticker [editor sticker-value]
+  (let [parse-tree (get-parse-tree editor)
+        root-loc (zip-utils/make-zipper parse-tree)
+        node-loc (findz/find-depth-first root-loc (partial loc-sticker? sticker-value))]
+    node-loc))
+
+(defn find-node-with-sticker [editor sticker-value]
+  (let [node-loc (find-node-loc-with-sticker editor sticker-value)]
+    (assert (zip-utils/valid-loc? node-loc))
+    (zip/node node-loc)))
+
+(defn remove-node-sticker [editor sticker-value]
+  (let [node-with-sticker (find-node-with-sticker editor sticker-value)]
+    (remove-node-sticker-by-id editor (:id node-with-sticker))))
+
+(defn transfer-sticky-attrs [old new]
+  (let [{:keys [id sticker]} old
+        new-with-id (if id (assoc new :id id) new)
+        new-with-id-and-sticker (if sticker (assoc new-with-id :sticker sticker) new-with-id)]
+    new-with-id-and-sticker))
+
 (defn commit-value-to-loc [loc node-id value]
   (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))]
     (assert (zip-utils/valid-loc? node-loc))
     (if (not= (node/sexpr (zip/node node-loc)) value)
-      (editz/edit node-loc (fn [_prev] value)))))
+      (z/edit node-loc (fn [prev] (transfer-sticky-attrs prev value))))))
 
 (defn commit-node-value [editor node-id value]
   {:pre [node-id value]}
   (let [old-root (get-parse-tree editor)
-        modified-loc (commit-value-to-loc (zip-utils/make-zipper old-root) node-id value)]
+        root-loc (zip-utils/make-zipper old-root)
+        modified-loc (commit-value-to-loc root-loc node-id value)]
+    (if-not modified-loc
+      editor
+      (let [parse-tree (parser/make-nodes-unique (zip/root modified-loc))
+            id-shift (- (:id parse-tree) (:id old-root))]
+        (-> editor
+          (set-parse-tree parse-tree)
+          (shift-selections id-shift))))))
+
+(defn insert-values-after-loc [loc node-id values]
+  (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))
+        inserter (fn [loc val] (z/insert-right loc val))]
+    (assert (zip-utils/valid-loc? node-loc))
+    (reduce inserter node-loc values)))
+
+(defn insert-values-after-node [editor node-id values]
+  (let [old-root (get-parse-tree editor)
+        root-loc (zip-utils/make-zipper old-root)
+        modified-loc (insert-values-after-loc root-loc node-id values)]
     (if-not modified-loc
       editor
       (let [parse-tree (parser/make-nodes-unique (zip/root modified-loc))
@@ -115,16 +184,13 @@
 (defn get-output-text [editor]
   (node/string (get-parse-tree editor)))
 
-(defn can-edit-node? [editor render-info node-id]
-  {:pre [render-info editor]}
-  (let [{:keys [selectables]} render-info
-        item (get selectables node-id)
-        _ (assert item)]
-    (= (:tag item) :token)))                                ; we have also :tree node in selectables
+(defn can-edit-node? [editor node-id]
+  (let [node-loc (find-node-loc editor node-id)]
+    (if (zip-utils/valid-loc? node-loc)
+      (= (:tag (z/node node-loc) :token)))))
 
 (defn can-edit-focused-selection? [editor]
-  (if-let [render-info (get-focused-render-info editor)]
-    (every? (partial can-edit-node? editor render-info) (get-focused-selection editor))))
+  (every? (partial can-edit-node? editor) (get-focused-selection editor)))
 
 (defn get-top-level-form-ids [editor]
   (let [render-infos (get-render-infos editor)]
@@ -145,3 +211,6 @@
         last-line (second (last (:spatial-web render-info)))
         _ (assert (vector? last-line))]
     (:id (peek last-line))))
+
+(defn prepare-placeholder-node []
+  (token-node "" ""))

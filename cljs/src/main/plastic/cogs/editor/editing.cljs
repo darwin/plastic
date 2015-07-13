@@ -3,7 +3,8 @@
   (:require [plastic.cogs.editor.render.dom :as dom]
             [plastic.frame.core :refer [subscribe register-handler]]
             [plastic.cogs.editor.model :as editor]
-            [plastic.onion.core :as onion]))
+            [plastic.onion.core :as onion]
+            [rewrite-clj.node :as node]))
 
 (defn commit-value [editor value]
   (let [node-id (first (editor/get-editing-set editor))]
@@ -13,6 +14,17 @@
   (let [should-be-editing? (= op :start)
         can-edit? (editor/can-edit-focused-selection? editor)]
     (editor/set-editing-set editor (if (and can-edit? should-be-editing?) (editor/get-focused-selection editor)))))
+
+(defn insert-values-after-edit-point [editor values]
+  (let [edit-point-node (editor/find-node-with-sticker editor :edit-point)]
+    (editor/insert-values-after-node editor (:id edit-point-node) values)))
+
+(defn set-focused-selection-to-placeholder-node [editor]
+  (let [placeholder-node (editor/find-node-with-sticker editor :placeholder)]
+    (editor/set-focused-selection editor #{(:id placeholder-node)})))
+
+(defn get-edited-node-id [editor]
+  (first (editor/get-editing-set editor)))
 
 (defn start-editing [editor]
   (apply-editing editor :start))
@@ -28,3 +40,17 @@
         (dom/postpone-selection-overlay-display-until-next-update editor)
         (apply-editing modified-editor :stop)))
     editor))
+
+(defn enter [editor]
+  editor)
+
+(defn space [editor]
+  {:pre [(editor/editing? editor)]}
+  (-> editor
+    (editor/set-node-sticker (get-edited-node-id editor) :edit-point)
+    (stop-editing)
+    (insert-values-after-edit-point [(assoc (editor/prepare-placeholder-node) :sticker :placeholder)])
+    (set-focused-selection-to-placeholder-node)
+    (editor/remove-node-sticker :placeholder)
+    (editor/remove-node-sticker :edit-point)
+    (start-editing)))

@@ -6,7 +6,8 @@
             [plastic.onion.api :refer [File]]
             [plastic.cogs.editor.render.dom :as dom]
             [rewrite-clj.node.keyword :refer [keyword-node]]
-            [cuerdas.core :as str]))
+            [cuerdas.core :as str]
+            [rewrite-clj.node :as node]))
 
 (defn load-file-content [uri cb]
   {:pre [File]}
@@ -59,7 +60,7 @@
     (.addClass (editor-mode-to-class-name editor-mode))))
 
 (defn strip-colon [text]
-  (str/ltrim text ":")) ; TODO: this must be more robust
+  (str/ltrim text ":"))                                     ; TODO: this must be more robust
 
 (defn preprocess-text-before-editing [editor-mode text]
   (condp = editor-mode
@@ -68,10 +69,10 @@
 
 (defn postprocess-text-after-editing [editor-mode text]
   (condp = editor-mode
-    :symbol (symbol text)
-    :keyword (keyword-node (keyword text))
-    :string text
-    :doc text
+    :symbol (node/coerce (symbol text))
+    :keyword (keyword-node (keyword text))                  ; TODO: investigate - coerce does not work for keywords?
+    :string (node/coerce text)
+    :doc (node/coerce text)
     (throw "unknown editor mode in postprocess-text-after-editing:" editor-mode)))
 
 (defn setup-inline-editor-for-editing [editor-id editor-mode text]

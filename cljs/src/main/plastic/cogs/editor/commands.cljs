@@ -63,6 +63,14 @@
 (defmethod handle :stop-editing [_ editor]
   (editing/stop-editing editor))
 
+(defmethod handle :enter [_ editor]
+  (-> editor
+    editing/enter))
+
+(defmethod handle :space [_ editor]
+  (-> editor
+    editing/space))
+
 ; ----------------------------------------------------------------------------------------------------------------
 
 (defmethod handle :default [command]

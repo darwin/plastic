@@ -33,3 +33,8 @@
   'escape': 'plastic:stop-editing'
   'tab': 'plastic:next-token'
   'alt+tab': 'plastic:prev-token'
+
+'.plastic-editor-view atom-text-editor.plastic-mode-symbol,
+ .plastic-editor-view atom-text-editor.plastic-mode-keyword':
+  'enter': 'plastic:enter'
+  'space': 'plastic:space'
