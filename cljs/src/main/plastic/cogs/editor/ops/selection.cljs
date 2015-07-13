@@ -1,7 +1,10 @@
-(ns plastic.cogs.editor.selection.model
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
-  (:require [plastic.util.helpers :as helpers]
-            [plastic.cogs.editor.model :as editor]))
+(ns plastic.cogs.editor.ops.selection
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
+                   [plastic.macros.glue :refer [react! dispatch]]
+                   [plastic.macros.common :refer [*->]])
+  (:require [plastic.cogs.editor.layout.utils :refer [apply-to-selected-editors]]
+            [plastic.cogs.editor.model :as editor]
+            [plastic.util.helpers :as helpers]))
 
 (defn mid-point [node]
   (let [{:keys [left width] :or {left 0 width 0}} (:geometry node)]
@@ -117,3 +120,49 @@
 (defmethod op :default [command]
   (error (str "Unknown selection operation '" command "'"))
   nil)
+
+; ====================================================================================
+
+; editor's :selections is a map of form-ids to sets of selected node-ids
+; also has key :focused-form-id pointing to currently focused form
+
+(defn apply-movements [editor movements]
+  (if-let [movement (first movements)]
+    (if-let [result (op movement editor)]
+      result
+      (recur editor (rest movements)))))
+
+(defn apply-move-selection [editor & movements]
+  (if-let [result (apply-movements editor movements)]
+    result
+    editor))
+
+; ---------------------------
+; spatial movement
+
+(defn spatial-up [editor]
+  (apply-move-selection editor :spatial-up :move-prev-form))
+
+(defn spatial-down [editor]
+  (apply-move-selection editor :spatial-down :move-next-form))
+
+(defn spatial-left [editor]
+  (apply-move-selection editor :spatial-left))
+
+(defn spatial-right [editor]
+  (apply-move-selection editor :spatial-right))
+
+; ---------------------------
+; structural movement
+
+(defn structural-up [editor]
+  (apply-move-selection editor :structural-up))
+
+(defn structural-down [editor]
+  (apply-move-selection editor :structural-down))
+
+(defn structural-left [editor]
+  (apply-move-selection editor :structural-left))
+
+(defn structural-right [editor]
+  (apply-move-selection editor :structural-right))

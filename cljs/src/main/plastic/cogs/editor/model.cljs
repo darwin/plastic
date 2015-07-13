@@ -11,6 +11,9 @@
             [rewrite-clj.node.whitespace :refer [newline-node]]
             [clojure.zip :as z]))
 
+; a kitchen-sink with helpers for manipulating editor data structure
+; also see 'ops' folder for more high-level editor transformations
+
 (defn parsed? [editor]
   (contains? editor :parse-tree))
 
@@ -76,11 +79,28 @@
         first-top-level-form-loc (zip/down top-loc)]
     (zip-utils/collect-all-right first-top-level-form-loc))) ; TODO: here we should use explicit zipping policy
 
-(defn loc-id? [id loc]
-  (= (:id (zip/node loc)) id))
+(defn loc-id [loc]
+  (:id (zip/node loc)))
 
-(defn loc-sticker? [sticker-value loc]
-  (= (:sticker (zip/node loc)) sticker-value))
+(defn loc-id? [id loc]
+  (= (loc-id loc) id))
+
+(defn node-add-sticker [node sticker-value]
+  (let [old-stickers (or (:stickers node) [])]
+    (assoc node :stickers (conj old-stickers sticker-value))))
+
+(defn node-remove-sticker [node sticker-value]
+  (let [old-stickers (or (:stickers node) [])
+        new-stickers (remove #(= % sticker-value) old-stickers)]
+    (if (empty? new-stickers)
+      (dissoc node :stickers)
+      (assoc node :stickers new-stickers))))
+
+(defn node-has-sticker? [node sticker-value]
+  (some #(= % sticker-value) (:stickers node)))
+
+(defn loc-has-sticker? [sticker-value loc]
+  (node-has-sticker? (zip/node loc) sticker-value))
 
 (defn find-node-loc [editor node-id]
   (let [parse-tree (get-parse-tree editor)
@@ -93,24 +113,22 @@
     (assert (zip-utils/valid-loc? node-loc))
     (zip/node node-loc)))
 
-(defn set-node-sticker [editor node-id sticker-value]
+(defn add-sticker-on-node [editor node-id sticker-value]
   (let [node-loc (find-node-loc editor node-id)
         _ (assert (zip-utils/valid-loc? node-loc))
-        modified-loc (z/edit node-loc (fn [node] (assoc node :sticker sticker-value)))
+        modified-loc (z/edit node-loc (fn [node] (node-add-sticker node sticker-value)))
         modified-parse-tree (zip/root modified-loc)]
     (set-parse-tree editor modified-parse-tree)))
 
-(defn remove-node-sticker-by-id [editor node-id]
-  (let [node-loc (find-node-loc editor node-id)
-        _ (assert (zip-utils/valid-loc? node-loc))
-        modified-loc (z/edit node-loc (fn [node] (dissoc node :sticker)))
+(defn remove-node-sticker-at-loc [editor node-loc sticker-value]
+  (let [modified-loc (z/edit node-loc (fn [node] (node-remove-sticker node sticker-value)))
         modified-parse-tree (zip/root modified-loc)]
     (set-parse-tree editor modified-parse-tree)))
 
 (defn find-node-loc-with-sticker [editor sticker-value]
   (let [parse-tree (get-parse-tree editor)
         root-loc (zip-utils/make-zipper parse-tree)
-        node-loc (findz/find-depth-first root-loc (partial loc-sticker? sticker-value))]
+        node-loc (findz/find-depth-first root-loc (partial loc-has-sticker? sticker-value))]
     node-loc))
 
 (defn find-node-with-sticker [editor sticker-value]
@@ -118,21 +136,29 @@
     (assert (zip-utils/valid-loc? node-loc))
     (zip/node node-loc)))
 
-(defn remove-node-sticker [editor sticker-value]
-  (let [node-with-sticker (find-node-with-sticker editor sticker-value)]
-    (remove-node-sticker-by-id editor (:id node-with-sticker))))
+(defn remove-sticker [editor sticker-value]
+  (let [node-loc-with-sticker (find-node-loc-with-sticker editor sticker-value)]
+    (if (zip-utils/valid-loc? node-loc-with-sticker)
+      (remove-node-sticker-at-loc editor node-loc-with-sticker sticker-value)
+      editor)))
 
 (defn transfer-sticky-attrs [old new]
-  (let [{:keys [id sticker]} old
+  (let [{:keys [id stickers]} old
         new-with-id (if id (assoc new :id id) new)
-        new-with-id-and-sticker (if sticker (assoc new-with-id :sticker sticker) new-with-id)]
-    new-with-id-and-sticker))
+        new-with-id-and-stickers (if stickers (assoc new-with-id :stickers stickers) new-with-id)]
+    new-with-id-and-stickers))
 
-(defn commit-value-to-loc [loc node-id value]
+(defn empty-value? [value]
+  (let [value (node/sexpr value)]
+    (if (or (symbol? value) (keyword? value))
+      (empty? (node/string value)))))
+
+(defn commit-value-to-loc [loc node-id new-node]
   (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))]
     (assert (zip-utils/valid-loc? node-loc))
-    (if (not= (node/sexpr (zip/node node-loc)) value)
-      (z/edit node-loc (fn [prev] (transfer-sticky-attrs prev value))))))
+    (if-not (empty-value? new-node)
+      (z/edit node-loc (fn [old-node] (transfer-sticky-attrs old-node new-node)))
+      (z/remove node-loc))))
 
 (defn commit-node-value [editor node-id value]
   {:pre [node-id value]}

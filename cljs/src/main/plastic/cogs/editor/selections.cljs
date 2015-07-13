@@ -4,53 +4,8 @@
                    [plastic.macros.common :refer [*->]])
   (:require [plastic.frame.core :refer [subscribe register-handler]]
             [plastic.schema.paths :as paths]
-            [plastic.cogs.editor.selection.model :as model]
             [plastic.cogs.editor.layout.utils :refer [apply-to-selected-editors]]
-            [plastic.cogs.editor.editing :as editing]))
-
-; editor's :selections is a map of form-ids to sets of selected node-ids
-; also has key :focused-form-id pointing to currently focused form
-
-(defn apply-movements [editor movements]
-  (if-let [movement (first movements)]
-    (if-let [result (model/op movement editor)]
-      result
-      (recur editor (rest movements)))))
-
-(defn apply-move-selection [editor & movements]
-  (if-let [result (apply-movements editor movements)]
-    result
-    editor))
-
-; ---------------------------
-; spatial movement
-
-(defn spatial-up [editor]
-  (apply-move-selection editor :spatial-up :move-prev-form))
-
-(defn spatial-down [editor]
-  (apply-move-selection editor :spatial-down :move-next-form))
-
-(defn spatial-left [editor]
-  (apply-move-selection editor :spatial-left))
-
-(defn spatial-right [editor]
-  (apply-move-selection editor :spatial-right))
-
-; ---------------------------
-; structural movement
-
-(defn structural-up [editor]
-  (apply-move-selection editor :structural-up))
-
-(defn structural-down [editor]
-  (apply-move-selection editor :structural-down))
-
-(defn structural-left [editor]
-  (apply-move-selection editor :structural-left))
-
-(defn structural-right [editor]
-  (apply-move-selection editor :structural-right))
+            [plastic.cogs.editor.ops.editing :as editing]))
 
 ; ----------------------------------------------------------------------------------------------------------------
 

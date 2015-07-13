@@ -3,9 +3,9 @@
                    [plastic.macros.glue :refer [react! dispatch]])
   (:require [plastic.frame.core :refer [subscribe register-handler]]
             [plastic.schema.paths :as paths]
-            [plastic.cogs.editor.editing :as editing]
-            [plastic.cogs.editor.model :as editor]
-            [plastic.cogs.editor.selections :as selections]))
+            [plastic.cogs.editor.ops.editing :as editing]
+            [plastic.cogs.editor.ops.selection :as selection]
+            [plastic.cogs.editor.model :as editor]))
 
 (defmulti handle (fn [command & _] command))
 
@@ -14,40 +14,40 @@
 (defmethod handle :spatial-up [_ editor]
   (-> editor
     editing/stop-editing
-    selections/spatial-up))
+    selection/spatial-up))
 
 (defmethod handle :spatial-down [_ editor]
   (-> editor
     editing/stop-editing
-    selections/spatial-down))
+    selection/spatial-down))
 
 (defmethod handle :spatial-left [_ editor]
   (-> editor
     editing/stop-editing
-    selections/spatial-left))
+    selection/spatial-left))
 
 (defmethod handle :spatial-right [_ editor]
   (-> editor
     editing/stop-editing
-    selections/spatial-right))
+    selection/spatial-right))
 
 (defmethod handle :structural-left [_ editor]
   (-> editor
     editing/stop-editing
-    selections/structural-left))
+    selection/structural-left))
 
 (defmethod handle :structural-right [_ editor]
   (-> editor
     editing/stop-editing
-    selections/structural-right))
+    selection/structural-right))
 
 (defmethod handle :structural-up [_ editor]
   (-> editor
     editing/stop-editing
-    selections/structural-up))
+    selection/structural-up))
 
 (defmethod handle :structural-down [_ editor]
-  (let [new-editor (selections/structural-down editor)]
+  (let [new-editor (selection/structural-down editor)]
     (if (= new-editor editor)
       (dispatch :editor-command (editor/get-id editor) :toggle-editing))
     new-editor))
