@@ -19,10 +19,7 @@
         [raw-html-component (wrap-specials text)])]]))
 
 (defn docs-component []
-  (let [settings (subscribe [:settings])]
-    (fn [docs-render-info]
-      (let [{:keys [docs-visible]} @settings]
-        (if docs-visible
-          [:div.docs-group
-           (for [doc-info (:children docs-render-info)]
-             (doc-component doc-info))])))))
+  (fn [docs-render-info]
+    [:div.docs-group
+     (for [doc-info (:children docs-render-info)]
+       (doc-component doc-info))]))

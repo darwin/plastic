@@ -42,13 +42,22 @@
       (when-let [_ @editing-subscription]
         (dispatch :editor-update-layout-for-focused-form editor-id)))))
 
+(defn watch-settings [editor-id]
+  (let [code-visible-subscription (subscribe [:settings :code-visible])
+        docs-visible-subscription (subscribe [:settings :docs-visible])]
+    (react!
+      (let [_ @code-visible-subscription
+            _ @docs-visible-subscription]
+        (dispatch :editor-update-selections editor-id)))))
+
 (defn wire-editor [editor-id]
   (watch-uri editor-id)
   (watch-raw-text editor-id)
   (watch-parse-tree editor-id)
   (watch-editing editor-id)
   (watch-cursors editor-id)
-  (watch-selections editor-id))
+  (watch-selections editor-id)
+  (watch-settings editor-id))
 
 (defn add-editor [editors [id editor-def]]
   (let [editors (if (map? editors) editors {})

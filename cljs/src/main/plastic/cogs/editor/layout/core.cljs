@@ -140,13 +140,13 @@
 
 (defonce debounced-selection-updaters ^:dynamic {})
 
-(defn dispatch-dispatch-editor-update-selections [editor-id]
+(defn dispatch-editor-update-selections [editor-id]
   (dispatch :editor-update-selections editor-id))
 
 (defn debounced-dispatch-editor-update-selections [editor-id]
   (if-let [updater (get debounced-selection-updaters editor-id)]
     (updater)
-    (let [new-updater (helpers/debounce (partial dispatch-dispatch-editor-update-selections editor-id) 30)]
+    (let [new-updater (helpers/debounce (partial dispatch-editor-update-selections editor-id) 30)]
       (set! debounced-selection-updaters (assoc debounced-selection-updaters editor-id new-updater))
       (new-updater))))
 

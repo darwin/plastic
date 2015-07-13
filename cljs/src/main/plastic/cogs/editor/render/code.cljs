@@ -72,11 +72,8 @@
   (:text (first (:children node))))
 
 (defn code-box-component []
-  (let [settings (subscribe [:settings])]
-    (fn [code-render-info]
-      (let [{:keys [code-visible]} @settings
-            node (first (:children code-render-info))
-            name (extract-first-child-name node)]
-        (if code-visible
-          [:div.code-box {:class (if name (str "sexpr-" name))}
-           [code-block-component node]])))))
+  (fn [code-render-info]
+    (let [node (first (:children code-render-info))
+          name (extract-first-child-name node)]
+      [:div.code-box {:class (if name (str "sexpr-" name))}
+       [code-block-component node]])))

@@ -53,7 +53,7 @@
        :reagent-render       render-fn})))
 
 (defn render-tree-component []
-  (fn [render-tree]
+  (fn [render-tree code-visible docs-visible]
     (let [{:keys [id tag children selectable?]} render-tree]
       [:div {:data-qnid id
              :class     (classv
@@ -62,17 +62,19 @@
        (condp = tag
          :tree (for [child children]
                  ^{:key (or (:id child) (name (:tag child)))}
-                 [render-tree-component child])
-         :code [code-box-component render-tree]
-         :docs [docs-component render-tree]
+                 [render-tree-component child code-visible docs-visible])
+         :code (if code-visible [code-box-component render-tree])
+         :docs (if docs-visible [docs-component render-tree])
          :headers [headers-wrapper-component render-tree]
          (throw (str "don't know how to render tag " tag " (missing render component implementation)")))])))
 
 (defn form-skelet-component []
-  (form-scaffold
-    (fn [render-tree]
-      [:div.form-skelet
-       [render-tree-component render-tree]])))
+  (let [code-visible (subscribe [:settings :code-visible])
+        docs-visible (subscribe [:settings :docs-visible])]
+    (form-scaffold
+      (fn [render-tree]
+        [:div.form-skelet
+         [render-tree-component render-tree @code-visible @docs-visible]]))))
 
 (defn handle-form-click [form event]
   (let [target-dom-node (.-target event)
@@ -86,11 +88,11 @@
         (dispatch :editor-select (int editor-id) (:id form) #{(int selected-node-id)})))))
 
 (defn form-component []
-  (let [settings (subscribe [:settings])]
+  (let [selections-debug-visible (subscribe [:settings :selections-debug-visible])
+        render-tree-debug-visible (subscribe [:settings :render-tree-debug-visible])]
     (fn [form]
       (log "R! form" (:id form))
-      (let [{:keys [selections-debug-visible render-tree-debug-visible]} @settings
-            {:keys [focused soup active-selections all-selections render-tree editing]} form]
+      (let [{:keys [focused soup active-selections all-selections render-tree editing]} form]
         [:tr
          [:td
           [:div.form.noselect
@@ -101,10 +103,10 @@
             :on-click  (partial handle-form-click form)}
            [form-soup-overlay-component soup]
            [form-selections-overlay-component active-selections]
-           (if selections-debug-visible
+           (if @selections-debug-visible
              [selections-debug-overlay-component all-selections])
            [form-skelet-component render-tree]]
-          (if render-tree-debug-visible
+          (if @render-tree-debug-visible
             [render-tree-debug-component render-tree])]]))))
 
 (defn forms-component []
@@ -121,19 +123,20 @@
 
 (defn editor-root-component [editor-id]
   (let [state (subscribe [:editor-render-state editor-id])
-        settings (subscribe [:settings])]
+        parser-debug-visible (subscribe [:settings :parser-debug-visible])
+        text-input-debug-visible (subscribe [:settings :text-input-debug-visible])
+        text-output-debug-visible (subscribe [:settings :text-output-debug-visible])]
     (fn []
       (log "R! editor-root" editor-id)
       (let [forms (:forms @state)
-            {:keys [parser-debug-visible text-input-debug-visible text-output-debug-visible]} @settings
             {:keys [debug-parse-tree debug-text-input debug-text-output]} @state]
         [:div.plastic-editor                                ; .editor class is taken by Atom
          {:data-qeid editor-id
           :on-click  (partial handle-editor-click editor-id)}
-         (if text-input-debug-visible [text-input-debug-component debug-text-input])
+         (if @text-input-debug-visible [text-input-debug-component debug-text-input])
          [forms-component forms]
-         (if parser-debug-visible [parser-debug-component debug-parse-tree])
-         (if text-output-debug-visible [text-output-debug-component debug-text-output])]))))
+         (if @parser-debug-visible [parser-debug-component debug-parse-tree])
+         (if @text-output-debug-visible [text-output-debug-component debug-text-output])]))))
 
 (defn mount-editor [element editor-id]
   (let [editor (partial editor-root-component editor-id)]
