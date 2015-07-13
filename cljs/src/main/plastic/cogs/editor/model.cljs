@@ -8,6 +8,7 @@
             [plastic.util.helpers :as helpers]
             [plastic.util.zip :as zip-utils]
             [rewrite-clj.node.token :refer [token-node]]
+            [rewrite-clj.node.whitespace :refer [newline-node]]
             [clojure.zip :as z]))
 
 (defn parsed? [editor]
@@ -150,7 +151,7 @@
   (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))
         inserter (fn [loc val] (z/insert-right loc val))]
     (assert (zip-utils/valid-loc? node-loc))
-    (reduce inserter node-loc values)))
+    (reduce inserter node-loc (reverse values))))
 
 (defn insert-values-after-node [editor node-id values]
   (let [old-root (get-parse-tree editor)
@@ -214,3 +215,9 @@
 
 (defn prepare-placeholder-node []
   (token-node "" ""))
+
+(defn prepare-newline-node []
+  (newline-node "\n"))
+
+(defn prepare-token-node [s]
+  (token-node (symbol s) s))

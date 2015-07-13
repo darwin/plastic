@@ -26,6 +26,8 @@
 (defn get-edited-node-id [editor]
   (first (editor/get-editing-set editor)))
 
+; ----------------------------------------------------------------------------------------------------------------
+
 (defn start-editing [editor]
   (apply-editing editor :start))
 
@@ -41,16 +43,19 @@
         (apply-editing modified-editor :stop)))
     editor))
 
-(defn enter [editor]
-  editor)
-
-(defn space [editor]
+(defn insert-and-edit [editor & values]
   {:pre [(editor/editing? editor)]}
   (-> editor
     (editor/set-node-sticker (get-edited-node-id editor) :edit-point)
     (stop-editing)
-    (insert-values-after-edit-point [(assoc (editor/prepare-placeholder-node) :sticker :placeholder)])
+    (insert-values-after-edit-point values)
     (set-focused-selection-to-placeholder-node)
     (editor/remove-node-sticker :placeholder)
     (editor/remove-node-sticker :edit-point)
     (start-editing)))
+
+(defn enter [editor]
+  (insert-and-edit editor (editor/prepare-newline-node) (assoc (editor/prepare-placeholder-node) :sticker :placeholder)))
+
+(defn space [editor]
+  (insert-and-edit editor (assoc (editor/prepare-placeholder-node) :sticker :placeholder)))
