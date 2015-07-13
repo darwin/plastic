@@ -34,8 +34,9 @@
 
 (defn shift-selections [editor shift]
   (let [selections (get-selections editor)
-        shift #(if (number? %) (+ % shift) %)
-        shifted-selections (prewalk shift selections)]
+        shifter #(if (number? %) (+ % shift) %)
+        shifted-selections (prewalk shifter selections)]
+    (log "shift sections" shift "=>" shifted-selections)
     (set-selections editor shifted-selections)))
 
 (defn get-focused-form-id [editor]
@@ -143,10 +144,8 @@
       editor)))
 
 (defn transfer-sticky-attrs [old new]
-  (let [{:keys [id stickers]} old
-        new-with-id (if id (assoc new :id id) new)
-        new-with-id-and-stickers (if stickers (assoc new-with-id :stickers stickers) new-with-id)]
-    new-with-id-and-stickers))
+  (let [sticky-part (select-keys old [:id :stickers :being-edited :being-selected])]
+    (merge new sticky-part)))
 
 (defn empty-value? [value]
   (let [value (node/sexpr value)]

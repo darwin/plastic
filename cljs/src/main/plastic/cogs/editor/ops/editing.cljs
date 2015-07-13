@@ -7,6 +7,9 @@
             [plastic.onion.core :as onion]
             [plastic.util.zip :as zip-utils]))
 
+(defn select-next-candidate-for-case-of-selected-node-removal [editor]
+  (selection/apply-move-selection editor :spatial-left :spatial-right :structural-up))
+
 (defn get-selected-node-id [editor]
   (first (editor/get-focused-selection editor)))
 
@@ -23,7 +26,7 @@
   (let [node-id (get-edited-node-id editor)]
     (-> editor
       (editor/add-sticker-on-node node-id :commit-node)
-      (selection/apply-move-selection :spatial-left :structural-up) ; for case node gets removed
+      (select-next-candidate-for-case-of-selected-node-removal)
       (editor/commit-node-value node-id value)
       (set-selection-to-node-with-sticker-if-still-exists :commit-node)
       (editor/remove-sticker :commit-node))))
@@ -75,5 +78,5 @@
   {:pre [(not (editor/editing? editor))]}
   (let [node-id (get-selected-node-id editor)]
     (-> editor
-      (selection/apply-move-selection :spatial-left :structural-up)
+      (select-next-candidate-for-case-of-selected-node-removal)
       (editor/delete-node node-id))))
