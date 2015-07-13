@@ -100,7 +100,6 @@
     (if next-focused-form-id
       (let [next-selection (editor/get-last-selectable-token-id-for-form editor next-focused-form-id)]
         (-> editor
-          (editor/set-selection #{})
           (editor/set-focused-form-id next-focused-form-id)
           (editor/set-selection #{next-selection}))))))
 
@@ -111,7 +110,6 @@
     (if next-focused-form-id
       (let [next-selection (editor/get-first-selectable-token-id-for-form editor next-focused-form-id)]
         (-> editor
-          (editor/set-selection #{})
           (editor/set-focused-form-id next-focused-form-id)
           (editor/set-selection #{next-selection}))))))
 
