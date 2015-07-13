@@ -201,17 +201,19 @@
       (z/edit node-loc (fn [old-node] (transfer-sticky-attrs old-node new-node)))
       (z/remove node-loc))))
 
-(defn delete-to-loc [loc node-id]
+(defn delete-node-loc [node-id loc]
   (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))]
     (assert (zip-utils/valid-loc? node-loc))
     (z/remove node-loc)))
 
+(defn parse-tree-transformer [f]
+  (fn [parse-tree]
+    (if-let [result (f (zip-utils/make-zipper parse-tree))]
+      (z/root result)
+      parse-tree)))
+
 (defn delete-node [editor node-id]
-  (let [transformer (fn [parse-tree]
-                      (if-let [result (delete-to-loc (zip-utils/make-zipper parse-tree) node-id)]
-                        (z/root result)
-                        parse-tree))]
-    (transform-parse-tree editor transformer)))
+  (transform-parse-tree editor (parse-tree-transformer (partial delete-node-loc node-id))))
 
 (defn commit-node-value [editor node-id value]
   {:pre [node-id value]}
@@ -222,19 +224,14 @@
       editor
       (set-parse-tree editor (zip/root modified-loc)))))
 
-(defn insert-values-after-loc [loc node-id values]
+(defn insert-values-after-node-loc [node-id values loc]
   (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))
         inserter (fn [loc val] (z/insert-right loc val))]
     (assert (zip-utils/valid-loc? node-loc))
     (reduce inserter node-loc (reverse values))))
 
 (defn insert-values-after-node [editor node-id values]
-  (let [old-root (get-parse-tree editor)
-        root-loc (zip-utils/make-zipper old-root)
-        modified-loc (insert-values-after-loc root-loc node-id values)]
-    (if-not modified-loc
-      editor
-      (transform-parse-tree editor (zip/root modified-loc)))))
+  (transform-parse-tree editor (parse-tree-transformer (partial insert-values-after-node-loc node-id values))))
 
 (defn get-render-infos [editor]
   (get-in editor [:render-state :forms]))
