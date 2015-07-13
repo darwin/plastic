@@ -4,6 +4,7 @@
             [plastic.cogs.editor.render.inline-editor :refer [inline-editor-component]]
             [plastic.cogs.editor.render.reusables :refer [raw-html-component]]
             [plastic.frame.core :refer [subscribe]]
+            [plastic.onion.api :refer [$]]
             [plastic.cogs.editor.layout.utils :as utils]))
 
 (declare code-block-component)
@@ -45,15 +46,30 @@
                         (for [child children]
                           ^{:key (:id child)} [code-block-component child])])))
 
+(defn add-hovered-class [class e]
+  (let [$target ($ (.-currentTarget e))
+        $parents (.parents $target ".block")]
+    (.addClass $target class)
+    (.removeClass $parents class)))
+
+(defn remove-hovered-class [class e]
+  (let [$target ($ (.-currentTarget e))
+        $parents (.parents $target ".block")
+        $first-parent (.first $parents)]
+    (.addClass $first-parent class)
+    (.removeClass $target class)))
+
 (defn code-block [opener closer node]
   (let [{:keys [id scope selectable? depth tag]} node
         tag-name (name tag)]
-    [:div.block {:data-qnid id
-                 :class     (classv
-                              tag-name
-                              (if selectable? "selectable")
-                              (if scope (str "scope scope-" scope))
-                              (if depth (str "depth-" depth)))}
+    [:div.block {:data-qnid      id
+                 :on-mouse-enter (partial add-hovered-class "hovered")
+                 :on-mouse-leave (partial remove-hovered-class "hovered")
+                 :class          (classv
+                                   tag-name
+                                   (if selectable? "selectable")
+                                   (if scope (str "scope scope-" scope))
+                                   (if depth (str "depth-" depth)))}
      [:div.punctuation.opener opener]
      (code-element-component node)
      [:div.punctuation.closer closer]]))
