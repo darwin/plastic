@@ -7,7 +7,8 @@
             [clojure.walk :refer [prewalk]]
             [plastic.cogs.editor.parser.utils :as parser]
             [plastic.util.helpers :as helpers]
-            [plastic.util.zip :as zip-utils]))
+            [plastic.util.zip :as zip-utils]
+            [plastic.cogs.editor.render.dom :as dom]))
 
 (defn parsed? [editor]
   (contains? editor :parse-tree))
@@ -51,7 +52,12 @@
     (set-selections editor new-selections)))
 
 (defn set-render-state [editor render-state]
-  (assoc-in editor [:render-state] render-state))
+  (if (= (:render-state editor) render-state)
+    editor
+    (let [new-editor (assoc-in editor [:render-state] render-state)]
+      (dom/postpone-selection-overlay-display-until-next-update editor)
+      (dom/postpone-selection-overlay-display-until-next-update new-editor)
+      new-editor)))
 
 (defn get-id [editor]
   {:post [(pos? %)]}
@@ -72,7 +78,7 @@
 (defn get-top-level-locs [editor]
   (let [top-loc (zip-utils/make-zipper (get-parse-tree editor)) ; root "forms" node
         first-top-level-form-loc (zip/down top-loc)]
-    (zip-utils/collect-all-right first-top-level-form-loc)))    ; TODO: here we should use explicit zipping policy
+    (zip-utils/collect-all-right first-top-level-form-loc))) ; TODO: here we should use explicit zipping policy
 
 (defn loc-id? [id loc]
   (= (:id (zip/node loc)) id))
