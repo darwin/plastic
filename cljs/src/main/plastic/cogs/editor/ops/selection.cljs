@@ -27,56 +27,53 @@
     (if-let [result-id (op (get structural-web selected-id))]
       (editor/set-selection editor #{result-id}))))
 
-(defn find-first-non-empty-line [spatial-web line op]
+(defn find-first-non-empty-line-in-given-direction [spatial-web line op]
   (first (drop-while #(and (not (nil? %)) (empty? %)) (map spatial-web (iterate op (op line))))))
+
+(defn spatial-movement-up-down [editor dir-fun]
+  (let [selected-id (get-selected-node-id editor)
+        render-info (editor/get-focused-render-info editor)
+        {:keys [spatial-web all-selections]} render-info
+        sel-node (get all-selections selected-id)
+        line-selectables (find-first-non-empty-line-in-given-direction spatial-web (:line sel-node) dir-fun)
+        line-selections (map #(get all-selections (:id %)) line-selectables)]
+    (if-let [result (find-best-spatial-match sel-node line-selections)]
+      (editor/set-selection editor #{(:id result)}))))
+
+(defn spatial-movement-left-right [editor dir-fun]
+  (let [selected-id (get-selected-node-id editor)
+        render-info (editor/get-focused-render-info editor)
+        {:keys [spatial-web all-selections]} render-info
+        sel-node (get all-selections selected-id)
+        line-selectables (get spatial-web (:line sel-node))]
+    (if-let [result (dir-fun #(= (:id %) selected-id) line-selectables)]
+      (editor/set-selection editor #{(:id result)}))))
+
+(defn move-to-form [editor dir-fun next-sel-fun]
+  (let [focused-form-id (editor/get-focused-form-id editor)
+        top-level-ids (editor/get-top-level-form-ids editor)
+        next-focused-form-id (dir-fun #(= % focused-form-id) top-level-ids)]
+    (if next-focused-form-id
+      (let [next-selection (next-sel-fun editor next-focused-form-id)]
+        (-> editor
+          (editor/set-focused-form-id next-focused-form-id)
+          (editor/set-selection #{next-selection}))))))
 
 ; ----------------------------------------------------------------------------------------------------------------
 
 (defmulti op (fn [op-type & _] op-type))
 
 (defmethod op :spatial-down [_ editor]
-  (let [selected-id (get-selected-node-id editor)
-        render-info (editor/get-focused-render-info editor)
-        {:keys [spatial-web all-selections]} render-info
-        sel-node (get all-selections selected-id)
-        line-selectables (find-first-non-empty-line spatial-web (:line sel-node) inc)
-        line-selections (map #(get all-selections (:id %)) line-selectables)
-        result (find-best-spatial-match sel-node line-selections)]
-    (if result
-      (editor/set-selection editor #{(:id result)}))))
+  (spatial-movement-up-down editor inc))
 
 (defmethod op :spatial-up [_ editor]
-  (let [selected-id (get-selected-node-id editor)
-        render-info (editor/get-focused-render-info editor)
-        {:keys [spatial-web all-selections]} render-info
-        sel-node (get all-selections selected-id)
-        line-selectables (find-first-non-empty-line spatial-web (:line sel-node) dec)
-        line-selections (map #(get all-selections (:id %)) line-selectables)
-        result (find-best-spatial-match sel-node line-selections)]
-    (if result
-      (editor/set-selection editor #{(:id result)}))))
+  (spatial-movement-up-down editor dec))
 
 (defmethod op :spatial-right [_ editor]
-  (let [selected-id (get-selected-node-id editor)
-        render-info (editor/get-focused-render-info editor)
-        {:keys [spatial-web all-selections]} render-info
-        sel-node (get all-selections selected-id)
-        sel-line (:line sel-node)
-        line-selectables (get spatial-web sel-line)
-        result (helpers/next-item #(= (:id %) selected-id) line-selectables)]
-    (if result
-      (editor/set-selection editor #{(:id result)}))))
+  (spatial-movement-left-right editor helpers/next-item))
 
 (defmethod op :spatial-left [_ editor]
-  (let [selected-id (get-selected-node-id editor)
-        render-info (editor/get-focused-render-info editor)
-        {:keys [spatial-web all-selections]} render-info
-        sel-node (get all-selections selected-id)
-        sel-line (:line sel-node)
-        line-selectables (get spatial-web sel-line)
-        result (helpers/prev-item #(= (:id %) selected-id) line-selectables)]
-    (if result
-      (editor/set-selection editor #{(:id result)}))))
+  (spatial-movement-left-right editor helpers/prev-item))
 
 (defmethod op :structural-up [_ editor]
   (structural-movemement editor :up))
@@ -91,24 +88,10 @@
   (structural-movemement editor :right))
 
 (defmethod op :move-prev-form [_ editor]
-  (let [focused-form-id (editor/get-focused-form-id editor)
-        top-level-ids (editor/get-top-level-form-ids editor)
-        next-focused-form-id (helpers/prev-item #(= % focused-form-id) top-level-ids)]
-    (if next-focused-form-id
-      (let [next-selection (editor/get-last-selectable-token-id-for-form editor next-focused-form-id)]
-        (-> editor
-          (editor/set-focused-form-id next-focused-form-id)
-          (editor/set-selection #{next-selection}))))))
+  (move-to-form editor helpers/prev-item editor/get-last-selectable-token-id-for-form))
 
 (defmethod op :move-next-form [_ editor]
-  (let [focused-form-id (editor/get-focused-form-id editor)
-        top-level-ids (editor/get-top-level-form-ids editor)
-        next-focused-form-id (helpers/next-item #(= % focused-form-id) top-level-ids)]
-    (if next-focused-form-id
-      (let [next-selection (editor/get-first-selectable-token-id-for-form editor next-focused-form-id)]
-        (-> editor
-          (editor/set-focused-form-id next-focused-form-id)
-          (editor/set-selection #{next-selection}))))))
+  (move-to-form editor helpers/next-item editor/get-first-selectable-token-id-for-form))
 
 ; ----------------------------------------------------------------------------------------------------------------
 
