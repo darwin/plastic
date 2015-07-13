@@ -13,9 +13,9 @@
 (defn activate-inline-editor [$dom-node]
   (when-not (dom/inline-editor-present? $dom-node)
     (let [editor-id (dom/lookup-editor-id $dom-node)
-          inline-editor-type (.data $dom-node "qtype")
+          inline-editor-mode (keyword (.data $dom-node "qmode"))
           inline-editor-text (.data $dom-node "qtext")]
-      (onion/setup-inline-editor-for-editing editor-id inline-editor-type inline-editor-text)
+      (onion/setup-inline-editor-for-editing editor-id inline-editor-mode inline-editor-text)
       (onion/append-inline-editor editor-id $dom-node)
       (onion/focus-inline-editor editor-id))))
 
@@ -42,8 +42,8 @@
 
 (defn inline-editor-component []
   (inline-editor-scaffold
-    (fn [node-id text type]
+    (fn [node-id text mode]
       [:div.inline-editor
        {:data-qnid  node-id
         :data-qtext text
-        :data-qtype type}])))
+        :data-qmode mode}])))

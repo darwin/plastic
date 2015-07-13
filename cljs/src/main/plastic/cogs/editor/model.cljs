@@ -7,8 +7,7 @@
             [clojure.walk :refer [prewalk]]
             [plastic.cogs.editor.parser.utils :as parser]
             [plastic.util.helpers :as helpers]
-            [plastic.util.zip :as zip-utils]
-            [plastic.cogs.editor.render.dom :as dom]))
+            [plastic.util.zip :as zip-utils]))
 
 (defn parsed? [editor]
   (contains? editor :parse-tree))
@@ -52,12 +51,7 @@
     (set-selections editor new-selections)))
 
 (defn set-render-state [editor render-state]
-  (if (= (:render-state editor) render-state)
-    editor
-    (let [new-editor (assoc-in editor [:render-state] render-state)]
-      (dom/postpone-selection-overlay-display-until-next-update editor)
-      (dom/postpone-selection-overlay-display-until-next-update new-editor)
-      new-editor)))
+  (assoc-in editor [:render-state] render-state))
 
 (defn get-id [editor]
   {:post [(pos? %)]}
@@ -84,11 +78,10 @@
   (= (:id (zip/node loc)) id))
 
 (defn commit-value-to-loc [loc node-id value]
-  (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))
-        new-value (symbol value)]
+  (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))]
     (assert (zip-utils/valid-loc? node-loc))
-    (if (not= (node/sexpr (zip/node node-loc)) new-value)
-      (editz/edit node-loc (fn [_prev] new-value)))))
+    (if (not= (node/sexpr (zip/node node-loc)) value)
+      (editz/edit node-loc (fn [_prev] value)))))
 
 (defn commit-node-value [editor node-id value]
   {:pre [node-id value]}

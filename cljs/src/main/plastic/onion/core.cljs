@@ -4,7 +4,9 @@
             [plastic.onion.api :refer [$]]
             [plastic.onion.remounter]
             [plastic.onion.api :refer [File]]
-            [plastic.cogs.editor.render.dom :as dom]))
+            [plastic.cogs.editor.render.dom :as dom]
+            [rewrite-clj.node.keyword :refer [keyword-node]]
+            [cuerdas.core :as str]))
 
 (defn load-file-content [uri cb]
   {:pre [File]}
@@ -38,29 +40,49 @@
   (let [inline-editor-view (get-atom-inline-editor-view-instance editor-id)]
     (.focus inline-editor-view)))
 
-(def known-editor-types #{:symbol :keyword :doc :string})
-(def known-editor-types-classes (apply str (interpose " " (map name known-editor-types))))
+(def known-editor-modes #{:symbol :keyword :doc :string})
 
-(defn set-editor-type-as-class-name [inline-editor-view editor-type]
+(defn editor-mode-to-class-name [editor-mode]
+  {:pre [(contains? known-editor-modes editor-mode)]}
+  (str "plastic-mode-" (name editor-mode)))
+
+(defn class-name-to-editor-mode [class-name]
+  {:post [(contains? known-editor-modes %)]}
+  (if-let [match (re-find #"^plastic-mode-(.*)$" class-name)]
+    (keyword (second match))))
+
+(def known-editor-modes-classes (map editor-mode-to-class-name known-editor-modes))
+
+(defn set-editor-mode-as-class-name [inline-editor-view editor-mode]
   (-> ($ inline-editor-view)
-    (.removeClass known-editor-types-classes)
-    (.addClass (name editor-type))))
+    (.removeClass (apply str (interpose " " known-editor-modes-classes)))
+    (.addClass (editor-mode-to-class-name editor-mode))))
 
-(defn preprocess-text-before-editing [editor-type text]
-  text)
+(defn strip-colon [text]
+  (str/ltrim text ":")) ; TODO: this must be more robust
 
-(defn postprocess-text-after-editing [editor-type text]
-  text)
+(defn preprocess-text-before-editing [editor-mode text]
+  (condp = editor-mode
+    :keyword (strip-colon text)
+    text))
 
-(defn setup-inline-editor-for-editing [editor-id editor-type text]
+(defn postprocess-text-after-editing [editor-mode text]
+  (condp = editor-mode
+    :symbol (symbol text)
+    :keyword (keyword-node (keyword text))
+    :string text
+    :doc text
+    (throw "unknown editor mode in postprocess-text-after-editing:" editor-mode)))
+
+(defn setup-inline-editor-for-editing [editor-id editor-mode text]
+  {:pre [(contains? known-editor-modes editor-mode)]}
   (let [inline-editor (get-atom-inline-editor-instance editor-id)
         inline-editor-view (get-atom-inline-editor-view-instance editor-id)
-        initial-text (preprocess-text-before-editing editor-type text)]
-    (log "editor type" editor-type text initial-text)
+        initial-text (preprocess-text-before-editing editor-mode text)]
     ; synchronous updates prevent intermittent jumps
     ; it has correct dimentsions before it gets appended in the DOM
     (.setUpdatedSynchronously inline-editor-view true)
-    (set-editor-type-as-class-name inline-editor-view editor-type)
+    (set-editor-mode-as-class-name inline-editor-view editor-mode)
     (.setText inline-editor initial-text)
     (.selectAll inline-editor)
     (.setUpdatedSynchronously inline-editor-view false)))
@@ -69,13 +91,13 @@
   (let [inline-editor (get-atom-inline-editor-instance editor-id)]
     (.isModified inline-editor)))
 
-(defn get-inline-editor-type [editor-id]
-  {:post [(contains? known-editor-types %)]}
+(defn get-inline-editor-mode [editor-id]
+  {:post [(contains? known-editor-modes %)]}
   (let [$inline-editor-view ($ (get-atom-inline-editor-view-instance editor-id))]
-    (keyword (some #(if (.hasClass $inline-editor-view (name %)) %) known-editor-types))))
+    (class-name-to-editor-mode (some #(if (.hasClass $inline-editor-view %) %) known-editor-modes-classes))))
 
-(defn get-postprocessed-text-after-editing [editor-id]
+(defn get-postprocessed-value-after-editing [editor-id]
   (let [inline-editor (get-atom-inline-editor-instance editor-id)
-        editor-type (get-inline-editor-type editor-id)
+        editor-mode (get-inline-editor-mode editor-id)
         raw-text (.getText inline-editor)]
-    (postprocess-text-after-editing editor-type raw-text)))
+    (postprocess-text-after-editing editor-mode raw-text)))

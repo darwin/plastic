@@ -23,7 +23,8 @@
             [plastic.cogs.editor.layout.structural :refer [build-structural-web]]
             [plastic.cogs.editor.layout.spatial :refer [build-spatial-web]]
             [plastic.cogs.editor.analyzer :refer [analyze-full]]
-            [plastic.cogs.editor.layout.utils :as layout-utils]))
+            [plastic.cogs.editor.layout.utils :as layout-utils]
+            [plastic.cogs.editor.render.dom :as dom]))
 
 (defn reduce-render-tree [f val node]
   (f (reduce (partial reduce-render-tree f) val (:children node)) node))
@@ -63,7 +64,6 @@
         editing-set (editor/get-editing-set editor)
         nodes (apply hash-map (collect-nodes root-node))
         {:keys [code-visible docs-visible]} settings
-        _ (log settings)
 
         analysis (->> {}
                    (analyze-selectables nodes)
@@ -76,7 +76,6 @@
         docs-render-tree (if docs-visible (build-docs-render-tree analysis nodes))
         headers-render-tree (build-headers-render-tree analysis loc)
         render-tree (compose-render-trees top-id headers-render-tree docs-render-tree code-render-tree)
-        _ (log "AAAAA" render-tree)
 
         selectables (extract-all-selectables render-tree)
 
@@ -117,8 +116,11 @@
     (let [render-state {:forms             (prepare-render-infos-of-top-level-forms settings editor form-id)
                         :debug-parse-tree  (editor/get-parse-tree editor)
                         :debug-text-input  (editor/get-input-text editor)
-                        :debug-text-output (editor/get-output-text editor)}]
-      (editor/set-render-state editor render-state))))
+                        :debug-text-output (editor/get-output-text editor)}
+          new-editor (editor/set-render-state editor render-state)]
+      (dom/postpone-selection-overlay-display-until-next-update editor)
+      (dom/postpone-selection-overlay-display-until-next-update new-editor)
+      new-editor)))
 
 (defn update-layout [db [editor-selector form-id]]
   (let [{:keys [editors settings]} db

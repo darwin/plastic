@@ -22,7 +22,7 @@
     (if (editor/editing? editor)
       (let [editor-id (editor/get-id editor)
             modified-editor (if (or true (onion/is-inline-editor-modified? editor-id))
-                              (commit-value editor (onion/get-postprocessed-text-after-editing editor-id))
+                              (commit-value editor (onion/get-postprocessed-value-after-editing editor-id))
                               (do (log "not modified")
                                   editor))]
         (dom/postpone-selection-overlay-display-until-next-update editor)
