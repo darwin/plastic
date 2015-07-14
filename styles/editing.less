@@ -2,12 +2,8 @@
 
 .plastic-editor-view {
  
-  .token {
-    padding-right: 2px; // placeholder for inline atom editor
-  }
-
-  .token.editing {
-    padding-right: 0px; // correction for inline atom editor
+  .token.editing > .inline-editor {
+    margin-right: -2px; // correction for inline atom editor so it does not jump
   }
   
   .form.editing .form-overlay {
