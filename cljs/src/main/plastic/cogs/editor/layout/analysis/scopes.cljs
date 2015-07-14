@@ -22,7 +22,8 @@
    'if-let    :pairs
    'when-let  :pairs
    'for       :pairs
-   'loop      :pairs})
+   'loop      :pairs
+   'catch     2})
 
 (defn scope-related? [loc]
   (let [node (z/node loc)]
@@ -45,27 +46,39 @@
     (max current (:id node) (apply max (map :id (node/children node))))
     (max current (:id node))))
 
-(defn collect-symbols [node max-id]
+(defn collect-node-params [node max-id]
   (let [loc (zip-utils/make-zipper node)
         all-locs (take-while zip-utils/valid-loc? (iterate zip-next loc))
         symbol-nodes (filter #(instance? TokenNode %) (map zip/node all-locs))]
-    (map (fn [node] [node max-id]) symbol-nodes)))
+    (filter-non-args
+      (map (fn [node] [node max-id]) symbol-nodes))))
 
 ; TODO: here must be proper parsing of destructuring
 (defn collect-vector-params [node]
-  (filter-non-args (collect-symbols node (:id node))))
+  (if node
+    (collect-node-params node (:id node))))
 
 ; TODO: here must be proper parsing of destructuring
 (defn collect-vector-pairs [node]
-  (filter-non-args
-    (let [pairs (partition 2 (filter (complement node/whitespace?) (node/children node)))]
-      (mapcat #(collect-symbols (first %) (get-max-id (second %) 0)) pairs))))
+  (if node
+      (let [pairs (partition 2 (filter (complement node/whitespace?) (node/children node)))]
+        (mapcat #(collect-node-params (first %) (get-max-id (second %) 0)) pairs))))
+
+(defn collect-specified-param [node num]
+  (let [relevant-children (filter (complement node/whitespace?) (node/children node))]
+    (if-let [specified-param-node (nth relevant-children num nil)]
+      (collect-node-params specified-param-node (:id specified-param-node)))))
+
+(defn first-vector [node]
+  (first (filter #(= (node/tag %) :vector) (node/children node))))
 
 (defn collect-params [node opener-type]
-  (if-let [first-vector (first (filter #(= (node/tag %) :vector) (node/children node)))]
-    (condp = opener-type
-      :params (collect-vector-params first-vector)
-      :pairs (collect-vector-pairs first-vector))))
+  (condp = opener-type
+    :params (collect-vector-params (first-vector node))
+    :pairs (collect-vector-pairs (first-vector node))
+    (do
+      (assert (number? opener-type))
+      (collect-specified-param node opener-type))))
 
 (defn collect-all-right [loc]
   (take-while zip-utils/valid-loc? (iterate zip-right loc)))
