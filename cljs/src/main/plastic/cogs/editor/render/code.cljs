@@ -46,25 +46,10 @@
                         (for [child children]
                           ^{:key (:id child)} [code-block-component child])])))
 
-(defn add-hovered-class [class e]
-  (let [$target ($ (.-currentTarget e))
-        $parents (.parents $target ".block")]
-    (.addClass $target class)
-    (.removeClass $parents class)))
-
-(defn remove-hovered-class [class e]
-  (let [$target ($ (.-currentTarget e))
-        $parents (.parents $target ".block")
-        $first-parent (.first $parents)]
-    (.addClass $first-parent class)
-    (.removeClass $target class)))
-
 (defn code-block [opener closer node]
   (let [{:keys [id scope selectable? depth tag]} node
         tag-name (name tag)]
     [:div.block {:data-qnid      id
-                 :on-mouse-enter (partial add-hovered-class "hovered")
-                 :on-mouse-leave (partial remove-hovered-class "hovered")
                  :class          (classv
                                    tag-name
                                    (if selectable? "selectable")
