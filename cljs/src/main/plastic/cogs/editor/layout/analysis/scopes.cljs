@@ -17,7 +17,11 @@
    'defn-     :params
    'fn        :params
    'defmethod :params
-   'let       :pairs})
+   'let       :pairs
+   'if-let    :pairs
+   'when-let  :pairs
+   'for       :pairs
+   'loop      :pairs})
 
 (defn scope-related? [loc]
   (let [node (z/node loc)]
