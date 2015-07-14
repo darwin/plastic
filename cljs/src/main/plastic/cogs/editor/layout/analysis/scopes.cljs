@@ -67,26 +67,30 @@
 (defn child-locs [loc]
   (collect-all-right (zip-down loc)))
 
-(defn node-scope [loc childs]
+(defn node-scope [loc childs depth]
   (condp = (zip/tag loc)
     :list (if-not (empty? childs)
             (if-let [opener-type (scope-openers (zip/sexpr (first childs)))]
               {:id     (next-scope-id!)
+               :depth  (inc depth)
                :locals (collect-params (z/node loc) opener-type)}))
     :fn {:id     (next-scope-id!)
+         :depth  (inc depth)
          :locals [[#(re-find #"^%" (node/string %)) (:id (z/node loc))]]}
     nil))
 
 (defn analyze-scope [scope-info loc]
   (let [id (:id (z/node loc))
         childs (child-locs loc)
+        depth (get-in scope-info [:scope :depth])
         analyze-child-scopes (fn [scope] (into {} (map (partial analyze-scope scope) childs)))]
-    (if-let [new-scope (node-scope loc childs)]
+    (if-let [new-scope (node-scope loc childs depth)]
       (let [new-scope-info {:scope new-scope :parent-scope scope-info}]
         (conj (analyze-child-scopes new-scope-info) [id new-scope-info]))
       (conj (analyze-child-scopes scope-info) [id scope-info]))))
 
 (defn analyze-scopes [loc analysis]
   (binding [*scope-id* 0]
-    (let [starting-loc (if-not (scope-related? loc) (zip-next loc) loc)]
-      (helpers/deep-merge analysis (analyze-scope {:scope nil :parent-scope nil} starting-loc)))))
+    (let [starting-loc (if-not (scope-related? loc) (zip-next loc) loc)
+          initial-scope {:scope nil :parent-scope nil}]
+      (helpers/deep-merge analysis (analyze-scope initial-scope starting-loc)))))

@@ -45,7 +45,7 @@
   (let [node (zip/node loc)
         node-id (:id node)
         node-analysis (get analysis node-id)
-        new-scope-id (get-in node-analysis [:scope :id])
+        scope (get node-analysis :scope)
         tag (node/tag node)
         {:keys [declaration-scope def-name? def-doc? cursor editing? selectable?]} node-analysis
         {:keys [shadows decl?]} declaration-scope]
@@ -58,7 +58,7 @@
          :line  (current-line-id)}
         (when (or (node/linebreak? node) (node/comment? node)) (next-line-id!) {:type :newline :text "\n"}) ; comments have newlines embedded
         (if (node/inner? node)
-          {:children (doall (remove nil? (map (partial build-node-code-render-tree-node (inc depth) new-scope-id analysis) (layout-affecting-children loc))))}
+          {:children (doall (remove nil? (map (partial build-node-code-render-tree-node (inc depth) (:id scope) analysis) (layout-affecting-children loc))))}
           {:text (node/string node)})
         (if selectable? {:selectable? true})
         (if editing? {:editing? true})
@@ -66,7 +66,8 @@
         (if (instance? StringNode node) {:text (layout-utils/prepare-string-for-display (node/string node))
                                          :type :string})
         (if (instance? KeywordNode node) {:type :keyword})
-        (if (not= new-scope-id scope-id) {:scope new-scope-id})
+        (if (not= (:id scope) scope-id) {:scope (:id scope)
+                                         :scope-depth (:depth scope)})
         (if def-name? {:def-name? true})
         (if declaration-scope {:decl-scope (:id declaration-scope)})
         (if cursor {:cursor true})

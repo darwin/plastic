@@ -6,7 +6,7 @@
   
   .scope {
     border-left: 2px solid;
-    padding-left: 20px;
+    padding-left: 10px;
   }
   
   .makeScope(@scope, @color) {
@@ -43,5 +43,36 @@
   .makeScope(14, hsl(20+@scope-color-shift, 100%, 80%));
   .makeScope(15, hsl(240+@scope-color-shift, 100%, 80%));
   .makeScope(16, hsl(300+@scope-color-shift, 100%, 80%));
+
+} // .plastic-editor-view
+
+@depth-base1: hsl(0,  0%,   5%);
+@depth-base2: hsl(0,  0%,  40%);
+@depth-base3: hsl(200, 50%, 5%);
+@depth-base4: hsl(200, 50%, 30%);
+@depth-base5: hsl(0, 50%,  5%);
+@depth-base6: hsl(0, 50%, 30%);
+@depth-multiplier: 3;
+
+@depth-steps: 10;
+@depth-increment: (100 / @depth-steps);
+
+.plastic-editor-view {
+
+  .makeDepths(@start, @end, @base-index, @i) when (@i > 0) {
+      @depth: @base-index + @i - 1;
+
+      .scope-depth-@{depth} {
+        background-color: mix(@start, @end, (@depth-steps - @i)*@depth-increment);
+      }
+
+      .makeDepths(@start, @end, @base-index, (@i - 1));
+  }
+
+  .makeDepths(@depth-base1, @depth-base2, 0, @depth-steps);
+  .makeDepths(@depth-base2, @depth-base3, 1*@depth-steps, @depth-steps);
+  .makeDepths(@depth-base3, @depth-base4, 2*@depth-steps, @depth-steps);
+  .makeDepths(@depth-base4, @depth-base5, 3*@depth-steps, @depth-steps);
+  .makeDepths(@depth-base5, @depth-base6, 4*@depth-steps, @depth-steps);
 
 } // .plastic-editor-view

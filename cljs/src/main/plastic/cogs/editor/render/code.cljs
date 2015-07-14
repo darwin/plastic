@@ -47,13 +47,13 @@
                           ^{:key (:id child)} [code-block-component child])])))
 
 (defn code-block [opener closer node]
-  (let [{:keys [id scope selectable? depth tag]} node
+  (let [{:keys [id scope selectable? depth tag scope-depth]} node
         tag-name (name tag)]
     [:div.block {:data-qnid      id
                  :class          (classv
                                    tag-name
                                    (if selectable? "selectable")
-                                   (if scope (str "scope scope-" scope))
+                                   (if scope (str "scope scope-" scope " scope-depth-" scope-depth))
                                    (if depth (str "depth-" depth)))}
      [:div.punctuation.opener opener]
      (code-element-component node)
