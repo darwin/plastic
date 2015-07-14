@@ -16,33 +16,37 @@
             [plastic.cogs.editor.render.dom :as dom]
             [plastic.util.helpers :as helpers]))
 
-(defn retrieve-token-geometry [token-dom-node]
+(defn retrieve-token-geometry [skelet-offset token-dom-node]
   (if-let [node-id (dom/read-node-id token-dom-node)]
-    [node-id {:left (.-offsetLeft token-dom-node)
-              :top  (.-offsetTop token-dom-node)}]))
+    (let [offset (.offset ($ token-dom-node))]
+      [node-id {:left (- (.-left offset) (.-left skelet-offset))
+                :top  (- (.-top offset) (.-top skelet-offset))}])))
 
-(defn retrieve-tokens-geometry [token-dom-nodes]
-  (apply hash-map (mapcat retrieve-token-geometry token-dom-nodes)))
+(defn retrieve-tokens-geometry [skelet-offset token-dom-nodes]
+  (apply hash-map (mapcat (partial retrieve-token-geometry skelet-offset) token-dom-nodes)))
 
-(defn retrieve-selectable-geometry [selectable-dom-node]
+(defn retrieve-selectable-geometry [skelet-offset selectable-dom-node]
   (if-let [node-id (dom/read-node-id selectable-dom-node)]
-    [node-id {:left   (.-offsetLeft selectable-dom-node)
-              :top    (.-offsetTop selectable-dom-node)
-              :width  (.-offsetWidth selectable-dom-node)
-              :height (.-offsetHeight selectable-dom-node)}]))
+    (let [offset (.offset ($ selectable-dom-node))]
+      [node-id {:left   (- (.-left offset) (.-left skelet-offset))
+                :top    (- (.-top offset) (.-top skelet-offset))
+                :width  (.-offsetWidth selectable-dom-node)
+                :height (.-offsetHeight selectable-dom-node)}])))
 
-(defn retrieve-selectables-geometry [selectable-dom-nodes]
-  (apply hash-map (mapcat retrieve-selectable-geometry selectable-dom-nodes)))
+(defn retrieve-selectables-geometry [skelet-offset selectable-dom-nodes]
+  (apply hash-map (mapcat (partial retrieve-selectable-geometry skelet-offset) selectable-dom-nodes)))
 
 (defn capture-geometry [react-component]
   (let [dom-node (dom/node-from-react react-component)
         form-id (dom/lookup-form-id dom-node)
-        editor-id (dom/lookup-editor-id dom-node)]
+        editor-id (dom/lookup-editor-id dom-node)
+        $skelet ($ (dom/find-closest dom-node ".form-skelet"))
+        skelet-offset (.offset $skelet)]
     (let [selectable-dom-nodes (.getElementsByClassName dom-node "selectable")
-          selectables-geometry (retrieve-selectables-geometry selectable-dom-nodes)]
+          selectables-geometry (retrieve-selectables-geometry skelet-offset selectable-dom-nodes)]
       (dispatch :editor-update-selectables-geometry (int editor-id) (int form-id) selectables-geometry))
     (let [token-dom-nodes (.getElementsByClassName dom-node "token")
-          tokens-geometry (retrieve-tokens-geometry token-dom-nodes)]
+          tokens-geometry (retrieve-tokens-geometry skelet-offset token-dom-nodes)]
       (dispatch :editor-update-soup-geometry (int editor-id) (int form-id) tokens-geometry))))
 
 (defn form-scaffold [render-fn]

@@ -8,4 +8,4 @@
       b (= b)
       c (= (+ a b))
       d (= z)]
-  (log a b c d))
+  (log a b c d e f g))

@@ -36,25 +36,54 @@
         :string (emit-token (-> text (wrap-specials)))
         (emit-token (-> text (apply-shadowing-subscripts shadows)))))))
 
+(defn break-nodes-into-lines [accum node]
+  (if (= (:type node) :newline)
+    (conj accum [])
+    (assoc accum (dec (count accum)) (conj (last accum) node))))
+
+(defn emit-code-block [node]
+  ^{:key (:id node)} [code-block-component node])
+
+(defn is-simple? [node]
+  (empty? (:children node)))
+
+(defn is-double-column-line? [line]
+  (and (= 2 (count line)) (is-simple? (first line))))
+
+(defn elements-table [nodes]
+  (let [lines (reduce break-nodes-into-lines [[]] nodes)]
+    (if (<= (count lines) 1)
+      [:div.elements
+       (for [node (first lines)]
+         (emit-code-block node))]
+      [:table.elements
+       [:tbody
+        (for [[index line] (map-indexed (fn [i l] [i l]) lines)]
+          (if (is-double-column-line? line)
+            ^{:key index} [:tr
+             [:td (emit-code-block (first line))]
+             [:td (emit-code-block (second line))]]
+            ^{:key index} [:tr
+             [:td {:col-span 2}
+              (if (not= line (first lines)) [:div.indent])
+              (for [node line]
+                (emit-code-block node))]]))]])))
+
 (defn code-element-component [node]
-  (let [{:keys [tag type id children]} node]
+  (let [{:keys [tag children]} node]
     (cond
-      (= type :newline) [:br [:div.indent]]
-      (= type :whitespace) [:div.ws " "]
       (= tag :token) [code-token-component node]
-      :else ^{:key id} [:div.elements
-                        (for [child children]
-                          ^{:key (:id child)} [code-block-component child])])))
+      :else (elements-table children))))
 
 (defn code-block [opener closer node]
   (let [{:keys [id scope selectable? depth tag scope-depth]} node
         tag-name (name tag)]
-    [:div.block {:data-qnid      id
-                 :class          (classv
-                                   tag-name
-                                   (if selectable? "selectable")
-                                   (if scope (str "scope scope-" scope " scope-depth-" scope-depth))
-                                   (if depth (str "depth-" depth)))}
+    [:div.block {:data-qnid id
+                 :class     (classv
+                              tag-name
+                              (if selectable? "selectable")
+                              (if scope (str "scope scope-" scope " scope-depth-" scope-depth))
+                              (if depth (str "depth-" depth)))}
      [:div.punctuation.opener opener]
      (code-element-component node)
      [:div.punctuation.closer closer]]))
