@@ -58,16 +58,23 @@
          (emit-code-block node))]
       [:table.elements
        [:tbody
-        (for [[index line] (map-indexed (fn [i l] [i l]) lines)]
-          (if (is-double-column-line? line)
-            ^{:key index} [:tr
-             [:td (emit-code-block (first line))]
-             [:td (emit-code-block (second line))]]
-            ^{:key index} [:tr
-             [:td {:col-span 2}
-              (if (not= line (first lines)) [:div.indent])
-              (for [node line]
-                (emit-code-block node))]]))]])))
+        (let [first-line-is-double-column? (is-double-column-line? (first lines))]
+          (for [[index line] (map-indexed (fn [i l] [i l]) lines)]
+            (if (is-double-column-line? line)
+              ^{:key index} [:tr
+                             [:td
+                              (if (and
+                                    (not first-line-is-double-column?)
+                                    (not= line (first lines)))
+                                [:div.indent])
+                              (emit-code-block (first line))]
+                             [:td
+                              (emit-code-block (second line))]]
+              ^{:key index} [:tr
+                             [:td {:col-span 2}
+                              (if (not= line (first lines)) [:div.indent])
+                              (for [node line]
+                                (emit-code-block node))]])))]])))
 
 (defn code-element-component [node]
   (let [{:keys [tag children]} node]
