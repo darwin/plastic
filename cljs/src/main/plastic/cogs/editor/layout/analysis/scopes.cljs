@@ -2,6 +2,7 @@
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
   (:require [plastic.util.helpers :as helpers]
             [rewrite-clj.node :as node]
+            [rewrite-clj.node.token :refer [TokenNode]]
             [clojure.zip :as z]
             [plastic.util.zip :as zip-utils]
             [rewrite-clj.zip :as zip]))
@@ -44,16 +45,21 @@
     (max current (:id node) (apply max (map :id (node/children node))))
     (max current (:id node))))
 
+(defn collect-symbols [node max-id]
+  (let [loc (zip-utils/make-zipper node)
+        all-locs (take-while zip-utils/valid-loc? (iterate zip-next loc))
+        symbol-nodes (filter #(instance? TokenNode %) (map zip/node all-locs))]
+    (map (fn [node] [node max-id]) symbol-nodes)))
+
 ; TODO: here must be proper parsing of destructuring
 (defn collect-vector-params [node]
-  (filter-non-args (map (fn [node] [node (:id node)]) (filter (complement node/whitespace?) (node/children node)))))
+  (filter-non-args (collect-symbols node (:id node))))
 
 ; TODO: here must be proper parsing of destructuring
 (defn collect-vector-pairs [node]
   (filter-non-args
     (let [pairs (partition 2 (filter (complement node/whitespace?) (node/children node)))]
-      (for [pair pairs]
-        [(first pair) (get-max-id (second pair) 0)]))))
+      (mapcat #(collect-symbols (first %) (get-max-id (second %) 0)) pairs))))
 
 (defn collect-params [node opener-type]
   (if-let [first-vector (first (filter #(= (node/tag %) :vector) (node/children node)))]
