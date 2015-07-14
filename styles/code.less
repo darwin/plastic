@@ -22,7 +22,6 @@
   .elements {
     display: inline-block;
     white-space: nowrap;
-    //border: 1px solid red;
   }
 
   .elements > * {
@@ -31,6 +30,12 @@
 
   .elements > *:last-child {
     margin-right: 0px !important;
+  }
+  
+  .indent {
+    display: inline-block;
+    margin: 0px !important;
+    width: 8px;
   }
 
   .punctuation {
@@ -55,12 +60,12 @@
     vertical-align: bottom !important;
   }
 
-  .block.scope > .punctuation {
-    opacity: 0.05;
-  }
+  // .block.scope > .punctuation {
+  //   opacity: 0.05;
+  // }
   
-  .block.scope {
-    margin-bottom: 2px !important;
-  }
+  // .block.scope {
+  //   margin-bottom: 2px !important;
+  // }
 
 } // .plastic-editor-view

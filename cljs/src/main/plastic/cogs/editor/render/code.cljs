@@ -39,7 +39,7 @@
 (defn code-element-component [node]
   (let [{:keys [tag type id children]} node]
     (cond
-      (= type :newline) [:br]
+      (= type :newline) [:br [:div.indent]]
       (= type :whitespace) [:div.ws " "]
       (= tag :token) [code-token-component node]
       :else ^{:key id} [:div.elements

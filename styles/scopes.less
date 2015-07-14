@@ -5,13 +5,18 @@
 .plastic-editor-view {
   
   .scope {
-    border-left: 2px solid;
-    padding-left: 10px;
+    //border-left: 2px solid;
+    //padding-left: 8px;
   }
   
   .makeScope(@scope, @color) {
       .scope-@{scope} {
           border-color: darken(@color, 10);
+      }
+      
+      .scope-@{scope} > .punctuation {
+        color: @color !important;
+        opacity: 1;
       }
 
       .decl-scope-@{scope} {
