@@ -59,6 +59,15 @@
           (editor/set-focused-form-id next-focused-form-id)
           (editor/set-selection #{next-selection}))))))
 
+(defn token-movement-prev-next [editor dir-fun]
+  (let [selected-id (get-selected-node-id editor)
+        render-info (editor/get-focused-render-info editor)
+        {:keys [spatial-web]} render-info
+        all-lines (apply concat (vals spatial-web))]
+    (log "!!!" (vals spatial-web) all-lines selected-id)
+    (if-let [result (dir-fun #(= (:id %) selected-id) all-lines)]
+      (editor/set-selection editor #{(:id result)}))))
+
 ; ----------------------------------------------------------------------------------------------------------------
 
 (defmulti op (fn [op-type & _] op-type))
@@ -92,6 +101,13 @@
 
 (defmethod op :move-next-form [_ editor]
   (move-to-form editor helpers/next-item editor/get-first-selectable-token-id-for-form))
+
+(defmethod op :next-token [_ editor]
+  (token-movement-prev-next editor helpers/next-item))
+
+(defmethod op :prev-token [_ editor]
+  (token-movement-prev-next editor helpers/prev-item))
+
 
 ; ----------------------------------------------------------------------------------------------------------------
 
@@ -141,3 +157,12 @@
 
 (defn structural-right [editor]
   (apply-move-selection editor :structural-right))
+
+; ---------------------------
+; token movement
+
+(defn next-token [editor]
+  (apply-move-selection editor :next-token))
+
+(defn prev-token [editor]
+  (apply-move-selection editor :prev-token))

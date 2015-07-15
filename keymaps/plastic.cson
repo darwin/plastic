@@ -24,6 +24,8 @@
   'ctrl-left': 'plastic:structural-left'
   'ctrl-right': 'plastic:structural-right'
   'backspace': 'plastic:delete-selection'
+  'tab': 'plastic:next-token'
+  'alt-tab': 'plastic:prev-token'
 
 # inlined text editor
 '.plastic-editor-view atom-text-editor':
@@ -31,9 +33,10 @@
   'right': 'core:move-right'
   'up': 'core:move-up'
   'down': 'core:move-down'
-  'escape': 'plastic:stop-editing'
   'tab': 'plastic:next-token'
-  'alt+tab': 'plastic:prev-token'
+  'alt-tab': 'plastic:prev-token'
+  'backspace': 'core:backspace'
+  'escape': 'plastic:stop-editing'
 
 '.plastic-editor-view atom-text-editor.plastic-mode-symbol,
  .plastic-editor-view atom-text-editor.plastic-mode-keyword':

@@ -52,6 +52,18 @@
       (dispatch :editor-command (editor/get-id editor) :toggle-editing))
     new-editor))
 
+(defmethod handle :next-token [_ editor]
+  (-> editor
+    editing/stop-editing
+    selection/next-token
+    editing/start-editing))
+
+(defmethod handle :prev-token [_ editor]
+  (-> editor
+    editing/stop-editing
+    selection/prev-token
+    editing/start-editing))
+
 (defmethod handle :toggle-editing [_ editor]
   (if (editor/editing? editor)
     (editing/stop-editing editor)
