@@ -59,12 +59,9 @@
     (.removeClass (apply str (interpose " " known-editor-modes-classes)))
     (.addClass (editor-mode-to-class-name editor-mode))))
 
-(defn strip-colon [text]
-  (str/ltrim text ":"))                                     ; TODO: this must be more robust
-
 (defn preprocess-text-before-editing [editor-mode text]
   (condp = editor-mode
-    :keyword (strip-colon text)
+    ;:keyword (strip-colon text)
     text))
 
 (defn postprocess-text-after-editing [editor-mode text]

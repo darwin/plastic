@@ -6,7 +6,8 @@
             [rewrite-clj.node.keyword :refer [KeywordNode]]
             [clojure.zip :as z]
             [plastic.cogs.editor.layout.utils :as layout-utils]
-            [plastic.util.zip :as zip-utils]))
+            [plastic.util.zip :as zip-utils]
+            [plastic.util.helpers :as helpers]))
 
 (defonce ^:dynamic *line-id* 0)
 
@@ -75,7 +76,8 @@
         (if (is-call? loc) {:call true})
         (if (instance? StringNode node) {:text (layout-utils/prepare-string-for-display (node/string node))
                                          :type :string})
-        (if (instance? KeywordNode node) {:type :keyword})
+        (if (instance? KeywordNode node) {:text (helpers/strip-colon (node/string node))
+                                          :type :keyword})
         (if (not= (:id scope) scope-id) {:scope       (:id scope)
                                          :scope-depth (:depth scope)})
         (if def-name? {:def-name? true})

@@ -7,6 +7,10 @@
     vertical-align: top;
     white-space: pre;
   }
+  
+  .token .raw {
+    display: inline-block;
+  }
 
   .token.call {
     font-style: italic;
@@ -14,6 +18,18 @@
 
   .token.string {
     color: hsl(130, 100%, 80%);
+    background-color: hsl(130, 100%, 20%);
+    padding: 1px 4px;
+    border-radius: 2px;
+    line-height: 1em;
+  }
+  
+  .token.keyword {
+    color: hsl(280, 100%, 80%);
+    background-color: hsl(280, 40%, 40%);
+    padding: 1px 4px;
+    border-radius: 2px;
+    line-height: 1em;
   }
 
   .token.string i {

@@ -2,7 +2,8 @@
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
                    [cljs.core.async.macros :refer [go]])
   (:require [cljs.pprint :as pprint :refer [pprint]]
-            [cljs.core.async :refer [put! <! chan timeout close!]]))
+            [cljs.core.async :refer [put! <! chan timeout close!]]
+            [cuerdas.core :as str]))
 
 (def noop (fn [] []))
 
@@ -82,3 +83,7 @@
 
 (defn prev-item [f coll]
   (last (take-while #(not (f %)) coll)))
+
+(defn strip-colon [text]
+  (str/ltrim text ":"))                                     ; TODO: this must be more robust
+
