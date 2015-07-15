@@ -63,7 +63,7 @@
         top-id (dec root-id)                                ; a hack - root-id was minimal, we rely ids to be assigned by parser in dept-first-order
         editing-set (editor/get-editing-set editor)
         nodes (apply hash-map (collect-nodes root-node))
-        {:keys [code-visible docs-visible]} settings
+        {:keys [code-visible docs-visible headers-visible]} settings
 
         analysis (->> {}
                    (analyze-selectables nodes)
@@ -74,7 +74,7 @@
 
         code-render-tree (if code-visible (build-code-render-tree analysis root-loc))
         docs-render-tree (if docs-visible (build-docs-render-tree analysis nodes))
-        headers-render-tree (build-headers-render-tree analysis root-loc)
+        headers-render-tree (if headers-visible (build-headers-render-tree analysis root-loc))
         render-tree (compose-render-trees top-id headers-render-tree docs-render-tree code-render-tree)
 
         selectables (extract-all-selectables render-tree)

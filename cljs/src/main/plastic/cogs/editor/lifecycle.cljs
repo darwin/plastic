@@ -44,10 +44,12 @@
 
 (defn watch-settings [editor-id]
   (let [code-visible-subscription (subscribe [:settings :code-visible])
-        docs-visible-subscription (subscribe [:settings :docs-visible])]
+        docs-visible-subscription (subscribe [:settings :docs-visible])
+        headers-visible-subscription (subscribe [:settings :headers-visible])]
     (react!
       (let [_ @code-visible-subscription
-            _ @docs-visible-subscription]
+            _ @docs-visible-subscription
+            _ @headers-visible-subscription]
         (dispatch :editor-update-layout editor-id)))))
 
 (defn wire-editor [editor-id]

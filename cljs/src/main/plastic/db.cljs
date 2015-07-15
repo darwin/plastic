@@ -4,7 +4,8 @@
 
 (def defaults
   {:settings
-   {:code-visible true
+   {:headers-visible true
+    :code-visible true
     :docs-visible true}})
 
 ;; -- Application State  --------------------------------------------------------------------------

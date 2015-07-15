@@ -8,6 +8,9 @@
 
 ; ----------------------------------------------------------------------------------------------------------------
 
+(defmethod handle :toggle-headers [_ settings]
+  (toggle-setting settings :headers-visible))
+
 (defmethod handle :toggle-code [_ settings]
   (toggle-setting settings :code-visible))
 

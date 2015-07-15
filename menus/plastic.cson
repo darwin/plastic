@@ -10,6 +10,10 @@
       'command': 'plastic:toggle-docs'
     },
     {
+      'label': 'Toggle Headers'
+      'command': 'plastic:toggle-headers'
+    },
+    {
       'label': 'Toggle Input Text (debug)'
       'command': 'plastic:toggle-text-input-debug'
     },
@@ -43,8 +47,11 @@
         {
           'label': 'Toggle Docs'
           'command': 'plastic:toggle-docs'
+        },
+        {
+          'label': 'Toggle Headers'
+          'command': 'plastic:toggle-headers'
         }
-
       ]
     ]
   }

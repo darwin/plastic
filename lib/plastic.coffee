@@ -23,6 +23,7 @@ module.exports = Plastic =
     @subscriptions = new CompositeDisposable
 
     @addCommands [
+      'plastic:toggle-headers'
       'plastic:toggle-docs'
       'plastic:toggle-code'
       'plastic:toggle-text-input-debug'
