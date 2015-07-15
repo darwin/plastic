@@ -16,7 +16,7 @@
                     (if editing? "editing"))}
       (if editing?
         [inline-editor-component id text :doc]
-        [raw-html-component (wrap-specials text)])]]))
+        [raw-html-component (str (wrap-specials text) " ")])]])) ; that added space is important, last newline could be ignored without it
 
 (defn docs-component []
   (fn [docs-render-info]
