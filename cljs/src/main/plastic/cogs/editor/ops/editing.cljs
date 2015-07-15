@@ -77,10 +77,14 @@
 
 (defn delete-selection [editor]
   {:pre [(not (editor/editing? editor))]}
-  (let [node-id (get-selected-node-id editor)]
+  (let [node-id (get-selected-node-id editor)
+        editor-with-next-selection (select-next-candidate-for-case-of-selected-node-removal editor)
+        next-selection-node-id (get-selected-node-id editor-with-next-selection)]
     (-> editor
-      (select-next-candidate-for-case-of-selected-node-removal)
-      (editor/delete-node node-id))))
+      (editor/add-sticker-on-node next-selection-node-id :edit-point)
+      (editor/delete-node node-id)
+      (set-selection-to-node-with-sticker-if-still-exists :edit-point)
+      (editor/remove-sticker :edit-point))))
 
 (defn delete-and-move-left [editor]
   (let [node-loc (editor/find-node-loc editor (get-edited-node-id editor))

@@ -44,10 +44,11 @@
   (let [selected-id (get-selected-node-id editor)
         render-info (editor/get-focused-render-info editor)
         {:keys [spatial-web all-selections]} render-info
-        sel-node (get all-selections selected-id)
-        line-selectables (get spatial-web (:line sel-node))]
-    (if-let [result (dir-fun #(= (:id %) selected-id) line-selectables)]
-      (editor/set-selection editor #{(:id result)}))))
+        sel-node (get all-selections selected-id)]
+    (if (empty? (:children sel-node))
+      (let [line-selectables (get spatial-web (:line sel-node))]
+        (if-let [result (dir-fun #(= (:id %) selected-id) line-selectables)]
+          (editor/set-selection editor #{(:id result)}))))))
 
 (defn move-to-form [editor dir-fun next-sel-fun]
   (let [focused-form-id (editor/get-focused-form-id editor)

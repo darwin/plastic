@@ -208,10 +208,19 @@
         (recur (z/remove possibly-white-space-loc))
         cur-loc))))
 
+(defn delete-whitespaces-and-newlines-before-loc [loc]
+  (loop [cur-loc loc]
+    (let [possibly-white-space-loc (z/left cur-loc)]
+      (if (and (zip-utils/valid-loc? possibly-white-space-loc) (node/whitespace? (zip/node possibly-white-space-loc)))
+        (let [loc-after-removal (z/remove possibly-white-space-loc)
+              next-step-loc (z/next loc-after-removal)]
+          (recur next-step-loc))
+        cur-loc))))
+
 (defn delete-node-loc [node-id loc]
   (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))]
     (assert (zip-utils/valid-loc? node-loc))
-    (z/remove (delete-whitespaces-and-newlines-after-loc node-loc))))
+    (z/remove (delete-whitespaces-and-newlines-before-loc node-loc))))
 
 (defn parse-tree-transformer [f]
   (fn [parse-tree]
