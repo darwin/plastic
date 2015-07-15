@@ -1,7 +1,7 @@
 (ns plastic.onion.core
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
   (:require [plastic.onion.inface :as inface]
-            [plastic.onion.api :refer [$]]
+            [plastic.onion.api :refer [$ atom]]
             [plastic.onion.remounter]
             [plastic.onion.api :refer [File]]
             [plastic.cogs.editor.render.dom :as dom]
@@ -102,3 +102,11 @@
         editor-mode (get-inline-editor-mode editor-id)
         raw-text (.getText inline-editor)]
     (postprocess-text-after-editing editor-mode raw-text)))
+
+(defn is-inline-editor-empty? [editor-id]
+  (let [inline-editor (get-atom-inline-editor-instance editor-id)]
+    (.isEmpty inline-editor)))
+
+(defn dispatch-command-in-inline-editor [editor-id command]
+  (let [inline-editor-view (get-atom-inline-editor-view-instance editor-id)]
+    (.dispatch (.-commands atom) inline-editor-view command)))

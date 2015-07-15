@@ -23,7 +23,7 @@
   'ctrl-down': 'plastic:structural-down'
   'ctrl-left': 'plastic:structural-left'
   'ctrl-right': 'plastic:structural-right'
-  'backspace': 'plastic:delete-selection'
+  'backspace': 'plastic:backspace'
   'tab': 'plastic:next-token'
   'alt-tab': 'plastic:prev-token'
 
@@ -35,7 +35,6 @@
   'down': 'core:move-down'
   'tab': 'plastic:next-token'
   'alt-tab': 'plastic:prev-token'
-  'backspace': 'core:backspace'
   'escape': 'plastic:stop-editing'
 
 '.plastic-editor-view atom-text-editor.plastic-mode-symbol,

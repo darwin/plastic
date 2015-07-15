@@ -81,8 +81,10 @@
 (defmethod handle :space [_ editor]
   (editing/space editor))
 
-(defmethod handle :delete-selection [_ editor]
-  (editing/delete-selection editor))
+(defmethod handle :backspace [_ editor]
+  (if (editor/editing? editor)
+    (editing/delete-char-or-move editor)
+    (editing/delete-selection editor)))
 
 ; ----------------------------------------------------------------------------------------------------------------
 

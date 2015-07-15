@@ -5,7 +5,8 @@
             [plastic.cogs.editor.model :as editor]
             [plastic.cogs.editor.ops.selection :as selection]
             [plastic.onion.core :as onion]
-            [plastic.util.zip :as zip-utils]))
+            [plastic.util.zip :as zip-utils]
+            [rewrite-clj.zip :as zip]))
 
 (defn select-next-candidate-for-case-of-selected-node-removal [editor]
   (selection/apply-move-selection editor :spatial-left :spatial-right :structural-up))
@@ -80,3 +81,25 @@
     (-> editor
       (select-next-candidate-for-case-of-selected-node-removal)
       (editor/delete-node node-id))))
+
+(defn delete-and-move-left [editor]
+  (let [node-loc (editor/find-node-loc editor (get-edited-node-id editor))
+        left-loc (zip/left node-loc)]
+    (if (zip-utils/valid-loc? left-loc)
+      (-> editor
+        (editor/add-sticker-on-node (editor/loc-id left-loc) :left-point)
+        (stop-editing)
+        (set-selection-to-node-with-sticker-if-still-exists :left-point)
+        (editor/remove-sticker :left-point))
+      (-> editor
+        (stop-editing)
+        (selection/structural-up)))))
+
+(defn delete-char-or-move [editor]
+  {:pre [(editor/editing? editor)]}
+  (let [editor-id (editor/get-id editor)]
+    (if (onion/is-inline-editor-empty? editor-id)
+      (delete-and-move-left editor)
+      (do
+        (onion/dispatch-command-in-inline-editor editor-id "core:backspace")
+        editor))))
