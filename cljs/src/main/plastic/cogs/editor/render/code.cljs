@@ -52,7 +52,7 @@
   (or (nil? node) (= (:tag node) :newline)))
 
 (defn is-double-column-line? [line]
-  (and (is-simple? (first line)) (is-newline? (nth line 2 nil))))
+  (and (is-simple? (first line)) (not (is-newline? (second line))) (is-newline? (nth line 2 nil))))
 
 (defn elements-table [nodes]
   (let [lines (reduce break-nodes-into-lines [[]] nodes)]
