@@ -37,9 +37,10 @@
         (emit-token (-> text (apply-shadowing-subscripts shadows)))))))
 
 (defn break-nodes-into-lines [accum node]
-  (if (= (:type node) :newline)
-    (conj accum [])
-    (assoc accum (dec (count accum)) (conj (last accum) node))))
+  (let [new-accum (assoc accum (dec (count accum)) (conj (last accum) node))]
+    (if (= (:tag node) :newline)
+      (conj new-accum [])
+      new-accum)))
 
 (defn emit-code-block [node]
   ^{:key (:id node)} [code-block-component node])
@@ -47,8 +48,11 @@
 (defn is-simple? [node]
   (empty? (:children node)))
 
+(defn is-newline? [node]
+  (or (nil? node) (= (:tag node) :newline)))
+
 (defn is-double-column-line? [line]
-  (and (= 2 (count line)) (is-simple? (first line))))
+  (and (is-simple? (first line)) (is-newline? (nth line 2 nil))))
 
 (defn elements-table [nodes]
   (let [lines (reduce break-nodes-into-lines [[]] nodes)]
@@ -69,7 +73,8 @@
                                 [:div.indent])
                               (emit-code-block (first line))]
                              [:td
-                              (emit-code-block (second line))]]
+                              (for [node (rest line)]
+                                (emit-code-block node))]]
               ^{:key index} [:tr
                              [:td {:col-span 2}
                               (if (not= line (first lines)) [:div.indent])
@@ -78,9 +83,10 @@
 
 (defn code-element-component [node]
   (let [{:keys [tag children]} node]
-    (cond
-      (= tag :token) [code-token-component node]
-      :else (elements-table children))))
+    (condp = tag
+      :newline [:span.newline "↵"]
+      :token [code-token-component node]
+      (elements-table children))))
 
 (defn code-block [opener closer node]
   (let [{:keys [id scope selectable? depth tag scope-depth]} node

@@ -5,7 +5,8 @@
             [rewrite-clj.node.stringz :refer [StringNode]]
             [rewrite-clj.node.keyword :refer [KeywordNode]]
             [clojure.zip :as z]
-            [plastic.cogs.editor.layout.utils :as layout-utils]))
+            [plastic.cogs.editor.layout.utils :as layout-utils]
+            [plastic.util.zip :as zip-utils]))
 
 (defonce ^:dynamic *line-id* 0)
 
@@ -19,27 +20,35 @@
 (defn current-line-id []
   *line-id*)
 
+(defn code-related? [loc]
+  (let [node (z/node loc)]
+    (or (node/linebreak? node) (not (node/whitespace? node)))))
+
+(def zip-up (partial zip-utils/zip-up code-related?))
+(def zip-down (partial zip-utils/zip-down code-related?))
+(def zip-left (partial zip-utils/zip-left code-related?))
+(def zip-right (partial zip-utils/zip-right code-related?))
+(def zip-next (partial zip-utils/zip-next code-related?))
+
+(defn collect-all-right [loc]
+  (take-while zip-utils/valid-loc? (iterate zip-right loc)))
+
+(defn child-locs [loc]
+  (collect-all-right (zip-down loc)))
+
 (defn is-whitespace-or-nl-after-def-doc? [analysis loc]
   (let [node (zip/node loc)]
-    (if (or (node/whitespace? node) (node/linebreak? node))
-      (let [prev (z/left loc)
-            prev-node (zip/node prev)
-            prev-node-analysis (get analysis (:id prev-node))]
-        (:def-doc? prev-node-analysis)))))
-
-(defn layout-affecting-children [loc]
-  (let [first (zip/down loc)
-        children (take-while (complement nil?)
-                   (iterate z/right first))
-        interesting? (fn [loc]
-                       (let [node (zip/node loc)]
-                         (or (node/linebreak? node) (not (node/whitespace? node)))))] ; skip whitespaces but keep line breaks
-    (filter interesting? children)))
+    (if (node/whitespace? node)
+      (let [prev (zip-left loc)]
+        (if (zip-utils/valid-loc? prev)
+          (let [prev-node (zip/node prev)
+                prev-node-analysis (get analysis (:id prev-node))]
+            (:def-doc? prev-node-analysis)))))))
 
 (defn is-call? [loc]
-  (if-let [parent-loc (z/up loc)]
-    (if (= (node/tag (zip/node parent-loc)) :list)
-      (= loc (first (layout-affecting-children parent-loc))))))
+  (if-let [parent-loc (zip-up loc)]
+    (if (= (zip/tag parent-loc) :list)
+      (= loc (z/leftmost loc)))))
 
 (defn build-node-code-render-tree-node [depth scope-id analysis loc]
   (let [node (zip/node loc)
@@ -49,16 +58,17 @@
         tag (node/tag node)
         {:keys [declaration-scope def-name? def-doc? cursor editing? selectable?]} node-analysis
         {:keys [shadows decl?]} declaration-scope]
-    (if (or def-doc? (is-whitespace-or-nl-after-def-doc? analysis loc))
-      nil
+    (if-not (or def-doc? (is-whitespace-or-nl-after-def-doc? analysis loc))
       (merge
         {:id    node-id
          :tag   tag
          :depth depth
          :line  (current-line-id)}
-        (when (or (node/linebreak? node) (node/comment? node)) (next-line-id!) {:type :newline :text "\n"}) ; comments have newlines embedded
+        (when (or (node/linebreak? node) (node/comment? node))
+          (next-line-id!)
+          {:tag :newline})                                  ; comments have newlines embedded
         (if (node/inner? node)
-          {:children (doall (remove nil? (map (partial build-node-code-render-tree-node (inc depth) (:id scope) analysis) (layout-affecting-children loc))))}
+          {:children (keep (partial build-node-code-render-tree-node (inc depth) (:id scope) analysis) (child-locs loc))}
           {:text (node/string node)})
         (if selectable? {:selectable? true})
         (if editing? {:editing? true})
@@ -66,7 +76,7 @@
         (if (instance? StringNode node) {:text (layout-utils/prepare-string-for-display (node/string node))
                                          :type :string})
         (if (instance? KeywordNode node) {:type :keyword})
-        (if (not= (:id scope) scope-id) {:scope (:id scope)
+        (if (not= (:id scope) scope-id) {:scope       (:id scope)
                                          :scope-depth (:depth scope)})
         (if def-name? {:def-name? true})
         (if declaration-scope {:decl-scope (:id declaration-scope)})

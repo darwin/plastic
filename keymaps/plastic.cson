@@ -24,6 +24,7 @@
   'ctrl-left': 'plastic:structural-left'
   'ctrl-right': 'plastic:structural-right'
   'backspace': 'plastic:backspace'
+  'enter': 'plastic:enter'
   'tab': 'plastic:next-token'
   'alt-tab': 'plastic:prev-token'
 
@@ -33,11 +34,8 @@
   'right': 'core:move-right'
   'up': 'core:move-up'
   'down': 'core:move-down'
+  'space': 'plastic:space'
+  'enter': 'plastic:enter'
   'tab': 'plastic:next-token'
   'alt-tab': 'plastic:prev-token'
   'escape': 'plastic:stop-editing'
-
-'.plastic-editor-view atom-text-editor.plastic-mode-symbol,
- .plastic-editor-view atom-text-editor.plastic-mode-keyword':
-  'enter': 'plastic:enter'
-  'space': 'plastic:space'

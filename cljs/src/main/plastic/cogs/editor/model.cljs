@@ -242,12 +242,21 @@
 
 (defn insert-values-after-node-loc [node-id values loc]
   (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))
+        _ (assert (zip-utils/valid-loc? node-loc))
         inserter (fn [loc val] (z/insert-right loc val))]
-    (assert (zip-utils/valid-loc? node-loc))
     (reduce inserter node-loc (reverse values))))
+
+(defn insert-values-before-node-loc [node-id values loc]
+  (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))
+        _ (assert (zip-utils/valid-loc? node-loc))
+        inserter (fn [loc val] (z/insert-left loc val))]
+    (reduce inserter node-loc values)))
 
 (defn insert-values-after-node [editor node-id values]
   (transform-parse-tree editor (parse-tree-transformer (partial insert-values-after-node-loc node-id values))))
+
+(defn insert-values-before-node [editor node-id values]
+  (transform-parse-tree editor (parse-tree-transformer (partial insert-values-before-node-loc node-id values))))
 
 (defn get-render-infos [editor]
   (get-in editor [:render-state :forms]))
