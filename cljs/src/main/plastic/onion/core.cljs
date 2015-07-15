@@ -110,3 +110,7 @@
 (defn dispatch-command-in-inline-editor [editor-id command]
   (let [inline-editor-view (get-atom-inline-editor-view-instance editor-id)]
     (.dispatch (.-commands atom) inline-editor-view command)))
+
+(defn insert-text-into-inline-editor [editor-id text]
+  (let [inline-editor (get-atom-inline-editor-instance editor-id)]
+    (.insertText inline-editor text)))

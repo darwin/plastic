@@ -62,46 +62,50 @@
         (apply-editing modified-editor :stop)))
     editor))
 
-(defn insert-and-continue-editing [editor & values]
-  {:pre [(editor/editing? editor)]}
-  (-> editor
-    (editor/add-sticker-on-node (get-edited-node-id editor) :edit-point)
-    (stop-editing)
-    (insert-values-after-point :edit-point values)
-    (set-selection-to-node-with-sticker-if-still-exists :placeholder)
-    (editor/remove-sticker :placeholder)
-    (editor/remove-sticker :edit-point)
-    (start-editing)))
+(defn insert-and-start-editing [editor sticker & values]
+  (let [editor-after-stop-editing (if (editor/editing? editor) (stop-editing editor) editor)
+        node-id (if (editor/editing? editor) (get-edited-node-id editor) (get-selected-node-id editor))]
+    (-> editor-after-stop-editing
+      (editor/insert-values-after-node node-id values)
+      (set-selection-to-node-with-sticker-if-still-exists sticker)
+      (editor/remove-sticker sticker)
+      (start-editing))))
 
 (defn prepend-and-keep-selection [editor & values]
   (let [selected-id (get-selected-node-id editor)]
-  (-> editor
-    (editor/add-sticker-on-node selected-id :selected)
-    (editor/insert-values-before-node selected-id values)
-    (set-selection-to-node-with-sticker-if-still-exists :selected)
-    (editor/remove-sticker :selected))))
+    (-> editor
+      (editor/add-sticker-on-node selected-id :selected)
+      (editor/insert-values-before-node selected-id values)
+      (set-selection-to-node-with-sticker-if-still-exists :selected)
+      (editor/remove-sticker :selected))))
 
-(defn dispatch-atom-command-if-editing-string-or-doc [editor command]
+(defn dispatch-atom-command-in-inline-editor [editor command]
+  (let [editor-id (editor/get-id editor)]
+    (onion/dispatch-command-in-inline-editor editor-id command)
+    editor))
+
+(defn insert-text-into-inline-editor [editor text]
+  (let [editor-id (editor/get-id editor)]
+    (onion/insert-text-into-inline-editor editor-id text)
+    editor))
+
+(defn editing-string-or-doc? [editor]
   (if (editor/editing? editor)
     (let [editor-id (editor/get-id editor)
           mode (onion/get-inline-editor-mode editor-id)]
-      (log mode)
-      (if (or (= mode :string) (= mode :doc))
-        (do
-          (onion/dispatch-command-in-inline-editor editor-id command)
-          true)))))
+      (or (= mode :string) (= mode :doc)))))
 
 (defn enter [editor]
-  (if (dispatch-atom-command-if-editing-string-or-doc editor "core:enter")
-    editor
+  (if (editing-string-or-doc? editor)
+    (dispatch-atom-command-in-inline-editor editor "editor:newline")
     (if (editor/editing? editor)
-      (insert-and-continue-editing editor (editor/prepare-newline-node) (editor/node-add-sticker (editor/prepare-placeholder-node) :placeholder))
+      (insert-and-start-editing editor :placeholder (editor/prepare-newline-node) (editor/node-add-sticker (editor/prepare-placeholder-node) :placeholder))
       (prepend-and-keep-selection editor (editor/prepare-newline-node)))))
 
 (defn space [editor]
-  (if (dispatch-atom-command-if-editing-string-or-doc editor "core:enter")
-    editor
-    (insert-and-continue-editing editor (editor/node-add-sticker (editor/prepare-placeholder-node) :placeholder))))
+  (if (editing-string-or-doc? editor)
+    (insert-text-into-inline-editor editor " ")
+    (insert-and-start-editing editor :placeholder (editor/node-add-sticker (editor/prepare-placeholder-node) :placeholder))))
 
 (defn delete-selection [editor]
   {:pre [(not (editor/editing? editor))]}

@@ -24,6 +24,7 @@
   'ctrl-left': 'plastic:structural-left'
   'ctrl-right': 'plastic:structural-right'
   'backspace': 'plastic:backspace'
+  'space': 'plastic:space'
   'enter': 'plastic:enter'
   'tab': 'plastic:next-token'
   'alt-tab': 'plastic:prev-token'
