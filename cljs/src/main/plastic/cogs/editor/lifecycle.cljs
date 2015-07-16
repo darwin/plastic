@@ -23,18 +23,11 @@
       (when-let [_ @parsed-subscription]
         (dispatch :editor-update-layout editor-id)))))
 
-(defn watch-cursors [editor-id]
-  (let [cursors-subscription (subscribe [:editor-cursors editor-id])]
-    (react!
-      (when-let [cursors @cursors-subscription]
-        (log "cursors changed" editor-id cursors)))))
-
 (defn watch-selections [editor-id]
   (let [selection-subscription (subscribe [:editor-selection editor-id])]
     (react!
       (when-let [selections @selection-subscription]
-        (log "selections in" editor-id "changed to" selections)
-        #_(dispatch :editor-update-selection editor-id)))))
+        (log "selections in editor" editor-id "changed to" selections)))))
 
 (defn watch-editing [editor-id]
   (let [editing-subscription (subscribe [:editor-editing editor-id])]
@@ -57,8 +50,7 @@
   (watch-raw-text editor-id)
   (watch-parse-tree editor-id)
   (watch-editing editor-id)
-  (watch-cursors editor-id)
-  (watch-selections editor-id)
+  (watch-selections editor-id)                              ; debug
   (watch-settings editor-id))
 
 (defn add-editor [editors [id editor-def]]

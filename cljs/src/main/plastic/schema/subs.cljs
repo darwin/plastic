@@ -14,6 +14,9 @@
   (fn [setting]
     (concat paths/settings [setting])))
 
+(defn selection-selector []
+  (fn [editor-id node-id]
+    (concat paths/editors [editor-id :selection node-id])))
 
 (register-sub :editors (path-query-factory paths/editors))
 
@@ -23,6 +26,7 @@
 (register-sub :editor-parse-tree (path-query-factory (editor-selector [:parse-tree])))
 (register-sub :editor-cursors (path-query-factory (editor-selector [:cursors])))
 (register-sub :editor-selection (path-query-factory (editor-selector [:selection])))
+(register-sub :editor-selection-node (path-query-factory (selection-selector)))
 (register-sub :editor-editing (path-query-factory (editor-selector [:editing])))
 
 (register-sub :settings (path-query-factory (settings-selector)))

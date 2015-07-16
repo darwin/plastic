@@ -14,8 +14,8 @@
     (str text (utils/wrap-in-span shadows "shadowed"))
     text))
 
-(defn code-token-component []
-  (let [selection-subscription (subscribe [:editor-selection *editor-id*])]
+(defn code-token-component [node-id]
+  (let [selection-subscription (subscribe [:editor-selection-node *editor-id* node-id])]
     (fn [node]
       (let [{:keys [decl-scope call selectable? type text shadows decl? def-name? id geometry editing?]} node
             _ (log "R! token" id)
@@ -23,7 +23,7 @@
                     {:data-qnid id
                      :class     (classv
                                   (if selectable? "selectable")
-                                  (if (and selectable? (contains? @selection-subscription id)) "selected")
+                                  (if (and selectable? @selection-subscription) "selected")
                                   (if type (name type))
                                   (if call "call")
                                   (if editing? "editing")
@@ -88,11 +88,11 @@
   (let [{:keys [tag children]} node]
     (condp = tag
       :newline [:span.newline "↵"]
-      :token [code-token-component node]
+      :token [(code-token-component (:id node)) node]
       (elements-table children))))
 
 (defn code-block [opener closer node]
-  (let [selection-subscription (subscribe [:editor-selection *editor-id*])]
+  (let [selection-subscription (subscribe [:editor-selection-node *editor-id* (:id node)])]
     (fn []
       (let [{:keys [id scope selectable? depth tag scope-depth]} node
             tag-name (name tag)]
@@ -101,7 +101,7 @@
                      :class     (classv
                                   tag-name
                                   (if selectable? "selectable")
-                                  (if (and selectable? (contains? @selection-subscription id)) "selected")
+                                  (if (and selectable? @selection-subscription) "selected")
                                   (if scope (str "scope scope-" scope " scope-depth-" scope-depth))
                                   (if depth (str "depth-" depth)))}
          [:div.punctuation.opener opener]
