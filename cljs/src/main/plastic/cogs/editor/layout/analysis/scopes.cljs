@@ -29,9 +29,7 @@
   (let [node (z/node loc)]
     (not (or (node/whitespace? node) (node/comment? node)))))
 
-(def zip-up (partial zip-utils/zip-up scope-related?))
 (def zip-down (partial zip-utils/zip-down scope-related?))
-(def zip-left (partial zip-utils/zip-left scope-related?))
 (def zip-right (partial zip-utils/zip-right scope-related?))
 (def zip-next (partial zip-utils/zip-next scope-related?))
 
@@ -61,8 +59,8 @@
 ; TODO: here must be proper parsing of destructuring
 (defn collect-vector-pairs [node]
   (if node
-      (let [pairs (partition 2 (filter (complement node/whitespace?) (node/children node)))]
-        (mapcat #(collect-node-params (first %) (get-max-id (second %) 0)) pairs))))
+    (let [pairs (partition 2 (filter (complement node/whitespace?) (node/children node)))]
+      (mapcat #(collect-node-params (first %) (get-max-id (second %) 0)) pairs))))
 
 (defn collect-specified-param [node num]
   (let [relevant-children (filter (complement node/whitespace?) (node/children node))]
@@ -98,18 +96,47 @@
          :locals [[#(re-find #"^%" (node/string %)) (:id (z/node loc))]]}
     nil))
 
+(defn matching-local? [node [decl-node after-id]]
+  (if (fn? decl-node)
+    (decl-node node)
+    (or
+      (identical? node decl-node)
+      (and
+        (> (:id node) after-id)
+        (= (node/string node) (node/string decl-node))))))
+
+(defn find-symbol-declaration [node scope-info]
+  (if scope-info
+    (let [locals (get-in scope-info [:scope :locals])
+          matching-locals (filter (partial matching-local? node) locals)
+          hit-count (count matching-locals)
+          best-node (first (last matching-locals))]
+      (if-not (= hit-count 0)
+        (merge (:scope scope-info)
+          {:shadows hit-count}
+          (if (identical? best-node node)
+            {:decl? true}))
+        (find-symbol-declaration node (:parent-scope scope-info))))))
+
+(defn resolve-symbol [node scope-info]
+  (if (= (node/tag node) :token)
+    (if-let [declaration-scope (find-symbol-declaration node scope-info)]
+      (assoc scope-info :decl-scope declaration-scope)
+      scope-info)
+    scope-info))
+
 (defn analyze-scope [scope-info loc]
-  (let [id (:id (z/node loc))
+  (let [node (z/node loc)
+        id (:id node)
         childs (child-locs loc)
         depth (get-in scope-info [:scope :depth])
         analyze-child-scopes (fn [scope] (into {} (map (partial analyze-scope scope) childs)))]
     (if-let [new-scope (node-scope loc childs depth)]
-      (let [new-scope-info {:scope new-scope :parent-scope scope-info}]
-        (conj (analyze-child-scopes new-scope-info) [id new-scope-info]))
-      (conj (analyze-child-scopes scope-info) [id scope-info]))))
+      (let [new-scope-info {:new-scope? true :scope new-scope :parent-scope scope-info}]
+        (conj (analyze-child-scopes new-scope-info) [id (resolve-symbol node new-scope-info)]))
+      (conj (analyze-child-scopes (dissoc scope-info :new-scope?)) [id (resolve-symbol node scope-info)]))))
 
-(defn analyze-scopes [loc analysis]
+(defn analyze-scopes [analysis loc]
   (binding [*scope-id* 0]
-    (let [starting-loc (if-not (scope-related? loc) (zip-next loc) loc)
-          initial-scope {:scope nil :parent-scope nil}]
-      (helpers/deep-merge analysis (analyze-scope initial-scope starting-loc)))))
+    (let [starting-loc (if-not (scope-related? loc) (zip-next loc) loc)]
+      (helpers/deep-merge analysis (analyze-scope nil starting-loc)))))

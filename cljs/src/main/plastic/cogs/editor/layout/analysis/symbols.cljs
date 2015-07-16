@@ -33,5 +33,5 @@
         record)
       record)))
 
-(defn analyze-symbols [nodes info]
-  (into {} (map (partial resolve-symbol nodes) info)))
+(defn analyze-symbols [analysis nodes]
+  (into {} (map (partial resolve-symbol nodes) analysis)))

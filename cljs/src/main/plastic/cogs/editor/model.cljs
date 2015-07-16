@@ -315,3 +315,9 @@
 
 (defn prepare-token-node [s]
   (token-node (symbol s) s))
+
+(defn doall-specified-forms [editor f selector]
+  (doall
+    (for [loc (get-top-level-locs editor)]
+      (if (helpers/selector-matches? selector (loc-id loc))
+        (f loc)))))

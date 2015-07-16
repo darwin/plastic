@@ -1,7 +1,13 @@
 (ns plastic.cogs.editor.layout.utils
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
   (:require [rewrite-clj.node :as node]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [rewrite-clj.node.stringz :refer [StringNode]]
+            [rewrite-clj.node.token :refer [TokenNode]]
+            [rewrite-clj.node.keyword :refer [KeywordNode]]
+            [rewrite-clj.zip :as zip]
+            [clojure.zip :as z]
+            [plastic.util.zip :as zip-utils]))
 
 (defn node-walker [inner-fn leaf-fn reducer child-selector]
   (let [walker (fn walk [node]
@@ -70,10 +76,54 @@
     (set? selector) (contains? selector editor-id)
     :default (= editor-id selector)))
 
-(defn apply-to-selected-editors [f editors id-or-ids]
+(defn apply-to-specified-editors [f editors id-or-ids]
   (apply array-map
     (flatten
       (for [[editor-id editor] editors]
         (if (selector-matches-editor? editor-id id-or-ids)
           [editor-id (f editor)]
           [editor-id editor])))))
+
+(defn doall-specified-editors [f editors id-or-ids]
+  (doall
+    (for [[editor-id editor] editors]
+      (if (selector-matches-editor? editor-id id-or-ids)
+        (f editor)))))
+
+(defn string-node? [node]
+  (instance? StringNode node))
+
+(defn symbol-node? [node]
+  (instance? TokenNode node))
+
+(defn keyword-node? [node]
+  (instance? KeywordNode node))
+
+(defn string-loc? [loc]
+  (string-node? (z/node loc)))
+
+(defn symbol-loc? [loc]
+  (symbol-node? (z/node loc)))
+
+(defn first-child-sexpr [loc]
+  (first (node/child-sexprs (zip/node loc))))
+
+(defn is-def? [loc]
+  (if (= (zip/tag loc) :list)
+    (re-find #"^def" (str (first-child-sexpr loc)))))
+
+(defn is-doc? [loc]
+  (if (string-loc? loc)
+    (if-let [parent-loc (zip/up loc)]
+      (if (is-def? parent-loc)
+        (let [left-strings (filter string-node? (z/lefts loc))]
+          (empty? left-strings))))))
+
+(defn is-whitespace-or-nl-after-doc? [loc]
+  (if (node/whitespace? (zip/node loc))
+    (let [left-loc (zip/left loc)]
+      (if (zip-utils/valid-loc? left-loc)
+        (is-doc? left-loc)))))
+
+
+

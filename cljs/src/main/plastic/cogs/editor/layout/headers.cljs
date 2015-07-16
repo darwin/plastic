@@ -9,7 +9,8 @@
       {:id   (:id name-node)
        :name name})))
 
-(defn build-headers-render-tree [analysis _node]
-  (let [headers (filter (fn [[_node info]] (:def? info)) analysis)]
+(defn build-headers-render-tree [loc]
+  nil
+  #_(let [headers (filter (fn [[_node info]] (:def? info)) analysis)]
     {:tag      :headers
      :children (map header-item headers)}))

@@ -1,46 +1,38 @@
 (ns plastic.cogs.editor.layout.analysis.defs
   (:require [plastic.util.helpers :as helpers]
             [rewrite-clj.node :as node]
-            [rewrite-clj.node.stringz :refer [StringNode]]
-            [rewrite-clj.node.token :refer [TokenNode]]
-            [plastic.cogs.editor.layout.utils :as layout-utils])
+            [plastic.cogs.editor.layout.utils :as layout-utils]
+            [plastic.util.zip :as zip-utils]
+            [clojure.zip :as z]
+            [rewrite-clj.zip :as zip]
+            [plastic.cogs.editor.layout.utils :as utils])
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]))
-
-(defn first-child-sexpr [node]
-  (first (node/child-sexprs node)))
 
 (defn essential-nodes [nodes]
   (filter #(not (or (node/whitespace? %) (node/comment? %))) nodes))
 
-(defn is-def? [node]
-  {:pre  [(= (node/tag node) :list)]}
-  (re-find #"^def" (str (first-child-sexpr node))))
-
-(defn string-node? [node]
-  (instance? StringNode node))
-
-(defn symbol-node? [node]
-  (instance? TokenNode node))
-
 (defn extract-sym-doc [node]
   (let [children (essential-nodes (layout-utils/unwrap-metas (node/children node)))
-        first-string-node (first (filter string-node? children))
-        first-symbol-node (first (rest (filter symbol-node? children)))]
+        first-string-node (first (filter utils/string-node? children))
+        first-symbol-node (first (rest (filter utils/symbol-node? children)))]
     [(if first-symbol-node
-       {(:id first-symbol-node) {:def-name? true}})
+       [(:id first-symbol-node) {:def-name? true}])
      (if first-string-node
-       {(:id first-string-node) {:def-doc? true :selectable? true}})
-     {(:id node) {:def?          true
-            :def-name-node first-symbol-node
-            :def-doc-node  first-string-node}}]))
+       [(:id first-string-node) {:def-doc? true :selectable? true}])
+     [(:id node) {:def?          true
+                  :def-name-node first-symbol-node
+                  :def-doc-node  first-string-node}]]))
 
-(defn def-info [node]
-  (when (is-def? node)
-    (extract-sym-doc node)))
+(defn structure? [loc]
+  (let [node (z/node loc)]
+    (not (or (node/whitespace? node) (node/comment? node)))))
 
-(defn list-children [node]
-  (filter #(= (node/tag %) :list) (node/children node)))
+(def zip-next (partial zip-utils/zip-next structure?))
 
-(defn analyze-defs [node info]
-  (let [walker (layout-utils/node-walker def-info helpers/noop helpers/deep-merge list-children)]
-    (helpers/deep-merge info (walker node))))
+(defn find-def-locs [loc]
+  (filter utils/is-def? (take-while zip-utils/valid-loc? (iterate zip-next loc))))
+
+(defn analyze-defs [analysis loc]
+  (let [def-locs (find-def-locs loc)
+        defs-analysis (into {} (mapcat (fn [loc] (extract-sym-doc (zip/node loc))) def-locs))]
+    (helpers/deep-merge analysis defs-analysis)))

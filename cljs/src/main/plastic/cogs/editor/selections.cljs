@@ -4,7 +4,7 @@
                    [plastic.macros.common :refer [*->]])
   (:require [plastic.frame.core :refer [subscribe register-handler]]
             [plastic.schema.paths :as paths]
-            [plastic.cogs.editor.layout.utils :refer [apply-to-selected-editors]]
+            [plastic.cogs.editor.layout.utils :refer [apply-to-specified-editors]]
             [plastic.cogs.editor.ops.editing :as editing]
             [plastic.cogs.editor.model :as editor]))
 
@@ -16,7 +16,7 @@
     (editor/set-selection #{})))
 
 (defn clear-selection [editors [editor-selector]]
-  (apply-to-selected-editors clear-selection-in-editor editors editor-selector))
+  (apply-to-specified-editors clear-selection-in-editor editors editor-selector))
 
 (defn select-in-editor [selection editor]
   (-> editor
@@ -24,14 +24,14 @@
     (editor/set-selection selection)))
 
 (defn select [editors [editor-selector selection]]
-  (apply-to-selected-editors (partial select-in-editor selection) editors editor-selector))
+  (apply-to-specified-editors (partial select-in-editor selection) editors editor-selector))
 
 (defn focus-form-in-editor [form-id editor]
   (-> editor
     (editor/set-focused-form-id form-id)))
 
 (defn focus-form [editors [editor-selector form-id]]
-  (apply-to-selected-editors (partial focus-form-in-editor form-id) editors editor-selector))
+  (apply-to-specified-editors (partial focus-form-in-editor form-id) editors editor-selector))
 
 ; ----------------------------------------------------------------------------------------------------------------
 ; register handlers

@@ -16,29 +16,30 @@
 
 (defn code-token-component [editor-id form-id node-id]
   (let [selected? (subscribe [:editor-selection-node editor-id node-id])
-        edited? (subscribe [:editor-editing-node editor-id node-id])]
+        edited? (subscribe [:editor-editing-node editor-id node-id])
+        analysis (subscribe [:editor-form-node-analysis editor-id form-id node-id])]
     (fn [node]
-      (let [{:keys [decl-scope call selectable? type text shadows decl? def-name? id geometry]} node
-            _ (log "R! token" id)
+      (let [{:keys [selectable? type text id]} node
+            {:keys [decl-scope call? def-name?]} @analysis
+            _ (log "R! token" id @analysis)
             props (merge
                     {:data-qnid id
                      :class     (classv
+                                  (if type (name type))
                                   (if (and selectable? (not @edited?)) "selectable")
                                   (if (and selectable? (not @edited?) @selected?) "selected")
-                                  (if type (name type))
-                                  (if call "call")
                                   (if @edited? "editing")
-                                  (if decl-scope (str "decl-scope decl-scope-" decl-scope))
-                                  (if def-name? "def-name")
-                                  (if decl? "decl"))}
-                    (if geometry {:style {:transform (str "translateY(" (:top geometry) "px) translateX(" (:left geometry) "px)")}}))
+                                  (if call? "call")
+                                  (if decl-scope
+                                    (str (if (:decl? decl-scope) "decl ") "decl-scope decl-scope-" (:id decl-scope)))
+                                  (if def-name? "def-name"))})
             emit-token (fn [html] [:div.token props
                                    (if @edited?
                                      [inline-editor-component id text (or type :symbol)]
                                      [raw-html-component html])])]
         (condp = type
           :string (emit-token (-> text (wrap-specials)))
-          (emit-token (-> text (apply-shadowing-subscripts shadows))))))))
+          (emit-token (-> text (apply-shadowing-subscripts (:shadows decl-scope)))))))))
 
 (defn break-nodes-into-lines [accum node]
   (let [new-accum (assoc accum (dec (count accum)) (conj (last accum) node))]
@@ -94,18 +95,20 @@
         (elements-table (partial emit-code-block editor-id form-id) children)))))
 
 (defn wrapped-code-block-component [editor-id form-id node opener closer]
-  (let [selection-subscription (subscribe [:editor-selection-node editor-id (:id node)])]
+  (let [selected? (subscribe [:editor-selection-node editor-id (:id node)])
+        analysis (subscribe [:editor-form-node-analysis editor-id form-id (:id node)])]
     (fn []
-      (let [{:keys [id scope selectable? depth tag scope-depth]} node
+      (let [{:keys [id selectable? depth tag]} node
+            {:keys [new-scope?]} @analysis
             tag-name (name tag)]
-        (log "R! block" id)
+        (log "R! block" id @analysis)
         [:div.block {:data-qnid id
                      :class     (classv
                                   tag-name
                                   (if selectable? "selectable")
-                                  (if (and selectable? @selection-subscription) "selected")
-                                  (if scope (str "scope scope-" scope " scope-depth-" scope-depth))
-                                  (if depth (str "depth-" depth)))}
+                                  (if (and selectable? @selected?) "selected")
+                                  (if depth (str "depth-" depth))
+                                  (if new-scope? (str "scope scope-" (get-in @analysis [:scope :id]) " scope-depth-" (get-in @analysis [:scope :depth]))))}
          [:div.punctuation.opener opener]
          [code-element-component editor-id form-id node]
          [:div.punctuation.closer closer]]))))

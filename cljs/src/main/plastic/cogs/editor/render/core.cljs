@@ -90,7 +90,7 @@
 
 (defn handle-editor-click [editor-id event]
   (.stopPropagation event)
-  (dispatch :editor-clear-selections editor-id))
+  (dispatch :editor-clear-selection editor-id))
 
 (defn editor-root-component [editor-id]
   (let [state (subscribe [:editor-render-state editor-id])

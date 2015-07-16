@@ -30,8 +30,8 @@
 (defmethod clean-dispatch :default [thing]
   (pprint/simple-dispatch thing))
 
-(defmethod clean-dispatch :fn []
-  (-write cljs.core/*out* "..."))
+#_(defmethod clean-dispatch :fn []
+  (-write *out* "..."))
 
 (defn nice-print [o]
   (with-out-str
@@ -86,4 +86,11 @@
 
 (defn strip-colon [text]
   (str/ltrim text ":"))                                     ; TODO: this must be more robust
+
+(defn selector-matches? [selector id]
+  (cond
+    (nil? selector) true
+    (vector? selector) (some #{id} selector)
+    (set? selector) (contains? selector id)
+    :default (= id selector)))
 

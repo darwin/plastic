@@ -20,6 +20,9 @@
     (make-zipper* node)
     (recur (node/forms-node [node]))))
 
+(defn independent-zipper [loc]
+  (make-zipper (z/node loc)))
+
 ; perform the given movement while the given policy predicate returns true
 (defn skip [movement policy loc]
   (first
@@ -85,3 +88,10 @@
 
 (defn zip-node-seq [loc]
   (map z/node (zip-seq loc)))
+
+(defn loc-id [loc]
+  (:id (z/node loc)))
+
+(defn loc-id? [id loc]
+  (= (loc-id loc) id))
+
