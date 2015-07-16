@@ -34,7 +34,7 @@
     (react!
       (when-let [selections @selection-subscription]
         (log "selections in" editor-id "changed to" selections)
-        (dispatch :editor-update-selection editor-id)))))
+        #_(dispatch :editor-update-selection editor-id)))))
 
 (defn watch-editing [editor-id]
   (let [editing-subscription (subscribe [:editor-editing editor-id])]

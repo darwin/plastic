@@ -1,6 +1,6 @@
 (ns plastic.cogs.editor.render.code
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
-  (:require [plastic.cogs.editor.render.utils :refer [wrap-specials classv]]
+  (:require [plastic.cogs.editor.render.utils :refer [*editor-id* wrap-specials classv]]
             [plastic.cogs.editor.render.inline-editor :refer [inline-editor-component]]
             [plastic.cogs.editor.render.reusables :refer [raw-html-component]]
             [plastic.frame.core :refer [subscribe]]
@@ -15,26 +15,28 @@
     text))
 
 (defn code-token-component []
-  (fn [node]
-    (let [{:keys [decl-scope call selectable? type text shadows decl? def-name? id geometry editing?]} node
-          props (merge
-                  {:data-qnid id
-                   :class     (classv
-                                (if selectable? "selectable")
-                                (if type (name type))
-                                (if call "call")
-                                (if editing? "editing")
-                                (if decl-scope (str "decl-scope decl-scope-" decl-scope))
-                                (if def-name? "def-name")
-                                (if decl? "decl"))}
-                  (if geometry {:style {:transform (str "translateY(" (:top geometry) "px) translateX(" (:left geometry) "px)")}}))
-          emit-token (fn [html] [:div.token props
-                                 (if editing?
-                                   [inline-editor-component id text (or type :symbol)]
-                                   [raw-html-component html])])]
-      (condp = type
-        :string (emit-token (-> text (wrap-specials)))
-        (emit-token (-> text (apply-shadowing-subscripts shadows)))))))
+  (let [selection-subscription (subscribe [:editor-selection *editor-id*])]
+    (fn [node]
+      (let [{:keys [decl-scope call selectable? type text shadows decl? def-name? id geometry editing?]} node
+            props (merge
+                    {:data-qnid id
+                     :class     (classv
+                                  (if selectable? "selectable")
+                                  (if (and selectable? (contains? @selection-subscription id)) "selected")
+                                  (if type (name type))
+                                  (if call "call")
+                                  (if editing? "editing")
+                                  (if decl-scope (str "decl-scope decl-scope-" decl-scope))
+                                  (if def-name? "def-name")
+                                  (if decl? "decl"))}
+                    (if geometry {:style {:transform (str "translateY(" (:top geometry) "px) translateX(" (:left geometry) "px)")}}))
+            emit-token (fn [html] [:div.token props
+                                   (if editing?
+                                     [inline-editor-component id text (or type :symbol)]
+                                     [raw-html-component html])])]
+        (condp = type
+          :string (emit-token (-> text (wrap-specials)))
+          (emit-token (-> text (apply-shadowing-subscripts shadows))))))))
 
 (defn break-nodes-into-lines [accum node]
   (let [new-accum (assoc accum (dec (count accum)) (conj (last accum) node))]

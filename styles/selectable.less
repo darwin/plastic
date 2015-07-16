@@ -4,6 +4,7 @@
 
   .selectable {
     cursor: pointer;
+    position: relative;
   }
 
   .token.selectable {
@@ -15,5 +16,38 @@
   .token.editing {
     opacity: 1;
   }
+  
+  @-webkit-keyframes fade-selection-ring {
+    from {
+      opacity: 1;
+      border-color: hsl(60, 100%, 80%);
+    }
+    to {
+      opacity: 0.5;
+      border-color: hsl(180, 100%, 80%);
+    }
+  }
+
+  .selectable.selected::before {
+    pointer-events: none;
+    content: '';
+    position: absolute;
+    z-index: 100;
+    width: calc(~'100% + 5px'); // 1px + 4px 
+    height: calc(~'100% + 0px');
+
+    border: 1px solid yellow;
+    border-right: 4px solid yellow;
+    padding: 0px;
+    top: 0px; // do not shift because of z-index issues
+    left: -1px;
+
+    -webkit-animation-name: fade-selection-ring;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: ease-in-out;
+    -webkit-animation-direction: alternate;
+    -webkit-animation-duration: 0.5s;
+  }
+
 
 } // .plastic-editor-view

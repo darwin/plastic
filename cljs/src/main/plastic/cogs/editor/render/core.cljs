@@ -12,7 +12,7 @@
             [plastic.cogs.editor.render.soup :refer [form-soup-overlay-component]]
             [plastic.cogs.editor.render.selections :refer [form-selections-overlay-component]]
             [plastic.cogs.editor.render.debug :refer [parser-debug-component text-input-debug-component text-output-debug-component render-tree-debug-component selections-debug-overlay-component]]
-            [plastic.cogs.editor.render.utils :refer [dangerously-set-html classv]]
+            [plastic.cogs.editor.render.utils :refer [*editor-id* dangerously-set-html classv]]
             [plastic.cogs.editor.render.dom :as dom]
             [plastic.util.helpers :as helpers]))
 
@@ -104,10 +104,10 @@
                          (if focused "focused")
                          (if editing "editing"))
             :on-click  (partial handle-form-click form)}
-           [form-soup-overlay-component soup]
-           [form-selections-overlay-component active-selections]
-           (if @selections-debug-visible
-             [selections-debug-overlay-component all-selections])
+           ;[form-soup-overlay-component soup]
+           ;[form-selections-overlay-component active-selections]
+           ;(if @selections-debug-visible
+           ;  [selections-debug-overlay-component all-selections])
            [form-skelet-component render-tree]]
           (if @render-tree-debug-visible
             [render-tree-debug-component render-tree])]]))))
@@ -125,6 +125,7 @@
   (dispatch :editor-clear-all-selections editor-id))
 
 (defn editor-root-component [editor-id]
+  (set! *editor-id* editor-id)
   (let [state (subscribe [:editor-render-state editor-id])
         parser-debug-visible (subscribe [:settings :parser-debug-visible])
         text-input-debug-visible (subscribe [:settings :text-input-debug-visible])

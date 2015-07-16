@@ -2,6 +2,8 @@
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
   (:require [clojure.string :as string]))
 
+(defonce ^:dynamic *editor-id* -1)
+
 (defn wrap-specials [s]
   (-> s
     (string/replace #"\n" "<i>↵</i>\n")
