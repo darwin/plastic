@@ -4,8 +4,6 @@
                    [reagent.ratom :refer [reaction]])
   (:require [reagent.core :as reagent]
             [plastic.frame.core :refer [register-sub subscribe]]
-            [plastic.util.dom-shim]
-            [plastic.onion.api :refer [$]]
             [plastic.cogs.editor.render.headers :refer [headers-wrapper-component]]
             [plastic.cogs.editor.render.docs :refer [docs-component]]
             [plastic.cogs.editor.render.code :refer [code-box-component]]
@@ -13,8 +11,7 @@
             [plastic.cogs.editor.render.selections :refer [form-selections-overlay-component]]
             [plastic.cogs.editor.render.debug :refer [parser-debug-component text-input-debug-component text-output-debug-component render-tree-debug-component selections-debug-overlay-component]]
             [plastic.cogs.editor.render.utils :refer [dangerously-set-html classv]]
-            [plastic.cogs.editor.render.dom :as dom]
-            [plastic.util.helpers :as helpers]))
+            [plastic.cogs.editor.render.dom :as dom]))
 
 (declare unified-rendering-component)
 
@@ -22,7 +19,7 @@
   (let [sanitized-node-id (or node-id -1)
         selection-subscription (subscribe [:editor-selection-node editor-id sanitized-node-id])]
     (fn [render-tree]
-      (log "R! render-tree-component" sanitized-node-id)
+      (log "R! render-tree" sanitized-node-id)
       (let [{:keys [id tag children selectable?]} render-tree]
         [:div {:data-qnid id
                :class     (classv
@@ -36,7 +33,7 @@
 (defn unified-rendering-component []
   (fn [editor-id form-id render-tree]
     (let [{:keys [id tag]} render-tree]
-      (log "R! unified-rendering-component" id)
+      (log "R! unified-rendering" id)
       [:div.unified {:data-qnid id}
        (condp = tag
          :tree [(render-tree-component editor-id form-id id) render-tree]
@@ -47,7 +44,7 @@
 
 (defn form-skelet-component []
   (fn [editor-id form-id render-tree]
-    (log "R! form-skelet-component" form-id)
+    (log "R! form-skelet" form-id)
     [:div.form-skelet
      [unified-rendering-component editor-id form-id render-tree]]))
 
@@ -74,8 +71,7 @@
          [:td
           [:div.form.noselect
            {:data-qnid id
-            :class     (classv
-                         (if focused? "focused"))
+            :class     (if focused? "focused")
             :on-click  (partial handle-form-click form)}
            [form-skelet-component editor-id form-id render-tree]]
           (if @render-tree-debug-visible
