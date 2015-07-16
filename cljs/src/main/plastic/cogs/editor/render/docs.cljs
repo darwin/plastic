@@ -5,21 +5,26 @@
             [plastic.cogs.editor.render.reusables :refer [raw-html-component]]
             [plastic.frame.core :refer [subscribe]]))
 
-(defn doc-component [doc-info]
-  (let [{:keys [text id editing? selectable?]} doc-info]
-    ^{:key id}
-    [:div.doc
-     [:div.docstring.token
-      {:data-qnid id
-       :class     (classv
-                    (if selectable? "selectable")
-                    (if editing? "editing"))}
-      (if editing?
-        [inline-editor-component id text :doc]
-        [raw-html-component (str (wrap-specials text) " ")])]])) ; that added space is important, last newline could be ignored without it
+(defn doc-component [editor-id form-id node-id]
+  (let [selection-subscription (subscribe [:editor-selection-node editor-id node-id])]
+    (fn [doc-info]
+      (let [{:keys [text id editing? selectable?]} doc-info]
+        ^{:key id}
+        [:div.doc
+         [:div.docstring.token
+          {:data-qnid id
+           :class     (classv
+                        (if selectable? "selectable")
+                        (if (and selectable? @selection-subscription) "selected")
+                        (if editing? "editing"))}
+          (if editing?
+            [inline-editor-component id text :doc]
+            [raw-html-component (str (wrap-specials text) " ")])]])))) ; that added space is important, last newline could be ignored without it
 
 (defn docs-component []
-  (fn [docs-render-info]
+  (fn [editor-id form-id docs-render-info]
     [:div.docs-group
      (for [doc-info (:children docs-render-info)]
-       (doc-component doc-info))]))
+       (let [id (:id doc-info)]
+         ^{:key id}
+         [(doc-component editor-id form-id id) doc-info]))]))

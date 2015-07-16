@@ -12,30 +12,44 @@
             [plastic.cogs.editor.render.soup :refer [form-soup-overlay-component]]
             [plastic.cogs.editor.render.selections :refer [form-selections-overlay-component]]
             [plastic.cogs.editor.render.debug :refer [parser-debug-component text-input-debug-component text-output-debug-component render-tree-debug-component selections-debug-overlay-component]]
-            [plastic.cogs.editor.render.utils :refer [*editor-id* dangerously-set-html classv]]
+            [plastic.cogs.editor.render.utils :refer [dangerously-set-html classv]]
             [plastic.cogs.editor.render.dom :as dom]
             [plastic.util.helpers :as helpers]))
 
-(defn render-tree-component []
-  (fn [render-tree]
-    (let [{:keys [id tag children selectable?]} render-tree]
-      [:div {:data-qnid id
-             :class     (classv
-                          (name tag)
-                          (if selectable? "selectable"))}
+(declare unified-rendering-component)
+
+(defn render-tree-component [editor-id form-id node-id]
+  (let [sanitized-node-id (or node-id -1)
+        selection-subscription (subscribe [:editor-selection-node editor-id sanitized-node-id])]
+    (fn [render-tree]
+      (log "R! render-tree-component" sanitized-node-id)
+      (let [{:keys [id tag children selectable?]} render-tree]
+        [:div {:data-qnid id
+               :class     (classv
+                            (name tag)
+                            (if selectable? "selectable")
+                            (if (and selectable? @selection-subscription) "selected"))}
+         (for [child children]
+           ^{:key (or (:id child) (name (:tag child)))}
+           [unified-rendering-component editor-id form-id child])]))))
+
+(defn unified-rendering-component []
+  (fn [editor-id form-id render-tree]
+    (let [{:keys [id tag]} render-tree]
+      (log "R! unified-rendering-component" id)
+      [:div.unified {:data-qnid id}
        (condp = tag
-         :tree (for [child children]
-                 ^{:key (or (:id child) (name (:tag child)))}
-                 [render-tree-component child])
-         :code [code-box-component render-tree]
-         :docs [docs-component render-tree]
-         :headers [headers-wrapper-component render-tree]
+         :tree [(render-tree-component editor-id form-id id) render-tree]
+         :code [code-box-component editor-id form-id render-tree]
+         :docs [docs-component editor-id form-id render-tree]
+         :headers [headers-wrapper-component editor-id form-id render-tree]
          (throw (str "don't know how to render tag " tag " (missing render component implementation)")))])))
 
 (defn form-skelet-component []
-  (fn [render-tree]
+  (fn [editor-id form-id render-tree]
+    (log "R! form-skelet-component" form-id)
     [:div.form-skelet
-     [render-tree-component render-tree]]))
+     [unified-rendering-component editor-id form-id render-tree]]))
 
 (defn handle-form-click [form event]
   (let [target-dom-node (.-target event)
@@ -51,7 +65,7 @@
 
 (defn form-component []
   (let [render-tree-debug-visible (subscribe [:settings :render-tree-debug-visible])]
-    (fn [form]
+    (fn [editor-id form-id form]
       (log "R! form" (:id form))
       (let [{:keys [focused render-tree editing]} form]
         [:tr
@@ -62,24 +76,24 @@
                          (if focused "focused")
                          (if editing "editing"))
             :on-click  (partial handle-form-click form)}
-           [form-skelet-component render-tree]]
+           [form-skelet-component editor-id form-id render-tree]]
           (if @render-tree-debug-visible
             [render-tree-debug-component render-tree])]]))))
 
 (defn forms-component []
-  (fn [forms]
+  (fn [editor-id forms]
     [:table.form-table
      [:tbody
       (for [form forms]
-        ^{:key (:id form)}
-        [form-component form])]]))
+        (let [form-id (:id form)]
+          ^{:key form-id}
+          [form-component editor-id form-id form]))]]))
 
 (defn handle-editor-click [editor-id event]
   (.stopPropagation event)
   (dispatch :editor-clear-selections editor-id))
 
 (defn editor-root-component [editor-id]
-  (set! *editor-id* editor-id)
   (let [state (subscribe [:editor-render-state editor-id])
         parser-debug-visible (subscribe [:settings :parser-debug-visible])
         text-input-debug-visible (subscribe [:settings :text-input-debug-visible])
@@ -92,7 +106,7 @@
          {:data-qeid editor-id
           :on-click  (partial handle-editor-click editor-id)}
          (if @text-input-debug-visible [text-input-debug-component debug-text-input])
-         [forms-component forms]
+         [forms-component editor-id forms]
          (if @parser-debug-visible [parser-debug-component debug-parse-tree])
          (if @text-output-debug-visible [text-output-debug-component debug-text-output])]))))
 
