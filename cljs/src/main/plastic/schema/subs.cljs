@@ -38,5 +38,6 @@
 (register-sub :editor-editing (path-query-factory (editor-selector [:editing])))
 (register-sub :editor-editing-node (path-query-factory (editing-selector)))
 (register-sub :editor-form-node-analysis (path-query-factory (analysis-selector)))
+(register-sub :editor-focused-form-id (path-query-factory (editor-selector [:focused-form-id])))
 
 (register-sub :settings (path-query-factory (settings-selector)))

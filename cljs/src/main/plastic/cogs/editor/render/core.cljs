@@ -63,18 +63,19 @@
         (dispatch :editor-focus-form editor-id (:id form))
         (dispatch :editor-select editor-id #{selected-node-id})))))
 
-(defn form-component []
-  (let [render-tree-debug-visible (subscribe [:settings :render-tree-debug-visible])]
-    (fn [editor-id form-id form]
-      (log "R! form" (:id form))
-      (let [{:keys [focused render-tree editing]} form]
+(defn form-component [editor-id]
+  (let [render-tree-debug-visible (subscribe [:settings :render-tree-debug-visible])
+        focused-form-id (subscribe [:editor-focused-form-id editor-id])]
+    (fn [form-id form]
+      (let [{:keys [render-tree id]} form
+            focused? (= id @focused-form-id)]
+        (log "R! form" id "focused" focused?)
         [:tr
          [:td
           [:div.form.noselect
-           {:data-qnid (:id form)
+           {:data-qnid id
             :class     (classv
-                         (if focused "focused")
-                         (if editing "editing"))
+                         (if focused? "focused"))
             :on-click  (partial handle-form-click form)}
            [form-skelet-component editor-id form-id render-tree]]
           (if @render-tree-debug-visible
@@ -86,7 +87,7 @@
      [:tbody
       (for [[form-id form] forms]
         ^{:key form-id}
-        [form-component editor-id form-id form])]]))
+        [(form-component editor-id) form-id form])]]))
 
 (defn handle-editor-click [editor-id event]
   (.stopPropagation event)
