@@ -33,18 +33,18 @@
 (defn spatial-movement-up-down [editor dir-fun]
   (let [selected-id (get-selected-node-id editor)
         render-info (editor/get-focused-render-info editor)
-        {:keys [spatial-web all-selections]} render-info
-        sel-node (get all-selections selected-id)
+        {:keys [spatial-web selectables]} render-info
+        sel-node (get selectables selected-id)
         line-selectables (find-first-non-empty-line-in-given-direction spatial-web (:line sel-node) dir-fun)
-        line-selections (map #(get all-selections (:id %)) line-selectables)]
+        line-selections (map #(get selectables (:id %)) line-selectables)]
     (if-let [result (find-best-spatial-match sel-node line-selections)]
       (editor/set-selection editor #{(:id result)}))))
 
 (defn spatial-movement-left-right [editor dir-fun]
   (let [selected-id (get-selected-node-id editor)
         render-info (editor/get-focused-render-info editor)
-        {:keys [spatial-web all-selections]} render-info
-        sel-node (get all-selections selected-id)]
+        {:keys [spatial-web selectables]} render-info
+        sel-node (get selectables selected-id)]
     (if (empty? (:children sel-node))
       (let [line-selectables (get spatial-web (:line sel-node))]
         (if-let [result (dir-fun #(= (:id %) selected-id) line-selectables)]
@@ -65,7 +65,6 @@
         render-info (editor/get-focused-render-info editor)
         {:keys [spatial-web]} render-info
         all-lines (apply concat (vals spatial-web))]
-    (log "!!!" (vals spatial-web) all-lines selected-id)
     (if-let [result (dir-fun #(= (:id %) selected-id) all-lines)]
       (editor/set-selection editor #{(:id result)}))))
 

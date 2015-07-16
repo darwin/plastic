@@ -105,11 +105,6 @@
            (prepare-item %)
            (previous-render-info %)) top-level-forms-locs)))
 
-(defn analyze-with-delay [editor-id delay]
-  (go
-    (<! (timeout delay))                                    ; give it some time to render UI (next requestAnimationFrame)
-    (dispatch :editor-analyze editor-id)))
-
 (defn layout-editor [settings form-id editor]
   (if-not (editor/parsed? editor)
     editor
@@ -135,72 +130,8 @@
         new-editors (layout-utils/apply-to-selected-editors (partial update-editor-layout-for-focused-form settings) editors editor-selector)]
     (assoc db :editors new-editors)))
 
-(defn update-form-soup-geometry [geometry form]
-  (let [tokens (reduce-render-tree extract-tokens {} (:render-tree form))]
-    (assoc form :soup (build-soup-render-info tokens geometry))))
-
-(defn update-soup-geometry [editors [editor-id form-id geometry]]
-  (let [editor (get editors editor-id)
-        old-forms (editor/get-render-infos editor)
-        new-forms (helpers/update-selected #(= (:id %) form-id) (partial update-form-soup-geometry geometry) old-forms)
-        new-editors (assoc editors editor-id (editor/set-render-infos editor new-forms))]
-    new-editors))
-
-(defn update-form-selectables-geometry [geometry form]
-  (assoc form :all-selections (build-selections-render-info (:selectables form) geometry)))
-
-(defonce debounced-selection-updaters ^:dynamic {})
-
-(defn dispatch-editor-update-selection [editor-id]
-  (dispatch :editor-update-selection editor-id))
-
-(defn debounced-dispatch-editor-update-selection [editor-id]
-  (if-let [updater (get debounced-selection-updaters editor-id)]
-    (updater)
-    (let [new-updater (helpers/debounce (partial dispatch-editor-update-selection editor-id) 30)]
-      (set! debounced-selection-updaters (assoc debounced-selection-updaters editor-id new-updater))
-      (new-updater))))
-
-(defn update-selectables-geometry [editors [editor-id form-id geometry]]
-  (let [editor (get editors editor-id)
-        old-forms (editor/get-render-infos editor)
-        new-forms (helpers/update-selected #(= (:id %) form-id) (partial update-form-selectables-geometry geometry) old-forms)
-        new-editors (assoc editors editor-id (editor/set-render-infos editor new-forms))]
-    (debounced-dispatch-editor-update-selection editor-id) ; coalesce update-requests here
-    new-editors))
-
-(defn update-form-selections [form selection]
-  {:pre [(or (nil? selection) (set? selection))]}
-  (let [all-selections (:all-selections form)
-        matching-selections (filter #(contains? selection (first %)) all-selections)]
-    (assoc form :active-selections (vec matching-selections))))
-
-(defn update-form-focus-flag [form focused-form-id]
-  (assoc form :focused (= (:id form) focused-form-id)))
-
-(defn update-selection [editors [editor-id]]
-  (let [editor (get editors editor-id)
-        selection (editor/get-selection editor)
-        focused-form-id (editor/get-focused-form-id editor)
-        update-render-info (fn [form] (-> form
-                                        (update-form-selections selection)
-                                        (update-form-focus-flag focused-form-id)))
-        old-forms (editor/get-render-infos editor)
-        new-forms (map update-render-info old-forms)
-        new-editors (assoc editors editor-id (editor/set-render-infos editor new-forms))]
-    new-editors))
-
-(defn analyze [editors [editor-id]]
-  (let [ast (analyze-full (get-in editors [editor-id :text]) {:atom-path (get-in editors [editor-id :def :uri])})]
-    (log "AST>" ast))
-  editors)
-
 ; ----------------------------------------------------------------------------------------------------------------
 ; register handlers
 
 (register-handler :editor-update-layout update-layout)
 (register-handler :editor-update-layout-for-focused-form update-layout-for-focused-form)
-(register-handler :editor-update-soup-geometry paths/editors-path update-soup-geometry)
-(register-handler :editor-update-selectables-geometry paths/editors-path update-selectables-geometry)
-(register-handler :editor-update-selection paths/editors-path update-selection)
-(register-handler :editor-analyze paths/editors-path analyze)

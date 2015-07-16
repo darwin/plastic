@@ -18,6 +18,7 @@
   (let [selection-subscription (subscribe [:editor-selection *editor-id*])]
     (fn [node]
       (let [{:keys [decl-scope call selectable? type text shadows decl? def-name? id geometry editing?]} node
+            _ (log "R! token" id)
             props (merge
                     {:data-qnid id
                      :class     (classv
@@ -91,17 +92,21 @@
       (elements-table children))))
 
 (defn code-block [opener closer node]
-  (let [{:keys [id scope selectable? depth tag scope-depth]} node
-        tag-name (name tag)]
-    [:div.block {:data-qnid id
-                 :class     (classv
-                              tag-name
-                              (if selectable? "selectable")
-                              (if scope (str "scope scope-" scope " scope-depth-" scope-depth))
-                              (if depth (str "depth-" depth)))}
-     [:div.punctuation.opener opener]
-     (code-element-component node)
-     [:div.punctuation.closer closer]]))
+  (let [selection-subscription (subscribe [:editor-selection *editor-id*])]
+    (fn []
+      (let [{:keys [id scope selectable? depth tag scope-depth]} node
+            tag-name (name tag)]
+        (log "R! block" id)
+        [:div.block {:data-qnid id
+                     :class     (classv
+                                  tag-name
+                                  (if selectable? "selectable")
+                                  (if (and selectable? (contains? @selection-subscription id)) "selected")
+                                  (if scope (str "scope scope-" scope " scope-depth-" scope-depth))
+                                  (if depth (str "depth-" depth)))}
+         [:div.punctuation.opener opener]
+         (code-element-component node)
+         [:div.punctuation.closer closer]]))))
 
 (defn code-block-component [node]
   (condp = (:tag node)

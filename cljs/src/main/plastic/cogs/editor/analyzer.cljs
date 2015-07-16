@@ -1,22 +1,25 @@
 (ns plastic.cogs.editor.analyzer
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
                    [plastic.macros.glue :refer [react! dispatch]]
+                   [cljs.core.async.macros :refer [go]]
                    ;[cljs.env.macros :refer [ensure with-compiler-env]]
                    ;[cljs.analyzer.macros :refer [no-warn wrapping-errors]]
                    )
   (:require [plastic.frame.core :refer [subscribe register-handler]]
-            ;[cljs.pprint :refer [pprint]]
-            ;[cljs.tagged-literals :as tags]
-            ;[cljs.tools.reader :as reader]
-            ;[cljs.tools.reader.reader-types :refer [string-push-back-reader indexing-push-back-reader PushbackReader]]
-            ;[cljs.analyzer :as ana]
-            ;[cljs.compiler :as c]
-            ;[cljs.env :as env]
-            ;[cljs.reader :as edn]
-            ;[cljs.tools.reader :as reader]
+            [cljs.core.async :refer [<! timeout]]
+    ;[cljs.pprint :refer [pprint]]
+    ;[cljs.tagged-literals :as tags]
+    ;[cljs.tools.reader :as reader]
+    ;[cljs.tools.reader.reader-types :refer [string-push-back-reader indexing-push-back-reader PushbackReader]]
+    ;[cljs.analyzer :as ana]
+    ;[cljs.compiler :as c]
+    ;[cljs.env :as env]
+    ;[cljs.reader :as edn]
+    ;[cljs.tools.reader :as reader]
             [goog.object :as gobject]
             [goog.string :as gstring]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [plastic.schema.paths :as paths]))
 ;(comment
 ;
 ;  (defonce fs (js/require "fs"))
@@ -367,4 +370,19 @@
 ;
 ;  )
 
+(defn analyze-with-delay [editor-id delay]
+  (go
+    (<! (timeout delay))                                    ; give it some time to render UI (next requestAnimationFrame)
+    (dispatch :editor-analyze editor-id)))
+
 (defn analyze-full [& args])
+
+(defn analyze [editors [editor-id]]
+  (let [ast (analyze-full (get-in editors [editor-id :text]) {:atom-path (get-in editors [editor-id :def :uri])})]
+    (log "AST>" ast))
+  editors)
+
+; ----------------------------------------------------------------------------------------------------------------
+; register handlers
+
+(register-handler :editor-analyze paths/editors-path analyze)

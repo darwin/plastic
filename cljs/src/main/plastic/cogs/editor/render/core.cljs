@@ -16,46 +16,6 @@
             [plastic.cogs.editor.render.dom :as dom]
             [plastic.util.helpers :as helpers]))
 
-(defn retrieve-token-geometry [skelet-offset token-dom-node]
-  (if-let [node-id (dom/read-node-id token-dom-node)]
-    (let [offset (.offset ($ token-dom-node))]
-      [node-id {:left (- (.-left offset) (.-left skelet-offset))
-                :top  (- (.-top offset) (.-top skelet-offset))}])))
-
-(defn retrieve-tokens-geometry [skelet-offset token-dom-nodes]
-  (apply hash-map (mapcat (partial retrieve-token-geometry skelet-offset) token-dom-nodes)))
-
-(defn retrieve-selectable-geometry [skelet-offset selectable-dom-node]
-  (if-let [node-id (dom/read-node-id selectable-dom-node)]
-    (let [offset (.offset ($ selectable-dom-node))]
-      [node-id {:left   (- (.-left offset) (.-left skelet-offset))
-                :top    (- (.-top offset) (.-top skelet-offset))
-                :width  (.-offsetWidth selectable-dom-node)
-                :height (.-offsetHeight selectable-dom-node)}])))
-
-(defn retrieve-selectables-geometry [skelet-offset selectable-dom-nodes]
-  (apply hash-map (mapcat (partial retrieve-selectable-geometry skelet-offset) selectable-dom-nodes)))
-
-(defn capture-geometry [react-component]
-  (let [dom-node (dom/node-from-react react-component)
-        form-id (dom/lookup-form-id dom-node)
-        editor-id (dom/lookup-editor-id dom-node)
-        $skelet ($ (dom/find-closest dom-node ".form-skelet"))
-        skelet-offset (.offset $skelet)]
-    (let [selectable-dom-nodes (.getElementsByClassName dom-node "selectable")
-          selectables-geometry (retrieve-selectables-geometry skelet-offset selectable-dom-nodes)]
-      (dispatch :editor-update-selectables-geometry (int editor-id) (int form-id) selectables-geometry))
-    (let [token-dom-nodes (.getElementsByClassName dom-node "token")
-          tokens-geometry (retrieve-tokens-geometry skelet-offset token-dom-nodes)]
-      (dispatch :editor-update-soup-geometry (int editor-id) (int form-id) tokens-geometry))))
-
-(defn form-scaffold [render-fn]
-  (let [debounced-capture-geometry (helpers/debounce capture-geometry 30)]
-    (reagent/create-class
-      {:component-did-mount  (fn [& args] (apply debounced-capture-geometry args))
-       :component-did-update (fn [& args] (apply debounced-capture-geometry args))
-       :reagent-render       render-fn})))
-
 (defn render-tree-component []
   (fn [render-tree]
     (let [{:keys [id tag children selectable?]} render-tree]
@@ -73,10 +33,9 @@
          (throw (str "don't know how to render tag " tag " (missing render component implementation)")))])))
 
 (defn form-skelet-component []
-  (form-scaffold
-    (fn [render-tree]
-      [:div.form-skelet
-       [render-tree-component render-tree]])))
+  (fn [render-tree]
+    [:div.form-skelet
+     [render-tree-component render-tree]]))
 
 (defn handle-form-click [form event]
   (let [target-dom-node (.-target event)
@@ -91,11 +50,10 @@
         (dispatch :editor-select editor-id #{selected-node-id})))))
 
 (defn form-component []
-  (let [selections-debug-visible (subscribe [:settings :selections-debug-visible])
-        render-tree-debug-visible (subscribe [:settings :render-tree-debug-visible])]
+  (let [render-tree-debug-visible (subscribe [:settings :render-tree-debug-visible])]
     (fn [form]
       (log "R! form" (:id form))
-      (let [{:keys [focused soup active-selections all-selections render-tree editing]} form]
+      (let [{:keys [focused render-tree editing]} form]
         [:tr
          [:td
           [:div.form.noselect
@@ -104,10 +62,6 @@
                          (if focused "focused")
                          (if editing "editing"))
             :on-click  (partial handle-form-click form)}
-           ;[form-soup-overlay-component soup]
-           ;[form-selections-overlay-component active-selections]
-           ;(if @selections-debug-visible
-           ;  [selections-debug-overlay-component all-selections])
            [form-skelet-component render-tree]]
           (if @render-tree-debug-visible
             [render-tree-debug-component render-tree])]]))))
@@ -122,7 +76,7 @@
 
 (defn handle-editor-click [editor-id event]
   (.stopPropagation event)
-  (dispatch :editor-clear-all-selections editor-id))
+  (dispatch :editor-clear-selections editor-id))
 
 (defn editor-root-component [editor-id]
   (set! *editor-id* editor-id)
