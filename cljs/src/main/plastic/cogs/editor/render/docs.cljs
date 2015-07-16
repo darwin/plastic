@@ -9,7 +9,7 @@
   (let [{:keys [text id editing? selectable?]} doc-info]
     ^{:key id}
     [:div.doc
-     [:div.docstring.selectable
+     [:div.docstring.token
       {:data-qnid id
        :class     (classv
                     (if selectable? "selectable")
