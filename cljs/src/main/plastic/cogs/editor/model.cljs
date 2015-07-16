@@ -265,7 +265,7 @@
   (assoc-in editor [:render-state :forms] render-infos))
 
 (defn get-render-info-by-id [editor form-id]
-  (helpers/get-by-id form-id (get-render-infos editor)))
+  (get (get-render-infos editor) form-id))
 
 (defn get-focused-render-info [editor]
   {:post [%]}
@@ -289,7 +289,7 @@
 
 (defn get-top-level-form-ids [editor]
   (let [render-infos (get-render-infos editor)]
-    (map :id render-infos)))
+    (keys render-infos)))
 
 (defn get-first-selectable-token-id-for-form [editor form-id]
   {:post [(number? %)]}

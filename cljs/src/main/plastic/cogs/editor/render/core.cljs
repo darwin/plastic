@@ -84,10 +84,9 @@
   (fn [editor-id forms]
     [:table.form-table
      [:tbody
-      (for [form forms]
-        (let [form-id (:id form)]
-          ^{:key form-id}
-          [form-component editor-id form-id form]))]]))
+      (for [[form-id form] forms]
+        ^{:key form-id}
+        [form-component editor-id form-id form])]]))
 
 (defn handle-editor-click [editor-id event]
   (.stopPropagation event)

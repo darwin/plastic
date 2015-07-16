@@ -18,6 +18,10 @@
   (fn [editor-id node-id]
     (concat paths/editors [editor-id :selection node-id])))
 
+(defn editing-selector []
+  (fn [editor-id node-id]
+    (concat paths/editors [editor-id :editing node-id])))
+
 (register-sub :editors (path-query-factory paths/editors))
 
 (register-sub :editor-render-state (path-query-factory (editor-selector [:render-state])))
@@ -28,5 +32,6 @@
 (register-sub :editor-selection (path-query-factory (editor-selector [:selection])))
 (register-sub :editor-selection-node (path-query-factory (selection-selector)))
 (register-sub :editor-editing (path-query-factory (editor-selector [:editing])))
+(register-sub :editor-editing-node (path-query-factory (editing-selector)))
 
 (register-sub :settings (path-query-factory (settings-selector)))

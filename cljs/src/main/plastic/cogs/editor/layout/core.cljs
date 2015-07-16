@@ -56,12 +56,11 @@
    :children    (remove nil? [headers docs code])})
 
 (defn prepare-form-render-info [settings editor root-loc]
-  {:pre [(= (node/tag (zip/node (zip/up root-loc))) :forms)]}    ; parent has to be :forms
+  {:pre [(= (node/tag (zip/node (zip/up root-loc))) :forms)]} ; parent has to be :forms
   (let [root-node (zip/node root-loc)
         _ (assert root-node)
         root-id (:id root-node)
         top-id (dec root-id)                                ; a hack - root-id was minimal, we rely ids to be assigned by parser in dept-first-order
-        editing-set (editor/get-editing-set editor)
         nodes (apply hash-map (collect-nodes root-node))
         {:keys [code-visible docs-visible headers-visible]} settings
 
@@ -69,8 +68,7 @@
                    (analyze-selectables nodes)
                    (analyze-scopes root-loc)
                    (analyze-symbols nodes)
-                   (analyze-defs root-node)
-                   (analyze-editing editing-set))
+                   (analyze-defs root-node))
 
         code-render-tree (if code-visible (build-code-render-tree analysis root-loc))
         docs-render-tree (if docs-visible (build-docs-render-tree analysis nodes))
@@ -83,7 +81,6 @@
         structural-web (build-structural-web top-id selectables root-loc)
 
         form-info {:id             root-id
-                   :editing        (editor/editing? editor)
                    :nodes          nodes
                    :analysis       analysis
                    :selectables    selectables              ; used for selections
@@ -99,11 +96,8 @@
         previous-render-info #(editor/get-render-info-by-id editor (:id (z/node %)))
         prepare-item #(merge
                        (previous-render-info %)
-                       (prepare-form-render-info settings editor %))
-        needs-update? #(or (nil? form-id) (= (:id (z/node %)) form-id))]
-    (map #(if (needs-update? %)
-           (prepare-item %)
-           (previous-render-info %)) top-level-forms-locs)))
+                       (prepare-form-render-info settings editor %))]
+    (into {} (map (fn [loc] [(:id (z/node loc)) (prepare-item loc)]) top-level-forms-locs))))
 
 (defn layout-editor [settings form-id editor]
   (if-not (editor/parsed? editor)
@@ -111,27 +105,15 @@
     (let [render-state {:forms             (prepare-render-infos-of-top-level-forms settings editor form-id)
                         :debug-parse-tree  (editor/get-parse-tree editor)
                         :debug-text-input  (editor/get-input-text editor)
-                        :debug-text-output (editor/get-output-text editor)}
-          new-editor (editor/set-render-state editor render-state)]
-      (dom/postpone-selection-overlay-display-until-next-update editor)
-      (dom/postpone-selection-overlay-display-until-next-update new-editor)
-      new-editor)))
+                        :debug-text-output (editor/get-output-text editor)}]
+      (-> editor
+        (editor/set-render-state render-state)))))
 
 (defn update-layout [db [editor-selector form-id]]
   (let [{:keys [editors settings]} db
         new-editors (layout-utils/apply-to-selected-editors (partial layout-editor settings form-id) editors editor-selector)]
     (assoc db :editors new-editors)))
-
-(defn update-editor-layout-for-focused-form [settings editor]
-  (layout-editor settings (editor/get-focused-form-id editor) editor))
-
-(defn update-layout-for-focused-form [db [editor-selector]]
-  (let [{:keys [editors settings]} db
-        new-editors (layout-utils/apply-to-selected-editors (partial update-editor-layout-for-focused-form settings) editors editor-selector)]
-    (assoc db :editors new-editors)))
-
 ; ----------------------------------------------------------------------------------------------------------------
 ; register handlers
 
 (register-handler :editor-update-layout update-layout)
-(register-handler :editor-update-layout-for-focused-form update-layout-for-focused-form)

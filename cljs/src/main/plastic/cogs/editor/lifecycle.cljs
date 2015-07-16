@@ -29,12 +29,6 @@
       (when-let [selections @selection-subscription]
         (log "selections in editor" editor-id "changed to" selections)))))
 
-(defn watch-editing [editor-id]
-  (let [editing-subscription (subscribe [:editor-editing editor-id])]
-    (react!
-      (when-let [_ @editing-subscription]
-        (dispatch :editor-update-layout-for-focused-form editor-id)))))
-
 (defn watch-settings [editor-id]
   (let [code-visible-subscription (subscribe [:settings :code-visible])
         docs-visible-subscription (subscribe [:settings :docs-visible])
@@ -49,7 +43,6 @@
   (watch-uri editor-id)
   (watch-raw-text editor-id)
   (watch-parse-tree editor-id)
-  (watch-editing editor-id)
   (watch-selections editor-id)                              ; debug
   (watch-settings editor-id))
 

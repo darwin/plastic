@@ -15,24 +15,25 @@
     text))
 
 (defn code-token-component [editor-id form-id node-id]
-  (let [selection-subscription (subscribe [:editor-selection-node editor-id node-id])]
+  (let [selected? (subscribe [:editor-selection-node editor-id node-id])
+        edited? (subscribe [:editor-editing-node editor-id node-id])]
     (fn [node]
-      (let [{:keys [decl-scope call selectable? type text shadows decl? def-name? id geometry editing?]} node
+      (let [{:keys [decl-scope call selectable? type text shadows decl? def-name? id geometry]} node
             _ (log "R! token" id)
             props (merge
                     {:data-qnid id
                      :class     (classv
-                                  (if selectable? "selectable")
-                                  (if (and selectable? @selection-subscription) "selected")
+                                  (if (and selectable? (not @edited?)) "selectable")
+                                  (if (and selectable? (not @edited?) @selected?) "selected")
                                   (if type (name type))
                                   (if call "call")
-                                  (if editing? "editing")
+                                  (if @edited? "editing")
                                   (if decl-scope (str "decl-scope decl-scope-" decl-scope))
                                   (if def-name? "def-name")
                                   (if decl? "decl"))}
                     (if geometry {:style {:transform (str "translateY(" (:top geometry) "px) translateX(" (:left geometry) "px)")}}))
             emit-token (fn [html] [:div.token props
-                                   (if editing?
+                                   (if @edited?
                                      [inline-editor-component id text (or type :symbol)]
                                      [raw-html-component html])])]
         (condp = type
