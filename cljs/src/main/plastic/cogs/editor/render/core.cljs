@@ -11,7 +11,8 @@
             [plastic.cogs.editor.render.selections :refer [form-selections-overlay-component]]
             [plastic.cogs.editor.render.debug :refer [parser-debug-component text-input-debug-component text-output-debug-component render-tree-debug-component selections-debug-overlay-component]]
             [plastic.cogs.editor.render.utils :refer [dangerously-set-html classv]]
-            [plastic.cogs.editor.render.dom :as dom]))
+            [plastic.cogs.editor.render.dom :as dom]
+            [plastic.util.helpers :as helpers]))
 
 (declare unified-rendering-component)
 
@@ -33,7 +34,7 @@
 (defn unified-rendering-component []
   (fn [editor-id form-id render-tree]
     (let [{:keys [id tag]} render-tree]
-      (log "R! unified-rendering" id)
+      (log "R! unified-rendering" id tag)
       [:div.unified {:data-qnid id}
        (condp = tag
          :tree [(render-tree-component editor-id form-id id) render-tree]
@@ -60,11 +61,10 @@
         (dispatch :editor-focus-form editor-id (:id form))
         (dispatch :editor-select editor-id #{selected-node-id})))))
 
-(defn form-component [editor-id]
-  (let [render-tree-debug-visible (subscribe [:settings :render-tree-debug-visible])
-        focused-form-id (subscribe [:editor-focused-form-id editor-id])]
-    (fn [form-id form]
-      (let [{:keys [render-tree id]} form
+(defn form-component []
+  (let [render-tree-debug-visible (subscribe [:settings :render-tree-debug-visible])]
+    (fn [editor-id focused-form-id form]
+      (let [{:keys [id render-tree]} form
             focused? (= id @focused-form-id)]
         (log "R! form" id "focused" focused?)
         [:tr
@@ -73,17 +73,19 @@
            {:data-qnid id
             :class     (if focused? "focused")
             :on-click  (partial handle-form-click form)}
-           [form-skelet-component editor-id form-id render-tree]]
+           [form-skelet-component editor-id id render-tree]]
           (if @render-tree-debug-visible
             [render-tree-debug-component render-tree])]]))))
 
 (defn forms-component []
-  (fn [editor-id forms]
+  (fn [editor-id focused-form-id order forms]
+    (log "R! forms" editor-id)
     [:table.form-table
      [:tbody
-      (for [[form-id form] forms]
-        ^{:key form-id}
-        [(form-component editor-id) form-id form])]]))
+      (for [form-id order]
+        (let [form (get forms form-id)]
+          ^{:key form-id}
+          [form-component editor-id focused-form-id form]))]]))
 
 (defn handle-editor-click [editor-id event]
   (.stopPropagation event)
@@ -93,16 +95,17 @@
   (let [state (subscribe [:editor-render-state editor-id])
         parser-debug-visible (subscribe [:settings :parser-debug-visible])
         text-input-debug-visible (subscribe [:settings :text-input-debug-visible])
-        text-output-debug-visible (subscribe [:settings :text-output-debug-visible])]
+        text-output-debug-visible (subscribe [:settings :text-output-debug-visible])
+        focused-form-id (subscribe [:editor-focused-form-id editor-id])]
     (fn []
       (log "R! editor-root" editor-id)
-      (let [forms (:forms @state)
+      (let [{:keys [forms order]} @state
             {:keys [debug-parse-tree debug-text-input debug-text-output]} @state]
         [:div.plastic-editor                                ; .editor class is taken by Atom
          {:data-qeid editor-id
           :on-click  (partial handle-editor-click editor-id)}
          (if @text-input-debug-visible [text-input-debug-component debug-text-input])
-         [forms-component editor-id forms]
+         [forms-component editor-id focused-form-id order forms]
          (if @parser-debug-visible [parser-debug-component debug-parse-tree])
          (if @text-output-debug-visible [text-output-debug-component debug-text-output])]))))
 

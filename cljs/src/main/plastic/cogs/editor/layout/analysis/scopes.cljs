@@ -134,7 +134,8 @@
     (if-let [new-scope (node-scope loc childs depth)]
       (let [new-scope-info {:new-scope? true :scope new-scope :parent-scope scope-info}]
         (conj (analyze-child-scopes new-scope-info) [id (resolve-symbol node new-scope-info)]))
-      (conj (analyze-child-scopes (dissoc scope-info :new-scope?)) [id (resolve-symbol node scope-info)]))))
+      (let [old-scope-info (dissoc scope-info :new-scope?)]
+        (conj (analyze-child-scopes old-scope-info) [id (resolve-symbol node old-scope-info)])))))
 
 (defn analyze-scopes [analysis loc]
   (binding [*scope-id* 0]

@@ -7,7 +7,10 @@
             [plastic.cogs.editor.render.dom :as dom]
             [rewrite-clj.node.keyword :refer [keyword-node]]
             [cuerdas.core :as str]
-            [rewrite-clj.node :as node]))
+            [rewrite-clj.node :as node]
+            [plastic.cogs.editor.parser.utils :as parser]))
+
+(defonce ^:dynamic *initial-text* nil)
 
 (defn load-file-content [uri cb]
   {:pre [File]}
@@ -82,12 +85,14 @@
     (.setUpdatedSynchronously inline-editor-view true)
     (set-editor-mode-as-class-name inline-editor-view editor-mode)
     (.setText inline-editor initial-text)
+    (set! *initial-text* initial-text)
     (.selectAll inline-editor)
     (.setUpdatedSynchronously inline-editor-view false)))
 
 (defn is-inline-editor-modified? [editor-id]
-  (let [inline-editor (get-atom-inline-editor-instance editor-id)]
-    (.isModified inline-editor)))
+  (let [inline-editor (get-atom-inline-editor-instance editor-id)
+        raw-text (.getText inline-editor)]
+    (not= raw-text *initial-text*)))
 
 (defn get-inline-editor-mode [editor-id]
   {:post [(contains? known-editor-modes %)]}
@@ -98,7 +103,7 @@
   (let [inline-editor (get-atom-inline-editor-instance editor-id)
         editor-mode (get-inline-editor-mode editor-id)
         raw-text (.getText inline-editor)]
-    (postprocess-text-after-editing editor-mode raw-text)))
+    (parser/assoc-node-id (postprocess-text-after-editing editor-mode raw-text))))
 
 (defn is-inline-editor-empty? [editor-id]
   (let [inline-editor (get-atom-inline-editor-instance editor-id)]

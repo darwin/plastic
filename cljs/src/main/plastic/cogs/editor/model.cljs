@@ -26,47 +26,6 @@
   {:pre [(= (node/tag parse-tree) :forms)]}
   (assoc editor :parse-tree parse-tree))
 
-(defn bake-loc [focused selection editing loc]
-  (z/edit loc (fn [node]
-                (let [id (:id node)]
-                  (merge node {:focused?  (contains? focused id)
-                               :selected? (contains? selection id)
-                               :editing?  (contains? editing id)})))))
-
-(defn bake-ids-into-parse-tree [parse-tree focused selection editing]
-  (let [baker (partial bake-loc focused selection editing)]
-    (loop [loc (zip-utils/make-zipper parse-tree)]
-      (if (z/end? loc)
-        (z/root loc)
-        (recur (z/next (baker loc)))))))
-
-(defn accum-if-matches [accum node key]
-  (if (get node key)
-    (update accum key (fn [old] (conj old (:id node))))
-    accum))
-
-(defn accum-node [accum node]
-  (-> accum
-    (accum-if-matches node :focused?)
-    (accum-if-matches node :selected?)
-    (accum-if-matches node :editing?)))
-
-(defn unbake-loc [accum loc]
-  [(accum-node accum (z/node loc))
-   (z/edit loc (fn [node]
-                 (-> node
-                   (dissoc :focused?)
-                   (dissoc :selected?)
-                   (dissoc :editing?))))])
-
-(defn unbake-ids-from-parse-tree [parse-tree]
-  (loop [loc (zip-utils/make-zipper parse-tree)
-         accum {}]
-    (if (z/end? loc)
-      [(z/root loc) accum]
-      (let [[new-accum new-loc] (unbake-loc accum loc)]
-        (recur (z/next new-loc) new-accum)))))
-
 (defn get-selection [editor]
   {:post [(set? %)]}
   (or (get editor :selection) #{}))
@@ -101,21 +60,9 @@
   (let [editing (:editing editor)]
     (and editing (not (empty? editing)))))
 
-; arbitrary transformation of parse tree with reindexing of important ids in the editor
 (defn transform-parse-tree [editor transformation]
-  (let [[reindexed-parse-tree new-ids] (-> (get-parse-tree editor)
-                                         (bake-ids-into-parse-tree
-                                           #{(get-focused-form-id editor)}
-                                           (get-selection editor)
-                                           (get-editing-set editor))
-                                         (transformation)
-                                         (parser/make-nodes-unique)
-                                         (unbake-ids-from-parse-tree))]
-    (-> editor
-      (set-parse-tree reindexed-parse-tree)
-      (set-editing-set (set (:editing? new-ids)))
-      (set-selection (set (:selected? new-ids)))
-      (set-focused-form-id (first (:focused? new-ids))))))
+  (let [new-parse-tree (transformation (get-parse-tree editor))]
+    (set-parse-tree editor new-parse-tree)))
 
 (defn get-top-level-locs [editor]
   (let [top-loc (zip-utils/make-zipper (get-parse-tree editor)) ; root "forms" node
@@ -128,23 +75,6 @@
 (defn loc-id? [id loc]
   (= (loc-id loc) id))
 
-(defn node-add-sticker [node sticker-value]
-  (let [old-stickers (or (:stickers node) [])]
-    (assoc node :stickers (conj old-stickers sticker-value))))
-
-(defn node-remove-sticker [node sticker-value]
-  (let [old-stickers (or (:stickers node) [])
-        new-stickers (remove #(= % sticker-value) old-stickers)]
-    (if (empty? new-stickers)
-      (dissoc node :stickers)
-      (assoc node :stickers new-stickers))))
-
-(defn node-has-sticker? [node sticker-value]
-  (some #(= % sticker-value) (:stickers node)))
-
-(defn loc-has-sticker? [sticker-value loc]
-  (node-has-sticker? (zip/node loc) sticker-value))
-
 (defn find-node-loc [editor node-id]
   (let [parse-tree (get-parse-tree editor)
         root-loc (zip-utils/make-zipper parse-tree)
@@ -156,37 +86,8 @@
     (assert (zip-utils/valid-loc? node-loc))
     (zip/node node-loc)))
 
-(defn add-sticker-on-node [editor node-id sticker-value]
-  (let [node-loc (find-node-loc editor node-id)
-        _ (assert (zip-utils/valid-loc? node-loc))
-        modified-loc (z/edit node-loc (fn [node] (node-add-sticker node sticker-value)))
-        modified-parse-tree (zip/root modified-loc)]
-    (set-parse-tree editor modified-parse-tree)))
-
-(defn remove-node-sticker-at-loc [editor node-loc sticker-value]
-  (let [modified-loc (z/edit node-loc (fn [node] (node-remove-sticker node sticker-value)))
-        modified-parse-tree (zip/root modified-loc)]
-    (set-parse-tree editor modified-parse-tree)))
-
-(defn find-node-loc-with-sticker [editor sticker-value]
-  (let [parse-tree (get-parse-tree editor)
-        root-loc (zip-utils/make-zipper parse-tree)
-        node-loc (findz/find-depth-first root-loc (partial loc-has-sticker? sticker-value))]
-    node-loc))
-
-(defn find-node-with-sticker [editor sticker-value]
-  (let [node-loc (find-node-loc-with-sticker editor sticker-value)]
-    (assert (zip-utils/valid-loc? node-loc))
-    (zip/node node-loc)))
-
-(defn remove-sticker [editor sticker-value]
-  (let [node-loc-with-sticker (find-node-loc-with-sticker editor sticker-value)]
-    (if (zip-utils/valid-loc? node-loc-with-sticker)
-      (remove-node-sticker-at-loc editor node-loc-with-sticker sticker-value)
-      editor)))
-
 (defn transfer-sticky-attrs [old new]
-  (let [sticky-bits (select-keys old [:id :stickers :editing? :selected? :focused?])]
+  (let [sticky-bits (select-keys old [:id])]
     (merge new sticky-bits)))
 
 (defn empty-value? [value]
@@ -195,6 +96,7 @@
       (empty? (node/string value)))))
 
 (defn commit-value-to-loc [loc node-id new-node]
+  {:pre [(:id new-node)]}
   (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))]
     (assert (zip-utils/valid-loc? node-loc))
     (if-not (empty-value? new-node)
@@ -243,13 +145,13 @@
 (defn insert-values-after-node-loc [node-id values loc]
   (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))
         _ (assert (zip-utils/valid-loc? node-loc))
-        inserter (fn [loc val] (z/insert-right loc val))]
+        inserter (fn [loc val] {:pre [(:id val)]} (z/insert-right loc val))]
     (reduce inserter node-loc (reverse values))))
 
 (defn insert-values-before-node-loc [node-id values loc]
   (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))
         _ (assert (zip-utils/valid-loc? node-loc))
-        inserter (fn [loc val] (z/insert-left loc val))]
+        inserter (fn [loc val] {:pre [(:id val)]}  (z/insert-left loc val))]
     (reduce inserter node-loc values)))
 
 (defn insert-values-after-node [editor node-id values]
@@ -260,6 +162,9 @@
 
 (defn get-render-infos [editor]
   (get-in editor [:render-state :forms]))
+
+(defn get-render-order [editor]
+  (get-in editor [:render-state :order]))
 
 (defn set-render-infos [editor render-infos]
   (assoc-in editor [:render-state :forms] render-infos))
@@ -288,8 +193,7 @@
   (every? (partial can-edit-node? editor) (get-selection editor)))
 
 (defn get-top-level-form-ids [editor]
-  (let [render-infos (get-render-infos editor)]
-    (keys render-infos)))
+  (get-render-order editor))
 
 (defn get-first-selectable-token-id-for-form [editor form-id]
   {:post [(number? %)]}
@@ -308,13 +212,13 @@
     (:id (peek last-line))))
 
 (defn prepare-placeholder-node []
-  (token-node "" ""))
+  (parser/assoc-node-id (token-node "" "")))
 
 (defn prepare-newline-node []
-  (newline-node "\n"))
+  (parser/assoc-node-id (newline-node "\n")))
 
 (defn prepare-token-node [s]
-  (token-node (symbol s) s))
+  (parser/assoc-node-id (token-node (symbol s) s)))
 
 (defn doall-specified-forms [editor f selector]
   (doall

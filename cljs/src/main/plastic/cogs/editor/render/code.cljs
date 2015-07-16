@@ -21,7 +21,7 @@
     (fn [node]
       (let [{:keys [selectable? type text id]} node
             {:keys [decl-scope call? def-name?]} @analysis
-            _ (log "R! token" id @analysis)
+            _ (log "R! token" id (subs text 0 10) @analysis)
             props (merge
                     {:data-qnid id
                      :class     (classv
@@ -101,7 +101,7 @@
       (let [{:keys [id selectable? depth tag]} node
             {:keys [new-scope?]} @analysis
             tag-name (name tag)]
-        (log "R! block" id @analysis)
+        (log "R! wrapper-code-block" id @analysis)
         [:div.block {:data-qnid id
                      :class     (classv
                                   tag-name
@@ -115,6 +115,7 @@
 
 (defn code-block-component []
   (fn [editor-id form-id node]
+    (log "R! code-block" (:id node))
     (let [wrapped-code-block (partial wrapped-code-block-component editor-id form-id node)]
       (condp = (:tag node)
         :list [wrapped-code-block "(" ")"]
@@ -130,6 +131,7 @@
 
 (defn code-box-component []
   (fn [editor-id form-id code-render-info]
+    (log "R! code-box")
     (let [node (first (:children code-render-info))
           name (extract-first-child-name node)]
       [:div.code-box {:class (if name (str "sexpr-" name))}

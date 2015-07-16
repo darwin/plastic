@@ -24,6 +24,7 @@
 
 (defn docs-component []
   (fn [editor-id form-id docs-render-info]
+    (log "R! docs")
     [:div.docs-group
      (for [doc-info (:children docs-render-info)]
        (let [id (:id doc-info)]
