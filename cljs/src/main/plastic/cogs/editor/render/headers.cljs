@@ -8,12 +8,8 @@
     [:div.header
      (if name [:div.name [:div name]])]))
 
-(defn headers-component [header-info-list]
-  [:div.headers-group
-   (for [header-info header-info-list]
-     (header-component header-info))])
-
 (defn headers-wrapper-component []
-  (fn [editor-id form-id node]
-    [:div.headers-wrapper
-     [headers-component (:children node)]]))
+  (fn [_editor-id _form-id node]
+    [:div.headers-group
+     (for [header-info (:children node)]
+       [header-component header-info])]))
