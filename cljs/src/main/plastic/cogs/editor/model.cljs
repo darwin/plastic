@@ -6,6 +6,7 @@
             [clojure.walk :refer [prewalk]]
             [plastic.cogs.editor.parser.utils :as parser]
             [plastic.util.helpers :as helpers]
+            [plastic.cogs.editor.layout.code :as layout]
             [plastic.util.zip :as zip-utils]
             [rewrite-clj.node.token :refer [token-node]]
             [rewrite-clj.node.whitespace :refer [newline-node]]
@@ -151,7 +152,7 @@
 (defn insert-values-before-node-loc [node-id values loc]
   (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))
         _ (assert (zip-utils/valid-loc? node-loc))
-        inserter (fn [loc val] {:pre [(:id val)]}  (z/insert-left loc val))]
+        inserter (fn [loc val] {:pre [(:id val)]} (z/insert-left loc val))]
     (reduce inserter node-loc values)))
 
 (defn insert-values-after-node [editor node-id values]
@@ -175,6 +176,10 @@
 (defn get-focused-render-info [editor]
   {:post [%]}
   (get-render-info-by-id editor (get-focused-form-id editor)))
+
+(defn set-focused-render-info [editor render-info]
+  {:post [%]}
+  (assoc-in editor [:render-state :forms (get-focused-form-id editor)] render-info))
 
 (defn get-input-text [editor]
   (let [text (get editor :text)]
@@ -245,3 +250,20 @@
     (for [[editor-id editor] editors]
       (if (selector-matches-editor? editor-id id-or-ids)
         (f editor)))))
+
+(defn make-render-tree-zipper [root]
+  (z/zipper
+    (fn [] true)
+    #(seq (:children %))
+    (fn [node children] (assoc node :children children))
+    root))
+
+(defn update-render-tree-node-in-focused-form [editor node-id value-node]
+  (let [focused-render-info (get-focused-render-info editor)
+        render-info-loc (make-render-tree-zipper (:render-tree focused-render-info))
+        node-loc (first (filter #(= (:id (z/node %)) node-id) (take-while zip-utils/valid-loc? (iterate z/next render-info-loc))))]
+    (if node-loc
+      (let [modified-tree (z/root (z/edit node-loc (fn [old-node] (assoc old-node :text (layout/prepare-node-text value-node)))))
+            modified-focused-render-info (assoc focused-render-info :render-tree modified-tree)]
+        (set-focused-render-info editor modified-focused-render-info))
+      editor)))

@@ -33,6 +33,12 @@
 (defn child-locs [loc]
   (collect-all-right (zip-down loc)))
 
+(defn prepare-node-text [node]
+  (cond
+    (layout-utils/string-node? node) (layout-utils/prepare-string-for-display (node/string node))
+    (layout-utils/keyword-node? node) (helpers/strip-colon (node/string node))
+    :else (node/string node)))
+
 (defn build-node-code-render-tree-node [depth loc]
   (let [node (zip/node loc)
         node-id (:id node)
@@ -49,10 +55,10 @@
           {:tag :newline})
         (if (node/inner? node)
           {:children (keep (partial build-node-code-render-tree-node (inc depth)) (child-locs loc))}
-          {:text (node/string node)})
+          {:text (prepare-node-text node)})
         (if (layout-utils/is-selectable? tag) {:selectable? true})
-        (if (layout-utils/string-node? node) {:text (layout-utils/prepare-string-for-display (node/string node)) :type :string})
-        (if (layout-utils/keyword-node? node) {:text (helpers/strip-colon (node/string node)) :type :keyword})))))
+        (if (layout-utils/string-node? node) {:type :string})
+        (if (layout-utils/keyword-node? node) {:type :keyword})))))
 
 (defn build-code-render-tree [loc]
   (reset-line-id!)

@@ -53,16 +53,18 @@
     new-editor))
 
 (defmethod handle :next-token [_ editor]
-  (-> editor
-    editing/stop-editing
-    selection/next-token
-    editing/start-editing))
+  (let [editor-with-moved-selection (-> editor selection/next-token)]
+    (-> editor
+      editing/stop-editing
+      (editor/set-selection (editor/get-selection editor-with-moved-selection))
+      editing/start-editing)))
 
 (defmethod handle :prev-token [_ editor]
-  (-> editor
-    editing/stop-editing
-    selection/prev-token
-    editing/start-editing))
+  (let [editor-with-moved-selection (-> editor selection/prev-token)]
+    (-> editor
+      editing/stop-editing
+      (editor/set-selection (editor/get-selection editor-with-moved-selection))
+      editing/start-editing)))
 
 (defmethod handle :toggle-editing [_ editor]
   (if (editor/editing? editor)

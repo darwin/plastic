@@ -92,7 +92,7 @@
 (defn is-inline-editor-modified? [editor-id]
   (let [inline-editor (get-atom-inline-editor-instance editor-id)
         raw-text (.getText inline-editor)]
-    (not= raw-text *initial-text*)))
+    (or (empty? raw-text) (not= raw-text *initial-text*)))) ; empty editor is a special case of placeholder which has to removed
 
 (defn get-inline-editor-mode [editor-id]
   {:post [(contains? known-editor-modes %)]}

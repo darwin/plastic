@@ -28,12 +28,16 @@
     (-> editor
       (select-next-candidate-for-case-of-selected-node-removal)
       (editor/commit-node-value node-id value)
+      (editor/update-render-tree-node-in-focused-form node-id value) ; ugly: this prevents brief display of previous value before re-layouting finishes
       (set-selection-to-node-if-exists node-id))))
 
 (defn apply-editing [editor action]
   (let [should-be-editing? (= action :start)
         can-edit? (editor/can-edit-selection? editor)]
     (editor/set-editing-set editor (if (and can-edit? should-be-editing?) (editor/get-selection editor)))))
+
+(defn should-commit? [editor-id]
+  (and (onion/is-inline-editor-modified? editor-id)))
 
 ; ----------------------------------------------------------------------------------------------------------------
 
@@ -44,10 +48,10 @@
   (or
     (if (editor/editing? editor)
       (let [editor-id (editor/get-id editor)
-            modified-editor (if (onion/is-inline-editor-modified? editor-id)
-                              (commit-value editor (onion/get-postprocessed-value-after-editing editor-id))
-                              editor)]
-        (apply-editing modified-editor :stop)))
+            editor-after-commit (if (should-commit? editor-id)
+                                  (commit-value editor (onion/get-postprocessed-value-after-editing editor-id))
+                                  editor)]
+        (apply-editing editor-after-commit :stop)))
     editor))
 
 (defn insert-and-start-editing [editor selected-node-id & values]
