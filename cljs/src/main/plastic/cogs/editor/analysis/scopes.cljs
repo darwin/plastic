@@ -39,44 +39,39 @@
                  (not (or (= s "&") (= (first s) "_")))))]
     (filter arg? arg-nodes)))
 
-(defn get-max-id [node current]
-  (if (node/inner? node)
-    (max current (:id node) (apply max (map :id (node/children node))))
-    (max current (:id node))))
-
-(defn collect-node-params [node max-id]
-  (let [loc (zip-utils/make-zipper node)
-        all-locs (take-while zip-utils/valid-loc? (iterate zip-next loc))
-        symbol-nodes (filter #(instance? TokenNode %) (map zip/node all-locs))]
+(defn collect-node-params [loc max-path]
+  (let [subtree-tip-loc (zip-utils/independent-zipper loc)
+        all-subtree-locs (take-while zip-utils/valid-loc? (iterate zip-next subtree-tip-loc))
+        symbol-nodes (filter #(instance? TokenNode %) (map zip/node all-subtree-locs))]
     (filter-non-args
-      (map (fn [node] [node max-id]) symbol-nodes))))
+      (map (fn [node] [node max-path]) symbol-nodes))))
 
 ; TODO: here must be proper parsing of destructuring
-(defn collect-vector-params [node]
-  (if node
-    (collect-node-params node (:id node))))
+(defn collect-vector-params [loc]
+  (if loc
+    (collect-node-params loc (zip-utils/inc-path (zip-utils/loc->path loc)))))
 
 ; TODO: here must be proper parsing of destructuring
-(defn collect-vector-pairs [node]
-  (if node
-    (let [pairs (partition 2 (filter (complement node/whitespace?) (node/children node)))]
-      (mapcat #(collect-node-params (first %) (get-max-id (second %) 0)) pairs))))
+(defn collect-vector-pairs [loc]
+  (if loc
+    (let [pairs (partition 2 (filter scope-related? (zip-utils/collect-all-children loc)))]
+      (mapcat #(collect-node-params (first %) (zip-utils/inc-path (zip-utils/inc-path (zip-utils/loc->path (second %))))) pairs))))
 
-(defn collect-specified-param [node num]
-  (let [relevant-children (filter (complement node/whitespace?) (node/children node))]
-    (if-let [specified-param-node (nth relevant-children num nil)]
-      (collect-node-params specified-param-node (:id specified-param-node)))))
+(defn collect-specified-param [loc num]
+  (let [relevant-child-locs (filter scope-related? (zip-utils/collect-all-children loc))]
+    (if-let [specified-param-loc (nth relevant-child-locs num nil)]
+      (collect-node-params specified-param-loc (zip-utils/inc-path (zip-utils/loc->path specified-param-loc))))))
 
-(defn first-vector [node]
-  (first (filter #(= (node/tag %) :vector) (node/children node))))
+(defn first-vector [loc]
+  (first (filter #(= (zip/tag %) :vector) (zip-utils/collect-all-children loc))))
 
-(defn collect-params [node opener-type]
+(defn collect-params [loc opener-type]
   (condp = opener-type
-    :params (collect-vector-params (first-vector node))
-    :pairs (collect-vector-pairs (first-vector node))
+    :params (collect-vector-params (first-vector loc))
+    :pairs (collect-vector-pairs (first-vector loc))
     (do
       (assert (number? opener-type))
-      (collect-specified-param node opener-type))))
+      (collect-specified-param loc opener-type))))
 
 (defn collect-all-right [loc]
   (take-while zip-utils/valid-loc? (iterate zip-right loc)))
@@ -90,37 +85,37 @@
             (if-let [opener-type (scope-openers (zip/sexpr (first childs)))]
               {:id     (next-scope-id!)
                :depth  (inc depth)
-               :locals (collect-params (z/node loc) opener-type)}))
+               :locals (collect-params loc opener-type)}))
     :fn {:id     (next-scope-id!)
          :depth  (inc depth)
-         :locals [[#(re-find #"^%" (node/string %)) (:id (z/node loc))]]}
+         :locals [[#(re-find #"^%" (zip/string %)) (zip-utils/loc->path loc)]]}
     nil))
 
-(defn matching-local? [node [decl-node after-id]]
+(defn matching-local? [loc [decl-node effective-marker-path]]
   (if (fn? decl-node)
-    (decl-node node)
+    (decl-node loc)
     (or
-      (identical? node decl-node)
+      (identical? (z/node loc) decl-node)
       (and
-        (> (:id node) after-id)
-        (= (node/string node) (node/string decl-node))))))
+        (= (node/string (z/node loc)) (node/string decl-node))
+        (zip-utils/path<= effective-marker-path (zip-utils/loc->path loc))))))
 
-(defn find-symbol-declaration [node scope-info]
+(defn find-symbol-declaration [loc scope-info]
   (if scope-info
     (let [locals (get-in scope-info [:scope :locals])
-          matching-locals (filter (partial matching-local? node) locals)
+          matching-locals (filter (partial matching-local? loc) locals)
           hit-count (count matching-locals)
           best-node (first (last matching-locals))]
       (if-not (= hit-count 0)
         (merge (:scope scope-info)
           {:shadows hit-count}
-          (if (identical? best-node node)
+          (if (identical? best-node (z/node loc))
             {:decl? true}))
-        (find-symbol-declaration node (:parent-scope scope-info))))))
+        (find-symbol-declaration loc (:parent-scope scope-info))))))
 
-(defn resolve-symbol [node scope-info]
-  (if (= (node/tag node) :token)
-    (if-let [declaration-scope (find-symbol-declaration node scope-info)]
+(defn resolve-symbol [loc scope-info]
+  (if (= (zip/tag loc) :token)
+    (if-let [declaration-scope (find-symbol-declaration loc scope-info)]
       (assoc scope-info :decl-scope declaration-scope)
       scope-info)
     scope-info))
@@ -133,9 +128,9 @@
         analyze-child-scopes (fn [scope] (into {} (map (partial analyze-scope scope) childs)))]
     (if-let [new-scope (node-scope loc childs depth)]
       (let [new-scope-info {:new-scope? true :scope new-scope :parent-scope scope-info}]
-        (conj (analyze-child-scopes new-scope-info) [id (resolve-symbol node new-scope-info)]))
+        (conj (analyze-child-scopes new-scope-info) [id (resolve-symbol loc new-scope-info)]))
       (let [old-scope-info (dissoc scope-info :new-scope?)]
-        (conj (analyze-child-scopes old-scope-info) [id (resolve-symbol node old-scope-info)])))))
+        (conj (analyze-child-scopes old-scope-info) [id (resolve-symbol loc old-scope-info)])))))
 
 (defn analyze-scopes [analysis loc]
   (binding [*scope-id* 0]

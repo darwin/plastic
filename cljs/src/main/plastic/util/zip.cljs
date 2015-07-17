@@ -62,6 +62,9 @@
       (conj (loc->path parent-loc) pos)
       [])))
 
+(defn inc-path [path]
+  (update path (dec (count path)) inc))
+
 (defn path->loc [path loc]
   (if (and path (valid-loc? loc))
     (if (empty? path)
@@ -70,6 +73,24 @@
             child-loc (nth (iterate z/right down-loc) (first path))]
         (if (valid-loc? child-loc)
           (recur (rest path) child-loc))))))
+
+(defn path-compare [path1 path2]
+  (loop [p1 path1
+         p2 path2]
+    (cond
+      (and (empty? p1) (not (empty? p2))) -1
+      (and (not (empty? p1)) (empty? p2)) 1
+      :else (let [c (compare (first p1) (first p2))]
+              (if-not (zero? c)
+                c
+                (recur (rest p1) (rest p2)))))))
+
+(defn path< [path1 path2]
+  (neg? (path-compare path1 path2)))
+
+(defn path<= [path1 path2]
+  (let [res (path-compare path1 path2)]
+    (or (zero? res) (neg? res))))
 
 (defn collect-all-right [loc]
   (take-while (complement zip/end?) (iterate zip/right loc)))
