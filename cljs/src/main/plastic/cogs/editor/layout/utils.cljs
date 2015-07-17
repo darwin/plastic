@@ -53,26 +53,6 @@
 (defn is-selectable? [tag]
   (#{:token :fn :list :map :vector :set :meta} tag))
 
-(defn selector-matches-editor? [editor-id selector]
-  (cond
-    (vector? selector) (some #{editor-id} selector)
-    (set? selector) (contains? selector editor-id)
-    :default (= editor-id selector)))
-
-(defn apply-to-specified-editors [f editors id-or-ids]
-  (apply array-map
-    (flatten
-      (for [[editor-id editor] editors]
-        (if (selector-matches-editor? editor-id id-or-ids)
-          [editor-id (f editor)]
-          [editor-id editor])))))
-
-(defn doall-specified-editors [f editors id-or-ids]
-  (doall
-    (for [[editor-id editor] editors]
-      (if (selector-matches-editor? editor-id id-or-ids)
-        (f editor)))))
-
 (defn string-node? [node]
   (instance? StringNode node))
 
@@ -114,3 +94,14 @@
     (let [left-loc (zip/left loc)]
       (if (zip-utils/valid-loc? left-loc)
         (is-doc? left-loc)))))
+
+(defn reduce-render-tree [f val node]
+  (f (reduce (partial reduce-render-tree f) val (:children node)) node))
+
+(defn extract-selectables [res node]
+  (if (:selectable? node)
+    (conj res [(:id node) node])
+    res))
+
+(defn extract-all-selectables [render-tree]
+  (reduce-render-tree extract-selectables {} render-tree))

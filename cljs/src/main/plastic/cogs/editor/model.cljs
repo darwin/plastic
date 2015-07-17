@@ -225,3 +225,23 @@
     (for [loc (get-top-level-locs editor)]
       (if (helpers/selector-matches? selector (loc-id loc))
         (f loc)))))
+
+(defn selector-matches-editor? [editor-id selector]
+  (cond
+    (vector? selector) (some #{editor-id} selector)
+    (set? selector) (contains? selector editor-id)
+    :default (= editor-id selector)))
+
+(defn apply-to-specified-editors [f editors id-or-ids]
+  (apply array-map
+    (flatten
+      (for [[editor-id editor] editors]
+        (if (selector-matches-editor? editor-id id-or-ids)
+          [editor-id (f editor)]
+          [editor-id editor])))))
+
+(defn doall-specified-editors [f editors id-or-ids]
+  (doall
+    (for [[editor-id editor] editors]
+      (if (selector-matches-editor? editor-id id-or-ids)
+        (f editor)))))

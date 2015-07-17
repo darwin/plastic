@@ -1,9 +1,7 @@
 (ns plastic.cogs.editor.ops.selection
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
-                   [plastic.macros.glue :refer [react! dispatch]]
-                   [plastic.macros.common :refer [*->]])
-  (:require [plastic.cogs.editor.layout.utils :refer [apply-to-specified-editors]]
-            [plastic.cogs.editor.model :as editor]
+                   [plastic.macros.glue :refer [react! dispatch]])
+  (:require [plastic.cogs.editor.model :as editor]
             [plastic.util.helpers :as helpers]))
 
 (defn mid-point [node]
