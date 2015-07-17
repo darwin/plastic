@@ -34,7 +34,7 @@
         headers-render-tree (if headers-visible (build-headers-render-tree root-loc))
         render-tree (compose-render-trees top-id headers-render-tree docs-render-tree code-render-tree) ; TODO: we should build all trees in one go
         selectables (utils/extract-all-selectables render-tree)
-        spatial-web (build-spatial-web selectables)
+        spatial-web (build-spatial-web render-tree)
         structural-web (build-structural-web top-id selectables root-loc)
         layout-info {:id             root-id
                      :node           root-node

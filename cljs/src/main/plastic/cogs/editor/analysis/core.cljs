@@ -13,7 +13,7 @@
             [plastic.cogs.editor.layout.analysis.defs :refer [analyze-defs]]
             [plastic.util.zip :as zip-utils]))
 
-(defn prepare-form-analysis [root-loc]
+(defn prepare-form-analysis [root-loc _opts]
   {:pre [(= (node/tag (zip/node (zip/up root-loc))) :forms)]} ; parent has to be :forms
   (let [root-node (zip/node root-loc)
         _ (assert root-node)
@@ -26,8 +26,7 @@
     analysis))
 
 (defn run-analysis-for-editor-and-form [editor opts form-loc]
-  (log "running analysis for editor" (:id editor) "and form" (zip-utils/loc-id form-loc) "with opts" opts)
-  (dispatch :editor-commit-analysis (:id editor) (zip-utils/loc-id form-loc) (prepare-form-analysis form-loc)))
+  (dispatch :editor-commit-analysis (:id editor) (zip-utils/loc-id form-loc) (prepare-form-analysis form-loc opts)))
 
 (defn run-analysis-for-editor-and-forms [form-selector opts editor]
   (if (editor/parsed? editor)
