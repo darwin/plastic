@@ -6,14 +6,11 @@
             [rewrite-clj.zip :as zip]
             [rewrite-clj.node :as node]
             [clojure.zip :as z]
-            [plastic.util.helpers :as helpers]
             [plastic.frame.core :refer [subscribe register-handler]]
             [plastic.schema.paths :as paths]
             [plastic.cogs.editor.model :as editor]
-            [plastic.cogs.editor.layout.analysis.selectables :refer [analyze-calls]]
+            [plastic.cogs.editor.layout.analysis.calls :refer [analyze-calls]]
             [plastic.cogs.editor.layout.analysis.scopes :refer [analyze-scopes]]
-            [plastic.cogs.editor.layout.analysis.symbols :refer [analyze-symbols]]
-            [plastic.cogs.editor.layout.analysis.editing :refer [analyze-editing]]
             [plastic.cogs.editor.layout.analysis.defs :refer [analyze-defs]]
             [plastic.cogs.editor.layout.soup :refer [build-soup-render-info]]
             [plastic.cogs.editor.layout.code :refer [build-code-render-tree]]
@@ -24,7 +21,6 @@
             [plastic.cogs.editor.layout.spatial :refer [build-spatial-web]]
             [plastic.cogs.editor.analyzer :refer [analyze-full]]
             [plastic.cogs.editor.layout.utils :as layout-utils]
-            [plastic.cogs.editor.render.dom :as dom]
             [plastic.util.zip :as zip-utils]))
 
 (defn reduce-render-tree [f val node]

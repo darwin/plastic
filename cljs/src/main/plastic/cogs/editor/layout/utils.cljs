@@ -9,17 +9,6 @@
             [clojure.zip :as z]
             [plastic.util.zip :as zip-utils]))
 
-(defn node-walker [inner-fn leaf-fn reducer child-selector]
-  (let [walker (fn walk [node]
-                 (if (node/inner? node)
-                   (let [node-results (inner-fn node)
-                         children-results (mapcat walk (child-selector node))
-                         results (apply reducer (concat children-results node-results))]
-                     [results])
-                   (leaf-fn node)))]
-    (fn [node]
-      (apply reducer (walker node)))))
-
 (defn unwrap-metas [nodes]
   (let [unwrap-meta-node (fn [node]
                            (if (= (node/tag node) :meta)
@@ -29,12 +18,6 @@
 
 (defn first-word [s]
   (first (string/split s #"\s")))
-
-(defn debug-print-analysis [node nodes analysis]
-  (group "ANALYSIS of" (:id node) "\n" (node/string node))
-  (doseq [[id info] (sort analysis)]
-    (log id (first-word (node/string (get nodes id))) info))
-  (group-end))
 
 (defn strip-double-quotes [s]
   (-> s
@@ -119,11 +102,15 @@
         (let [left-strings (filter string-node? (z/lefts loc))]
           (empty? left-strings))))))
 
+(defn is-def-name? [loc]
+  (if (symbol-loc? loc)
+    (if-let [parent-loc (zip/up loc)]
+      (if (is-def? parent-loc)
+        (let [left-symbols (filter symbol-node? (z/lefts loc))]
+          (= 1 (count left-symbols)))))))
+
 (defn is-whitespace-or-nl-after-doc? [loc]
   (if (node/whitespace? (zip/node loc))
     (let [left-loc (zip/left loc)]
       (if (zip-utils/valid-loc? left-loc)
         (is-doc? left-loc)))))
-
-
-
