@@ -96,6 +96,7 @@
         parser-debug-visible (subscribe [:settings :parser-debug-visible])
         text-input-debug-visible (subscribe [:settings :text-input-debug-visible])
         text-output-debug-visible (subscribe [:settings :text-output-debug-visible])
+        selections-debug-visible (subscribe [:settings :selections-debug-visible])
         focused-form-id (subscribe [:editor-focused-form-id editor-id])]
     (fn []
       (log "R! editor-root" editor-id)
@@ -103,6 +104,7 @@
             {:keys [debug-parse-tree debug-text-input debug-text-output]} @state]
         [:div.plastic-editor                                ; .editor class is taken by Atom
          {:data-qeid editor-id
+          :class (classv (if @selections-debug-visible "debug-selections"))
           :on-click  (partial handle-editor-click editor-id)}
          (if @text-input-debug-visible [text-input-debug-component debug-text-input])
          [forms-component editor-id focused-form-id order forms]

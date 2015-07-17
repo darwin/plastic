@@ -25,17 +25,15 @@
     background-color: #a44;
   }
 
-  .form-selections-debug-overlay {
+  .debug-selections .selectable::before {
+    pointer-events: none;
+    content: '';
     position: absolute;
-    z-index: 15;
-    color: white;
-  }
-
-  .form-selections-debug-overlay .debug-selection {
-    opacity: 0.1;
+    z-index: 100;
+    width: calc(100%);
+    height: calc(100%);
     background-color: yellow;
-    position: absolute;
+    opacity: 0.1;
   }
-
 
 } // .plastic-editor-view
