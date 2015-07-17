@@ -267,3 +267,9 @@
             modified-focused-render-info (assoc focused-render-info :render-tree modified-tree)]
         (set-focused-render-info editor modified-focused-render-info))
       editor)))
+
+(defn set-analysis-for-form [editor form-id analysis]
+  (assoc-in editor [:analysis form-id] analysis))
+
+(defn get-analysis-for-form [editor form-id]
+  (get-in editor [:analysis form-id]))

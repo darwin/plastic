@@ -1,9 +1,7 @@
 (ns plastic.cogs.editor.analysis.core
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
-                   [plastic.macros.glue :refer [react! dispatch]]
-                   [cljs.core.async.macros :refer [go]])
-  (:require [cljs.core.async :refer [<! timeout]]
-            [rewrite-clj.zip :as zip]
+                   [plastic.macros.glue :refer [react! dispatch]])
+  (:require [rewrite-clj.zip :as zip]
             [rewrite-clj.node :as node]
             [plastic.frame.core :refer [subscribe register-handler]]
             [plastic.schema.paths :as paths]
@@ -11,14 +9,15 @@
             [plastic.cogs.editor.layout.analysis.calls :refer [analyze-calls]]
             [plastic.cogs.editor.layout.analysis.scopes :refer [analyze-scopes]]
             [plastic.cogs.editor.layout.analysis.defs :refer [analyze-defs]]
-            [plastic.util.zip :as zip-utils]))
+            [plastic.util.zip :as zip-utils]
+            [clojure.zip :as z]))
 
 (defn prepare-form-analysis [root-loc _opts]
   {:pre [(= (node/tag (zip/node (zip/up root-loc))) :forms)]} ; parent has to be :forms
   (let [root-node (zip/node root-loc)
         _ (assert root-node)
         root-id (:id root-node)
-        analysis (-> (sorted-map)                           ; just for debugging
+        analysis (-> {:node root-node}
                    (analyze-calls root-loc)
                    (analyze-scopes root-loc)
                    (analyze-defs root-loc))]
@@ -26,7 +25,9 @@
     analysis))
 
 (defn run-analysis-for-editor-and-form [editor opts form-loc]
-  (dispatch :editor-commit-analysis (:id editor) (zip-utils/loc-id form-loc) (prepare-form-analysis form-loc opts)))
+  (let [old-analysis (editor/get-analysis-for-form editor (editor/loc-id form-loc))]
+    (if-not (= (:node old-analysis) (z/node form-loc))      ; skip analysis if nothing changed
+      (dispatch :editor-commit-analysis (editor/get-id editor) (zip-utils/loc-id form-loc) (prepare-form-analysis form-loc opts)))))
 
 (defn run-analysis-for-editor-and-forms [form-selector opts editor]
   (if (editor/parsed? editor)
@@ -39,7 +40,9 @@
     db))
 
 (defn commit-analysis [editors [editor-id form-id analysis]]
-  (assoc-in editors [editor-id :analysis form-id] analysis))
+  (let [editor (get editors editor-id)
+        new-editor (editor/set-analysis-for-form editor form-id analysis)]
+    (assoc editors editor-id new-editor)))
 
 ; ----------------------------------------------------------------------------------------------------------------
 ; register handlers
