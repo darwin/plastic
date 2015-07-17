@@ -8,7 +8,5 @@
             [plastic.cogs.editor.layout.core]
             [plastic.cogs.editor.analysis.core]
             [plastic.cogs.editor.render.core]
-            [plastic.cogs.editor.analyzer]
             [plastic.cogs.editor.commands]
             [plastic.cogs.editor.selections]))
-

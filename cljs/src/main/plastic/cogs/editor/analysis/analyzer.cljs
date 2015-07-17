@@ -1,4 +1,4 @@
-(ns plastic.cogs.editor.analyzer
+(ns plastic.cogs.editor.analysis.analyzer
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
                    [plastic.macros.glue :refer [react! dispatch]]
                    [cljs.core.async.macros :refer [go]]

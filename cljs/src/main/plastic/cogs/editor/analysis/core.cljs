@@ -11,7 +11,6 @@
             [plastic.cogs.editor.layout.analysis.calls :refer [analyze-calls]]
             [plastic.cogs.editor.layout.analysis.scopes :refer [analyze-scopes]]
             [plastic.cogs.editor.layout.analysis.defs :refer [analyze-defs]]
-            [plastic.cogs.editor.analyzer :refer [analyze-full]]
             [plastic.util.zip :as zip-utils]))
 
 (defn prepare-form-analysis [root-loc]
