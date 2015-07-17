@@ -5,7 +5,7 @@
 (defonce ^:dynamic node-id 0)
 
 (defn next-node-id! []
-  (set! node-id (+ node-id 10))                             ; this is a hack to allow some virtual render tree node ids without id conflicts
+  (set! node-id (inc node-id))
   node-id)
 
 (defn assoc-node-id [node]

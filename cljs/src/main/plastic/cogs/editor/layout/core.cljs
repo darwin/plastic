@@ -13,7 +13,8 @@
             [plastic.cogs.editor.layout.structural :refer [build-structural-web]]
             [plastic.cogs.editor.layout.spatial :refer [build-spatial-web]]
             [plastic.util.zip :as zip-utils]
-            [plastic.cogs.editor.layout.utils :as utils]))
+            [plastic.cogs.editor.layout.utils :as utils]
+            [plastic.cogs.editor.parser.utils :as parser]))
 
 (defn compose-render-trees [top-id headers docs code]
   {:tag         :tree
@@ -27,7 +28,7 @@
   (let [root-node (zip/node root-loc)
         _ (assert root-node)
         root-id (:id root-node)
-        top-id (dec root-id)                                ; a hack - root-id was minimal, we rely ids to be assigned by parser in depth-first-order
+        top-id (parser/next-node-id!)
         {:keys [code-visible docs-visible headers-visible]} settings
         code-render-tree (if code-visible (build-code-render-tree root-loc))
         docs-render-tree (if docs-visible (build-docs-render-tree root-loc))
