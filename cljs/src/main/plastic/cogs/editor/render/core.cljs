@@ -7,12 +7,9 @@
             [plastic.cogs.editor.render.headers :refer [headers-wrapper-component]]
             [plastic.cogs.editor.render.docs :refer [docs-component]]
             [plastic.cogs.editor.render.code :refer [code-box-component]]
-            [plastic.cogs.editor.render.soup :refer [form-soup-overlay-component]]
-            [plastic.cogs.editor.render.selections :refer [form-selections-overlay-component]]
             [plastic.cogs.editor.render.debug :refer [parser-debug-component text-input-debug-component text-output-debug-component render-tree-debug-component selections-debug-overlay-component]]
             [plastic.cogs.editor.render.utils :refer [dangerously-set-html classv]]
-            [plastic.cogs.editor.render.dom :as dom]
-            [plastic.util.helpers :as helpers]))
+            [plastic.cogs.editor.render.dom :as dom]))
 
 (declare unified-rendering-component)
 
