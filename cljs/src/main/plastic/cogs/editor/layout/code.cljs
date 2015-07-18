@@ -39,7 +39,7 @@
     (layout-utils/keyword-node? node) (helpers/strip-colon (node/string node))
     :else (node/string node)))
 
-(defn build-node-code-render-tree-node [depth loc]
+(defn build-node-code-render-tree-node [loc]
   (let [node (zip/node loc)
         node-id (:id node)
         tag (node/tag node)
@@ -48,13 +48,12 @@
       (merge
         {:id    node-id
          :tag   tag
-         :depth depth
          :line  (current-line-id)}
         (when (or (node/linebreak? node) (node/comment? node)) ; comments have newlines embedded
           (next-line-id!)
           {:tag :newline})
         (if (node/inner? node)
-          {:children (keep (partial build-node-code-render-tree-node (inc depth)) (child-locs loc))}
+          {:children (keep build-node-code-render-tree-node (child-locs loc))}
           {:text (prepare-node-text node)})
         (if (layout-utils/is-selectable? tag) {:selectable? true})
         (if (layout-utils/string-node? node) {:type :string})
@@ -63,4 +62,4 @@
 (defn build-code-render-tree [loc]
   (reset-line-id!)
   {:tag      :code
-   :children [(doall (build-node-code-render-tree-node 0 loc))]})
+   :children [(doall (build-node-code-render-tree-node loc))]})
