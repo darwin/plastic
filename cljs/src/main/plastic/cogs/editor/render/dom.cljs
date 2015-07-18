@@ -81,3 +81,15 @@
 
 (defn inline-editor-present? [dom-node]
   (single-result? (.children ($ dom-node) "atom-text-editor")))
+
+(defn event-shift-key? [event]
+  (.-shiftKey event))
+
+(defn event-alt-key? [event]
+  (.-altKey event))
+
+(defn event-meta-key? [event]
+  (.-metaKey event))
+
+(defn event-ctrl-key? [event]
+  (.-ctrlKey event))

@@ -17,13 +17,21 @@
 (defn clear-selection [editors [editor-selector]]
   (editor/apply-to-specified-editors clear-selection-in-editor editors editor-selector))
 
-(defn select-in-editor [selection editor]
+(defn set-selection-in-editor [selection editor]
   (-> editor
     (editing/stop-editing)
     (editor/set-selection selection)))
 
-(defn select [editors [editor-selector selection]]
-  (editor/apply-to-specified-editors (partial select-in-editor selection) editors editor-selector))
+(defn set-selection [editors [editor-selector selection]]
+  (editor/apply-to-specified-editors (partial set-selection-in-editor selection) editors editor-selector))
+
+(defn toggle-selection-in-editor [selection editor]
+  (-> editor
+    (editing/stop-editing)
+    (editor/toggle-selection selection)))
+
+(defn toggle-selection [editors [editor-selector selection]]
+  (editor/apply-to-specified-editors (partial toggle-selection-in-editor selection) editors editor-selector))
 
 (defn focus-form-in-editor [form-id editor]
   (-> editor
@@ -36,5 +44,6 @@
 ; register handlers
 
 (register-handler :editor-clear-selection paths/editors-path clear-selection)
-(register-handler :editor-select paths/editors-path select)
+(register-handler :editor-set-selection paths/editors-path set-selection)
+(register-handler :editor-toggle-selection paths/editors-path toggle-selection)
 (register-handler :editor-focus-form paths/editors-path focus-form)

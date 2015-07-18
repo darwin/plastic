@@ -26,6 +26,10 @@
   (fn [editor-id form-id node-id]
     (concat paths/editors [editor-id :analysis form-id node-id])))
 
+(defn cursor-selector []
+  (fn [editor-id node-id]
+    (concat paths/editors [editor-id :cursor node-id])))
+
 (register-sub :editors (path-query-factory paths/editors))
 
 (register-sub :editor-render-state (path-query-factory (editor-selector [:render-state])))
@@ -39,5 +43,7 @@
 (register-sub :editor-editing-node (path-query-factory (editing-selector)))
 (register-sub :editor-form-node-analysis (path-query-factory (analysis-selector)))
 (register-sub :editor-focused-form-id (path-query-factory (editor-selector [:focused-form-id])))
+(register-sub :editor-cursor (path-query-factory (editor-selector [:cursor])))
+(register-sub :editor-cursor-node (path-query-factory (cursor-selector)))
 
 (register-sub :settings (path-query-factory (settings-selector)))

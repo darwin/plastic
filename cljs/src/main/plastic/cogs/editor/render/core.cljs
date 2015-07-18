@@ -56,7 +56,9 @@
             editor-id (dom/lookup-editor-id selectable-dom-node)]
         (.stopPropagation event)
         (dispatch :editor-focus-form editor-id (:id form))
-        (dispatch :editor-select editor-id #{selected-node-id})))))
+        (if-not (dom/event-shift-key? event)
+          (dispatch :editor-set-selection editor-id #{selected-node-id})
+          (dispatch :editor-toggle-selection editor-id #{selected-node-id}))))))
 
 (defn form-component []
   (let [render-tree-debug-visible (subscribe [:settings :render-tree-debug-visible])]

@@ -33,7 +33,25 @@
 
 (defn set-selection [editor selection]
   {:pre [(set? selection)]}
-  (assoc editor :selection selection))
+  (-> editor
+    (assoc :selection selection)
+    (assoc :cursor #{(last selection)})))
+
+(defn toggle-selection [editor toggle-set]
+  {:pre [(set? toggle-set)]}
+  (let [toggler (fn [accum id]
+                  (if (contains? accum id)
+                    (disj accum id)
+                    (conj accum id)))
+        old-selection (get-selection editor)
+        new-selection (reduce toggler old-selection toggle-set)]
+    (log "old" old-selection "new" new-selection)
+    (set-selection editor new-selection)))
+
+(defn get-cursor [editor]
+  {:pre [(set? (get editor :cursor))
+         (<= 1 (count (get editor :cursor)))]}
+  (first (get editor :cursor)))
 
 (defn get-focused-form-id [editor]
   (get editor :focused-form-id))
@@ -49,13 +67,15 @@
   {:post [(pos? %)]}
   (:id editor))
 
-(defn get-editing-set [editor]
-  {:post [(set? %)]}
-  (or (:editing editor) #{}))
+(defn get-editing [editor]
+  {:pre [(set? (:editing editor))
+         (<= 1 (count (:editing editor)))]}
+  (first (:editing editor)))
 
-(defn set-editing-set [editor editing-set]
-  {:pre [(or (nil? editing-set) (set? editing-set))]}
-  (assoc editor :editing (or editing-set #{})))
+(defn set-editing [editor node-id]
+  (if node-id
+    (assoc editor :editing #{node-id})
+    (assoc editor :editing #{})))
 
 (defn editing? [editor]
   (let [editing (:editing editor)]
@@ -194,8 +214,8 @@
     (if (zip-utils/valid-loc? node-loc)
       (= (:tag (z/node node-loc) :token)))))
 
-(defn can-edit-selection? [editor]
-  (every? (partial can-edit-node? editor) (get-selection editor)))
+(defn can-edit-cursor? [editor]
+  (can-edit-node? editor (get-cursor editor)))
 
 (defn get-top-level-form-ids [editor]
   (get-render-order editor))

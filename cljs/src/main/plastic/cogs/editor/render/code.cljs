@@ -17,17 +17,19 @@
 (defn code-token-component [editor-id form-id node-id]
   (let [selected? (subscribe [:editor-selection-node editor-id node-id])
         edited? (subscribe [:editor-editing-node editor-id node-id])
+        cursor? (subscribe [:editor-cursor-node editor-id node-id])
         analysis (subscribe [:editor-form-node-analysis editor-id form-id node-id])]
     (fn [node]
       (let [{:keys [selectable? type text id]} node
             {:keys [decl-scope call? def-name?]} @analysis
-            _ (log "R! token" id (subs text 0 10) @analysis)
+            _ (log "R! token" id (subs text 0 10) "cursor" @cursor? @analysis)
             props (merge
                     {:data-qnid id
                      :class     (classv
                                   (if type (name type))
                                   (if (and selectable? (not @edited?)) "selectable")
                                   (if (and selectable? (not @edited?) @selected?) "selected")
+                                  (if @cursor? "cursor")
                                   (if @edited? "editing")
                                   (if call? "call")
                                   (if decl-scope
@@ -95,8 +97,10 @@
         (elements-table (partial emit-code-block editor-id form-id) children)))))
 
 (defn wrapped-code-block-component [editor-id form-id node opener closer]
-  (let [selected? (subscribe [:editor-selection-node editor-id (:id node)])
-        analysis (subscribe [:editor-form-node-analysis editor-id form-id (:id node)])]
+  (let [node-id (:id node)
+        selected? (subscribe [:editor-selection-node editor-id node-id])
+        cursor? (subscribe [:editor-cursor-node editor-id node-id])
+        analysis (subscribe [:editor-form-node-analysis editor-id form-id node-id])]
     (fn []
       (let [{:keys [id selectable? depth tag]} node
             {:keys [new-scope?]} @analysis
@@ -107,6 +111,7 @@
                                   tag-name
                                   (if selectable? "selectable")
                                   (if (and selectable? @selected?) "selected")
+                                  (if @cursor? "cursor")
                                   (if depth (str "depth-" depth))
                                   (if new-scope? (str "scope scope-" (get-in @analysis [:scope :id]) " scope-depth-" (get-in @analysis [:scope :depth]))))}
          [:div.punctuation.opener opener]

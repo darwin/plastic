@@ -164,6 +164,3 @@
 
 (defn prev-token [editor]
   (apply-move-selection editor :prev-token))
-
-(defn set-selection-to-editing-set [editor]
-  (editor/set-selection editor (editor/get-editing-set editor)))

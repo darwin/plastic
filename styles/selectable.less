@@ -29,19 +29,32 @@
     }
   }
 
-  .selectable.selected::before {
+  .selectable.selected::after {
     pointer-events: none;
     content: '';
     position: absolute;
-    z-index: 100;
-    width: calc(~'100% + 5px'); // 1px + 4px 
+    width: calc(~'100% + 0px');
     height: calc(~'100% + 0px');
-
-    border: 1px solid yellow;
-    border-right: 4px solid yellow;
+    
+    background-color: yellow;
+    opacity: 0.5;
     padding: 0px;
     top: 0px; // do not shift because of z-index issues
-    left: -1px;
+    left: 0px;
+  }
+  
+  .selectable.cursor::before {
+    pointer-events: none;
+    content: '';
+    position: absolute;
+    width: calc(~'100% + 5px');
+    height: calc(~'100% + 0px');
+
+    //border: 1px solid yellow;
+    border-right: 5px solid yellow;
+    padding: 0px;
+    top: 0px;
+    left: 0px;
 
     -webkit-animation-name: fade-selection-ring;
     -webkit-animation-iteration-count: infinite;

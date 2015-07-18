@@ -11,12 +11,6 @@
 (defn select-next-candidate-for-case-of-selected-node-removal [editor]
   (selection/apply-move-selection editor :structural-left :structural-right :structural-up))
 
-(defn get-selected-node-id [editor]
-  (first (editor/get-selection editor)))
-
-(defn get-edited-node-id [editor]
-  (first (editor/get-editing-set editor)))
-
 (defn set-selection-to-node-if-exists [editor node-id]
   (let [node-loc (editor/find-node-loc editor node-id)]
     (if (zip-utils/valid-loc? node-loc)
@@ -24,7 +18,7 @@
       editor)))
 
 (defn commit-value [editor value]
-  (let [node-id (get-edited-node-id editor)]
+  (let [node-id (editor/get-editing editor)]
     (-> editor
       (select-next-candidate-for-case-of-selected-node-removal)
       (editor/commit-node-value node-id value)
@@ -33,8 +27,8 @@
 
 (defn apply-editing [editor action]
   (let [should-be-editing? (= action :start)
-        can-edit? (editor/can-edit-selection? editor)]
-    (editor/set-editing-set editor (if (and can-edit? should-be-editing?) (editor/get-selection editor)))))
+        can-edit? (editor/can-edit-cursor? editor)]
+    (editor/set-editing editor (if (and can-edit? should-be-editing?) (editor/get-cursor editor)))))
 
 (defn should-commit? [editor-id]
   (and (onion/is-inline-editor-modified? editor-id)))
@@ -55,7 +49,7 @@
     editor))
 
 (defn insert-and-start-editing [editor selected-node-id & values]
-  (let [node-id (if (editor/editing? editor) (get-edited-node-id editor) (get-selected-node-id editor))
+  (let [node-id (if (editor/editing? editor) (editor/get-editing editor) (editor/get-cursor editor))
         editor-after-stop-editing (if (editor/editing? editor) (stop-editing editor) editor)]
     (-> editor-after-stop-editing
       (editor/insert-values-after-node node-id values)
@@ -63,16 +57,16 @@
       (start-editing))))
 
 (defn prepend-and-keep-selection [editor & values]
-  (let [selected-id (get-selected-node-id editor)]
+  (let [cursor-id (editor/get-cursor editor)]
     (-> editor
-      (editor/insert-values-before-node selected-id values)
-      (set-selection-to-node-if-exists selected-id))))
+      (editor/insert-values-before-node cursor-id values)
+      (set-selection-to-node-if-exists cursor-id))))
 
 (defn append-and-keep-selection [editor & values]
-  (let [selected-id (get-selected-node-id editor)]
+  (let [cursor-id (editor/get-cursor editor)]
     (-> editor
-      (editor/insert-values-after-node selected-id values)
-      (set-selection-to-node-if-exists selected-id))))
+      (editor/insert-values-after-node cursor-id values)
+      (set-selection-to-node-if-exists cursor-id))))
 
 (defn dispatch-atom-command-in-inline-editor [editor command]
   (let [editor-id (editor/get-id editor)]
@@ -106,15 +100,15 @@
 
 (defn delete-selection [editor]
   {:pre [(not (editor/editing? editor))]}
-  (let [node-id (get-selected-node-id editor)
+  (let [cursor-id (editor/get-cursor editor)
         editor-with-next-selection (select-next-candidate-for-case-of-selected-node-removal editor)
-        next-selection-node-id (get-selected-node-id editor-with-next-selection)]
+        next-cursor-id (editor/get-cursor editor-with-next-selection)]
     (-> editor
-      (editor/delete-node node-id)
-      (set-selection-to-node-if-exists next-selection-node-id))))
+      (editor/delete-node cursor-id)
+      (set-selection-to-node-if-exists next-cursor-id))))
 
 (defn delete-and-move-left [editor]
-  (let [node-loc (editor/find-node-loc editor (get-edited-node-id editor))
+  (let [node-loc (editor/find-node-loc editor (editor/get-editing editor))
         left-loc (zip/left node-loc)]
     (if (zip-utils/valid-loc? left-loc)
       (-> editor
