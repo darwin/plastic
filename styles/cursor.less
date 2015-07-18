@@ -1,0 +1,38 @@
+@import "./config";
+
+.plastic-editor-view {
+
+  @-webkit-keyframes fade-cursor-ring {
+    from {
+      opacity: @cursor-border-opacity1;
+      border-color: @cursor-border-color1;
+    }
+    to {
+      opacity: @cursor-border-opacity2;
+      border-color: @cursor-border-color2;
+    }
+  }
+
+  .cursor:before {
+    pointer-events: none;
+    content: '';
+    position: absolute;
+    z-index: 100;
+    width: calc(~'100% + ' 2 * @cursor-border-width + @cursor-carret-width);
+    height: calc(~'100% + ' 2 * @cursor-border-width);
+
+    border-style: @cursor-border-style;
+    border-width: @cursor-border-width;
+    border-right-width: (@cursor-border-width + @cursor-carret-width);
+    padding: 0px;
+    top: -@cursor-border-width;
+    left: -@cursor-border-width;
+
+    -webkit-animation-name: fade-cursor-ring;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: ease-in-out;
+    -webkit-animation-direction: alternate;
+    -webkit-animation-duration: @cursor-fading-speed;
+  }
+
+} // .plastic-editor-view
