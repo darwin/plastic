@@ -57,7 +57,9 @@
         (.stopPropagation event)
         (dispatch :editor-focus-form editor-id (:id form))
         (if-not (dom/event-shift-key? event)
-          (dispatch :editor-set-selection editor-id #{selected-node-id})
+          (do
+            (dispatch :editor-set-selection editor-id #{selected-node-id})
+            (dispatch :editor-set-cursor editor-id selected-node-id))
           (dispatch :editor-toggle-selection editor-id #{selected-node-id}))))))
 
 (defn form-component []
@@ -88,7 +90,8 @@
 
 (defn handle-editor-click [editor-id event]
   (.stopPropagation event)
-  (dispatch :editor-clear-selection editor-id))
+  (dispatch :editor-clear-selection editor-id)
+  (dispatch :editor-clear-cursor editor-id))
 
 (defn editor-root-component [editor-id]
   (let [state (subscribe [:editor-render-state editor-id])

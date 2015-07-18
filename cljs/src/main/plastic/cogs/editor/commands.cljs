@@ -4,7 +4,7 @@
   (:require [plastic.frame.core :refer [subscribe register-handler]]
             [plastic.schema.paths :as paths]
             [plastic.cogs.editor.ops.editing :as editing]
-            [plastic.cogs.editor.ops.selection :as selection]
+            [plastic.cogs.editor.ops.cursor :as cursor]
             [plastic.cogs.editor.model :as editor]))
 
 (defmulti handle (fn [command & _] command))
@@ -14,53 +14,53 @@
 (defmethod handle :spatial-up [_ editor]
   (-> editor
     editing/stop-editing
-    selection/spatial-up))
+    cursor/spatial-up))
 
 (defmethod handle :spatial-down [_ editor]
   (-> editor
     editing/stop-editing
-    selection/spatial-down))
+    cursor/spatial-down))
 
 (defmethod handle :spatial-left [_ editor]
   (-> editor
     editing/stop-editing
-    selection/spatial-left))
+    cursor/spatial-left))
 
 (defmethod handle :spatial-right [_ editor]
   (-> editor
     editing/stop-editing
-    selection/spatial-right))
+    cursor/spatial-right))
 
 (defmethod handle :structural-left [_ editor]
   (-> editor
     editing/stop-editing
-    selection/structural-left))
+    cursor/structural-left))
 
 (defmethod handle :structural-right [_ editor]
   (-> editor
     editing/stop-editing
-    selection/structural-right))
+    cursor/structural-right))
 
 (defmethod handle :structural-up [_ editor]
   (-> editor
     editing/stop-editing
-    selection/structural-up))
+    cursor/structural-up))
 
 (defmethod handle :structural-down [_ editor]
-  (let [new-editor (selection/structural-down editor)]
+  (let [new-editor (cursor/structural-down editor)]
     (if (= new-editor editor)
       (dispatch :editor-command (editor/get-id editor) :toggle-editing))
     new-editor))
 
 (defmethod handle :next-token [_ editor]
-  (let [editor-with-moved-selection (-> editor selection/next-token)]
+  (let [editor-with-moved-selection (-> editor cursor/next-token)]
     (-> editor
       editing/stop-editing
       (editor/set-selection (editor/get-selection editor-with-moved-selection))
       editing/start-editing)))
 
 (defmethod handle :prev-token [_ editor]
-  (let [editor-with-moved-selection (-> editor selection/prev-token)]
+  (let [editor-with-moved-selection (-> editor cursor/prev-token)]
     (-> editor
       editing/stop-editing
       (editor/set-selection (editor/get-selection editor-with-moved-selection))

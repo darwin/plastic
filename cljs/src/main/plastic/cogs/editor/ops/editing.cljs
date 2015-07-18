@@ -3,18 +3,18 @@
   (:require [plastic.cogs.editor.render.dom :as dom]
             [plastic.frame.core :refer [subscribe register-handler]]
             [plastic.cogs.editor.model :as editor]
-            [plastic.cogs.editor.ops.selection :as selection]
+            [plastic.cogs.editor.ops.cursor :as selection]
             [plastic.onion.core :as onion]
             [plastic.util.zip :as zip-utils]
             [rewrite-clj.zip :as zip]))
 
 (defn select-next-candidate-for-case-of-selected-node-removal [editor]
-  (selection/apply-move-selection editor :structural-left :structural-right :structural-up))
+  (selection/apply-move-cursor editor :structural-left :structural-right :structural-up))
 
-(defn set-selection-to-node-if-exists [editor node-id]
+(defn set-cursor-to-node-if-exists [editor node-id]
   (let [node-loc (editor/find-node-loc editor node-id)]
     (if (zip-utils/valid-loc? node-loc)
-      (editor/set-selection editor #{node-id})
+      (editor/set-cursor editor node-id)
       editor)))
 
 (defn commit-value [editor value]
@@ -23,7 +23,7 @@
       (select-next-candidate-for-case-of-selected-node-removal)
       (editor/commit-node-value node-id value)
       (editor/update-render-tree-node-in-focused-form node-id value) ; ugly: this prevents brief display of previous value before re-layouting finishes
-      (set-selection-to-node-if-exists node-id))))
+      (set-cursor-to-node-if-exists node-id))))
 
 (defn apply-editing [editor action]
   (let [should-be-editing? (= action :start)
@@ -53,20 +53,20 @@
         editor-after-stop-editing (if (editor/editing? editor) (stop-editing editor) editor)]
     (-> editor-after-stop-editing
       (editor/insert-values-after-node node-id values)
-      (set-selection-to-node-if-exists selected-node-id)
+      (set-cursor-to-node-if-exists selected-node-id)
       (start-editing))))
 
 (defn prepend-and-keep-selection [editor & values]
   (let [cursor-id (editor/get-cursor editor)]
     (-> editor
       (editor/insert-values-before-node cursor-id values)
-      (set-selection-to-node-if-exists cursor-id))))
+      (set-cursor-to-node-if-exists cursor-id))))
 
 (defn append-and-keep-selection [editor & values]
   (let [cursor-id (editor/get-cursor editor)]
     (-> editor
       (editor/insert-values-after-node cursor-id values)
-      (set-selection-to-node-if-exists cursor-id))))
+      (set-cursor-to-node-if-exists cursor-id))))
 
 (defn dispatch-atom-command-in-inline-editor [editor command]
   (let [editor-id (editor/get-id editor)]
@@ -87,10 +87,9 @@
 (defn enter [editor]
   (if (editing-string-or-doc? editor)
     (dispatch-atom-command-in-inline-editor editor "editor:newline")
-    (if (editor/editing? editor)
-      (let [placeholder-node (editor/prepare-placeholder-node)]
-        (insert-and-start-editing editor (:id placeholder-node) (editor/prepare-newline-node) placeholder-node))
-      (append-and-keep-selection editor (editor/prepare-newline-node)))))
+    (let [placeholder-node (editor/prepare-placeholder-node)]
+      (insert-and-start-editing editor (:id placeholder-node) (editor/prepare-newline-node) placeholder-node))))
+
 
 (defn space [editor]
   (if (editing-string-or-doc? editor)
@@ -105,7 +104,7 @@
         next-cursor-id (editor/get-cursor editor-with-next-selection)]
     (-> editor
       (editor/delete-node cursor-id)
-      (set-selection-to-node-if-exists next-cursor-id))))
+      (set-cursor-to-node-if-exists next-cursor-id))))
 
 (defn delete-and-move-left [editor]
   (let [node-loc (editor/find-node-loc editor (editor/get-editing editor))
@@ -113,7 +112,7 @@
     (if (zip-utils/valid-loc? left-loc)
       (-> editor
         (stop-editing)
-        (set-selection-to-node-if-exists (zip-utils/loc-id left-loc)))
+        (set-cursor-to-node-if-exists (zip-utils/loc-id left-loc)))
       (-> editor
         (stop-editing)
         (selection/structural-up)))))

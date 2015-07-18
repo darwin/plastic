@@ -4,7 +4,8 @@
  
   .token {
     display: inline-block;
-    transform: translateZ(0); // create a GPU layer
+    // adding GPU layer here triggers a bug when CSS animation does not go away from ::before element
+    // transform: translateZ(0); // create a GPU layer
     vertical-align: top;
     white-space: pre;
   }

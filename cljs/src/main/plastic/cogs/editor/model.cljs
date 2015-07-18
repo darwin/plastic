@@ -31,11 +31,18 @@
   {:post [(set? %)]}
   (or (get editor :selection) #{}))
 
+(defn get-cursor [editor]
+  {:pre [(set? (or (get editor :cursor) #{}))
+         (<= (count (get editor :cursor)) 1)]}
+  (first (get editor :cursor)))
+
+(defn cursor-and-selection-are-linked? [editor]
+  (let [selection (get-selection editor)]
+    (or (empty? selection) (and (= (count selection) 1) (= (first selection) (get-cursor editor))))))
+
 (defn set-selection [editor selection]
   {:pre [(set? selection)]}
-  (-> editor
-    (assoc :selection selection)
-    (assoc :cursor #{(last selection)})))
+  (assoc editor :selection selection))
 
 (defn toggle-selection [editor toggle-set]
   {:pre [(set? toggle-set)]}
@@ -45,13 +52,13 @@
                     (conj accum id)))
         old-selection (get-selection editor)
         new-selection (reduce toggler old-selection toggle-set)]
-    (log "old" old-selection "new" new-selection)
     (set-selection editor new-selection)))
 
-(defn get-cursor [editor]
-  {:pre [(set? (get editor :cursor))
-         (<= 1 (count (get editor :cursor)))]}
-  (first (get editor :cursor)))
+(defn set-cursor [editor cursor]
+  (let [new-cursor (if cursor #{cursor} #{})]
+    (cond-> editor
+      (cursor-and-selection-are-linked? editor) (assoc :selection new-cursor)
+      true (assoc :cursor new-cursor))))
 
 (defn get-focused-form-id [editor]
   (get editor :focused-form-id))
@@ -69,7 +76,7 @@
 
 (defn get-editing [editor]
   {:pre [(set? (:editing editor))
-         (<= 1 (count (:editing editor)))]}
+         (<= (count (:editing editor)) 1)]}
   (first (:editing editor)))
 
 (defn set-editing [editor node-id]

@@ -26,9 +26,29 @@
     to {
       opacity: 0.5;
       border-color: hsl(180, 100%, 80%);
-    }
+    } 
   }
+  
+  .selectable.cursor:before {
+    pointer-events: none;
+    content: '';
+    position: absolute;
+    width: calc(~'100% + 6px');
+    height: calc(~'100% + 0px');
 
+    border: 1px solid yellow;
+    border-right: 5px solid yellow;
+    padding: 0px;
+    top: 0px; // do not shift because of z-index issues
+    left: -1px;
+
+    -webkit-animation-name: fade-selection-ring;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: ease-in-out;
+    -webkit-animation-direction: alternate;
+    -webkit-animation-duration: 0.5s;
+  }
+  
   .selectable.selected::after {
     pointer-events: none;
     content: '';
@@ -37,31 +57,10 @@
     height: calc(~'100% + 0px');
     
     background-color: yellow;
-    opacity: 0.5;
+    opacity: 0.3;
     padding: 0px;
     top: 0px; // do not shift because of z-index issues
     left: 0px;
   }
-  
-  .selectable.cursor::before {
-    pointer-events: none;
-    content: '';
-    position: absolute;
-    width: calc(~'100% + 5px');
-    height: calc(~'100% + 0px');
-
-    //border: 1px solid yellow;
-    border-right: 5px solid yellow;
-    padding: 0px;
-    top: 0px;
-    left: 0px;
-
-    -webkit-animation-name: fade-selection-ring;
-    -webkit-animation-iteration-count: infinite;
-    -webkit-animation-timing-function: ease-in-out;
-    -webkit-animation-direction: alternate;
-    -webkit-animation-duration: 0.5s;
-  }
-
 
 } // .plastic-editor-view

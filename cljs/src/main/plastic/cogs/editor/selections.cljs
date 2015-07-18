@@ -40,10 +40,27 @@
 (defn focus-form [editors [editor-selector form-id]]
   (editor/apply-to-specified-editors (partial focus-form-in-editor form-id) editors editor-selector))
 
+(defn set-cursor-in-editor [cursor editor]
+  (-> editor
+    (editor/set-cursor cursor)))
+
+(defn set-cursor [editors [editor-selector cursor]]
+  (editor/apply-to-specified-editors (partial set-cursor-in-editor cursor) editors editor-selector))
+
+(defn clear-cursor-in-editor [editor]
+  (-> editor
+    (editing/stop-editing)
+    (editor/set-cursor nil)))
+
+(defn clear-cursor [editors [editor-selector]]
+  (editor/apply-to-specified-editors clear-cursor-in-editor editors editor-selector))
+
 ; ----------------------------------------------------------------------------------------------------------------
 ; register handlers
 
 (register-handler :editor-clear-selection paths/editors-path clear-selection)
+(register-handler :editor-clear-cursor paths/editors-path clear-cursor)
 (register-handler :editor-set-selection paths/editors-path set-selection)
 (register-handler :editor-toggle-selection paths/editors-path toggle-selection)
 (register-handler :editor-focus-form paths/editors-path focus-form)
+(register-handler :editor-set-cursor paths/editors-path set-cursor)

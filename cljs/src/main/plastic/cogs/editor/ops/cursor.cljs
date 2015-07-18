@@ -1,4 +1,4 @@
-(ns plastic.cogs.editor.ops.selection
+(ns plastic.cogs.editor.ops.cursor
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
                    [plastic.macros.glue :refer [react! dispatch]])
   (:require [plastic.cogs.editor.model :as editor]
@@ -15,38 +15,35 @@
         best-match (first (sort-by :score scores))]
     (:candidate best-match)))
 
-(defn get-selected-node-id [editor]
-  (first (editor/get-selection editor)))
-
 (defn structural-movemement [editor op]
-  (let [selected-id (get-selected-node-id editor)
+  (let [cursor-id (editor/get-cursor editor)
         render-info (editor/get-focused-render-info editor)
         structural-web (:structural-web render-info)]
-    (if-let [result-id (op (get structural-web selected-id))]
-      (editor/set-selection editor #{result-id}))))
+    (if-let [result-id (op (get structural-web cursor-id))]
+      (editor/set-cursor editor result-id))))
 
 (defn find-first-non-empty-line-in-given-direction [spatial-web line op]
   (first (drop-while #(and (not (nil? %)) (empty? %)) (map spatial-web (iterate op (op line))))))
 
 (defn spatial-movement-up-down [editor dir-fun]
-  (let [selected-id (get-selected-node-id editor)
+  (let [cursor-id (editor/get-cursor editor)
         render-info (editor/get-focused-render-info editor)
         {:keys [spatial-web selectables]} render-info
-        sel-node (get selectables selected-id)
+        sel-node (get selectables cursor-id)
         line-selectables (find-first-non-empty-line-in-given-direction spatial-web (:line sel-node) dir-fun)
         line-selections (map #(get selectables (:id %)) line-selectables)]
     (if-let [result (find-best-spatial-match sel-node line-selections)]
-      (editor/set-selection editor #{(:id result)}))))
+      (editor/set-cursor editor (:id result)))))
 
 (defn spatial-movement-left-right [editor dir-fun]
-  (let [selected-id (get-selected-node-id editor)
+  (let [cursor-id (editor/get-cursor editor)
         render-info (editor/get-focused-render-info editor)
         {:keys [spatial-web selectables]} render-info
-        sel-node (get selectables selected-id)]
+        sel-node (get selectables cursor-id)]
     (if (empty? (:children sel-node))
       (let [line-selectables (get spatial-web (:line sel-node))]
-        (if-let [result (dir-fun #(= (:id %) selected-id) line-selectables)]
-          (editor/set-selection editor #{(:id result)}))))))
+        (if-let [result (dir-fun #(= (:id %) cursor-id) line-selectables)]
+          (editor/set-cursor editor (:id result)))))))
 
 (defn move-to-form [editor dir-fun next-sel-fun]
   (let [focused-form-id (editor/get-focused-form-id editor)
@@ -56,15 +53,15 @@
       (let [next-selection (next-sel-fun editor next-focused-form-id)]
         (-> editor
           (editor/set-focused-form-id next-focused-form-id)
-          (editor/set-selection #{next-selection}))))))
+          (editor/set-cursor next-selection))))))
 
 (defn token-movement-prev-next [editor dir-fun]
-  (let [selected-id (get-selected-node-id editor)
+  (let [cursor-id (editor/get-cursor editor)
         render-info (editor/get-focused-render-info editor)
         {:keys [spatial-web]} render-info
         all-lines (apply concat (vals spatial-web))]
-    (if-let [result (dir-fun #(= (:id %) selected-id) all-lines)]
-      (editor/set-selection editor #{(:id result)}))))
+    (if-let [result (dir-fun #(= (:id %) cursor-id) all-lines)]
+      (editor/set-cursor editor (:id result)))))
 
 ; ----------------------------------------------------------------------------------------------------------------
 
@@ -121,7 +118,7 @@
       result
       (recur editor (rest movements)))))
 
-(defn apply-move-selection [editor & movements]
+(defn apply-move-cursor [editor & movements]
   (if-let [result (apply-movements editor movements)]
     result
     editor))
@@ -130,37 +127,37 @@
 ; spatial movement
 
 (defn spatial-up [editor]
-  (apply-move-selection editor :spatial-up :move-prev-form))
+  (apply-move-cursor editor :spatial-up :move-prev-form))
 
 (defn spatial-down [editor]
-  (apply-move-selection editor :spatial-down :move-next-form))
+  (apply-move-cursor editor :spatial-down :move-next-form))
 
 (defn spatial-left [editor]
-  (apply-move-selection editor :spatial-left))
+  (apply-move-cursor editor :spatial-left))
 
 (defn spatial-right [editor]
-  (apply-move-selection editor :spatial-right))
+  (apply-move-cursor editor :spatial-right))
 
 ; ---------------------------
 ; structural movement
 
 (defn structural-up [editor]
-  (apply-move-selection editor :structural-up))
+  (apply-move-cursor editor :structural-up))
 
 (defn structural-down [editor]
-  (apply-move-selection editor :structural-down))
+  (apply-move-cursor editor :structural-down))
 
 (defn structural-left [editor]
-  (apply-move-selection editor :structural-left))
+  (apply-move-cursor editor :structural-left))
 
 (defn structural-right [editor]
-  (apply-move-selection editor :structural-right))
+  (apply-move-cursor editor :structural-right))
 
 ; ---------------------------
 ; token movement
 
 (defn next-token [editor]
-  (apply-move-selection editor :next-token))
+  (apply-move-cursor editor :next-token))
 
 (defn prev-token [editor]
-  (apply-move-selection editor :prev-token))
+  (apply-move-cursor editor :prev-token))
