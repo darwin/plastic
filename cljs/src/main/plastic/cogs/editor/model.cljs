@@ -6,7 +6,7 @@
             [clojure.walk :refer [prewalk]]
             [plastic.cogs.editor.parser.utils :as parser]
             [plastic.util.helpers :as helpers]
-            [plastic.cogs.editor.layout.code :as layout]
+            [plastic.cogs.editor.layout.builder :as layout]
             [plastic.util.zip :as zip-utils]
             [rewrite-clj.node.token :refer [token-node]]
             [rewrite-clj.node.whitespace :refer [newline-node]]
@@ -338,3 +338,9 @@
 
 (defn get-analysis-for-form [editor form-id]
   (get-in editor [:analysis form-id]))
+
+(defn set-layout-for-form [editor form-id layout]
+  (assoc-in editor [:layout form-id] layout))
+
+(defn get-layout-for-form [editor form-id]
+  (get-in editor [:layout form-id]))

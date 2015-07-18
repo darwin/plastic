@@ -7,9 +7,10 @@
 
 (defn doc-component [editor-id form-id node-id]
   (let [selected? (subscribe [:editor-selection-node editor-id node-id])
-        edited? (subscribe [:editor-editing-node editor-id node-id])]
-    (fn [doc-info]
-      (let [{:keys [text id selectable?]} doc-info]
+        edited? (subscribe [:editor-editing-node editor-id node-id])
+        layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
+    (fn [editor-id form-id node-id]
+      (let [{:keys [text id selectable?]} @layout]
         ^{:key id}
         [:div.doc
          [:div.docstring.token
@@ -22,11 +23,10 @@
             [inline-editor-component id text :doc]
             [raw-html-component (str (wrap-specials text) " ")])]])))) ; that added space is important, last newline could be ignored without it
 
-(defn docs-component []
-  (fn [editor-id form-id docs-render-info]
-    (log "R! docs")
-    [:div.docs-group
-     (for [doc-info (:children docs-render-info)]
-       (let [id (:id doc-info)]
-         ^{:key id}
-         [(doc-component editor-id form-id id) doc-info]))]))
+(defn docs-group-component [editor-id form-id node-id]
+  (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
+    (fn [editor-id form-id node-id]
+      (log "R! docs")
+      [:div.docs-group
+       (for [doc-id (:children @layout)]
+         ^{:key doc-id} [doc-component editor-id form-id doc-id])])))

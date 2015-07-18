@@ -18,9 +18,10 @@
   (let [selected? (subscribe [:editor-selection-node editor-id node-id])
         edited? (subscribe [:editor-editing-node editor-id node-id])
         cursor? (subscribe [:editor-cursor-node editor-id node-id])
-        analysis (subscribe [:editor-form-node-analysis editor-id form-id node-id])]
-    (fn [node]
-      (let [{:keys [selectable? type text id]} node
+        analysis (subscribe [:editor-form-node-analysis editor-id form-id node-id])
+        layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
+    (fn [editor-id form-id node-id]
+      (let [{:keys [selectable? type text id]} @layout
             {:keys [decl-scope call? def-name?]} @analysis
             _ (log "R! token" id (subs text 0 10) "cursor" @cursor? @analysis)
             props (merge
@@ -43,66 +44,46 @@
           :string (emit-token (-> text (wrap-specials)))
           (emit-token (-> text (apply-shadowing-subscripts (:shadows decl-scope)))))))))
 
-(defn break-nodes-into-lines [accum node]
-  (let [new-accum (assoc accum (dec (count accum)) (conj (last accum) node))]
-    (if (= (:tag node) :newline)
-      (conj new-accum [])
-      new-accum)))
+(defn emit-code-block [editor-id form-id node-id]
+  ^{:key node-id} [code-block-component editor-id form-id node-id])
 
-(defn emit-code-block [editor-id form-id node]
-  ^{:key (:id node)} [code-block-component editor-id form-id node])
+(defn elements-row [emit hints items]
+  (let [row (map emit items)]
+    (if (:indent? hints)
+      (cons [:div.indent] row)
+      row)))
 
-(defn is-simple? [node]
-  (empty? (:children node)))
+(defn elements-table [emit [desc & lines]]
+  (if (:oneliner? desc)
+    [:div.elements
+     (let [[hints & line-items] (first lines)]
+       (elements-row emit hints line-items))]
+    [:table.elements
+     [:tbody
+      (for [[index [hints & line-items]] (map-indexed (fn [i l] [i l]) lines)]
+        (if (:double-column? hints)
+          ^{:key index} [:tr
+                         [:td (elements-row emit hints [(first line-items)])]
+                         [:td (elements-row emit {} (rest line-items))]]
+          ^{:key index} [:tr
+                         [:td {:col-span 2} (elements-row emit hints line-items)]]))]]))
 
-(defn is-newline? [node]
-  (or (nil? node) (= (:tag node) :newline)))
+(defn code-element-component [editor-id form-id node-id]
+  (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
+    (fn [editor-id form-id node-id]
+      (let [{:keys [tag children]} @layout]
+        (condp = tag
+          :newline [:span.newline "↵"]
+          :token [code-token-component editor-id form-id node-id]
+          (elements-table (partial emit-code-block editor-id form-id) children))))))
 
-(defn is-double-column-line? [line]
-  (and (is-simple? (first line)) (not (is-newline? (second line))) (is-newline? (nth line 2 nil))))
-
-(defn elements-table [emit nodes]
-  (let [lines (reduce break-nodes-into-lines [[]] nodes)]
-    (if (<= (count lines) 1)
-      [:div.elements
-       (for [node (first lines)]
-         (emit node))]
-      [:table.elements
-       [:tbody
-        (let [first-line-is-double-column? (is-double-column-line? (first lines))]
-          (for [[index line] (map-indexed (fn [i l] [i l]) lines)]
-            (if (is-double-column-line? line)
-              ^{:key index} [:tr
-                             [:td
-                              (if (and
-                                    (not first-line-is-double-column?)
-                                    (not= line (first lines)))
-                                [:div.indent])
-                              (emit (first line))]
-                             [:td
-                              (for [node (rest line)]
-                                (emit node))]]
-              ^{:key index} [:tr
-                             [:td {:col-span 2}
-                              (if (not= line (first lines)) [:div.indent])
-                              (for [node line]
-                                (emit node))]])))]])))
-
-(defn code-element-component []
-  (fn [editor-id form-id node]
-    (let [{:keys [tag children]} node]
-      (condp = tag
-        :newline [:span.newline "↵"]
-        :token [(code-token-component editor-id form-id (:id node)) node]
-        (elements-table (partial emit-code-block editor-id form-id) children)))))
-
-(defn wrapped-code-block-component [editor-id form-id node opener closer]
-  (let [node-id (:id node)
-        selected? (subscribe [:editor-selection-node editor-id node-id])
+(defn wrapped-code-element-component [editor-id form-id node-id opener closer]
+  (let [selected? (subscribe [:editor-selection-node editor-id node-id])
         cursor? (subscribe [:editor-cursor-node editor-id node-id])
+        layout (subscribe [:editor-form-node-layout editor-id form-id node-id])
         analysis (subscribe [:editor-form-node-analysis editor-id form-id node-id])]
-    (fn []
-      (let [{:keys [id selectable? depth tag]} node
+    (fn [editor-id form-id node-id opener closer]
+      (let [{:keys [id selectable? depth tag]} @layout
             {:keys [new-scope?]} @analysis
             tag-name (name tag)]
         (log "R! wrapper-code-block" id @analysis)
@@ -115,29 +96,27 @@
                                   (if depth (str "depth-" depth))
                                   (if new-scope? (str "scope scope-" (get-in @analysis [:scope :id]) " scope-depth-" (get-in @analysis [:scope :depth]))))}
          [:div.punctuation.opener opener]
-         [code-element-component editor-id form-id node]
+         [code-element-component editor-id form-id node-id]
          [:div.punctuation.closer closer]]))))
 
-(defn code-block-component []
-  (fn [editor-id form-id node]
-    (log "R! code-block" (:id node))
-    (let [wrapped-code-block (partial wrapped-code-block-component editor-id form-id node)]
-      (condp = (:tag node)
-        :list [wrapped-code-block "(" ")"]
-        :vector [wrapped-code-block "[" "]"]
-        :set [wrapped-code-block "#{" "}"]
-        :map [wrapped-code-block "{" "}"]
-        :fn [wrapped-code-block "#(" ")"]
-        :meta [wrapped-code-block "^" ""]
-        [code-element-component editor-id form-id node]))))
+(defn code-block-component [editor-id form-id node-id]
+  (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
+    (fn [editor-id form-id node-id]
+      (log "R! code-block" @layout)
+      (let [wrapped-code-element (fn [& params] (vec (concat [wrapped-code-element-component editor-id form-id node-id] params)))]
+        (condp = (:tag @layout)
+          :list (wrapped-code-element "(" ")")
+          :vector (wrapped-code-element "[" "]")
+          :set (wrapped-code-element "#{" "}")
+          :map (wrapped-code-element "{" "}")
+          :fn (wrapped-code-element "#(" ")")
+          :meta (wrapped-code-element "^" "")
+          [code-element-component editor-id form-id node-id])))))
 
-(defn extract-first-child-name [node]
-  (:text (first (:children node))))
-
-(defn code-box-component []
-  (fn [editor-id form-id code-render-info]
-    (log "R! code-box")
-    (let [node (first (:children code-render-info))
-          name (extract-first-child-name node)]
-      [:div.code-box {:class (if name (str "sexpr-" name))}
-       [code-block-component editor-id form-id node]])))
+(defn code-box-component [editor-id form-id node-id]
+  (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
+    (fn [editor-id form-id node-id]
+      (log "R! code-box" @layout)
+      (let [child-id (first (:children @layout))]
+        [:div.code-box
+         [code-block-component editor-id form-id child-id]]))))

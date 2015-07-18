@@ -95,13 +95,5 @@
       (if (zip-utils/valid-loc? left-loc)
         (is-doc? left-loc)))))
 
-(defn reduce-render-tree [f val node]
-  (f (reduce (partial reduce-render-tree f) val (:children node)) node))
-
-(defn extract-selectables [res node]
-  (if (:selectable? node)
-    (conj res [(:id node) node])
-    res))
-
-(defn extract-all-selectables [render-tree]
-  (reduce-render-tree extract-selectables {} render-tree))
+(defn extract-all-selectables [render-data]
+  (into {} (filter #(:selectable? (second %)) render-data)))

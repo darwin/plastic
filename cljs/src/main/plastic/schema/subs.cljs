@@ -22,6 +22,14 @@
   (fn [editor-id node-id]
     (concat paths/editors [editor-id :editing node-id])))
 
+(defn form-node-layout-selector []
+  (fn [editor-id form-id node-id]
+    (concat paths/editors [editor-id :layout form-id node-id])))
+
+(defn form-layout-selector []
+  (fn [editor-id form-id]
+    (concat paths/editors [editor-id :layout form-id])))
+
 (defn analysis-selector []
   (fn [editor-id form-id node-id]
     (concat paths/editors [editor-id :analysis form-id node-id])))
@@ -41,6 +49,8 @@
 (register-sub :editor-selection-node (path-query-factory (selection-selector)))
 (register-sub :editor-editing (path-query-factory (editor-selector [:editing])))
 (register-sub :editor-editing-node (path-query-factory (editing-selector)))
+(register-sub :editor-form-layout (path-query-factory (form-layout-selector)))
+(register-sub :editor-form-node-layout (path-query-factory (form-node-layout-selector)))
 (register-sub :editor-form-node-analysis (path-query-factory (analysis-selector)))
 (register-sub :editor-focused-form-id (path-query-factory (editor-selector [:focused-form-id])))
 (register-sub :editor-cursor (path-query-factory (editor-selector [:cursor])))

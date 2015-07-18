@@ -4,8 +4,8 @@
                    [reagent.ratom :refer [reaction]])
   (:require [reagent.core :as reagent]
             [plastic.frame.core :refer [register-sub subscribe]]
-            [plastic.cogs.editor.render.headers :refer [headers-wrapper-component]]
-            [plastic.cogs.editor.render.docs :refer [docs-component]]
+            [plastic.cogs.editor.render.headers :refer [headers-group-component]]
+            [plastic.cogs.editor.render.docs :refer [docs-group-component]]
             [plastic.cogs.editor.render.code :refer [code-box-component]]
             [plastic.cogs.editor.render.debug :refer [parser-debug-component text-input-debug-component text-output-debug-component render-tree-debug-component selections-debug-overlay-component]]
             [plastic.cogs.editor.render.utils :refer [dangerously-set-html classv]]
@@ -14,37 +14,39 @@
 (declare unified-rendering-component)
 
 (defn render-tree-component [editor-id form-id node-id]
-  (let [sanitized-node-id (or node-id -1)
-        selection-subscription (subscribe [:editor-selection-node editor-id sanitized-node-id])]
-    (fn [render-tree]
-      (log "R! render-tree" sanitized-node-id)
-      (let [{:keys [id tag children selectable?]} render-tree]
+  (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])
+        selection-subscription (subscribe [:editor-selection-node editor-id node-id])]
+    (fn [editor-id form-id node-id]
+      (log "R! render-tree" node-id)
+      (let [{:keys [id tag children selectable?]} @layout]
         [:div {:data-qnid id
                :class     (classv
                             (name tag)
                             (if selectable? "selectable")
                             (if (and selectable? @selection-subscription) "selected"))}
-         (for [child children]
-           ^{:key (or (:id child) (name (:tag child)))}
-           [unified-rendering-component editor-id form-id child])]))))
+         (for [child-id children]
+           ^{:key child-id} [unified-rendering-component editor-id form-id child-id])]))))
 
-(defn unified-rendering-component []
-  (fn [editor-id form-id render-tree]
-    (let [{:keys [id tag]} render-tree]
-      (log "R! unified-rendering" id tag)
-      [:div.unified {:data-qnid id}
-       (condp = tag
-         :tree [(render-tree-component editor-id form-id id) render-tree]
-         :code [code-box-component editor-id form-id render-tree]
-         :docs [docs-component editor-id form-id render-tree]
-         :headers [headers-wrapper-component editor-id form-id render-tree]
-         (throw (str "don't know how to render tag " tag " (missing render component implementation)")))])))
+(defn unified-rendering-component [editor-id form-id node-id]
+  (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
+    (fn [editor-id form-id node-id]
+      (let [{:keys [id tag]} @layout]
+        (log "R! unified-rendering" form-id node-id id tag @layout)
+        (if id
+          [:div.unified {:data-qnid id}
+           (condp = tag
+             :tree [render-tree-component editor-id form-id id node-id]
+             :code [code-box-component editor-id form-id node-id]
+             :docs [docs-group-component editor-id form-id node-id]
+             :headers [headers-group-component editor-id form-id node-id]
+             (throw (str "don't know how to render tag " tag " (missing render component implementation)")))]
+          [:div])))))
 
 (defn form-skelet-component []
-  (fn [editor-id form-id render-tree]
+  (fn [editor-id form-id]
     (log "R! form-skelet" form-id)
     [:div.form-skelet
-     [unified-rendering-component editor-id form-id render-tree]]))
+     [unified-rendering-component editor-id form-id :root]]))
 
 (defn handle-form-click [form event]
   (let [target-dom-node (.-target event)
@@ -62,21 +64,18 @@
             (dispatch :editor-set-cursor editor-id selected-node-id))
           (dispatch :editor-toggle-selection editor-id #{selected-node-id}))))))
 
-(defn form-component []
-  (let [render-tree-debug-visible (subscribe [:settings :render-tree-debug-visible])]
-    (fn [editor-id focused-form-id form]
-      (let [{:keys [id render-tree]} form
-            focused? (= id @focused-form-id)]
-        (log "R! form" id "focused" focused?)
-        [:tr
-         [:td
-          [:div.form
-           {:data-qnid id
-            :class     (if focused? "focused")
-            :on-click  (partial handle-form-click form)}
-           [form-skelet-component editor-id id render-tree]]
-          (if @render-tree-debug-visible
-            [render-tree-debug-component render-tree])]]))))
+(defn form-component [editor-id focused-form-id form]
+  (fn [editor-id focused-form-id form]
+    (let [{:keys [id]} form
+          focused? (= id @focused-form-id)]
+      (log "R! form" id "focused" focused?)
+      [:tr
+       [:td
+        [:div.form
+         {:data-qnid id
+          :class     (if focused? "focused")
+          :on-click  (partial handle-form-click form)}
+         [form-skelet-component editor-id id]]]])))
 
 (defn forms-component []
   (fn [editor-id focused-form-id order forms]
@@ -106,7 +105,7 @@
             {:keys [debug-parse-tree debug-text-input debug-text-output]} @state]
         [:div.plastic-editor                                ; .editor class is taken by Atom
          {:data-qeid editor-id
-          :class (classv (if @selections-debug-visible "debug-selections"))
+          :class     (classv (if @selections-debug-visible "debug-selections"))
           :on-click  (partial handle-editor-click editor-id)}
          (if @text-input-debug-visible [text-input-debug-component debug-text-input])
          [forms-component editor-id focused-form-id order forms]

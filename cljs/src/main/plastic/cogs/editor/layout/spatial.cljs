@@ -1,9 +1,10 @@
 (ns plastic.cogs.editor.layout.spatial
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
-  (:require [plastic.cogs.editor.layout.utils :as utils]))
+  (:require [plastic.cogs.editor.layout.utils :as utils]
+            [plastic.util.zip :as zip-utils]))
 
-(defn is-selectable-token? [node]
-  (and (:selectable? node) (= (:tag node) :token)))
+(defn token? [selectable]
+  (= (:tag selectable) :token))
 
 (defn add-empty-lines [selectables]
   (let [line-numbers (keys selectables)
@@ -11,13 +12,10 @@
         empty-lines (into (sorted-map) (map (fn [l] [l []]) lines-range))]
     (merge empty-lines selectables)))
 
-(defn build-spatial-web [render-tree]
-  (let [selectable-tokens-reducer (fn [accum node]
-                                    (if (is-selectable-token? node)
-                                      (conj accum node)
-                                      accum))
-        selectable-tokens (utils/reduce-render-tree selectable-tokens-reducer [] render-tree)]
+(defn build-spatial-web [root-loc selectables]
+  (let [all-locs (zip-utils/zip-seq root-loc)
+        selectable-tokens (filter token? (keep #(get selectables (zip-utils/loc-id %)) all-locs))]
     (add-empty-lines
       (into (sorted-map)
         (group-by :line
-          selectable-tokens)))))                            ; guaranteed to be in left-to-right order
+          selectable-tokens)))))                            ; guaranteed to be in left-to-right order because all-locs are left-to-right
