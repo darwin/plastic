@@ -20,12 +20,12 @@
 (defn current-line-id []
   *line-id*)
 
-(defn code-related? [loc]
+(defn strip-comments-and-whitespaces-but-keep-linebreaks-policy [loc]
   (let [node (z/node loc)]
-    (or (node/linebreak? node) (not (node/whitespace? node)))))
+    (and (not (node/comment? node)) (or (node/linebreak? node) (not (node/whitespace? node))))))
 
-(def zip-down (partial zip-utils/zip-down code-related?))
-(def zip-right (partial zip-utils/zip-right code-related?))
+(def zip-down (partial zip-utils/zip-down strip-comments-and-whitespaces-but-keep-linebreaks-policy))
+(def zip-right (partial zip-utils/zip-right strip-comments-and-whitespaces-but-keep-linebreaks-policy))
 
 (defn collect-all-right [loc]
   (take-while zip-utils/valid-loc? (iterate zip-right loc)))
