@@ -68,6 +68,12 @@
       (editor/insert-values-before-node selected-id values)
       (set-selection-to-node-if-exists selected-id))))
 
+(defn append-and-keep-selection [editor & values]
+  (let [selected-id (get-selected-node-id editor)]
+    (-> editor
+      (editor/insert-values-after-node selected-id values)
+      (set-selection-to-node-if-exists selected-id))))
+
 (defn dispatch-atom-command-in-inline-editor [editor command]
   (let [editor-id (editor/get-id editor)]
     (onion/dispatch-command-in-inline-editor editor-id command)
@@ -90,7 +96,7 @@
     (if (editor/editing? editor)
       (let [placeholder-node (editor/prepare-placeholder-node)]
         (insert-and-start-editing editor (:id placeholder-node) (editor/prepare-newline-node) placeholder-node))
-      (prepend-and-keep-selection editor (editor/prepare-newline-node)))))
+      (append-and-keep-selection editor (editor/prepare-newline-node)))))
 
 (defn space [editor]
   (if (editing-string-or-doc? editor)
