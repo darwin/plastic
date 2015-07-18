@@ -9,7 +9,7 @@
             [rewrite-clj.zip :as zip]))
 
 (defn select-next-candidate-for-case-of-selected-node-removal [editor]
-  (selection/apply-move-selection editor :spatial-left :spatial-right :structural-up))
+  (selection/apply-move-selection editor :structural-left :structural-right :structural-up))
 
 (defn get-selected-node-id [editor]
   (first (editor/get-selection editor)))
