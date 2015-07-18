@@ -70,7 +70,7 @@
         (log "R! form" id "focused" focused?)
         [:tr
          [:td
-          [:div.form.noselect
+          [:div.form
            {:data-qnid id
             :class     (if focused? "focused")
             :on-click  (partial handle-form-click form)}
