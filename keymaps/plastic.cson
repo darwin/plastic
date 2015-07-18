@@ -26,6 +26,7 @@
   'backspace': 'plastic:backspace'
   'space': 'plastic:space'
   'enter': 'plastic:enter'
+  'alt-enter': 'plastic:reverse-enter'
   'tab': 'plastic:next-token'
   'alt-tab': 'plastic:prev-token'
 
@@ -37,6 +38,7 @@
   'down': 'core:move-down'
   'space': 'plastic:space'
   'enter': 'plastic:enter'
+  'alt-enter': 'plastic:reverse-enter'
   'tab': 'plastic:next-token'
   'alt-tab': 'plastic:prev-token'
   'escape': 'plastic:stop-editing'

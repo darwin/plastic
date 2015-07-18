@@ -90,6 +90,10 @@
     (let [placeholder-node (editor/prepare-placeholder-node)]
       (insert-and-start-editing editor (:id placeholder-node) (editor/prepare-newline-node) placeholder-node))))
 
+(defn reverse-enter [editor]
+  (if (editing-string-or-doc? editor)
+    editor
+    (editor/remove-linebreak-before-node editor (editor/get-cursor editor))))
 
 (defn space [editor]
   (if (editing-string-or-doc? editor)

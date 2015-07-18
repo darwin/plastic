@@ -188,6 +188,16 @@
 (defn insert-values-before-node [editor node-id values]
   (transform-parse-tree editor (parse-tree-transformer (partial insert-values-before-node-loc node-id values))))
 
+(defn remove-linebreak-before-node-loc [node-id loc]
+  (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))
+        _ (assert (zip-utils/valid-loc? node-loc))
+        first-linebreak (first (filter #(node/linebreak? (zip/node %)) (take-while zip-utils/valid-loc? (iterate z/prev node-loc))))]
+    (if first-linebreak
+      (z/remove first-linebreak))))
+
+(defn remove-linebreak-before-node [editor node-id]
+  (transform-parse-tree editor (parse-tree-transformer (partial remove-linebreak-before-node-loc node-id))))
+
 (defn get-render-infos [editor]
   (get-in editor [:render-state :forms]))
 

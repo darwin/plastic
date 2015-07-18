@@ -73,6 +73,7 @@ class PlasticEditorView extends ScrollView
       'plastic:backspace'
       'plastic:space'
       'plastic:enter'
+      'plastic:reverse-enter'
     ]
 
   createMiniEditor: ->

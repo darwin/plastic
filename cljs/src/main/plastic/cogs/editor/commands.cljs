@@ -80,6 +80,9 @@
 (defmethod handle :enter [_ editor]
   (editing/enter editor))
 
+(defmethod handle :reverse-enter [_ editor]
+  (editing/reverse-enter editor))
+
 (defmethod handle :space [_ editor]
   (editing/space editor))
 
