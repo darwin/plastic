@@ -37,8 +37,8 @@
         selectables (utils/extract-all-selectables render-tree)
         spatial-web (build-spatial-web render-tree)
         structural-web (build-structural-web top-id selectables root-loc)
-        layout-info {:id             root-id
-                     :node           root-node
+        layout-info {:id             root-id                ; also known as form-id
+                     :node           root-node              ; source node - used for optimization
                      :selectables    selectables            ; used for selections
                      :spatial-web    spatial-web            ; used for spatial left/right/up/down movement
                      :structural-web structural-web         ; used for structural left/right/up/down movement
@@ -46,7 +46,7 @@
     (log "LAYOUT: form #" root-id "=> render-info:" layout-info)
     layout-info))
 
-(defn prepare-render-infos-of-top-level-forms [independent-top-level-locs settings editor form-id]
+(defn prepare-render-infos-of-top-level-forms [independent-top-level-locs settings editor]
   (let [prepare-item (fn [loc]
                        (let [node (z/node loc)
                              old-render-info (editor/get-render-info-by-id editor (:id node))]
@@ -55,21 +55,21 @@
                            (prepare-form-layout-info settings loc))))]
     (into {} (map (fn [loc] [(zip-utils/loc-id loc) (prepare-item loc)]) independent-top-level-locs))))
 
-(defn layout-editor [settings form-id editor]
+(defn layout-editor [settings editor]
   (if-not (editor/parsed? editor)
     editor
     (let [independent-top-level-locs (map zip/down (map zip-utils/independent-zipper (editor/get-top-level-locs editor)))
           render-state {:order             (map #(zip-utils/loc-id %) independent-top-level-locs)
-                        :forms             (prepare-render-infos-of-top-level-forms independent-top-level-locs settings editor form-id)
+                        :forms             (prepare-render-infos-of-top-level-forms independent-top-level-locs settings editor)
                         :debug-parse-tree  (editor/get-parse-tree editor)
                         :debug-text-input  (editor/get-input-text editor)
                         :debug-text-output (editor/get-output-text editor)}]
       (-> editor
         (editor/set-render-state render-state)))))
 
-(defn update-layout [db [editor-selector form-id]]
+(defn update-layout [db [editor-selector]]
   (let [{:keys [editors settings]} db
-        new-editors (editor/apply-to-specified-editors (partial layout-editor settings form-id) editors editor-selector)]
+        new-editors (editor/apply-to-specified-editors (partial layout-editor settings) editors editor-selector)]
     (assoc db :editors new-editors)))
 
 ; ----------------------------------------------------------------------------------------------------------------
