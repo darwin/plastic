@@ -90,7 +90,7 @@
     (let [placeholder-node (editor/prepare-placeholder-node)]
       (insert-and-start-editing editor (:id placeholder-node) (editor/prepare-newline-node) placeholder-node))))
 
-(defn reverse-enter [editor]
+(defn alt-enter [editor]
   (if (editing-string-or-doc? editor)
     editor
     (editor/remove-linebreak-before-node editor (editor/get-cursor editor))))
@@ -129,3 +129,13 @@
       (do
         (onion/dispatch-command-in-inline-editor editor-id "core:backspace")
         editor))))
+
+(defn delete-linebreak-or-token-after-cursor [editor]
+  {:pre [(not (editor/editing? editor))]}
+  (let [cursor-id (editor/get-cursor editor)]
+    (editor/remove-right-siblink editor cursor-id)))
+
+(defn delete-linebreak-or-token-before-cursor [editor]
+  {:pre [(not (editor/editing? editor))]}
+  (let [cursor-id (editor/get-cursor editor)]
+    (editor/remove-left-siblink editor cursor-id)))

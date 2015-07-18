@@ -71,9 +71,11 @@ class PlasticEditorView extends ScrollView
       'plastic:prev-token'
       'plastic:next-token'
       'plastic:backspace'
+      'plastic:delete'
+      'plastic:alt-delete'
       'plastic:space'
       'plastic:enter'
-      'plastic:reverse-enter'
+      'plastic:alt-enter'
     ]
 
   createMiniEditor: ->

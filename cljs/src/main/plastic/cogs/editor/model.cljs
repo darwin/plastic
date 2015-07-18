@@ -15,6 +15,14 @@
 ; a kitchen-sink with helpers for manipulating editor data structure
 ; also see 'ops' folder for more high-level editor transformations
 
+(defn strip-comments-and-whitespaces-but-keep-linebreaks-policy [loc]
+  (let [node (z/node loc)]
+    (and (not (node/comment? node)) (or (node/linebreak? node) (not (node/whitespace? node))))))
+
+(def zip-down (partial zip-utils/zip-down strip-comments-and-whitespaces-but-keep-linebreaks-policy))
+(def zip-right (partial zip-utils/zip-right strip-comments-and-whitespaces-but-keep-linebreaks-policy))
+(def zip-left (partial zip-utils/zip-left strip-comments-and-whitespaces-but-keep-linebreaks-policy))
+
 (defn parsed? [editor]
   (contains? editor :parse-tree))
 
@@ -197,6 +205,26 @@
 
 (defn remove-linebreak-before-node [editor node-id]
   (transform-parse-tree editor (parse-tree-transformer (partial remove-linebreak-before-node-loc node-id))))
+
+(defn remove-right-siblink-of-loc [node-id loc]
+  (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))
+        _ (assert (zip-utils/valid-loc? node-loc))
+        right-loc (zip-right node-loc)]
+    (if right-loc
+      (z/remove right-loc))))
+
+(defn remove-right-siblink [editor node-id]
+  (transform-parse-tree editor (parse-tree-transformer (partial remove-right-siblink-of-loc node-id))))
+
+(defn remove-left-siblink-of-loc [node-id loc]
+  (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))
+        _ (assert (zip-utils/valid-loc? node-loc))
+        left-loc (zip-left node-loc)]
+    (if left-loc
+      (z/remove left-loc))))
+
+(defn remove-left-siblink [editor node-id]
+  (transform-parse-tree editor (parse-tree-transformer (partial remove-left-siblink-of-loc node-id))))
 
 (defn get-render-infos [editor]
   (get-in editor [:render-state :forms]))

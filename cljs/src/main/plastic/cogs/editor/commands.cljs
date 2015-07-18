@@ -80,8 +80,8 @@
 (defmethod handle :enter [_ editor]
   (editing/enter editor))
 
-(defmethod handle :reverse-enter [_ editor]
-  (editing/reverse-enter editor))
+(defmethod handle :alt-enter [_ editor]
+  (editing/alt-enter editor))
 
 (defmethod handle :space [_ editor]
   (editing/space editor))
@@ -90,6 +90,17 @@
   (if (editor/editing? editor)
     (editing/delete-char-or-move editor)
     (editing/delete-selection editor)))
+
+(defmethod handle :delete [_ editor]
+  (if (editor/editing? editor)
+    editor
+    (editing/delete-linebreak-or-token-after-cursor editor)))
+
+(defmethod handle :alt-delete [_ editor]
+  (if (editor/editing? editor)
+    editor
+    (editing/delete-linebreak-or-token-before-cursor editor)))
+
 
 ; ----------------------------------------------------------------------------------------------------------------
 
