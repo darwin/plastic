@@ -17,7 +17,7 @@
     white-space: nowrap;
     vertical-align: top;
     border-radius: 2px;
-    margin-bottom: 0px;
+    margin-bottom: @cursor-border-width; // to prevent cursor border z-indexing issue
   }
   
   table.elements,
@@ -78,7 +78,7 @@
     vertical-align: top;
     margin-left: 0px;
     display: inline-block;
-
+    
     padding: 0px 0px;
     opacity: 0.4;
     font-weight: bold;

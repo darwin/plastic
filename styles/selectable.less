@@ -18,48 +18,50 @@
     opacity: 1;
   }
   
-  @-webkit-keyframes fade-selection-ring {
+  @-webkit-keyframes fade-cursor-ring {
     from {
-      opacity: 1;
-      border-color: hsl(60, 100%, 80%);
+      opacity: @cursor-border-opacity1;
+      border-color: @cursor-border-color1;
     }
     to {
-      opacity: 0.5;
-      border-color: hsl(180, 100%, 80%);
-    } 
+      opacity: @cursor-border-opacity2;
+      border-color: @cursor-border-color2;
+    }
   }
   
-  .selectable.cursor:before {
+  .cursor:before {
     pointer-events: none;
     content: '';
     position: absolute;
-    width: calc(~'100% + 6px');
-    height: calc(~'100% + 0px');
+    z-index: 100;
+    width: calc(~'100% + ' 2 * @cursor-border-width + @cursor-carret-width);
+    height: calc(~'100% + ' 2 * @cursor-border-width);
 
-    border: 1px solid yellow;
-    border-right: 5px solid yellow;
+    border-style: @cursor-border-style;
+    border-width: @cursor-border-width;
+    border-right-width: (@cursor-border-width + @cursor-carret-width);
     padding: 0px;
-    top: 0px; // do not shift because of z-index issues
-    left: -1px;
+    top: -@cursor-border-width;
+    left: -@cursor-border-width;
 
-    -webkit-animation-name: fade-selection-ring;
+    -webkit-animation-name: fade-cursor-ring;
     -webkit-animation-iteration-count: infinite;
     -webkit-animation-timing-function: ease-in-out;
     -webkit-animation-direction: alternate;
-    -webkit-animation-duration: 0.5s;
+    -webkit-animation-duration: @cursor-fading-speed;
   }
   
   .selectable.selected::after {
     pointer-events: none;
     content: '';
     position: absolute;
-    width: calc(~'100% + 0px');
-    height: calc(~'100% + 0px');
+    width: calc(~'100% + ' 0px);
+    height: calc(~'100% + ' 0px);
     
     background-color: yellow;
     opacity: 0.3;
     padding: 0px;
-    top: 0px; // do not shift because of z-index issues
+    top: 0px;
     left: 0px;
   }
 
