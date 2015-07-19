@@ -115,3 +115,6 @@
 (defn mount-editor [element editor-id]
   (let [editor (partial editor-root-component editor-id)]
     (reagent/render [editor] element)))
+
+(defn unmount-editor [element]
+  (reagent/unmount-component-at-node element))

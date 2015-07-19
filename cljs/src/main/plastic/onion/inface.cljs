@@ -42,7 +42,7 @@
 
 (defmethod process :unregister-editor [_ atom-view]
   (let [editor-id (.-id atom-view)]
-    (dispatch :remove-editor editor-id)
+    (dispatch :remove-editor editor-id (find-mount-point (.-element atom-view)))
     (unregister-view editor-id)))
 
 (defmethod process :editor-command [_ atom-view command event]

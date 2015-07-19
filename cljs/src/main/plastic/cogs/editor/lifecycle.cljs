@@ -55,10 +55,9 @@
     (wire-editor id)
     (assoc editors id record)))
 
-(defn remove-editor [editors [editor-id]]
-  (if editor-id
-    (dissoc editors editor-id)
-    {}))
+(defn remove-editor [editors [editor-id dom-node]]
+  (render/unmount-editor dom-node)
+  (dissoc editors editor-id))
 
 (defn mount-editor [editors [editor-id dom-node]]
   (render/mount-editor dom-node editor-id)
