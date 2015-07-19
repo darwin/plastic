@@ -14,44 +14,36 @@
             [plastic.cogs.editor.layout.utils :as utils]
             [plastic.schema.paths :as paths]))
 
-(defn prepare-form-layout-info [editor-id old-render-info root-loc]
-  {:pre [(= (zip/tag (zip/up root-loc)) :forms)             ; parent has to be :forms
-         (= 1 (count (node/children (zip/node (zip/up root-loc)))))]} ; root-loc is the only child
-  (let [root-node (zip/node root-loc)
-        _ (assert root-node)
-        root-id (:id root-node)
-        layout (build-layout (:render-data old-render-info) root-loc)
+(defn update-form-layout [editor-id form-loc]
+  {:pre [(zip/node form-loc)
+         (= (zip/tag (zip/up form-loc)) :forms)             ; parent has to be :forms
+         (= 1 (count (node/children (zip/node (zip/up form-loc)))))]} ; root-loc is the only child
+  (let [form-id (zip-utils/loc-id form-loc)
+        layout (build-layout form-loc)
         selectables (utils/extract-all-selectables layout)
-        spatial-web (build-spatial-web root-loc selectables)
-        structural-web (build-structural-web :root root-loc)
-        layout-info {:id   root-id
-                     :node root-node}]
-    (dispatch :editor-commit-layout editor-id root-id layout)
-    (dispatch :editor-commit-selectables editor-id root-id selectables)
-    (dispatch :editor-commit-spatial-web editor-id root-id spatial-web)
-    (dispatch :editor-commit-structural-web editor-id root-id structural-web)
-    layout-info))
+        spatial-web (build-spatial-web form-loc selectables)
+        structural-web (build-structural-web :root form-loc)]
+    (dispatch :editor-commit-layout editor-id form-id layout)
+    (dispatch :editor-commit-selectables editor-id form-id selectables)
+    (dispatch :editor-commit-spatial-web editor-id form-id spatial-web)
+    (dispatch :editor-commit-structural-web editor-id form-id structural-web)))
 
-(defn prepare-render-infos-of-top-level-forms [independent-top-level-locs editor]
-  (let [prepare-item (fn [loc]
-                       (let [node (z/node loc)
-                             old-render-info (editor/get-render-info-by-id editor (:id node))]
-                         (if (= (:node old-render-info) node) ; do not relayout form if not affected by changes
-                           old-render-info
-                           (prepare-form-layout-info (:id editor) old-render-info loc))))]
-    (into {} (map (fn [loc] [(zip-utils/loc-id loc) (prepare-item loc)]) independent-top-level-locs))))
+(defn update-forms-layout-when-needed [independent-top-level-locs editor]
+  (doseq [form-loc independent-top-level-locs]
+    (let [form-node (z/node form-loc)
+          form-id (:id form-node)
+          cached-node (editor/get-cached-form-node editor form-id)]
+      (when (not= cached-node form-node)
+        (editor/set-cached-form-node editor form-node)
+        (update-form-layout (:id editor) form-loc)))))
 
 (defn layout-editor [editor]
   (if-not (editor/parsed? editor)
     editor
     (let [independent-top-level-locs (map zip/down (map zip-utils/independent-zipper (editor/get-top-level-locs editor)))
-          render-state {:order             (map #(zip-utils/loc-id %) independent-top-level-locs)
-                        :forms             (prepare-render-infos-of-top-level-forms independent-top-level-locs editor)
-                        :debug-parse-tree  (editor/get-parse-tree editor)
-                        :debug-text-input  (editor/get-input-text editor)
-                        :debug-text-output (editor/get-output-text editor)}]
-      (-> editor
-        (editor/set-render-state render-state)))))
+          _ (update-forms-layout-when-needed independent-top-level-locs editor)
+          render-state {:order (map #(zip-utils/loc-id %) independent-top-level-locs)}]
+      (editor/set-render-state editor render-state))))
 
 (defn update-layout [editors [editor-selector]]
   (editor/apply-to-specified-editors layout-editor editors editor-selector))

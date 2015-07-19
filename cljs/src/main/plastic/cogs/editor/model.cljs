@@ -75,8 +75,14 @@
   {:pre [form-id]}
   (assoc editor :focused-form-id form-id))
 
+(defn get-render-state [editor]
+  (get editor :render-state))
+
 (defn set-render-state [editor render-state]
-  (assoc-in editor [:render-state] render-state))
+  (let [old-render-state (get-render-state editor)]
+    (if (not= old-render-state render-state)
+      (assoc-in editor [:render-state] render-state)
+      editor)))
 
 (defn get-id [editor]
   {:post [(pos? %)]}
@@ -339,27 +345,41 @@
 (defn get-analysis-for-form [editor form-id]
   (get-in editor [:analysis form-id]))
 
-(defn set-layout-for-form [editor form-id layout]
-  (assoc-in editor [:layout form-id] layout))
-
 (defn get-layout-for-form [editor form-id]
   (get-in editor [:layout form-id]))
 
-(defn set-selectables-for-form [editor form-id selectables]
-  (assoc-in editor [:selectables form-id] selectables))
+(defn set-layout-for-form [editor form-id new-layout]
+  (let [old-layout (get-layout-for-form editor form-id)
+        updated-layout (helpers/overwrite-map old-layout new-layout)]
+    (assoc-in editor [:layout form-id] updated-layout)))
 
 (defn get-selectables-for-form [editor form-id]
   (get-in editor [:selectables form-id]))
 
-(defn set-spatial-web-for-form [editor form-id spatial-web]
-  (assoc-in editor [:spatial-web form-id] spatial-web))
+(defn set-selectables-for-form [editor form-id new-selectables]
+  (let [old-selectables (get-selectables-for-form editor form-id)
+        updated-selectables (helpers/overwrite-map old-selectables new-selectables)]
+    (assoc-in editor [:selectables form-id] updated-selectables)))
 
 (defn get-spatial-web-for-form [editor form-id]
   (get-in editor [:spatial-web form-id]))
 
-(defn set-structural-web-for-form [editor form-id structural-web]
-  (assoc-in editor [:structural-web form-id] structural-web))
+(defn set-spatial-web-for-form [editor form-id new-spatial-web]
+  (let [old-spatial-web (get-spatial-web-for-form editor form-id)
+        updated-spatial-web (helpers/overwrite-map old-spatial-web new-spatial-web)]
+    (assoc-in editor [:spatial-web form-id] updated-spatial-web)))
 
 (defn get-structural-web-for-form [editor form-id]
   (get-in editor [:structural-web form-id]))
+
+(defn set-structural-web-for-form [editor form-id new-structural-web]
+  (let [old-structural-web (get-structural-web-for-form editor form-id)
+        updated-structural-web (helpers/overwrite-map old-structural-web new-structural-web)]
+    (assoc-in editor [:structural-web form-id] updated-structural-web)))
+
+(defn get-cached-form-node [editor form-id]
+  (get-in editor [:previously-layouted-forms form-id]))
+
+(defn set-cached-form-node [editor form-node]
+  (assoc-in editor [:previously-layouted-forms (:id form-node)] form-node))
 

@@ -98,9 +98,9 @@
       add-line-number
       count-new-lines)))
 
-(defn build-layout [data loc]
+(defn build-layout [loc]
   (let [locs (take-while zip-utils/valid-loc? (iterate zip-next loc))
-        initial {:data (or data {}) :docs [] :headers [] :line 0}
+        initial {:data {} :docs [] :headers [] :line 0}
         {:keys [data docs headers line]} (reduce build-node-layout initial locs)]
     (-> data
       (assoc :root {:tag         :tree

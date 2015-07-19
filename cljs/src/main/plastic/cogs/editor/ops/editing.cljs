@@ -22,7 +22,7 @@
     (-> editor
       (select-next-candidate-for-case-of-selected-node-removal)
       (editor/commit-node-value node-id value)
-      (editor/update-render-tree-node-in-focused-form node-id value) ; ugly: this prevents brief display of previous value before re-layouting finishes
+      ;(editor/update-render-tree-node-in-focused-form node-id value) ; ugly: this prevents brief display of previous value before re-layouting finishes
       (set-cursor-to-node-if-exists node-id))))
 
 (defn apply-editing [editor action]

@@ -94,3 +94,32 @@
     (set? selector) (contains? selector id)
     :default (= id selector)))
 
+
+; We have to be extra careful when updating data observed by reagent's reactions.
+; For performance reasons reactions do identical? tests to detect changes.
+; See discussion https://github.com/reagent-project/reagent/pull/143
+;
+; We may want to run a code which constructs same values which do not turn to be indentical.
+; For example, imagine editor's layouting code running after some trivial change in code tree structure.
+; The code will produce almost same layouting data strucutre, but individual nodes
+; in the structure won't be indentical to the old versions (although many will be equal).
+; => this triggers re-rendeing of whole tree of reagent components
+;
+; To avoid unnecessary rendering we split our layouting results into bite-sized chunks
+; (in case of layouting we keep per-node layouting data key-ed by node-id) and put them into maps.
+; Then when commiting new layouting results, we use overwrite-map to do equality check on individual pieces
+; and replace old value only if there is any change.
+;
+; A similar strategy should be applied everywhere where we are touching individual
+; data pieces observed by reagent's reactions (and re-frame subscriptions).
+;
+(defn overwrite-map [map new-map]
+  (let [new-keys (keys new-map)
+        map-selection (select-keys map new-keys)
+        careful-updater (fn [accum k]
+                          (update accum k (fn [old-val]
+                                            (let [new-val (get new-map k)]
+                                              (if (= old-val new-val)
+                                                old-val
+                                                new-val)))))]
+    (reduce careful-updater map-selection new-keys)))
