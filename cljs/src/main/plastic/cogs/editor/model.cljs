@@ -313,16 +313,6 @@
     (fn [node children] (assoc node :children children))
     root))
 
-(defn update-render-tree-node-in-focused-form [editor node-id value-node]
-  (let [focused-render-info (get-focused-render-info editor)
-        render-info-loc (make-render-tree-zipper (:render-tree focused-render-info))
-        node-loc (first (filter #(= (:id (z/node %)) node-id) (take-while zip-utils/valid-loc? (iterate z/next render-info-loc))))]
-    (if node-loc
-      (let [modified-tree (z/root (z/edit node-loc (fn [old-node] (assoc old-node :text (layout/prepare-node-text value-node)))))
-            modified-focused-render-info (assoc focused-render-info :render-tree modified-tree)]
-        (set-focused-render-info editor modified-focused-render-info))
-      editor)))
-
 (defn get-analysis-for-form [editor form-id]
   (get-in editor [:analysis form-id]))
 
@@ -391,4 +381,11 @@
         _ (assert (vector? last-line))]
     (:id (peek last-line))))
 
-
+(defn update-layout-node-in-focused-form [editor node-id value-node]
+  (let [form-id (get-focused-form-id editor)
+        layout (get-layout-for-form editor form-id)
+        _ (assert layout)
+        node (get layout node-id)
+        _ (assert node)
+        updated-layout (assoc layout node-id (assoc node :text (layout/prepare-node-text value-node)))]
+    (set-layout-for-form editor form-id updated-layout)))
