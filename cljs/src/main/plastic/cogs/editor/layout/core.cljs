@@ -28,22 +28,27 @@
     (dispatch :editor-commit-spatial-web editor-id form-id spatial-web)
     (dispatch :editor-commit-structural-web editor-id form-id structural-web)))
 
-(defn update-forms-layout-when-needed [independent-top-level-locs editor]
-  (doseq [form-loc independent-top-level-locs]
-    (let [form-node (z/node form-loc)
-          form-id (:id form-node)
-          cached-node (editor/get-cached-form-node editor form-id)]
-      (when (not= cached-node form-node)
-        (editor/set-cached-form-node editor form-node)
-        (update-form-layout (:id editor) form-loc)))))
+(defn update-forms-layout-if-needed [editor form-locs]
+  (let [reducer (fn [editor form-loc]
+                  (let [form-node (z/node form-loc)
+                        previously-layouted-node (editor/get-previously-layouted-form-node editor (:id form-node))]
+                    (if (= previously-layouted-node form-node)
+                      editor
+                      (do
+                        (update-form-layout (:id editor) form-loc)
+                        (-> editor
+                          (editor/prune-cache-of-previously-layouted-forms (map zip-utils/loc-id form-locs))
+                          (editor/remember-previously-layouted-form-node form-node))))))]
+    (reduce reducer editor form-locs)))
 
 (defn layout-editor [editor]
   (if-not (editor/parsed? editor)
     editor
     (let [independent-top-level-locs (map zip/down (map zip-utils/independent-zipper (editor/get-top-level-locs editor)))
-          _ (update-forms-layout-when-needed independent-top-level-locs editor)
           render-state {:order (map #(zip-utils/loc-id %) independent-top-level-locs)}]
-      (editor/set-render-state editor render-state))))
+      (-> editor
+        (editor/set-render-state render-state)
+        (update-forms-layout-if-needed independent-top-level-locs)))))
 
 (defn update-layout [editors [editor-selector]]
   (editor/apply-to-specified-editors layout-editor editors editor-selector))

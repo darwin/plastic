@@ -377,9 +377,12 @@
         updated-structural-web (helpers/overwrite-map old-structural-web new-structural-web)]
     (assoc-in editor [:structural-web form-id] updated-structural-web)))
 
-(defn get-cached-form-node [editor form-id]
+(defn get-previously-layouted-form-node [editor form-id]
   (get-in editor [:previously-layouted-forms form-id]))
 
-(defn set-cached-form-node [editor form-node]
+(defn remember-previously-layouted-form-node [editor form-node]
   (assoc-in editor [:previously-layouted-forms (:id form-node)] form-node))
 
+(defn prune-cache-of-previously-layouted-forms [editor form-ids-to-keep]
+  (let [form-nodes (get editor :previously-layouted-forms)]
+    (assoc editor :previously-layouted-forms (select-keys form-nodes form-ids-to-keep))))
