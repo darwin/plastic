@@ -271,22 +271,6 @@
 (defn get-top-level-form-ids [editor]
   (get-render-order editor))
 
-(defn get-first-selectable-token-id-for-form [editor form-id]
-  {:post [(number? %)]}
-  (let [render-info (get-render-info-by-id editor form-id)
-        _ (assert render-info)
-        first-line (second (first (:spatial-web render-info)))
-        _ (assert (vector? first-line))]
-    (:id (first first-line))))
-
-(defn get-last-selectable-token-id-for-form [editor form-id]
-  {:post [(number? %)]}
-  (let [render-info (get-render-info-by-id editor form-id)
-        _ (assert render-info)
-        last-line (second (last (:spatial-web render-info)))
-        _ (assert (vector? last-line))]
-    (:id (peek last-line))))
-
 (defn prepare-placeholder-node []
   (parser/assoc-node-id (token-node "" "")))
 
@@ -339,11 +323,13 @@
         (set-focused-render-info editor modified-focused-render-info))
       editor)))
 
-(defn set-analysis-for-form [editor form-id analysis]
-  (assoc-in editor [:analysis form-id] analysis))
-
 (defn get-analysis-for-form [editor form-id]
   (get-in editor [:analysis form-id]))
+
+(defn set-analysis-for-form [editor form-id new-analysis]
+  (let [old-analysis (get-analysis-for-form editor form-id)
+        updated-analysis (helpers/overwrite-map old-analysis new-analysis)]
+    (assoc-in editor [:analysis form-id] updated-analysis)))
 
 (defn get-layout-for-form [editor form-id]
   (get-in editor [:layout form-id]))
@@ -365,8 +351,10 @@
   (get-in editor [:spatial-web form-id]))
 
 (defn set-spatial-web-for-form [editor form-id new-spatial-web]
+  {:pre [(sorted? new-spatial-web)]}
   (let [old-spatial-web (get-spatial-web-for-form editor form-id)
-        updated-spatial-web (helpers/overwrite-map old-spatial-web new-spatial-web)]
+        updated-spatial-web (helpers/overwrite-map old-spatial-web new-spatial-web)
+        _ (assert (sorted? updated-spatial-web))]
     (assoc-in editor [:spatial-web form-id] updated-spatial-web)))
 
 (defn get-structural-web-for-form [editor form-id]
@@ -386,3 +374,21 @@
 (defn prune-cache-of-previously-layouted-forms [editor form-ids-to-keep]
   (let [form-nodes (get editor :previously-layouted-forms)]
     (assoc editor :previously-layouted-forms (select-keys form-nodes form-ids-to-keep))))
+
+(defn get-first-selectable-token-id-for-form [editor form-id]
+  {:post [(number? %)]}
+  (let [spatial-web (get-spatial-web-for-form editor form-id)
+        _ (assert spatial-web)
+        first-line (second (first spatial-web))
+        _ (assert (vector? first-line))]
+    (:id (first first-line))))
+
+(defn get-last-selectable-token-id-for-form [editor form-id]
+  {:post [(number? %)]}
+  (let [spatial-web (get-spatial-web-for-form editor form-id)
+        _ (assert spatial-web)
+        last-line (second (last spatial-web))
+        _ (assert (vector? last-line))]
+    (:id (peek last-line))))
+
+

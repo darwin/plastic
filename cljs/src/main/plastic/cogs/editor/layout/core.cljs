@@ -22,7 +22,7 @@
         layout (build-layout form-loc)
         selectables (utils/extract-all-selectables layout)
         spatial-web (build-spatial-web form-loc selectables)
-        structural-web (build-structural-web :root form-loc)]
+        structural-web (build-structural-web form-loc)]
     (dispatch :editor-commit-layout editor-id form-id layout)
     (dispatch :editor-commit-selectables editor-id form-id selectables)
     (dispatch :editor-commit-spatial-web editor-id form-id spatial-web)

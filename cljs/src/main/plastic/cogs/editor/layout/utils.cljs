@@ -97,3 +97,6 @@
 
 (defn extract-all-selectables [render-data]
   (into {} (filter #(:selectable? (second %)) render-data)))
+
+(defn alien-id [form-id keyword]
+  (str form-id "-" (name keyword)))

@@ -91,28 +91,33 @@
                                                              (assoc-in [:data node-id] (code-item loc))
                                                              (update-in [:headers] #(conj % node-id)))
                                   :else (assoc-in accum [:data node-id] (code-item loc))))
-        add-line-number (fn [accum] (assoc-in accum [:data node-id :line] (:line accum)))
+        add-line-number (fn [accum] (update-in accum [:data node-id :line] (fn [line] (or line (:line accum)))))
         count-new-lines (fn [accum] (if (is-newline? loc) (update accum :line inc) accum))]
     (-> accum
       layout-item
       add-line-number
       count-new-lines)))
 
-(defn build-layout [loc]
-  (let [locs (take-while zip-utils/valid-loc? (iterate zip-next loc))
+(defn build-layout [form-loc]
+  (let [form-id (zip-utils/loc-id form-loc)
+        root-id (utils/alien-id form-id :root)
+        code-id (utils/alien-id form-id :code)
+        docs-id (utils/alien-id form-id :docs)
+        headers-id (utils/alien-id form-id :headers)
+        locs (take-while zip-utils/valid-loc? (iterate zip-next form-loc))
         initial {:data {} :docs [] :headers [] :line 0}
         {:keys [data docs headers line]} (reduce build-node-layout initial locs)]
     (-> data
-      (assoc :root {:tag         :tree
-                    :id          :root
-                    :selectable? true
-                    :children    [:headers :docs :code]})
-      (assoc :code {:tag      :code
-                    :id       :code
-                    :children [(zip-utils/loc-id loc)]})
-      (assoc :docs {:tag      :docs
-                    :id       :docs
-                    :children docs})
-      (assoc :headers {:tag      :headers
-                       :id       :headers
-                       :children headers}))))
+      (assoc root-id {:tag         :tree
+                      :id          root-id
+                      :selectable? true
+                      :children    [headers-id docs-id code-id]})
+      (assoc code-id {:tag      :code
+                      :id       code-id
+                      :children [(zip-utils/loc-id form-loc)]})
+      (assoc docs-id {:tag      :docs
+                      :id       docs-id
+                      :children docs})
+      (assoc headers-id {:tag      :headers
+                         :id       headers-id
+                         :children headers}))))

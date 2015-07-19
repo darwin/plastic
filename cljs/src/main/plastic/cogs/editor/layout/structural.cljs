@@ -47,20 +47,22 @@
 (defn link-forests-to-top [web root-id]
   (merge web (map (fn [[id record]] (if (or (:up record) (= id root-id)) [id record] [id (assoc record :up root-id)])) web)))
 
-(defn link-top-selectable [web top-id docs-locs]
+(defn link-top-selectable [web docs-locs]
   (if-let [first-doc (first docs-locs)]
-    (assoc web top-id {:left  nil
-                       :right nil
-                       :up    nil
-                       :down  (zip-utils/loc-id first-doc)})
+    (assoc web :root {:left  nil
+                      :right nil
+                      :up    nil
+                      :down  (zip-utils/loc-id first-doc)})
     web))
 
-(defn build-structural-web [top-id root-loc]
-  (let [all-locs (zip-utils/zip-seq root-loc)
+(defn build-structural-web [form-loc]
+  (let [form-id (zip-utils/loc-id form-loc)
+        root-id (utils/alien-id form-id :root)
+        all-locs (zip-utils/zip-seq form-loc)
         docs-locs (filter utils/is-doc? all-locs)
         code-locs (remove utils/is-doc? all-locs)]
     (-> {}
       (build-structural-web-for-code code-locs)
       (link-selectable-docs docs-locs)
-      (link-top-selectable top-id docs-locs)
-      (link-forests-to-top top-id))))
+      (link-top-selectable docs-locs)
+      (link-forests-to-top root-id))))

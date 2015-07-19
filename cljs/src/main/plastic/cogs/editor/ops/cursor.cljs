@@ -59,8 +59,8 @@
 
 (defn token-movement-prev-next [editor dir-fun]
   (let [cursor-id (editor/get-cursor editor)
-        render-info (editor/get-focused-render-info editor)
-        {:keys [spatial-web]} render-info
+        form-id (editor/get-focused-form-id editor)
+        spatial-web (editor/get-spatial-web-for-form editor form-id)
         all-lines (apply concat (vals spatial-web))]
     (if-let [result (dir-fun #(= (:id %) cursor-id) all-lines)]
       (editor/set-cursor editor (:id result)))))

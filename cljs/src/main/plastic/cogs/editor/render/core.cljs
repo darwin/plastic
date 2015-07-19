@@ -9,7 +9,8 @@
             [plastic.cogs.editor.render.code :refer [code-box-component]]
             [plastic.cogs.editor.render.debug :refer [parser-debug-component text-input-debug-component text-output-debug-component render-tree-debug-component selections-debug-overlay-component]]
             [plastic.cogs.editor.render.utils :refer [dangerously-set-html classv]]
-            [plastic.cogs.editor.render.dom :as dom]))
+            [plastic.cogs.editor.render.dom :as dom]
+            [plastic.cogs.editor.layout.utils :as layout-utils]))
 
 (declare unified-rendering-component)
 
@@ -46,7 +47,7 @@
   (fn [editor-id form-id]
     (log "R! form-skelet" form-id)
     [:div.form-skelet
-     [unified-rendering-component editor-id form-id :root]]))
+     [unified-rendering-component editor-id form-id (layout-utils/alien-id form-id :root)]]))
 
 (defn handle-form-click [form-id event]
   (let [target-dom-node (.-target event)
@@ -90,8 +91,6 @@
   (dispatch :editor-clear-selection editor-id)
   (dispatch :editor-clear-cursor editor-id))
 
-(def ^:dynamic last-st :nil)
-
 (defn editor-root-component [editor-id]
   (let [state (subscribe [:editor-render-state editor-id])
         parser-debug-visible (subscribe [:settings :parser-debug-visible])
@@ -99,9 +98,7 @@
         text-output-debug-visible (subscribe [:settings :text-output-debug-visible])
         selections-debug-visible (subscribe [:settings :selections-debug-visible])]
     (fn [editor-id]
-      (log "R! editor-root" editor-id @state (= @state last-st) (identical? @state last-st))
-      ;(if (= @state last-st) (js-debugger))
-      (set! last-st @state)
+      (log "R! editor-root" editor-id)
       (let [{:keys [order]} @state
             {:keys [debug-parse-tree debug-text-input debug-text-output]} @state]
         [:div.plastic-editor                                ; .editor class is taken by Atom
