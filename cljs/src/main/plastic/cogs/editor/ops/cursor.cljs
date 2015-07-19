@@ -17,8 +17,8 @@
 
 (defn structural-movemement [editor op]
   (let [cursor-id (editor/get-cursor editor)
-        render-info (editor/get-focused-render-info editor)
-        structural-web (:structural-web render-info)]
+        form-id (editor/get-focused-form-id editor)
+        structural-web (editor/get-structural-web-for-form editor form-id)]
     (if-let [result-id (op (get structural-web cursor-id))]
       (editor/set-cursor editor result-id))))
 
@@ -27,8 +27,9 @@
 
 (defn spatial-movement-up-down [editor dir-fun]
   (let [cursor-id (editor/get-cursor editor)
-        render-info (editor/get-focused-render-info editor)
-        {:keys [spatial-web selectables]} render-info
+        form-id (editor/get-focused-form-id editor)
+        selectables (editor/get-selectables-for-form editor form-id)
+        spatial-web (editor/get-spatial-web-for-form editor form-id)
         sel-node (get selectables cursor-id)
         line-selectables (find-first-non-empty-line-in-given-direction spatial-web (:line sel-node) dir-fun)
         line-selections (map #(get selectables (:id %)) line-selectables)]
@@ -37,8 +38,9 @@
 
 (defn spatial-movement-left-right [editor dir-fun]
   (let [cursor-id (editor/get-cursor editor)
-        render-info (editor/get-focused-render-info editor)
-        {:keys [spatial-web selectables]} render-info
+        form-id (editor/get-focused-form-id editor)
+        selectables (editor/get-selectables-for-form editor form-id)
+        spatial-web (editor/get-spatial-web-for-form editor form-id)
         sel-node (get selectables cursor-id)]
     (if (empty? (:children sel-node))
       (let [line-selectables (get spatial-web (:line sel-node))]

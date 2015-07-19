@@ -24,14 +24,12 @@
         selectables (utils/extract-all-selectables layout)
         spatial-web (build-spatial-web root-loc selectables)
         structural-web (build-structural-web :root root-loc)
-        layout-info {:id             root-id                ; also known as form-id
-                     :node           root-node              ; source node - used for optimization
-                     :selectables    selectables            ; used for selections
-                     :spatial-web    spatial-web            ; used for spatial left/right/up/down movement
-                     :structural-web structural-web}]       ; used for structural left/right/up/down movement
-
-    (log "LAYOUT: form #" root-id "=> render-info:" layout-info)
+        layout-info {:id   root-id
+                     :node root-node}]
     (dispatch :editor-commit-layout editor-id root-id layout)
+    (dispatch :editor-commit-selectables editor-id root-id selectables)
+    (dispatch :editor-commit-spatial-web editor-id root-id spatial-web)
+    (dispatch :editor-commit-structural-web editor-id root-id structural-web)
     layout-info))
 
 (defn prepare-render-infos-of-top-level-forms [independent-top-level-locs editor]
@@ -63,8 +61,26 @@
         new-editor (editor/set-layout-for-form editor form-id layout)]
     (assoc editors editor-id new-editor)))
 
+(defn commit-selectables [editors [editor-id form-id selectables]]
+  (let [editor (get editors editor-id)
+        new-editor (editor/set-selectables-for-form editor form-id selectables)]
+    (assoc editors editor-id new-editor)))
+
+(defn commit-spatial-web [editors [editor-id form-id spatial-web]]
+  (let [editor (get editors editor-id)
+        new-editor (editor/set-spatial-web-for-form editor form-id spatial-web)]
+    (assoc editors editor-id new-editor)))
+
+(defn commit-structural-web [editors [editor-id form-id structural-web]]
+  (let [editor (get editors editor-id)
+        new-editor (editor/set-structural-web-for-form editor form-id structural-web)]
+    (assoc editors editor-id new-editor)))
+
 ; ----------------------------------------------------------------------------------------------------------------
 ; register handlers
 
 (register-handler :editor-update-layout paths/editors-path update-layout)
 (register-handler :editor-commit-layout paths/editors-path commit-layout)
+(register-handler :editor-commit-selectables paths/editors-path commit-selectables)
+(register-handler :editor-commit-spatial-web paths/editors-path commit-spatial-web)
+(register-handler :editor-commit-structural-web paths/editors-path commit-structural-web)

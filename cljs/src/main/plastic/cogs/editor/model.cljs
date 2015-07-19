@@ -344,3 +344,22 @@
 
 (defn get-layout-for-form [editor form-id]
   (get-in editor [:layout form-id]))
+
+(defn set-selectables-for-form [editor form-id selectables]
+  (assoc-in editor [:selectables form-id] selectables))
+
+(defn get-selectables-for-form [editor form-id]
+  (get-in editor [:selectables form-id]))
+
+(defn set-spatial-web-for-form [editor form-id spatial-web]
+  (assoc-in editor [:spatial-web form-id] spatial-web))
+
+(defn get-spatial-web-for-form [editor form-id]
+  (get-in editor [:spatial-web form-id]))
+
+(defn set-structural-web-for-form [editor form-id structural-web]
+  (assoc-in editor [:structural-web form-id] structural-web))
+
+(defn get-structural-web-for-form [editor form-id]
+  (get-in editor [:structural-web form-id]))
+

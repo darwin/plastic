@@ -99,7 +99,7 @@
         text-output-debug-visible (subscribe [:settings :text-output-debug-visible])
         selections-debug-visible (subscribe [:settings :selections-debug-visible])
         focused-form-id (subscribe [:editor-focused-form-id editor-id])]
-    (fn []
+    (fn [editor-id]
       (log "R! editor-root" editor-id)
       (let [{:keys [forms order]} @state
             {:keys [debug-parse-tree debug-text-input debug-text-output]} @state]
@@ -113,8 +113,7 @@
          (if @text-output-debug-visible [text-output-debug-component debug-text-output])]))))
 
 (defn mount-editor [element editor-id]
-  (let [editor (partial editor-root-component editor-id)]
-    (reagent/render [editor] element)))
+  (reagent/render [editor-root-component editor-id] element))
 
 (defn unmount-editor [element]
   (reagent/unmount-component-at-node element))
