@@ -22,7 +22,7 @@
         analysis (subscribe [:editor-form-node-analysis editor-id form-id node-id])
         layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
     (fn [editor-id form-id node-id]
-      (log-render "code-token" node-id
+      (log-render "code-token" [node-id (subs (:text @layout) 0 10)]
         (let [{:keys [selectable? type text id]} @layout
               {:keys [decl-scope call? def-name?]} @analysis
               ;_ (log "R! token" id (subs text 0 10) "cursor" @cursor? @analysis)
