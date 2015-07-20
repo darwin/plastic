@@ -69,11 +69,13 @@
       true (assoc :cursor new-cursor))))
 
 (defn get-focused-form-id [editor]
-  (get editor :focused-form-id))
+  {:pre [(set? (or (get editor :focused-form-id) #{}))
+         (<= (count (get editor :focused-form-id)) 1)]}
+  (first (get editor :focused-form-id)))
 
 (defn set-focused-form-id [editor form-id]
-  {:pre [form-id]}
-  (assoc editor :focused-form-id form-id))
+  (let [new-form-id (if form-id #{form-id} #{})]
+    (assoc editor :focused-form-id new-form-id)))
 
 (defn get-render-state [editor]
   (get editor :render-state))

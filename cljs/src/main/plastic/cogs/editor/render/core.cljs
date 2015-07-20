@@ -64,17 +64,16 @@
           (dispatch :editor-toggle-selection editor-id #{selected-node-id}))))))
 
 (defn form-component [editor-id form-id]
-  (let [focused-form-id (subscribe [:editor-focused-form-id editor-id])]
+  (let [focused-form? (subscribe [:editor-focused-form-node editor-id form-id])]
     (fn [editor-id form-id]
-      (let [focused? (= form-id @focused-form-id)]
-        (log-render "form" form-id
-          [:tr
-           [:td
-            [:div.form
-             {:data-qnid form-id
-              :class     (if focused? "focused")
-              :on-click  (partial handle-form-click form-id)}
-             [form-skelet-component editor-id form-id]]]])))))
+      (log-render "form" form-id
+        [:tr
+         [:td
+          [:div.form
+           {:data-qnid form-id
+            :class     (if @focused-form? "focused")
+            :on-click  (partial handle-form-click form-id)}
+           [form-skelet-component editor-id form-id]]]]))))
 
 (defn forms-component [editor-id order]
   (fn [editor-id order]
