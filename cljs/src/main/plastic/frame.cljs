@@ -1,10 +1,8 @@
-(ns plastic.schema.frame
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end measure-time]]
-                   [plastic.macros.glue :refer [react!]]
-                   [reagent.ratom :refer [reaction]])
+(ns plastic.frame
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end measure-time]])
   (:require [plastic.frame.core :as frame]
-            [clojure.string :as string]
-            [cuerdas.core :as str]))
+            [plastic.frame.router :as router]
+            [clojure.string :as string]))
 
 (defn simple-printer [acc val]
   (conj acc (cond
@@ -29,3 +27,4 @@
    (frame/register-handler id [timing frame/trim-v middleware] handler)))
 
 (def subscribe frame/subscribe)
+(def router-loop router/router-loop)

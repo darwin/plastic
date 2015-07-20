@@ -1,7 +1,7 @@
 (ns plastic.cogs.editor.ops.editing
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
   (:require [plastic.cogs.editor.render.dom :as dom]
-            [plastic.schema.frame :refer [subscribe register-handler]]
+            [plastic.frame :refer [subscribe register-handler]]
             [plastic.cogs.editor.model :as editor]
             [plastic.cogs.editor.ops.cursor :as selection]
             [plastic.onion.core :as onion]

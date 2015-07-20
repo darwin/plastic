@@ -4,7 +4,7 @@
   (:require [rewrite-clj.zip :as zip]
             [rewrite-clj.node :as node]
             [clojure.zip :as z]
-            [plastic.schema.frame :refer [subscribe register-handler]]
+            [plastic.frame :refer [subscribe register-handler]]
             [plastic.cogs.editor.model :as editor]
             [plastic.cogs.editor.layout.builder :refer [build-layout]]
             [plastic.cogs.editor.layout.selections :refer [build-selections-render-info]]

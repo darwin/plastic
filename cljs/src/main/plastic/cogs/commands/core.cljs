@@ -1,6 +1,6 @@
 (ns plastic.cogs.commands.core
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
-  (:require [plastic.schema.frame :refer [subscribe register-handler]]
+  (:require [plastic.frame :refer [subscribe register-handler]]
             [plastic.schema.paths :as paths]
             [plastic.cogs.commands.utils :refer [toggle-setting]]))
 

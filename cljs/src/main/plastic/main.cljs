@@ -1,6 +1,6 @@
 (ns plastic.main
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
-  (:require [plastic.frame.router :refer [router-loop]]
+  (:require [plastic.frame :refer [router-loop]]
             [plastic.onion.core]
             [plastic.cogs.boot.core]
             [plastic.cogs.editor.core]
