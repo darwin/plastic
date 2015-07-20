@@ -23,7 +23,7 @@
     (fn [editor-id form-id node-id]
       (let [{:keys [selectable? type text id]} @layout
             {:keys [decl-scope call? def-name?]} @analysis
-            _ (log "R! token" id (subs text 0 10) "cursor" @cursor? @analysis)
+            ;_ (log "R! token" id (subs text 0 10) "cursor" @cursor? @analysis)
             props (merge
                     {:data-qnid id
                      :class     (classv
@@ -86,7 +86,7 @@
       (let [{:keys [id selectable? depth tag]} @layout
             {:keys [new-scope?]} @analysis
             tag-name (name tag)]
-        (log "R! wrapper-code-block" id @analysis)
+        ;(log "R! wrapper-code-block" id @analysis)
         [:div.block {:data-qnid id
                      :class     (classv
                                   tag-name
@@ -102,7 +102,7 @@
 (defn code-block-component [editor-id form-id node-id]
   (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
     (fn [editor-id form-id node-id]
-      (log "R! code-block" @layout)
+      ;(log "R! code-block" @layout)
       (let [wrapped-code-element (fn [& params] (vec (concat [wrapped-code-element-component editor-id form-id node-id] params)))]
         (condp = (:tag @layout)
           :list (wrapped-code-element "(" ")")
@@ -116,7 +116,7 @@
 (defn code-box-component [editor-id form-id node-id]
   (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
     (fn [editor-id form-id node-id]
-      (log "R! code-box" @layout)
+      ;(log "R! code-box" @layout)
       (let [child-id (first (:children @layout))]
         [:div.code-box
          [code-block-component editor-id form-id child-id]]))))

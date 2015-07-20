@@ -14,6 +14,7 @@
 (defn headers-group-component [editor-id form-id node-id]
   (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
     (fn [editor-id form-id node-id]
+      ;(log "R! headers")
       [:div.headers-group
        (for [header-id (:children @layout)]
          ^{:key header-id} [header-component editor-id form-id header-id])])))

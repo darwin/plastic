@@ -29,8 +29,6 @@
 (def trim-v middleware/trim-v)
 (def after middleware/after)
 (def log-ex middleware/log-ex)
-(def realize middleware/realize)
-
 
 ;; ALPHA - EXPERIMENTAL MIDDLEWARE
 (def on-changes middleware/on-changes)

@@ -18,7 +18,7 @@
   (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])
         selection-subscription (subscribe [:editor-selection-node editor-id node-id])]
     (fn [editor-id form-id node-id]
-      (log "R! render-tree" node-id)
+      ;(log "R! render-tree" node-id)
       (let [{:keys [id tag children selectable?]} @layout]
         [:div {:data-qnid id
                :class     (classv
@@ -32,7 +32,7 @@
   (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
     (fn [editor-id form-id node-id]
       (let [{:keys [id tag]} @layout]
-        (log "R! unified-rendering" form-id node-id id tag @layout)
+        ;(log "R! unified-rendering" form-id node-id id tag @layout)
         (if id
           [:div.unified {:data-qnid id}
            (condp = tag
@@ -45,7 +45,7 @@
 
 (defn form-skelet-component []
   (fn [editor-id form-id]
-    (log "R! form-skelet" form-id)
+    ;(log "R! form-skelet" form-id)
     [:div.form-skelet
      [unified-rendering-component editor-id form-id (layout-utils/alien-id form-id :root)]]))
 
@@ -69,7 +69,7 @@
   (let [focused-form-id (subscribe [:editor-focused-form-id editor-id])]
   (fn [editor-id form-id]
     (let [focused? (= form-id @focused-form-id)]
-      (log "R! form" form-id "focused" focused?)
+      ;(log "R! form" form-id "focused" focused?)
       [:tr
        [:td
         [:div.form
@@ -80,7 +80,7 @@
 
 (defn forms-component [editor-id order]
   (fn [editor-id order]
-    (log "R! forms" editor-id)
+    ;(log "R! forms" editor-id)
     [:table.form-table
      [:tbody
       (for [form-id order]
@@ -98,7 +98,7 @@
         text-output-debug-visible (subscribe [:settings :text-output-debug-visible])
         selections-debug-visible (subscribe [:settings :selections-debug-visible])]
     (fn [editor-id]
-      (log "R! editor-root" editor-id)
+      ;(log "R! editor-root" editor-id)
       (let [{:keys [order]} @state
             {:keys [debug-parse-tree debug-text-input debug-text-output]} @state]
         [:div.plastic-editor                                ; .editor class is taken by Atom

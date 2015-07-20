@@ -26,7 +26,7 @@
 (defn docs-group-component [editor-id form-id node-id]
   (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
     (fn [editor-id form-id node-id]
-      (log "R! docs")
+      ;(log "R! docs")
       [:div.docs-group
        (for [doc-id (:children @layout)]
          ^{:key doc-id} [doc-component editor-id form-id doc-id])])))

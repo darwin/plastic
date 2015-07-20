@@ -44,7 +44,7 @@
   (watch-uri editor-id)
   (watch-raw-text editor-id)
   (watch-parse-tree editor-id)
-  (watch-selections editor-id)                              ; debug
+  ;(watch-selections editor-id)                              ; debug
   (watch-settings editor-id))
 
 (defn add-editor [editors [id editor-def]]
