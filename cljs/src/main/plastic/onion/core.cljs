@@ -6,7 +6,6 @@
             [plastic.onion.api :refer [File]]
             [plastic.cogs.editor.render.dom :as dom]
             [rewrite-clj.node.keyword :refer [keyword-node]]
-            [cuerdas.core :as str]
             [rewrite-clj.node :as node]
             [plastic.cogs.editor.parser.utils :as parser]))
 

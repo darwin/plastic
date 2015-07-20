@@ -1,7 +1,7 @@
 (ns plastic.cogs.editor.parser.core
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
                    [plastic.macros.glue :refer [react! dispatch]])
-  (:require [plastic.frame.core :refer [subscribe register-handler]]
+  (:require [plastic.schema.frame :refer [subscribe register-handler]]
             [plastic.schema.paths :as paths]
             [plastic.cogs.editor.parser.utils :as utils]
             [rewrite-clj.parser :as rewrite-cljs]))

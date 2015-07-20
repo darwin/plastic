@@ -5,7 +5,7 @@
                    ;[cljs.env.macros :refer [ensure with-compiler-env]]
                    ;[cljs.analyzer.macros :refer [no-warn wrapping-errors]]
                    )
-  (:require [plastic.frame.core :refer [subscribe register-handler]]
+  (:require [plastic.schema.frame :refer [subscribe register-handler]]
             [cljs.core.async :refer [<! timeout]]
     ;[cljs.pprint :refer [pprint]]
     ;[cljs.tagged-literals :as tags]

@@ -3,7 +3,7 @@
                    [plastic.macros.glue :refer [react! dispatch]])
   (:require [rewrite-clj.zip :as zip]
             [rewrite-clj.node :as node]
-            [plastic.frame.core :refer [subscribe register-handler]]
+            [plastic.schema.frame :refer [subscribe register-handler]]
             [plastic.schema.paths :as paths]
             [plastic.cogs.editor.model :as editor]
             [plastic.cogs.editor.layout.analysis.calls :refer [analyze-calls]]
