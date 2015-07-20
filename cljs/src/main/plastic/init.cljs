@@ -2,6 +2,7 @@
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
   (:require [plastic.dev.devtools]
             [plastic.dev.figwheel]
+            [plastic.reagent.core]
             [plastic.schema.core]))
 
 ; this namespace is :main entry point for cljsbuild

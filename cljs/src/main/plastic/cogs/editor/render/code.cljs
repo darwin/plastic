@@ -1,5 +1,6 @@
 (ns plastic.cogs.editor.render.code
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
+                   [plastic.macros.render :refer [log-render]])
   (:require [plastic.cogs.editor.render.utils :refer [wrap-specials classv]]
             [plastic.cogs.editor.render.inline-editor :refer [inline-editor-component]]
             [plastic.cogs.editor.render.reusables :refer [raw-html-component]]
@@ -21,28 +22,29 @@
         analysis (subscribe [:editor-form-node-analysis editor-id form-id node-id])
         layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
     (fn [editor-id form-id node-id]
-      (let [{:keys [selectable? type text id]} @layout
-            {:keys [decl-scope call? def-name?]} @analysis
-            ;_ (log "R! token" id (subs text 0 10) "cursor" @cursor? @analysis)
-            props (merge
-                    {:data-qnid id
-                     :class     (classv
-                                  (if type (name type))
-                                  (if (and selectable? (not @edited?)) "selectable")
-                                  (if (and selectable? (not @edited?) @selected?) "selected")
-                                  (if @cursor? "cursor")
-                                  (if @edited? "editing")
-                                  (if call? "call")
-                                  (if decl-scope
-                                    (str (if (:decl? decl-scope) "decl ") "decl-scope decl-scope-" (:id decl-scope)))
-                                  (if def-name? "def-name"))})
-            emit-token (fn [html] [:div.token props
-                                   (if @edited?
-                                     [inline-editor-component id text (or type :symbol)]
-                                     [raw-html-component html])])]
-        (condp = type
-          :string (emit-token (-> text (wrap-specials)))
-          (emit-token (-> text (apply-shadowing-subscripts (:shadows decl-scope)))))))))
+      (log-render "code-token" node-id
+        (let [{:keys [selectable? type text id]} @layout
+              {:keys [decl-scope call? def-name?]} @analysis
+              ;_ (log "R! token" id (subs text 0 10) "cursor" @cursor? @analysis)
+              props (merge
+                      {:data-qnid id
+                       :class     (classv
+                                    (if type (name type))
+                                    (if (and selectable? (not @edited?)) "selectable")
+                                    (if (and selectable? (not @edited?) @selected?) "selected")
+                                    (if @cursor? "cursor")
+                                    (if @edited? "editing")
+                                    (if call? "call")
+                                    (if decl-scope
+                                      (str (if (:decl? decl-scope) "decl ") "decl-scope decl-scope-" (:id decl-scope)))
+                                    (if def-name? "def-name"))})
+              emit-token (fn [html] [:div.token props
+                                     (if @edited?
+                                       [inline-editor-component id text (or type :symbol)]
+                                       [raw-html-component html])])]
+          (condp = type
+            :string (emit-token (-> text (wrap-specials)))
+            (emit-token (-> text (apply-shadowing-subscripts (:shadows decl-scope))))))))))
 
 (defn emit-code-block [editor-id form-id node-id]
   ^{:key node-id} [code-block-component editor-id form-id node-id])
@@ -83,40 +85,40 @@
         layout (subscribe [:editor-form-node-layout editor-id form-id node-id])
         analysis (subscribe [:editor-form-node-analysis editor-id form-id node-id])]
     (fn [editor-id form-id node-id opener closer]
-      (let [{:keys [id selectable? depth tag]} @layout
-            {:keys [new-scope?]} @analysis
-            tag-name (name tag)]
-        ;(log "R! wrapper-code-block" id @analysis)
-        [:div.block {:data-qnid id
-                     :class     (classv
-                                  tag-name
-                                  (if selectable? "selectable")
-                                  (if (and selectable? @selected?) "selected")
-                                  (if @cursor? "cursor")
-                                  (if depth (str "depth-" depth))
-                                  (if new-scope? (str "scope scope-" (get-in @analysis [:scope :id]) " scope-depth-" (get-in @analysis [:scope :depth]))))}
-         [:div.punctuation.opener opener]
-         [code-element-component editor-id form-id node-id]
-         [:div.punctuation.closer closer]]))))
+      (log-render "wrapper-code-block" node-id
+        (let [{:keys [id selectable? depth tag]} @layout
+              {:keys [new-scope?]} @analysis
+              tag-name (name tag)]
+          [:div.block {:data-qnid id
+                       :class     (classv
+                                    tag-name
+                                    (if selectable? "selectable")
+                                    (if (and selectable? @selected?) "selected")
+                                    (if @cursor? "cursor")
+                                    (if depth (str "depth-" depth))
+                                    (if new-scope? (str "scope scope-" (get-in @analysis [:scope :id]) " scope-depth-" (get-in @analysis [:scope :depth]))))}
+           [:div.punctuation.opener opener]
+           [code-element-component editor-id form-id node-id]
+           [:div.punctuation.closer closer]])))))
 
 (defn code-block-component [editor-id form-id node-id]
   (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
     (fn [editor-id form-id node-id]
-      ;(log "R! code-block" @layout)
-      (let [wrapped-code-element (fn [& params] (vec (concat [wrapped-code-element-component editor-id form-id node-id] params)))]
-        (condp = (:tag @layout)
-          :list (wrapped-code-element "(" ")")
-          :vector (wrapped-code-element "[" "]")
-          :set (wrapped-code-element "#{" "}")
-          :map (wrapped-code-element "{" "}")
-          :fn (wrapped-code-element "#(" ")")
-          :meta (wrapped-code-element "^" "")
-          [code-element-component editor-id form-id node-id])))))
+      (log-render "code-block" node-id
+        (let [wrapped-code-element (fn [& params] (vec (concat [wrapped-code-element-component editor-id form-id node-id] params)))]
+          (condp = (:tag @layout)
+            :list (wrapped-code-element "(" ")")
+            :vector (wrapped-code-element "[" "]")
+            :set (wrapped-code-element "#{" "}")
+            :map (wrapped-code-element "{" "}")
+            :fn (wrapped-code-element "#(" ")")
+            :meta (wrapped-code-element "^" "")
+            [code-element-component editor-id form-id node-id]))))))
 
 (defn code-box-component [editor-id form-id node-id]
   (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
     (fn [editor-id form-id node-id]
-      ;(log "R! code-box" @layout)
-      (let [child-id (first (:children @layout))]
-        [:div.code-box
-         [code-block-component editor-id form-id child-id]]))))
+      (log-render "code-box" node-id
+        (let [child-id (first (:children @layout))]
+          [:div.code-box
+           [code-block-component editor-id form-id child-id]])))))

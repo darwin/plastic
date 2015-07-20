@@ -28,7 +28,7 @@
        (.groupEnd js/console)
        res#)))
 
-(defmacro with-group-collpased [title & body]
+(defmacro with-group-collapsed [title & body]
   `(do
      (.groupCollapsed js/console ~title)
      (let [res# ~@body]
@@ -48,3 +48,9 @@
      (let [res# ~@body]
        (.timeEnd js/console ~title)
        res#)))
+
+(defmacro stopwatch [expr]
+  `(let [start# (.getTime (js/Date.))
+         ret# ~expr
+         diff# (- (.getTime (js/Date.)) start#)]
+     [ret# diff#]))
