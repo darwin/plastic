@@ -28,21 +28,21 @@
     (if-let [result-id (op (get structural-web cursor-id))]
       (editor/set-cursor editor result-id))))
 
-(defn find-first-non-empty-line-in-given-direction [spatial-web line op]
-  (first (drop-while #(and (not (nil? %)) (empty? %)) (map spatial-web (iterate op (op line))))))
+(defn find-first-non-empty-line-in-given-direction [spatial-web line direction-fn]
+  (first (drop-while #(and (not (nil? %)) (empty? %)) (map spatial-web (iterate direction-fn (direction-fn line))))))
 
-(defn spatial-movement-up-down [editor dir-fun]
+(defn spatial-movement-up-down [editor direction-fn]
   (let [cursor-id (editor/get-cursor editor)
         form-id (editor/get-focused-form-id editor)
         selectables (editor/get-selectables-for-form editor form-id)
         spatial-web (editor/get-spatial-web-for-form editor form-id)
         sel-node (get selectables cursor-id)
-        line-selectables (find-first-non-empty-line-in-given-direction spatial-web (:line sel-node) dir-fun)
+        line-selectables (find-first-non-empty-line-in-given-direction spatial-web (:line sel-node) direction-fn)
         line-selections (map :id line-selectables)]
     (if-let [result (resolve-best-spatial-match (editor/get-id editor) form-id (:id sel-node) line-selections)]
       (editor/set-cursor editor result))))
 
-(defn spatial-movement-left-right [editor dir-fun]
+(defn spatial-movement-left-right [editor direction-fn]
   (let [cursor-id (editor/get-cursor editor)
         form-id (editor/get-focused-form-id editor)
         selectables (editor/get-selectables-for-form editor form-id)
@@ -50,25 +50,25 @@
         sel-node (get selectables cursor-id)]
     (if (empty? (:children sel-node))
       (let [line-selectables (get spatial-web (:line sel-node))]
-        (if-let [result (dir-fun #(= (:id %) cursor-id) line-selectables)]
+        (if-let [result (direction-fn #(= (:id %) cursor-id) line-selectables)]
           (editor/set-cursor editor (:id result)))))))
 
-(defn move-to-form [editor dir-fun next-sel-fun]
+(defn move-to-form [editor direction-fn next-selection-fn]
   (let [focused-form-id (editor/get-focused-form-id editor)
         top-level-ids (editor/get-top-level-form-ids editor)
-        next-focused-form-id (dir-fun #(= % focused-form-id) top-level-ids)]
+        next-focused-form-id (direction-fn #(= % focused-form-id) top-level-ids)]
     (if next-focused-form-id
-      (let [next-selection (next-sel-fun editor next-focused-form-id)]
+      (let [next-selection (next-selection-fn editor next-focused-form-id)]
         (-> editor
           (editor/set-focused-form-id next-focused-form-id)
           (editor/set-cursor next-selection))))))
 
-(defn token-movement-prev-next [editor dir-fun]
+(defn token-movement-prev-next [editor direction-fn]
   (let [cursor-id (editor/get-cursor editor)
         form-id (editor/get-focused-form-id editor)
         spatial-web (editor/get-spatial-web-for-form editor form-id)
         all-lines (apply concat (vals spatial-web))]
-    (if-let [result (dir-fun #(= (:id %) cursor-id) all-lines)]
+    (if-let [result (direction-fn #(= (:id %) cursor-id) all-lines)]
       (editor/set-cursor editor (:id result)))))
 
 ; ----------------------------------------------------------------------------------------------------------------
