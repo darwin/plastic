@@ -60,9 +60,7 @@
         (.stopPropagation event)
         (dispatch :editor-focus-form editor-id form-id)
         (if-not (dom/event-shift-key? event)
-          (do
-            (dispatch :editor-set-selection editor-id #{selected-node-id})
-            (dispatch :editor-set-cursor editor-id selected-node-id))
+          (dispatch :editor-set-cursor editor-id selected-node-id true)
           (dispatch :editor-toggle-selection editor-id #{selected-node-id}))))))
 
 (defn form-component [editor-id form-id]

@@ -62,10 +62,10 @@
         new-selection (reduce toggler old-selection toggle-set)]
     (set-selection editor new-selection)))
 
-(defn set-cursor [editor cursor]
+(defn set-cursor [editor cursor & [link?]]
   (let [new-cursor (if cursor #{cursor} #{})]
     (cond-> editor
-      (cursor-and-selection-are-linked? editor) (assoc :selection new-cursor)
+      (or link? (cursor-and-selection-are-linked? editor)) (assoc :selection new-cursor)
       true (assoc :cursor new-cursor))))
 
 (defn get-focused-form-id [editor]

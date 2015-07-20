@@ -40,12 +40,12 @@
 (defn focus-form [editors [editor-selector form-id]]
   (editor/apply-to-specified-editors (partial focus-form-in-editor form-id) editors editor-selector))
 
-(defn set-cursor-in-editor [cursor editor]
+(defn set-cursor-in-editor [cursor link? editor]
   (-> editor
-    (editor/set-cursor cursor)))
+    (editor/set-cursor cursor link?)))
 
-(defn set-cursor [editors [editor-selector cursor]]
-  (editor/apply-to-specified-editors (partial set-cursor-in-editor cursor) editors editor-selector))
+(defn set-cursor [editors [editor-selector cursor link?]]
+  (editor/apply-to-specified-editors (partial set-cursor-in-editor cursor link?) editors editor-selector))
 
 (defn clear-cursor-in-editor [editor]
   (-> editor
