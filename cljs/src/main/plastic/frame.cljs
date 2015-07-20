@@ -1,7 +1,7 @@
 (ns plastic.frame
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end measure-time]]
                    [cljs.core.async.macros :refer [go-loop go]])
-  (:require [plastic.frame.core :as frame :refer [pure trim-v log-ex]]
+  (:require [plastic.frame.core :as frame :refer [pure trim-v]]
             [plastic.frame.router :refer [event-chan purge-chan]]
             [clojure.string :as string]
             [plastic.frame.handlers :refer [handle register-base]]
@@ -23,28 +23,32 @@
     (measure-time (str "H! " (print-simple v))
       (handler db v))))
 
+(defn log-ex [handler]
+  (fn log-ex-handler [db v]
+    (try
+      (handler db v)
+      (catch js/Error e                                     ;  You don't need it any more IF YOU ARE USING CHROME 44. Chrome now seems to now produce good stack traces.
+        (do
+          (.error js/console (.-stack e))
+          (throw e)))
+      (catch :default e
+        (do
+          (.error js/console e)
+          (throw e))))))
+
 (defn register-handler
   ([id handler] (register-handler id nil handler))
   ([id middleware handler] (register-base id [pure log-ex timing trim-v middleware] handler)))
 
 (def subscribe frame/subscribe)
 
+(defn process-event-and-silently-swallow-exceptions [event-v]
+  (try
+    (handle event-v)
+    (catch :default _)))
+
 (defn router-loop []
   (go-loop []
     (let [event-v (<! event-chan)]
-      (try
-        (handle event-v)
-
-        ;; If the handler throws:
-        ;;   - allow the exception to bubble up because the app, in production,
-        ;;     may have hooked window.onerror and perform special processing.
-        ;;   - But an exception which bubbles up will break the enclosing go-loop.
-        ;;     So we'll need to start another one.
-        ;;   - purge any pending events, because they are probably related to the
-        ;;     event which just fell in a screaming heap. Not sane to handle further
-        ;;     events if the prior event failed.
-        (catch :default e
-          ;(purge-chan)
-          (router-loop)
-          (throw e))))
-    (recur)))
+      (process-event-and-silently-swallow-exceptions event-v)
+      (recur))))
