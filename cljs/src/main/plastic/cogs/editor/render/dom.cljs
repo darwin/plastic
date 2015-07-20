@@ -3,14 +3,16 @@
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
   (:require [plastic.util.dom-shim]
             [plastic.onion.api :refer [$]]
-            [plastic.cogs.editor.model :as editor]))
+            [plastic.onion.core :as onion]
+            [plastic.cogs.editor.model :as editor]
+            [clojure.string :as string]))
 
 (defn node-from-react [react-component]
   (let [dom-node (.getDOMNode react-component)]             ; TODO: deprecated!
     (assert dom-node)
     dom-node))
 
-(defn non-empty-result [$node]
+(defn non-empty-result? [$node]
   (> (.-length $node) 0))
 
 (defn single-result? [$node]
@@ -19,6 +21,22 @@
 (defn has-class? [node class]
   {:pre [node]}
   (.hasClass ($ node) class))
+
+(defn event-shift-key? [event]
+  (.-shiftKey event))
+
+(defn event-alt-key? [event]
+  (.-altKey event))
+
+(defn event-meta-key? [event]
+  (.-metaKey event))
+
+(defn event-ctrl-key? [event]
+  (.-ctrlKey event))
+
+(defn $->vec [$o]
+  (let [len (alength $o)]
+    (vec (map #(aget $o %) (range len)))))
 
 (defn valid-id? [id]
   (pos? id))
@@ -54,42 +72,57 @@
 (defn find-closest-plastic-editor-view [dom-node]
   (find-closest dom-node ".plastic-editor-view"))
 
-(defn try-find [selector]
-  (aget (.find $ selector) 0))
+(defn try-find
+  ([$dom-node selector]
+   (aget (.find $dom-node selector) 0))
+  ([selector]
+   (try-find $ selector)))
 
-(defn find [selector]
-  (let [result (try-find selector)]
-    (assert result)
-    result))
+(defn find
+  ([$dom-node selector]
+   (let [result (try-find $dom-node selector)]
+     (assert result)
+     result))
+  ([selector]
+   (find $ selector)))
 
-(defn find-plastic-editor [editor-id]
-  (find (str ".plastic-editor[data-qeid=" editor-id "]")))
+(defn find-all
+  ([$dom-node selector]
+   ($->vec (.find $dom-node selector)))
+  ([selector]
+   (find-all $ selector)))
 
 (defn find-plastic-editor-view [editor-id]
-  (find-closest-plastic-editor-view (find-plastic-editor editor-id)))
+  (onion/get-plastic-editor-view editor-id))
+
+(defn find-plastic-editor [editor-id]
+  (let [$editor-view ($ (find-plastic-editor-view editor-id))]
+    (find $editor-view ".plastic-editor")))
+
+(defn find-plastic-editor-form [editor-id form-id]
+  (let [$editor ($ (find-plastic-editor editor-id))]
+    (find $editor (str ".form[data-qnid=" form-id "]"))))
 
 (defn skelet-node? [dom-node]
   (boolean (try-find-closest dom-node ".form-skelet")))
 
-(defn postpone-selection-overlay-display-until-next-update [editor]
-  (let [$root-view ($ (find-plastic-editor-view (editor/get-id editor)))]
-    (.addClass $root-view "temporarily-hide-selection-overlay")))
-
-(defn reenable-selection-overlay-display [dom-node]
-  (let [$root-view ($ (find-closest-plastic-editor-view dom-node))]
-    (.removeClass $root-view "temporarily-hide-selection-overlay")))
-
 (defn inline-editor-present? [dom-node]
   (single-result? (.children ($ dom-node) "atom-text-editor")))
 
-(defn event-shift-key? [event]
-  (.-shiftKey event))
+(defn read-geometry [parent-offset dom-node]
+  (if-let [node-id (read-node-id dom-node)]
+    (let [offset (.offset ($ dom-node))]
+      [node-id {:left   (- (.-left offset) (.-left parent-offset))
+                :top    (- (.-top offset) (.-top parent-offset))
+                :width  (.-offsetWidth dom-node)
+                :height (.-offsetHeight dom-node)}])))
 
-(defn event-alt-key? [event]
-  (.-altKey event))
+(defn collect-geometry [parent-offset dom-nodes]
+  (apply hash-map (mapcat (partial read-geometry parent-offset) dom-nodes)))
 
-(defn event-meta-key? [event]
-  (.-metaKey event))
-
-(defn event-ctrl-key? [event]
-  (.-ctrlKey event))
+(defn retrieve-form-nodes-geometries [editor-id form-id node-ids]
+  (let [$form ($ (find-plastic-editor-form editor-id form-id))
+        form-offset (.offset $form)
+        selector (string/join "," (map (fn [id] (str "[data-qnid=" id "]")) node-ids))
+        dom-nodes (find-all $form selector)]
+    (collect-geometry form-offset dom-nodes)))

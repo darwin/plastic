@@ -2,18 +2,24 @@
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
                    [plastic.macros.glue :refer [react! dispatch]])
   (:require [plastic.cogs.editor.model :as editor]
+            [plastic.cogs.editor.render.dom :as dom]
             [plastic.util.helpers :as helpers]))
 
-(defn mid-point [node]
-  (let [{:keys [left width] :or {left 0 width 0}} (:geometry node)]
+(defn mid-point [geometry]
+  (let [{:keys [left width] :or {left 0 width 0}} geometry]
     (+ left (/ width 2))))
 
-(defn find-best-spatial-match [node candidates]
-  (let [node-point (mid-point node)
-        score (fn [candidate] (helpers/abs (- node-point (mid-point candidate))))
-        scores (map (fn [candidate] {:score (score candidate) :candidate candidate}) candidates)
+(defn find-best-spatial-match [node-geometry candidates-geometries]
+  (let [node-point (mid-point (second node-geometry))
+        score (fn [geometry] (helpers/abs (- node-point (mid-point geometry))))
+        scores (map (fn [[id geometry]] {:score (score geometry) :id id}) candidates-geometries)
         best-match (first (sort-by :score scores))]
-    (:candidate best-match)))
+    (:id best-match)))
+
+(defn resolve-best-spatial-match [editor-id form-id node-id candidate-ids]
+  (let [node-geometry (first (dom/retrieve-form-nodes-geometries editor-id form-id [node-id]))
+        candidates-geometries (dom/retrieve-form-nodes-geometries editor-id form-id candidate-ids)]
+    (find-best-spatial-match node-geometry candidates-geometries)))
 
 (defn structural-movemement [editor op]
   (let [cursor-id (editor/get-cursor editor)
@@ -32,9 +38,9 @@
         spatial-web (editor/get-spatial-web-for-form editor form-id)
         sel-node (get selectables cursor-id)
         line-selectables (find-first-non-empty-line-in-given-direction spatial-web (:line sel-node) dir-fun)
-        line-selections (map #(get selectables (:id %)) line-selectables)]
-    (if-let [result (find-best-spatial-match sel-node line-selections)]
-      (editor/set-cursor editor (:id result)))))
+        line-selections (map :id line-selectables)]
+    (if-let [result (resolve-best-spatial-match (editor/get-id editor) form-id (:id sel-node) line-selections)]
+      (editor/set-cursor editor result))))
 
 (defn spatial-movement-left-right [editor dir-fun]
   (let [cursor-id (editor/get-cursor editor)

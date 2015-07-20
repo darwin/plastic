@@ -1,6 +1,7 @@
 (ns plastic.cogs.editor.render.utils
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
-  (:require [clojure.string :as string]))
+  (:require [clojure.string :as string]
+            [plastic.onion.api :refer [$]]))
 
 (defonce ^:dynamic logger-indent 0)
 

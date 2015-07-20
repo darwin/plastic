@@ -4,7 +4,6 @@
             [plastic.onion.api :refer [$ atom]]
             [plastic.onion.remounter]
             [plastic.onion.api :refer [File]]
-            [plastic.cogs.editor.render.dom :as dom]
             [rewrite-clj.node.keyword :refer [keyword-node]]
             [rewrite-clj.node :as node]
             [plastic.cogs.editor.parser.utils :as parser]))
@@ -17,16 +16,19 @@
         content (.read file)]
     (.then content cb)))
 
-(defn get-atom-inline-editor-instance [editor-id]
+(defn get-plastic-editor-view [editor-id]
   (let [atom-editor-view (get @inface/ids->views editor-id)
-        _ (assert atom-editor-view)
+        _ (assert atom-editor-view)]
+    atom-editor-view))
+
+(defn get-atom-inline-editor-instance [editor-id]
+  (let [atom-editor-view (get-plastic-editor-view editor-id)
         mini-editor (.-miniEditor atom-editor-view)]
     (assert mini-editor)
     mini-editor))
 
 (defn get-atom-inline-editor-view-instance [editor-id]
-  (let [atom-editor-view (get @inface/ids->views editor-id)
-        _ (assert atom-editor-view)
+  (let [atom-editor-view (get-plastic-editor-view editor-id)
         mini-editor-view (.-miniEditorView atom-editor-view)]
     (assert mini-editor-view)
     mini-editor-view))
@@ -37,7 +39,7 @@
 
 (defn is-inline-editor-focused? [editor-id]
   (let [inline-editor-view (get-atom-inline-editor-view-instance editor-id)]
-    (dom/has-class? inline-editor-view "is-focused")))
+    (.hasClass ($ inline-editor-view) "is-focused")))
 
 (defn focus-inline-editor [editor-id]
   (let [inline-editor-view (get-atom-inline-editor-view-instance editor-id)]
