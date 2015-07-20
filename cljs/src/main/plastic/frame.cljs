@@ -1,10 +1,10 @@
 (ns plastic.frame
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end measure-time]]
                    [cljs.core.async.macros :refer [go-loop go]])
-  (:require [plastic.frame.core :as frame]
-            [plastic.frame.router :as router]
+  (:require [plastic.frame.core :as frame :refer [pure trim-v]]
+            [plastic.frame.router :refer [event-chan purge-chan]]
             [clojure.string :as string]
-            [plastic.frame.handlers :refer [handle]]
+            [plastic.frame.handlers :refer [handle register-base]]
             [cljs.core.async :refer [chan put! <!]]))
 
 (defn simple-printer [acc val]
@@ -25,15 +25,15 @@
 
 (defn register-handler
   ([id handler]
-   (frame/register-handler id [timing frame/trim-v] handler))
+   (register-base id [pure timing trim-v] handler))
   ([id middleware handler]
-   (frame/register-handler id [timing frame/trim-v middleware] handler)))
+   (register-base id [pure timing trim-v middleware] handler)))
 
 (def subscribe frame/subscribe)
 
 (defn router-loop []
   (go-loop []
-    (let [event-v (<! router/event-chan)]                   ;; wait for an event
+    (let [event-v (<! event-chan)]                   ;; wait for an event
       (try
         (handle event-v)
 
@@ -48,7 +48,7 @@
         (catch :default e
           (do
             ;; try to recover from this (probably uncaught) error as best we can
-            (router/purge-chan)                             ;; get rid of any pending events
+            (purge-chan)                             ;; get rid of any pending events
             (router-loop)                                   ;; Exception throw will cause termination of go-loop. So, start another.
 
             (throw e)))))                                   ;; re-throw so the rest of the app's infrastructure (window.onerror?) gets told
