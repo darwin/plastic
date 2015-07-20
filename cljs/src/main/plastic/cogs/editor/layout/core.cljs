@@ -23,10 +23,10 @@
         selectables (utils/extract-all-selectables layout)
         spatial-web (build-spatial-web form-loc selectables)
         structural-web (build-structural-web form-loc)]
-    (dispatch :editor-commit-layout editor-id form-id layout)
     (dispatch :editor-commit-selectables editor-id form-id selectables)
     (dispatch :editor-commit-spatial-web editor-id form-id spatial-web)
-    (dispatch :editor-commit-structural-web editor-id form-id structural-web)))
+    (dispatch :editor-commit-structural-web editor-id form-id structural-web)
+    (dispatch :editor-commit-layout editor-id form-id layout)))
 
 (defn update-forms-layout-if-needed [editor form-locs]
   (let [reducer (fn [editor form-loc]
@@ -56,6 +56,7 @@
 (defn commit-layout [editors [editor-id form-id layout]]
   (let [editor (get editors editor-id)
         new-editor (editor/set-layout-for-form editor form-id layout)]
+    (dispatch :editor-run-analysis editor-id form-id)
     (assoc editors editor-id new-editor)))
 
 (defn commit-selectables [editors [editor-id form-id selectables]]

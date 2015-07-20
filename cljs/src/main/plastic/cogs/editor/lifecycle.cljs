@@ -21,8 +21,7 @@
   (let [parsed-subscription (subscribe [:editor-parse-tree editor-id])]
     (react!
       (when-let [_ @parsed-subscription]
-        (dispatch :editor-update-layout editor-id)
-        (dispatch :editor-run-analysis editor-id)))))
+        (dispatch :editor-update-layout editor-id)))))
 
 (defn watch-selections [editor-id]
   (let [selection-subscription (subscribe [:editor-selection editor-id])]
