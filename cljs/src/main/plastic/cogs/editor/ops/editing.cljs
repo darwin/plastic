@@ -6,13 +6,15 @@
             [plastic.cogs.editor.ops.cursor :as selection]
             [plastic.onion.core :as onion]
             [plastic.util.zip :as zip-utils]
-            [rewrite-clj.zip :as zip]))
+            [rewrite-clj.zip :as zip]
+            [plastic.cogs.editor.toolkit.id :as id]))
 
 (defn select-next-thing-for-case-of-selected-node-removal [editor]
-  (let [cursor-id (editor/get-cursor editor)]
-    (if (= cursor-id (editor/get-focused-form-id editor))
-      (selection/apply-move-cursor editor :move-next-form)  ; for case of deleting whole focused form
-      (selection/apply-move-cursor editor :structural-left :structural-right :structural-up))))
+  (let [cursor-id (id/id-part (editor/get-cursor editor))
+        moves-to-try (if (= cursor-id (editor/get-focused-form-id editor))
+                       [:move-next-form :move-prev-form]    ; case of deleting whole focused form
+                       [:structural-left :structural-right :structural-up])]
+    (apply selection/apply-move-cursor editor moves-to-try)))
 
 (defn set-cursor-to-node-if-exists [editor node-id]
   (let [node-loc (editor/find-node-loc editor node-id)]
