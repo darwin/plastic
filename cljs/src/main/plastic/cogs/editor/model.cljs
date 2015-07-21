@@ -187,10 +187,10 @@
     (reduce inserter node-loc values)))
 
 (defn insert-values-after-node [editor node-id values]
-  (transform-parse-tree editor (parse-tree-transformer (partial insert-values-after-node-loc node-id values))))
+  (transform-parse-tree editor (parse-tree-transformer (partial insert-values-after-node-loc (id/id-part node-id) values))))
 
 (defn insert-values-before-node [editor node-id values]
-  (transform-parse-tree editor (parse-tree-transformer (partial insert-values-before-node-loc node-id values))))
+  (transform-parse-tree editor (parse-tree-transformer (partial insert-values-before-node-loc (id/id-part node-id) values))))
 
 (defn remove-linebreak-before-node-loc [node-id loc]
   (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))
@@ -200,7 +200,7 @@
       (z/remove first-linebreak))))
 
 (defn remove-linebreak-before-node [editor node-id]
-  (transform-parse-tree editor (parse-tree-transformer (partial remove-linebreak-before-node-loc node-id))))
+  (transform-parse-tree editor (parse-tree-transformer (partial remove-linebreak-before-node-loc (id/id-part node-id)))))
 
 (defn remove-right-siblink-of-loc [node-id loc]
   (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))
@@ -210,7 +210,7 @@
       (z/remove right-loc))))
 
 (defn remove-right-siblink [editor node-id]
-  (transform-parse-tree editor (parse-tree-transformer (partial remove-right-siblink-of-loc node-id))))
+  (transform-parse-tree editor (parse-tree-transformer (partial remove-right-siblink-of-loc (id/id-part node-id)))))
 
 (defn remove-left-siblink-of-loc [node-id loc]
   (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))
@@ -220,7 +220,7 @@
       (z/remove left-loc))))
 
 (defn remove-left-siblink [editor node-id]
-  (transform-parse-tree editor (parse-tree-transformer (partial remove-left-siblink-of-loc node-id))))
+  (transform-parse-tree editor (parse-tree-transformer (partial remove-left-siblink-of-loc (id/id-part node-id)))))
 
 (defn get-render-order [editor]
   (get-in editor [:render-state :order]))
@@ -366,7 +366,7 @@
 
 (defn set-cursor [editor cursor & [link?]]
   (let [new-cursor (if cursor #{cursor} #{})
-        new-focus (if cursor #{(zip-utils/loc-id (lookup-form-for-node-id editor cursor))} #{})]
+        new-focus (if cursor #{(zip-utils/loc-id (lookup-form-for-node-id editor (id/id-part cursor)))} #{})]
     (cond-> editor
       (or link? (cursor-and-selection-are-linked? editor)) (assoc :selection new-cursor)
       true (assoc :cursor new-cursor)

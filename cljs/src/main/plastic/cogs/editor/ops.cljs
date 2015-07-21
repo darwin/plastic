@@ -49,7 +49,7 @@
 (defmethod handle :structural-down [_ editor]
   (let [new-editor (cursor/structural-down editor)]
     (if (= new-editor editor)
-      (dispatch :editor-command (editor/get-id editor) :toggle-editing))
+      (dispatch :editor-op (editor/get-id editor) :toggle-editing))
     new-editor))
 
 (defmethod handle :next-token [_ editor]
