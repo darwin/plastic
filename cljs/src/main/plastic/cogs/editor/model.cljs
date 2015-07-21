@@ -234,33 +234,8 @@
 (defn remove-left-siblink [editor node-id]
   (transform-parse-tree editor (parse-tree-transformer (partial remove-left-siblink-of-loc node-id))))
 
-(defn get-render-infos [editor]
-  (get-in editor [:render-state :forms]))
-
 (defn get-render-order [editor]
   (get-in editor [:render-state :order]))
-
-(defn set-render-infos [editor render-infos]
-  (assoc-in editor [:render-state :forms] render-infos))
-
-(defn get-render-info-by-id [editor form-id]
-  (get (get-render-infos editor) form-id))
-
-(defn get-focused-render-info [editor]
-  {:post [%]}
-  (get-render-info-by-id editor (get-focused-form-id editor)))
-
-(defn set-focused-render-info [editor render-info]
-  {:post [%]}
-  (assoc-in editor [:render-state :forms (get-focused-form-id editor)] render-info))
-
-(defn get-input-text [editor]
-  (let [text (get editor :text)]
-    (assert text)
-    text))
-
-(defn get-output-text [editor]
-  (node/string (get-parse-tree editor)))
 
 (defn can-edit-node? [editor node-id]
   (let [node-loc (find-node-loc editor node-id)]
@@ -307,13 +282,6 @@
     (for [[editor-id editor] editors]
       (if (selector-matches-editor? editor-id id-or-ids)
         (f editor)))))
-
-(defn make-render-tree-zipper [root]
-  (z/zipper
-    (fn [] true)
-    #(seq (:children %))
-    (fn [node children] (assoc node :children children))
-    root))
 
 (defn get-analysis-for-form [editor form-id]
   (get-in editor [:analysis form-id]))
