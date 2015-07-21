@@ -20,7 +20,7 @@
   (let [node-loc (editor/find-node-loc editor node-id)]
     (if (zip-utils/valid-loc? node-loc)
       (editor/set-cursor editor node-id)
-      (editor/clear-cursor editor true))))
+      (editor/clear-cursor-if-invalid editor true))))
 
 (defn commit-value [editor value]
   (let [node-id (editor/get-editing editor)]

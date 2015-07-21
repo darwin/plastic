@@ -374,3 +374,10 @@
 (defn clear-cursor [editor & [link?]]
   (set-cursor editor nil link?))
 
+(defn clear-cursor-if-invalid [editor & [link?]]
+  (let [cursor-id (id/id-part (get-cursor editor))
+        cursor-loc (find-node-loc editor cursor-id)]
+    (if-not (zip-utils/valid-loc? cursor-loc)
+      (clear-cursor editor nil link?)
+      editor)))
+
