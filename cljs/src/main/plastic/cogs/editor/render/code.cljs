@@ -1,19 +1,13 @@
 (ns plastic.cogs.editor.render.code
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
                    [plastic.macros.render :refer [log-render]])
-  (:require [plastic.cogs.editor.render.utils :refer [wrap-specials classv]]
+  (:require [plastic.cogs.editor.render.utils :refer [wrap-specials classv apply-shadowing-subscripts]]
             [plastic.cogs.editor.render.inline-editor :refer [inline-editor-component]]
             [plastic.cogs.editor.render.reusables :refer [raw-html-component]]
             [plastic.frame.core :refer [subscribe]]
-            [plastic.onion.api :refer [$]]
-            [plastic.cogs.editor.layout.utils :as utils]))
+            [plastic.util.helpers :as helpers]))
 
 (declare code-block-component)
-
-(defn apply-shadowing-subscripts [text shadows]
-  (if (>= shadows 2)
-    (str text (utils/wrap-in-span shadows "shadowed"))
-    text))
 
 (defn code-token-component [editor-id form-id node-id]
   (let [selected? (subscribe [:editor-selection-node editor-id node-id])
@@ -21,11 +15,10 @@
         cursor? (subscribe [:editor-cursor-node editor-id node-id])
         analysis (subscribe [:editor-form-node-analysis editor-id form-id node-id])
         layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
-    (fn [editor-id form-id node-id]
+    (fn [_editor-id _form-id node-id]
       (log-render "code-token" [node-id (subs (:text @layout) 0 10)]
         (let [{:keys [selectable? type text id]} @layout
               {:keys [decl-scope call? def-name?]} @analysis
-              ;_ (log "R! token" id (subs text 0 10) "cursor" @cursor? @analysis)
               props (merge
                       {:data-qnid id
                        :class     (classv
@@ -49,26 +42,26 @@
 (defn emit-code-block [editor-id form-id node-id]
   ^{:key node-id} [code-block-component editor-id form-id node-id])
 
-(defn elements-row [emit hints items]
+(defn code-elements-row [emit hints items]
   (let [row (map emit items)]
     (if (:indent? hints)
       (cons [:div.indent] row)
       row)))
 
-(defn elements-table [emit [desc & lines]]
+(defn code-elements-layout [emit [desc & lines]]
   (if (:oneliner? desc)
     [:div.elements
      (let [[hints & line-items] (first lines)]
-       (elements-row emit hints line-items))]
+       (code-elements-row emit hints line-items))]
     [:table.elements
      [:tbody
-      (for [[index [hints & line-items]] (map-indexed (fn [i l] [i l]) lines)]
+      (for [[index [hints & line-items]] (helpers/indexed-iteration lines)]
         (if (:double-column? hints)
           ^{:key index} [:tr
-                         [:td (elements-row emit hints [(first line-items)])]
-                         [:td (elements-row emit {} (rest line-items))]]
+                         [:td (code-elements-row emit hints [(first line-items)])]
+                         [:td (code-elements-row emit {} (rest line-items))]]
           ^{:key index} [:tr
-                         [:td {:col-span 2} (elements-row emit hints line-items)]]))]]))
+                         [:td {:col-span 2} (code-elements-row emit hints line-items)]]))]]))
 
 (defn code-element-component [editor-id form-id node-id]
   (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
@@ -77,9 +70,9 @@
         (condp = tag
           :newline [:span.newline "↵"]
           :token [code-token-component editor-id form-id node-id]
-          (elements-table (partial emit-code-block editor-id form-id) children))))))
+          (code-elements-layout (partial emit-code-block editor-id form-id) children))))))
 
-(defn wrapped-code-element-component [editor-id form-id node-id opener closer]
+(defn wrapped-code-element-component [editor-id form-id node-id _opener _closer]
   (let [selected? (subscribe [:editor-selection-node editor-id node-id])
         cursor? (subscribe [:editor-cursor-node editor-id node-id])
         layout (subscribe [:editor-form-node-layout editor-id form-id node-id])
@@ -96,7 +89,9 @@
                                     (if (and selectable? @selected?) "selected")
                                     (if @cursor? "cursor")
                                     (if depth (str "depth-" depth))
-                                    (if new-scope? (str "scope scope-" (get-in @analysis [:scope :id]) " scope-depth-" (get-in @analysis [:scope :depth]))))}
+                                    (if new-scope?
+                                      (let [scope (get @analysis :scope)]
+                                        (str "scope scope-" (:id scope) " scope-depth-" (:depth scope)))))}
            [:div.punctuation.opener opener]
            [code-element-component editor-id form-id node-id]
            [:div.punctuation.closer closer]])))))

@@ -25,3 +25,12 @@
 
 (defn classv [& v]
   (string/join " " (filter (complement nil?) v)))
+
+(defn wrap-in-span
+  ([text class] (wrap-in-span true text class))
+  ([pred text class] (if pred (str "<span class=\"" class "\">" text "</span>") text)))
+
+(defn apply-shadowing-subscripts [text shadows]
+  (if (>= shadows 2)
+    (str text (wrap-in-span shadows "shadowed"))
+    text))

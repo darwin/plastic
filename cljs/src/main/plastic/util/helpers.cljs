@@ -134,3 +134,7 @@
           old-map-after-removal (apply dissoc old-map keys-to-be-removed)
           old-map-after-removal-and-update (reduce careful-updater old-map-after-removal keys-to-be-updated)]
       (reduce simple-adder old-map-after-removal-and-update keys-to-be-added))))
+
+(defn indexed-iteration [coll]
+  {:pre [(coll? coll)]}
+  (map-indexed (fn [i v] [i v]) coll))

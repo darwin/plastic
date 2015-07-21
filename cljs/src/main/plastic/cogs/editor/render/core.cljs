@@ -43,7 +43,7 @@
                (throw (str "don't know how to render tag " tag " (missing render component implementation)")))]
             [:div]))))))
 
-(defn form-skelet-component []
+(defn form-skelet-component [_editor-id _form-id]
   (fn [editor-id form-id]
     (log-render "form-skelet" form-id
       [:div.form-skelet
@@ -75,7 +75,7 @@
             :on-click  (partial handle-form-click form-id)}
            [form-skelet-component editor-id form-id]]]]))))
 
-(defn forms-component [editor-id order]
+(defn forms-component [_editor-id _order]
   (fn [editor-id order]
     (log-render "forms" editor-id
       [:table.form-table

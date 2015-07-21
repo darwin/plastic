@@ -10,7 +10,7 @@
   (let [selected? (subscribe [:editor-selection-node editor-id node-id])
         edited? (subscribe [:editor-editing-node editor-id node-id])
         layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
-    (fn [editor-id form-id node-id]
+    (fn [_editor-id _form-id node-id]
       (log-render "doc" node-id
         (let [{:keys [text id selectable?]} @layout]
           ^{:key id}
