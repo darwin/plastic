@@ -1,4 +1,4 @@
-(ns plastic.cogs.editor.commands
+(ns plastic.cogs.editor.ops
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
                    [plastic.macros.glue :refer [react! dispatch]])
   (:require [plastic.frame :refer [subscribe register-handler]]
@@ -116,4 +116,4 @@
 ; ----------------------------------------------------------------------------------------------------------------
 ; register handlers
 
-(register-handler :editor-command paths/editors-path dispatch-command)
+(register-handler :editor-op paths/editors-path dispatch-command)

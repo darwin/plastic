@@ -45,10 +45,10 @@
     (dispatch :remove-editor editor-id (find-mount-point (.-element atom-view)))
     (unregister-view editor-id)))
 
-(defmethod process :editor-command [_ atom-view command event]
+(defmethod process :editor-op [_ atom-view command event]
   (let [editor-id (.-id atom-view)
         internal-command (keyword (string/replace command #"^plastic:" ""))]
-    (dispatch :editor-command editor-id internal-command)
+    (dispatch :editor-op editor-id internal-command)
     (.stopPropagation event)))
 
 (defmethod process :command [_ command event]

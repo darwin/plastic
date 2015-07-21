@@ -58,7 +58,7 @@ class PlasticEditorView extends ScrollView
 
     bridge.send "register-editor", @
 
-    @addCommands [
+    @addOps [
       'plastic:spatial-left'
       'plastic:spatial-right'
       'plastic:spatial-up'
@@ -91,13 +91,13 @@ class PlasticEditorView extends ScrollView
     # version: 2
     # uri: @uri
 
-  addCommands: (commands) ->
-    handler = (command) =>
+  addOps: (ops) ->
+    handler = (op) =>
       (event) =>
-        bridge.send "editor-command", @, command, event
+        bridge.send "editor-op", @, op, event
 
-    for command in commands
-      atom.commands.add @element, command, handler(command)
+    for op in ops
+      atom.commands.add @element, op, handler(op)
 
   getTitle: ->
     if sessionPath = @uri
