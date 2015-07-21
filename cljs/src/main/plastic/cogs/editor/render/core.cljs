@@ -10,7 +10,8 @@
             [plastic.cogs.editor.render.debug :refer [parser-debug-component text-input-debug-component text-output-debug-component render-tree-debug-component selections-debug-overlay-component]]
             [plastic.cogs.editor.render.utils :refer [dangerously-set-html classv]]
             [plastic.cogs.editor.render.dom :as dom]
-            [plastic.cogs.editor.layout.utils :as layout-utils]))
+            [plastic.cogs.editor.layout.utils :as layout-utils]
+            [plastic.cogs.editor.toolkit.id :as id]))
 
 (declare unified-rendering-component)
 
@@ -47,7 +48,7 @@
   (fn [editor-id form-id]
     (log-render "form-skelet" form-id
       [:div.form-skelet
-       [unified-rendering-component editor-id form-id (layout-utils/alien-id form-id :root)]])))
+       [unified-rendering-component editor-id form-id (id/make form-id :root)]])))
 
 (defn handle-form-click [form-id event]
   (let [target-dom-node (.-target event)

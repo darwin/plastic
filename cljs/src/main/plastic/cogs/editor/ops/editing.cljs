@@ -8,19 +8,25 @@
             [plastic.util.zip :as zip-utils]
             [rewrite-clj.zip :as zip]))
 
-(defn select-next-candidate-for-case-of-selected-node-removal [editor]
-  (selection/apply-move-cursor editor :structural-left :structural-right :structural-up))
+(defn select-next-thing-for-case-of-selected-node-removal [editor]
+  (let [cursor-id (editor/get-cursor editor)]
+    (if (= cursor-id (editor/get-focused-form-id editor))
+      (selection/apply-move-cursor editor :move-next-form)  ; for case of deleting whole focused form
+      (selection/apply-move-cursor editor :structural-left :structural-right :structural-up))))
 
 (defn set-cursor-to-node-if-exists [editor node-id]
   (let [node-loc (editor/find-node-loc editor node-id)]
     (if (zip-utils/valid-loc? node-loc)
       (editor/set-cursor editor node-id)
-      editor)))
+      (editor/clear-cursor editor true))))
+
+(defn focus-form-if-exists [editor form-id]
+  (editor/set-focused-form-id editor (some #{form-id} (editor/get-form-ids editor))))
 
 (defn commit-value [editor value]
   (let [node-id (editor/get-editing editor)]
     (-> editor
-      (select-next-candidate-for-case-of-selected-node-removal)
+      (select-next-thing-for-case-of-selected-node-removal)
       (editor/commit-node-value node-id value)
       (editor/update-layout-node-in-focused-form node-id value) ; ugly: this prevents brief display of previous value before re-layouting finishes
       (set-cursor-to-node-if-exists node-id))))
@@ -103,12 +109,14 @@
 
 (defn delete-selection [editor]
   {:pre [(not (editor/editing? editor))]}
-  (let [cursor-id (editor/get-cursor editor)
-        editor-with-next-selection (select-next-candidate-for-case-of-selected-node-removal editor)
-        next-cursor-id (editor/get-cursor editor-with-next-selection)]
-    (-> editor
-      (editor/delete-node cursor-id)
-      (set-cursor-to-node-if-exists next-cursor-id))))
+  (if-let [cursor-id (editor/get-cursor editor)]
+    (let [editor-with-next-selection-and-focus (select-next-thing-for-case-of-selected-node-removal editor)
+          next-cursor-id (editor/get-cursor editor-with-next-selection-and-focus)]
+      (-> editor
+        (editor/delete-node cursor-id)
+        (set-cursor-to-node-if-exists next-cursor-id)
+        (focus-form-if-exists (editor/get-focused-form-id editor-with-next-selection-and-focus))))
+    editor))
 
 (defn delete-and-move-left [editor]
   (let [node-loc (editor/find-node-loc editor (editor/get-editing editor))

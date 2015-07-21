@@ -10,7 +10,8 @@
             [plastic.util.zip :as zip-utils]
             [rewrite-clj.node.token :refer [token-node]]
             [rewrite-clj.node.whitespace :refer [newline-node]]
-            [clojure.zip :as z]))
+            [clojure.zip :as z]
+            [plastic.cogs.editor.toolkit.id :as id]))
 
 ; a kitchen-sink with helpers for manipulating editor data structure
 ; also see 'ops' folder for more high-level editor transformations
@@ -68,14 +69,13 @@
       (or link? (cursor-and-selection-are-linked? editor)) (assoc :selection new-cursor)
       true (assoc :cursor new-cursor))))
 
+(defn clear-cursor [editor & [link?]]
+  (set-cursor editor nil link?))
+
 (defn get-focused-form-id [editor]
   {:pre [(set? (or (get editor :focused-form-id) #{}))
          (<= (count (get editor :focused-form-id)) 1)]}
   (first (get editor :focused-form-id)))
-
-(defn set-focused-form-id [editor form-id]
-  (let [new-form-id (if form-id #{form-id} #{})]
-    (assoc editor :focused-form-id new-form-id)))
 
 (defn get-render-state [editor]
   (get editor :render-state))
@@ -113,11 +113,16 @@
         first-top-level-form-loc (zip/down top-loc)]
     (zip-utils/collect-all-right first-top-level-form-loc))) ; TODO: here we should use explicit zipping policy
 
-(defn loc-id [loc]
-  (:id (zip/node loc)))
+(defn get-form-ids [editor]
+  (map zip-utils/loc-id (get-top-level-locs editor)))
+
+(defn set-focused-form-id [editor form-id]
+  {:pre [(or (nil? form-id) (some #{form-id} (get-form-ids editor)))]}
+  (let [new-form-id (if form-id #{form-id} #{})]
+    (assoc editor :focused-form-id new-form-id)))
 
 (defn loc-id? [id loc]
-  (= (loc-id loc) id))
+  (= (zip-utils/loc-id loc) id))
 
 (defn find-node-loc [editor node-id]
   (let [parse-tree (get-parse-tree editor)
@@ -175,7 +180,7 @@
       parse-tree)))
 
 (defn delete-node [editor node-id]
-  (transform-parse-tree editor (parse-tree-transformer (partial delete-node-loc node-id))))
+  (transform-parse-tree editor (parse-tree-transformer (partial delete-node-loc (id/id-part node-id)))))
 
 (defn commit-node-value [editor node-id value]
   {:pre [node-id value]}
@@ -359,3 +364,9 @@
         _ (assert node)
         updated-layout (assoc layout node-id (assoc node :text (layout/prepare-node-text value-node)))]
     (set-layout-for-form editor form-id updated-layout)))
+
+(defn get-first-form-id [editor]
+  (first (get-render-order editor)))
+
+(defn get-last-form-id [editor]
+  (last (get-render-order editor)))

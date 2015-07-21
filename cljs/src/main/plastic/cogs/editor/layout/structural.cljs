@@ -3,7 +3,8 @@
   (:require [clojure.zip :as z]
             [plastic.util.zip :as zip-utils]
             [plastic.cogs.editor.layout.utils :as utils]
-            [rewrite-clj.node :as node]))
+            [rewrite-clj.node :as node]
+            [plastic.cogs.editor.toolkit.id :as id]))
 
 (defn safe-loc-id [loc]
   (if (zip-utils/valid-loc? loc)
@@ -57,7 +58,7 @@
 
 (defn build-structural-web [form-loc]
   (let [form-id (zip-utils/loc-id form-loc)
-        root-id (utils/alien-id form-id :root)
+        root-id (id/make form-id :root)
         all-locs (zip-utils/zip-seq form-loc)
         docs-locs (filter utils/is-doc? all-locs)
         code-locs (remove utils/is-doc? all-locs)]

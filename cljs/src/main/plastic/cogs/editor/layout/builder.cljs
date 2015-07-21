@@ -6,7 +6,8 @@
             [plastic.cogs.editor.layout.utils :as layout-utils]
             [plastic.util.zip :as zip-utils]
             [plastic.util.helpers :as helpers]
-            [plastic.cogs.editor.layout.utils :as utils]))
+            [plastic.cogs.editor.layout.utils :as utils]
+            [plastic.cogs.editor.toolkit.id :as id]))
 
 (defn strip-whitespaces-but-keep-linebreaks-policy [loc]
   (let [node (z/node loc)]
@@ -100,10 +101,10 @@
 
 (defn build-layout [form-loc]
   (let [form-id (zip-utils/loc-id form-loc)
-        root-id (utils/alien-id form-id :root)
-        code-id (utils/alien-id form-id :code)
-        docs-id (utils/alien-id form-id :docs)
-        headers-id (utils/alien-id form-id :headers)
+        root-id (id/make form-id :root)
+        code-id (id/make form-id :code)
+        docs-id (id/make form-id :docs)
+        headers-id (id/make form-id :headers)
         locs (take-while zip-utils/valid-loc? (iterate zip-next form-loc))
         initial {:data {} :docs [] :headers [] :line 0}
         {:keys [data docs headers line]} (reduce build-node-layout initial locs)]

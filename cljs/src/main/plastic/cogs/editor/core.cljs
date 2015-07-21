@@ -1,6 +1,7 @@
 (ns plastic.cogs.editor.core
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
-  (:require [plastic.cogs.editor.model]
+  (:require [plastic.cogs.editor.toolkit.core]
+            [plastic.cogs.editor.model]
             [plastic.cogs.editor.lifecycle]
             [plastic.cogs.editor.watcher]
             [plastic.cogs.editor.loader]

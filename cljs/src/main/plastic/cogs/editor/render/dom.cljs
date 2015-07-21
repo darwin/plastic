@@ -4,8 +4,8 @@
   (:require [plastic.util.dom-shim]
             [plastic.onion.api :refer [$]]
             [plastic.onion.core :as onion]
-            [plastic.cogs.editor.model :as editor]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [plastic.cogs.editor.toolkit.id :as id]))
 
 (defn node-from-react [react-component]
   (let [dom-node (.getDOMNode react-component)]             ; TODO: deprecated!
@@ -38,17 +38,14 @@
   (let [len (alength $o)]
     (vec (map #(aget $o %) (range len)))))
 
-(defn valid-id? [id]
-  (pos? id))
-
 (defn read-node-id [dom-node]
-  (let [id (int (.data ($ dom-node) "qnid"))]
-    (assert (valid-id? id))
+  (let [id (.data ($ dom-node) "qnid")]
+    (assert (id/valid? id))
     id))
 
 (defn read-editor-id [dom-node]
-  (let [id (int (.data ($ dom-node) "qeid"))]
-    (assert (valid-id? id))
+  (let [id (.data ($ dom-node) "qeid")]
+    (assert (number? id))
     id))
 
 (defn lookup-form-id [dom-node]
