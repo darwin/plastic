@@ -22,10 +22,6 @@
       'command': 'plastic:toggle-text-output-debug'
     },
     {
-      'label': 'Toggle Render Tree (debug)'
-      'command': 'plastic:toggle-render-tree-debug'
-    },
-    {
       'label': 'Toggle Selections (debug)'
       'command': 'plastic:toggle-selections-debug'
     },

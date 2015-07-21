@@ -17,9 +17,6 @@
 (defmethod handle :toggle-docs [_ settings]
   (toggle-setting settings :docs-visible))
 
-(defmethod handle :toggle-render-tree-debug [_ settings]
-  (toggle-setting settings :render-tree-debug-visible))
-
 (defmethod handle :toggle-parser-debug [_ settings]
   (toggle-setting settings :parser-debug-visible))
 
