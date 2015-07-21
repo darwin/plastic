@@ -51,7 +51,9 @@
       new-accum)))
 
 (defn is-simple? [loc]
-  (not (node/inner? (z/node loc))))
+  (if (nil? loc)
+    true
+    (not (node/inner? (z/node loc)))))
 
 (defn is-double-column-line? [line]
   (and (is-simple? (first line)) (not (is-newline? (second line))) (is-newline? (nth line 2 nil))))

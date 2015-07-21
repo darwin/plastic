@@ -48,8 +48,11 @@
 (defmethod process :editor-op [_ atom-view command event]
   (let [editor-id (.-id atom-view)
         internal-command (keyword (string/replace command #"^plastic:" ""))]
-    (dispatch :editor-op editor-id internal-command)
-    (.stopPropagation event)))
+    (if (= internal-command :abort-keybinding)
+      (do (log "abort keybinding") (.abortKeyBinding event))
+      (do
+        (dispatch :editor-op editor-id internal-command)
+        (.stopPropagation event)))))
 
 (defmethod process :command [_ command event]
   (let [internal-command (keyword (string/replace command #"^plastic:" ""))]

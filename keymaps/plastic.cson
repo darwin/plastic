@@ -12,9 +12,10 @@
 'atom-workspace':
   'ctrl-alt-c': 'plastic:toggle-code'
   'ctrl-alt-d': 'plastic:toggle-docs'
+  'ctrl-alt-h': 'plastic:toggle-headers'
 
 # plastic editor
-'.plastic-editor-view':
+'.plastic-editor-view:not(.inline-editor-active)':
   'left': 'plastic:spatial-left'
   'right': 'plastic:spatial-right'
   'up': 'plastic:spatial-up'
@@ -31,16 +32,17 @@
   'alt-enter': 'plastic:alt-enter'
   'tab': 'plastic:next-token'
   'alt-tab': 'plastic:prev-token'
+  '(': 'plastic:open-list'
 
 # inlined text editor
 '.plastic-editor-view atom-text-editor':
-  'left': 'core:move-left'
-  'right': 'core:move-right'
-  'up': 'core:move-up'
-  'down': 'core:move-down'
+  'ctrl-up': 'plastic:stop-editing'
+  'escape': 'plastic:stop-editing'
   'space': 'plastic:space'
   'enter': 'plastic:enter'
   'alt-enter': 'plastic:alt-enter'
   'tab': 'plastic:next-token'
   'alt-tab': 'plastic:prev-token'
-  'escape': 'plastic:stop-editing'
+
+'.plastic-editor-view atom-text-editor.empty':
+  '(': 'plastic:open-list'

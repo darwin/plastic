@@ -10,19 +10,21 @@
             [plastic.util.zip :as zip-utils]
             [rewrite-clj.node.token :refer [token-node]]
             [rewrite-clj.node.whitespace :refer [newline-node]]
+            [rewrite-clj.node.seq :refer [list-node vector-node map-node set-node]]
             [clojure.zip :as z]
             [plastic.cogs.editor.toolkit.id :as id]))
 
 ; a kitchen-sink with helpers for manipulating editor data structure
 ; also see 'ops' folder for more high-level editor transformations
 
-(defn strip-comments-and-whitespaces-but-keep-linebreaks-policy [loc]
+; note comments are treated as line-breaks because they have new-lines embedded
+(defn strip-whitespaces-but-keep-linebreaks-policy [loc]
   (let [node (z/node loc)]
-    (and (not (node/comment? node)) (or (node/linebreak? node) (not (node/whitespace? node))))))
+    (and (or (node/linebreak? node) (not (node/whitespace? node))))))
 
-(def zip-down (partial zip-utils/zip-down strip-comments-and-whitespaces-but-keep-linebreaks-policy))
-(def zip-right (partial zip-utils/zip-right strip-comments-and-whitespaces-but-keep-linebreaks-policy))
-(def zip-left (partial zip-utils/zip-left strip-comments-and-whitespaces-but-keep-linebreaks-policy))
+(def zip-down (partial zip-utils/zip-down strip-whitespaces-but-keep-linebreaks-policy))
+(def zip-right (partial zip-utils/zip-right strip-whitespaces-but-keep-linebreaks-policy))
+(def zip-left (partial zip-utils/zip-left strip-whitespaces-but-keep-linebreaks-policy))
 
 (defn parsed? [editor]
   (contains? editor :parse-tree))
@@ -123,9 +125,11 @@
     (merge new sticky-bits)))
 
 (defn empty-value? [value]
-  (let [value (node/sexpr value)]
-    (if (or (symbol? value) (keyword? value))
-      (empty? (node/string value)))))
+  (let [value (node/sexpr value)
+        text (node/string value)]
+    (or
+      (and (symbol? value) (empty? text))
+      (and (keyword? value) (= ":" text)))))
 
 (defn commit-value-to-loc [loc node-id new-node]
   {:pre [(:id new-node)]}
@@ -207,7 +211,11 @@
         _ (assert (zip-utils/valid-loc? node-loc))
         right-loc (zip-right node-loc)]
     (if right-loc
-      (z/remove right-loc))))
+      (loop [loc right-loc]
+        (let [new-loc (z/remove loc)]
+          (if (= (zip-utils/loc-id new-loc) node-id)
+            new-loc
+            (recur new-loc)))))))
 
 (defn remove-right-siblink [editor node-id]
   (transform-parse-tree editor (parse-tree-transformer (partial remove-right-siblink-of-loc (id/id-part node-id)))))
@@ -241,6 +249,9 @@
 
 (defn prepare-newline-node []
   (parser/assoc-node-id (newline-node "\n")))
+
+(defn prepare-list-node [children]
+  (parser/assoc-node-id (list-node children)))
 
 (defn prepare-token-node [s]
   (parser/assoc-node-id (token-node (symbol s) s)))

@@ -53,12 +53,12 @@
         (apply-editing editor-after-commit :stop)))
     editor))
 
-(defn insert-and-start-editing [editor selected-node-id & values]
-  (let [node-id (if (editor/editing? editor) (editor/get-editing editor) (editor/get-cursor editor))
-        editor-after-stop-editing (if (editor/editing? editor) (stop-editing editor) editor)]
-    (-> editor-after-stop-editing
-      (editor/insert-values-after-node node-id values)
-      (set-cursor-to-node-if-exists selected-node-id)
+(defn insert-and-start-editing [editor node-id-to-be-edited & values]
+  (let [current-node-id (if (editor/editing? editor) (editor/get-editing editor) (editor/get-cursor editor))]
+    (-> editor
+      (editor/insert-values-after-node current-node-id values)
+      (stop-editing)
+      (set-cursor-to-node-if-exists node-id-to-be-edited)
       (start-editing))))
 
 (defn prepend-and-keep-selection [editor & values]
@@ -83,25 +83,25 @@
     (onion/insert-text-into-inline-editor editor-id text)
     editor))
 
-(defn editing-string-or-doc? [editor]
+(defn editing-string? [editor]
   (if (editor/editing? editor)
     (let [editor-id (editor/get-id editor)
           mode (onion/get-inline-editor-mode editor-id)]
-      (or (= mode :string) (= mode :doc)))))
+      (= mode :string))))
 
 (defn enter [editor]
-  (if (editing-string-or-doc? editor)
+  (if (editing-string? editor)
     (dispatch-atom-command-in-inline-editor editor "editor:newline")
     (let [placeholder-node (editor/prepare-placeholder-node)]
       (insert-and-start-editing editor (:id placeholder-node) (editor/prepare-newline-node) placeholder-node))))
 
 (defn alt-enter [editor]
-  (if (editing-string-or-doc? editor)
+  (if (editing-string? editor)
     editor
     (editor/remove-linebreak-before-node editor (editor/get-cursor editor))))
 
 (defn space [editor]
-  (if (editing-string-or-doc? editor)
+  (if (editing-string? editor)
     (insert-text-into-inline-editor editor " ")
     (let [placeholder-node (editor/prepare-placeholder-node)]
       (insert-and-start-editing editor (:id placeholder-node) placeholder-node))))
@@ -145,3 +145,9 @@
   {:pre [(not (editor/editing? editor))]}
   (let [cursor-id (editor/get-cursor editor)]
     (editor/remove-left-siblink editor cursor-id)))
+
+(defn open-list [editor]
+  (let [placeholder-node (editor/prepare-placeholder-node)
+        list-node (editor/prepare-list-node [placeholder-node])]
+    (-> editor
+      (insert-and-start-editing (:id placeholder-node) list-node))))

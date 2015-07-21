@@ -70,7 +70,9 @@
         (condp = tag
           :newline [:span.newline "↵"]
           :token [code-token-component editor-id form-id node-id]
-          (code-elements-layout (partial emit-code-block editor-id form-id) children))))))
+          (if children
+            (code-elements-layout (partial emit-code-block editor-id form-id) children)
+            [:span]))))))
 
 (defn wrapped-code-element-component [editor-id form-id node-id _opener _closer]
   (let [selected? (subscribe [:editor-selection-node editor-id node-id])

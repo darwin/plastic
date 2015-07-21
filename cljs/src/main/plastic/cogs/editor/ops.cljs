@@ -101,6 +101,8 @@
     editor
     (editing/delete-linebreak-or-token-before-cursor editor)))
 
+(defmethod handle :open-list [_ editor]
+  (editing/open-list editor))
 
 ; ----------------------------------------------------------------------------------------------------------------
 

@@ -59,6 +59,7 @@ class PlasticEditorView extends ScrollView
     bridge.send "register-editor", @
 
     @addOps [
+      'plastic:abort-keybinding'
       'plastic:spatial-left'
       'plastic:spatial-right'
       'plastic:spatial-up'
@@ -76,6 +77,7 @@ class PlasticEditorView extends ScrollView
       'plastic:space'
       'plastic:enter'
       'plastic:alt-enter'
+      'plastic:open-list'
     ]
 
   createMiniEditor: ->

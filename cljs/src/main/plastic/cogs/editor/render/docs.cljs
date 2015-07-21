@@ -22,7 +22,7 @@
                           (if (and (not @edited?) selectable? @selected?) "selected")
                           (if @edited? "editing"))}
             (if @edited?
-              [inline-editor-component id text :doc]
+              [inline-editor-component id text :string]
               [raw-html-component (str (wrap-specials text) " ")])]]))))) ; that added space is important, last newline could be ignored without it
 
 (defn docs-group-component [editor-id form-id node-id]

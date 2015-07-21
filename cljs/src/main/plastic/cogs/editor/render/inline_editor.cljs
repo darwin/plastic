@@ -14,17 +14,20 @@
   (when-not (dom/inline-editor-present? $dom-node)
     (let [editor-id (dom/lookup-editor-id $dom-node)
           inline-editor-mode (keyword (.data $dom-node "qmode"))
-          inline-editor-text (.data $dom-node "qtext")]
+          inline-editor-text (.data $dom-node "qtext")
+          root-view (dom/find-closest-plastic-editor-view $dom-node)]
       (onion/setup-inline-editor-for-editing editor-id inline-editor-mode inline-editor-text)
       (onion/append-inline-editor editor-id $dom-node)
-      (onion/focus-inline-editor editor-id))))
+      (onion/focus-inline-editor editor-id)
+      (.addClass ($ root-view) "inline-editor-active"))))
 
 (defn deactivate-inline-editor [$dom-node]
   (if (dom/inline-editor-present? $dom-node)
     (let [editor-id (dom/lookup-editor-id $dom-node)]
       (if (onion/is-inline-editor-focused? editor-id)
         (let [root-view (dom/find-closest-plastic-editor-view $dom-node)]
-          (.focus root-view))))))
+          (.focus root-view)
+          (.removeClass ($ root-view) "inline-editor-active"))))))
 
 (defn inline-editor-transplantation [action react-component]
   (let [$dom-node ($ (dom/node-from-react react-component))]

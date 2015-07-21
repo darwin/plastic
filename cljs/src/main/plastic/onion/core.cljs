@@ -9,6 +9,7 @@
             [plastic.cogs.editor.parser.utils :as parser]))
 
 (defonce ^:dynamic *initial-text* nil)
+(defonce ^:dynamic *on-did-change-disposables* {})
 
 (defn load-file-content [uri cb]
   {:pre [File]}
@@ -45,11 +46,15 @@
   (let [inline-editor-view (get-atom-inline-editor-view-instance editor-id)]
     (.focus inline-editor-view)))
 
-(def known-editor-modes #{:symbol :keyword :doc :string})
+(def known-editor-modes #{:switcher :symbol :keyword :doc :string})
 
 (defn editor-mode-to-class-name [editor-mode]
   {:pre [(contains? known-editor-modes editor-mode)]}
   (str "plastic-mode-" (name editor-mode)))
+
+(defn editor-mode-to-token-type-class-name [editor-mode]
+  {:pre [(contains? known-editor-modes editor-mode)]}
+  (name editor-mode))
 
 (defn class-name-to-editor-mode [class-name]
   {:post [(contains? known-editor-modes %)]}
@@ -57,8 +62,16 @@
     (keyword (second match))))
 
 (def known-editor-modes-classes (map editor-mode-to-class-name known-editor-modes))
+(def known-editor-types-classes (map editor-mode-to-token-type-class-name known-editor-modes))
+
+(defn sync-editor-mode-with-token-type [inline-editor-view editor-mode]
+  (let [$token (.closest ($ inline-editor-view) ".token")]
+    (-> $token
+      (.removeClass (apply str (interpose " " known-editor-types-classes)))
+      (.addClass (editor-mode-to-token-type-class-name editor-mode)))))
 
 (defn set-editor-mode-as-class-name [inline-editor-view editor-mode]
+  (sync-editor-mode-with-token-type inline-editor-view editor-mode)
   (-> ($ inline-editor-view)
     (.removeClass (apply str (interpose " " known-editor-modes-classes)))
     (.addClass (editor-mode-to-class-name editor-mode))))
@@ -73,22 +86,7 @@
     :symbol (node/coerce (symbol text))
     :keyword (keyword-node (keyword text))                  ; TODO: investigate - coerce does not work for keywords?
     :string (node/coerce text)
-    :doc (node/coerce text)
     (throw "unknown editor mode in postprocess-text-after-editing:" editor-mode)))
-
-(defn setup-inline-editor-for-editing [editor-id editor-mode text]
-  {:pre [(contains? known-editor-modes editor-mode)]}
-  (let [inline-editor (get-atom-inline-editor-instance editor-id)
-        inline-editor-view (get-atom-inline-editor-view-instance editor-id)
-        initial-text (preprocess-text-before-editing editor-mode text)]
-    ; synchronous updates prevent intermittent jumps
-    ; it has correct dimentsions before it gets appended in the DOM
-    (.setUpdatedSynchronously inline-editor-view true)
-    (set-editor-mode-as-class-name inline-editor-view editor-mode)
-    (.setText inline-editor initial-text)
-    (set! *initial-text* initial-text)
-    (.selectAll inline-editor)
-    (.setUpdatedSynchronously inline-editor-view false)))
 
 (defn is-inline-editor-modified? [editor-id]
   (let [inline-editor (get-atom-inline-editor-instance editor-id)
@@ -117,3 +115,42 @@
 (defn insert-text-into-inline-editor [editor-id text]
   (let [inline-editor (get-atom-inline-editor-instance editor-id)]
     (.insertText inline-editor text)))
+
+(defn set-editor-mode-as-class-name-and-clear-text [_editor-id inline-editor inline-editor-view mode]
+  (let [has-mode? (.hasClass ($ inline-editor-view) (editor-mode-to-class-name mode))]
+    (when-not has-mode?
+      (set-editor-mode-as-class-name inline-editor-view mode)
+      (.setText inline-editor ""))))
+
+(defn on-did-change [editor-id inline-editor inline-editor-view]
+  (if (.isEmpty inline-editor)
+    (.addClass ($ inline-editor-view) "empty")
+    (.removeClass ($ inline-editor-view) "empty"))
+  (let [text (.getText inline-editor)
+        switch-mode (partial set-editor-mode-as-class-name-and-clear-text editor-id inline-editor inline-editor-view)]
+    (condp = text
+      ":" (switch-mode :keyword)
+      "\"" (switch-mode :string)
+      "'" (switch-mode :symbol)
+      nil)))
+
+(defn intial-inline-editor-setup-if-needed [editor-id inline-editor inline-editor-view]
+  (if-not (get *on-did-change-disposables* editor-id)
+    (set! *on-did-change-disposables*
+      (assoc *on-did-change-disposables* editor-id (.onDidChange inline-editor (partial on-did-change editor-id inline-editor inline-editor-view))))))
+
+(defn setup-inline-editor-for-editing [editor-id editor-mode text]
+  {:pre [(contains? known-editor-modes editor-mode)]}
+  (let [inline-editor (get-atom-inline-editor-instance editor-id)
+        inline-editor-view (get-atom-inline-editor-view-instance editor-id)
+        initial-text (preprocess-text-before-editing editor-mode text)]
+    (intial-inline-editor-setup-if-needed editor-id inline-editor inline-editor-view)
+    ; synchronous updates prevent intermittent jumps
+    ; it has correct dimentsions before it gets appended in the DOM
+    (.setUpdatedSynchronously inline-editor-view true)
+    (set-editor-mode-as-class-name inline-editor-view editor-mode)
+
+    (.setText inline-editor initial-text)
+    (set! *initial-text* initial-text)
+    (.selectAll inline-editor)
+    (.setUpdatedSynchronously inline-editor-view false)))
