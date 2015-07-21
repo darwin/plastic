@@ -63,15 +63,6 @@
         new-selection (reduce toggler old-selection toggle-set)]
     (set-selection editor new-selection)))
 
-(defn set-cursor [editor cursor & [link?]]
-  (let [new-cursor (if cursor #{cursor} #{})]
-    (cond-> editor
-      (or link? (cursor-and-selection-are-linked? editor)) (assoc :selection new-cursor)
-      true (assoc :cursor new-cursor))))
-
-(defn clear-cursor [editor & [link?]]
-  (set-cursor editor nil link?))
-
 (defn get-focused-form-id [editor]
   {:pre [(set? (or (get editor :focused-form-id) #{}))
          (<= (count (get editor :focused-form-id)) 1)]}
@@ -116,18 +107,10 @@
 (defn get-form-ids [editor]
   (map zip-utils/loc-id (get-top-level-locs editor)))
 
-(defn set-focused-form-id [editor form-id]
-  {:pre [(or (nil? form-id) (some #{form-id} (get-form-ids editor)))]}
-  (let [new-form-id (if form-id #{form-id} #{})]
-    (assoc editor :focused-form-id new-form-id)))
-
-(defn loc-id? [id loc]
-  (= (zip-utils/loc-id loc) id))
-
 (defn find-node-loc [editor node-id]
   (let [parse-tree (get-parse-tree editor)
         root-loc (zip-utils/make-zipper parse-tree)
-        node-loc (findz/find-depth-first root-loc (partial loc-id? node-id))]
+        node-loc (findz/find-depth-first root-loc (partial zip-utils/loc-id? node-id))]
     node-loc))
 
 (defn find-node [editor node-id]
@@ -146,7 +129,7 @@
 
 (defn commit-value-to-loc [loc node-id new-node]
   {:pre [(:id new-node)]}
-  (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))]
+  (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))]
     (assert (zip-utils/valid-loc? node-loc))
     (if-not (empty-value? new-node)
       (z/edit node-loc (fn [old-node] (transfer-sticky-attrs old-node new-node)))
@@ -169,7 +152,7 @@
         cur-loc))))
 
 (defn delete-node-loc [node-id loc]
-  (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))]
+  (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))]
     (assert (zip-utils/valid-loc? node-loc))
     (z/remove (delete-whitespaces-and-newlines-before-loc node-loc))))
 
@@ -192,13 +175,13 @@
       (set-parse-tree editor (zip/root modified-loc)))))
 
 (defn insert-values-after-node-loc [node-id values loc]
-  (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))
+  (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))
         _ (assert (zip-utils/valid-loc? node-loc))
         inserter (fn [loc val] {:pre [(:id val)]} (z/insert-right loc val))]
     (reduce inserter node-loc (reverse values))))
 
 (defn insert-values-before-node-loc [node-id values loc]
-  (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))
+  (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))
         _ (assert (zip-utils/valid-loc? node-loc))
         inserter (fn [loc val] {:pre [(:id val)]} (z/insert-left loc val))]
     (reduce inserter node-loc values)))
@@ -210,7 +193,7 @@
   (transform-parse-tree editor (parse-tree-transformer (partial insert-values-before-node-loc node-id values))))
 
 (defn remove-linebreak-before-node-loc [node-id loc]
-  (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))
+  (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))
         _ (assert (zip-utils/valid-loc? node-loc))
         first-linebreak (first (filter #(node/linebreak? (zip/node %)) (take-while zip-utils/valid-loc? (iterate z/prev node-loc))))]
     (if first-linebreak
@@ -220,7 +203,7 @@
   (transform-parse-tree editor (parse-tree-transformer (partial remove-linebreak-before-node-loc node-id))))
 
 (defn remove-right-siblink-of-loc [node-id loc]
-  (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))
+  (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))
         _ (assert (zip-utils/valid-loc? node-loc))
         right-loc (zip-right node-loc)]
     (if right-loc
@@ -230,7 +213,7 @@
   (transform-parse-tree editor (parse-tree-transformer (partial remove-right-siblink-of-loc node-id))))
 
 (defn remove-left-siblink-of-loc [node-id loc]
-  (let [node-loc (findz/find-depth-first loc (partial loc-id? node-id))
+  (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))
         _ (assert (zip-utils/valid-loc? node-loc))
         left-loc (zip-left node-loc)]
     (if left-loc
@@ -265,7 +248,7 @@
 (defn doall-specified-forms [editor f selector]
   (doall
     (for [loc (get-top-level-locs editor)]
-      (if (helpers/selector-matches? selector (loc-id loc))
+      (if (helpers/selector-matches? selector (zip-utils/loc-id loc))
         (f loc)))))
 
 (defn selector-matches-editor? [editor-id selector]
@@ -370,3 +353,25 @@
 
 (defn get-last-form-id [editor]
   (last (get-render-order editor)))
+
+(defn lookup-form-for-node-id [editor node-id]
+  {:post [(some #{(zip-utils/loc-id %)} (get-form-ids editor))]}
+  (let [parse-tree (get-parse-tree editor)
+        top-loc (zip-utils/make-zipper parse-tree)
+        node-loc (findz/find-depth-first top-loc (partial zip-utils/loc-id? node-id))
+        _ (assert (zip-utils/valid-loc? node-loc))
+        form-loc (first (rest (reverse (take-while zip-utils/valid-loc? (iterate z/up node-loc)))))]
+    (assert (zip-utils/valid-loc? form-loc))
+    form-loc))
+
+(defn set-cursor [editor cursor & [link?]]
+  (let [new-cursor (if cursor #{cursor} #{})
+        new-focus (if cursor #{(zip-utils/loc-id (lookup-form-for-node-id editor cursor))} #{})]
+    (cond-> editor
+      (or link? (cursor-and-selection-are-linked? editor)) (assoc :selection new-cursor)
+      true (assoc :cursor new-cursor)
+      true (assoc :focused-form-id new-focus))))
+
+(defn clear-cursor [editor & [link?]]
+  (set-cursor editor nil link?))
+

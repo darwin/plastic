@@ -25,7 +25,7 @@
     analysis))
 
 (defn run-analysis-for-editor-and-form [editor opts form-loc]
-  (let [old-analysis (editor/get-analysis-for-form editor (editor/loc-id form-loc))]
+  (let [old-analysis (editor/get-analysis-for-form editor (zip-utils/loc-id form-loc))]
     (if-not (= (:node old-analysis) (z/node form-loc))      ; skip analysis if nothing changed
       (dispatch :editor-commit-analysis (editor/get-id editor) (zip-utils/loc-id form-loc) (prepare-form-analysis form-loc opts)))))
 

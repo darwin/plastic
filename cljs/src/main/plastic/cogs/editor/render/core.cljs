@@ -59,7 +59,6 @@
             _ (assert selected-node-id)
             editor-id (dom/lookup-editor-id selectable-dom-node)]
         (.stopPropagation event)
-        (dispatch :editor-focus-form editor-id form-id)
         (if-not (dom/event-shift-key? event)
           (dispatch :editor-set-cursor editor-id selected-node-id true)
           (dispatch :editor-toggle-selection editor-id #{selected-node-id}))))))

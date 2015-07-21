@@ -20,9 +20,6 @@
       (editor/set-cursor editor node-id)
       (editor/clear-cursor editor true))))
 
-(defn focus-form-if-exists [editor form-id]
-  (editor/set-focused-form-id editor (some #{form-id} (editor/get-form-ids editor))))
-
 (defn commit-value [editor value]
   (let [node-id (editor/get-editing editor)]
     (-> editor
@@ -114,8 +111,7 @@
           next-cursor-id (editor/get-cursor editor-with-next-selection-and-focus)]
       (-> editor
         (editor/delete-node cursor-id)
-        (set-cursor-to-node-if-exists next-cursor-id)
-        (focus-form-if-exists (editor/get-focused-form-id editor-with-next-selection-and-focus))))
+        (set-cursor-to-node-if-exists next-cursor-id)))
     editor))
 
 (defn delete-and-move-left [editor]

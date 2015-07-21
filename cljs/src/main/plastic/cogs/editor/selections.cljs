@@ -33,13 +33,6 @@
 (defn toggle-selection [editors [editor-selector selection]]
   (editor/apply-to-specified-editors (partial toggle-selection-in-editor selection) editors editor-selector))
 
-(defn focus-form-in-editor [form-id editor]
-  (-> editor
-    (editor/set-focused-form-id form-id)))
-
-(defn focus-form [editors [editor-selector form-id]]
-  (editor/apply-to-specified-editors (partial focus-form-in-editor form-id) editors editor-selector))
-
 (defn set-cursor-in-editor [cursor link? editor]
   (-> editor
     (editor/set-cursor cursor link?)))
@@ -62,5 +55,4 @@
 (register-handler :editor-clear-cursor paths/editors-path clear-cursor)
 (register-handler :editor-set-selection paths/editors-path set-selection)
 (register-handler :editor-toggle-selection paths/editors-path toggle-selection)
-(register-handler :editor-focus-form paths/editors-path focus-form)
 (register-handler :editor-set-cursor paths/editors-path set-cursor)

@@ -44,7 +44,6 @@
     (let [form-id (or (editor/get-focused-form-id editor) (editor/get-first-form-id editor))
           token-id (editor/get-first-selectable-token-id-for-form editor form-id)]
       (-> editor
-        (editor/set-focused-form-id form-id)
         (editor/set-cursor token-id)))))
 
 (defn spatial-movement-left-right [editor direction-fn]
@@ -65,7 +64,6 @@
     (if next-focused-form-id
       (let [next-selection (next-selection-fn editor next-focused-form-id)]
         (-> editor
-          (editor/set-focused-form-id next-focused-form-id)
           (editor/set-cursor next-selection))))))
 
 (defn token-movement-prev-next [editor direction-fn]
