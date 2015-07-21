@@ -23,20 +23,29 @@
 ;; sort components by mount order, to make sure parents
 ;; are rendered before children
 (defn run-queue [a]
-  (.sort a compare-mount-order)
-  (let [len (alength a)]
-    (let [[res ms-time] (with-group-collapsed (str "Rendering queue with " len (if (= len 1) " component" " components"))
-                          (stopwatch
-                            (dotimes [i len]
-                              (let [c (aget a i)]
-                                (when (.' c :cljsIsDirty)
-                                  (let [[res ms-time] (with-group-collapsed (.cljsName c)
-                                                        (stopwatch
-                                                          (.' c forceUpdate)))]
-                                    (log (str "  => " ms-time "ms"))
-                                    res))))))]
-      (log (str "  => " ms-time "ms"))
-      res)))
+  (try
+    (.sort a compare-mount-order)
+    (let [len (alength a)]
+      (let [[res ms-time] (with-group-collapsed (str "Rendering queue with " len (if (= len 1) " component" " components"))
+                            (stopwatch
+                              (dotimes [i len]
+                                (let [c (aget a i)]
+                                  (when (.' c :cljsIsDirty)
+                                    (let [[res ms-time] (with-group-collapsed (.cljsName c)
+                                                          (stopwatch
+                                                            (.' c forceUpdate)))]
+                                      (log (str "  => " ms-time "ms"))
+                                      res))))))]
+        (log (str "  => " ms-time "ms"))
+        res))
+    (catch js/Error e                                       ;  You don't need it any more IF YOU ARE USING CHROME 44. Chrome now seems to now produce good stack traces.
+      (do
+        (.error js/console (.-stack e))
+        (throw e)))
+    (catch :default e
+      (do
+        (.error js/console e)
+        (throw e)))))
 
 (defn run-funs [a]
   (dotimes [i (alength a)]

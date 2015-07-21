@@ -22,32 +22,48 @@
   `(.groupEnd js/console ~@args))
 
 (defmacro with-group [title & body]
-  `(do
+  `(try
      (.group js/console ~title)
      (let [res# ~@body]
        (.groupEnd js/console)
-       res#)))
+       res#)
+     (catch :default e#
+       (do
+         (.groupEnd js/console)
+         (throw e#)))))
 
 (defmacro with-group-collapsed [title & body]
-  `(do
+  `(try
      (.groupCollapsed js/console ~title)
      (let [res# ~@body]
        (.groupEnd js/console)
-       res#)))
+       res#)
+     (catch :default e#
+       (do
+         (.groupEnd js/console)
+         (throw e#)))))
 
 (defmacro with-profile [title & body]
-  `(do
+  `(try
      (.profile js/console ~title)
      (let [res# ~@body]
        (.profileEnd js/console)
-       res#)))
+       res#)
+     (catch :default e#
+       (do
+         (.profileEnd js/console)
+         (throw e#)))))
 
 (defmacro measure-time [title & body]
-  `(do
+  `(try
      (.time js/console ~title)
      (let [res# ~@body]
        (.timeEnd js/console ~title)
-       res#)))
+       res#)
+     (catch :default e#
+       (do
+         (.timeEnd js/console)
+         (throw e#)))))
 
 (defmacro stopwatch [expr]
   `(let [start# (.getTime (js/Date.))
