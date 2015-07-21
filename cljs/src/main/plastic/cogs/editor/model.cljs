@@ -341,12 +341,11 @@
 
 (defn update-layout-node-in-focused-form [editor node-id value-node]
   (let [form-id (get-focused-form-id editor)
-        layout (get-layout-for-form editor form-id)
-        _ (assert layout)
-        node (get layout node-id)
-        _ (assert node)
-        updated-layout (assoc layout node-id (assoc node :text (layout/prepare-node-text value-node)))]
-    (set-layout-for-form editor form-id updated-layout)))
+        layout (get-layout-for-form editor form-id)]
+    (if-let [node (get layout node-id)]
+      (let [updated-layout (assoc layout node-id (assoc node :text (layout/prepare-node-text value-node)))]
+        (set-layout-for-form editor form-id updated-layout))
+      editor)))
 
 (defn get-first-form-id [editor]
   (first (get-render-order editor)))
