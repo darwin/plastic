@@ -40,7 +40,7 @@
     (if (id/spot? cursor-id)
       (let [placeholder-node (editor/prepare-placeholder-node)]
         (-> editor
-          (editor/insert-values--before-first-child-of-node cursor-id [placeholder-node])
+          (editor/insert-values-before-first-child-of-node cursor-id [placeholder-node])
           (editor/set-cursor (:id placeholder-node))
           (editor/set-editing (:id placeholder-node))))
       (editor/set-editing editor (if (editor/can-edit-cursor? editor) cursor-id)))))
@@ -56,9 +56,11 @@
     editor))
 
 (defn insert-and-start-editing [editor node-id-to-be-edited & values]
-  (let [current-node-id (if (editor/editing? editor) (editor/get-editing editor) (editor/get-cursor editor))]
-    (-> editor
-      (editor/insert-values-after-node current-node-id values)
+  (let [current-node-id (if (editor/editing? editor) (editor/get-editing editor) (editor/get-cursor editor))
+        editor-after-insertion (if-not (id/spot? current-node-id)
+                                 (editor/insert-values-after-node editor current-node-id values)
+                                 (editor/insert-values-before-first-child-of-node editor current-node-id values))]
+    (-> editor-after-insertion
       (stop-editing)
       (set-cursor-to-node-if-exists node-id-to-be-edited)
       (start-editing))))
@@ -92,23 +94,20 @@
       (= mode :string))))
 
 (defn enter [editor]
-  (if (editing-string? editor)
-    (dispatch-atom-command-in-inline-editor editor "editor:newline")
-    (let [placeholder-node (editor/prepare-placeholder-node)]
-      (insert-and-start-editing editor (:id placeholder-node) (editor/prepare-newline-node) placeholder-node))))
+  {:pre [(not (editing-string? editor))]}
+  (let [placeholder-node (editor/prepare-placeholder-node)]
+    (insert-and-start-editing editor (:id placeholder-node) (editor/prepare-newline-node) placeholder-node)))
 
 (defn alt-enter [editor]
-  (if (editing-string? editor)
-    editor
-    (editor/remove-linebreak-before-node editor (editor/get-cursor editor))))
+  {:pre [(not (editing-string? editor))]}
+  (editor/remove-linebreak-before-node editor (editor/get-cursor editor)))
 
 (defn space [editor]
-  (if (editing-string? editor)
-    (insert-text-into-inline-editor editor " ")
-    (let [placeholder-node (editor/prepare-placeholder-node)]
-      (insert-and-start-editing editor (:id placeholder-node) placeholder-node))))
+  {:pre [(not (editing-string? editor))]}
+  (let [placeholder-node (editor/prepare-placeholder-node)]
+    (insert-and-start-editing editor (:id placeholder-node) placeholder-node)))
 
-(defn delete-selection [editor]
+(defn delete-node-before-cursor [editor]
   {:pre [(not (editor/editing? editor))]}
   (if-let [cursor-id (editor/get-cursor editor)]
     (let [editor-with-next-selection-and-focus (select-next-thing-for-case-of-selected-node-removal editor)
@@ -118,7 +117,8 @@
         (set-cursor-to-node-if-exists next-cursor-id)))
     editor))
 
-(defn delete-and-move-left [editor]
+(defn stop-editing-and-move-left-or-up [editor]
+  {:pre [(onion/is-inline-editor-empty? (editor/get-id editor))]}
   (let [node-loc (editor/find-node-loc editor (editor/get-editing editor))
         left-loc (zip/left node-loc)]
     (if (zip-utils/valid-loc? left-loc)
@@ -129,19 +129,12 @@
         (stop-editing)
         (selection/structural-up)))))
 
-(defn delete-char-or-move [editor]
-  {:pre [(editor/editing? editor)]}
-  (let [editor-id (editor/get-id editor)]
-    (if (onion/is-inline-editor-empty? editor-id)
-      (delete-and-move-left editor)
-      (do
-        (onion/dispatch-command-in-inline-editor editor-id "core:backspace")
-        editor))))
-
 (defn delete-linebreak-or-token-after-cursor [editor]
   {:pre [(not (editor/editing? editor))]}
   (let [cursor-id (editor/get-cursor editor)]
-    (editor/remove-right-siblink editor cursor-id)))
+    (if (id/spot? cursor-id)
+      (editor/remove-first-child-of-node editor cursor-id)
+      (editor/remove-right-siblink editor cursor-id))))
 
 (defn delete-linebreak-or-token-before-cursor [editor]
   {:pre [(not (editor/editing? editor))]}

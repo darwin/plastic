@@ -91,18 +91,14 @@
 
 (defmethod handle :backspace [_ editor]
   (if (editor/editing? editor)
-    (editing/delete-char-or-move editor)
-    (editing/delete-selection editor)))
+    (editing/stop-editing-and-move-left-or-up editor)
+    (editing/delete-node-before-cursor editor)))
 
 (defmethod handle :delete [_ editor]
-  (if (editor/editing? editor)
-    editor
-    (editing/delete-linebreak-or-token-after-cursor editor)))
+  (editing/delete-linebreak-or-token-after-cursor editor))
 
 (defmethod handle :alt-delete [_ editor]
-  (if (editor/editing? editor)
-    editor
-    (editing/delete-linebreak-or-token-before-cursor editor)))
+  (editing/delete-linebreak-or-token-before-cursor editor))
 
 (defmethod handle :open-list [_ editor]
   (editing/open-list editor))

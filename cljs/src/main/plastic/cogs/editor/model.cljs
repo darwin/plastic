@@ -124,12 +124,12 @@
   (let [sticky-bits (select-keys old [:id])]
     (merge new sticky-bits)))
 
-(defn empty-value? [value]
-  (let [value (node/sexpr value)
-        text (node/string value)]
+(defn empty-value? [node]
+  (let [text (node/string node)
+        sexpr (node/sexpr node)]
     (or
-      (and (symbol? value) (empty? text))
-      (and (keyword? value) (= ":" text)))))
+      (and (symbol? sexpr) (empty? text))
+      (and (keyword? sexpr) (= ":" text)))))
 
 (defn commit-value-to-loc [loc node-id new-node]
   {:pre [(:id new-node)]}
@@ -193,7 +193,7 @@
 (defn insert-values-before-first-child-of-node-loc [node-id values loc]
   (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))
         _ (assert (zip-utils/valid-loc? node-loc))
-        first-child-loc (z/down node-loc)
+        first-child-loc (zip-down node-loc)
         _ (assert (zip-utils/valid-loc? first-child-loc))
         inserter (fn [loc val] {:pre [(:id val)]} (z/insert-left loc val))]
     (reduce inserter first-child-loc values)))
@@ -204,7 +204,7 @@
 (defn insert-values-before-node [editor node-id values]
   (transform-parse-tree editor (parse-tree-transformer (partial insert-values-before-node-loc (id/id-part node-id) values))))
 
-(defn insert-values--before-first-child-of-node [editor node-id values]
+(defn insert-values-before-first-child-of-node [editor node-id values]
   (transform-parse-tree editor (parse-tree-transformer (partial insert-values-before-first-child-of-node-loc (id/id-part node-id) values))))
 
 (defn remove-linebreak-before-node-loc [node-id loc]
@@ -240,6 +240,20 @@
 
 (defn remove-left-siblink [editor node-id]
   (transform-parse-tree editor (parse-tree-transformer (partial remove-left-siblink-of-loc (id/id-part node-id)))))
+
+(defn remove-first-child-of-node-loc [node-id loc]
+  (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))
+        _ (assert (zip-utils/valid-loc? node-loc))
+        first-child-loc (zip-down node-loc)]
+    (if first-child-loc
+      (loop [loc first-child-loc ]
+        (let [new-loc (z/remove loc)]
+          (if (= (zip-utils/loc-id new-loc) node-id)
+            new-loc
+            (recur new-loc)))))))
+
+(defn remove-first-child-of-node [editor node-id]
+  (transform-parse-tree editor (parse-tree-transformer (partial remove-first-child-of-node-loc (id/id-part node-id)))))
 
 (defn get-render-order [editor]
   (get-in editor [:render-state :order]))
@@ -346,7 +360,6 @@
     (assoc editor :previously-layouted-forms (select-keys form-nodes form-ids-to-keep))))
 
 (defn get-first-selectable-token-id-for-form [editor form-id]
-  {:post [(number? %)]}
   (let [spatial-web (get-spatial-web-for-form editor form-id)
         _ (assert spatial-web)
         first-line (second (first spatial-web))
@@ -354,7 +367,6 @@
     (:id (first first-line))))
 
 (defn get-last-selectable-token-id-for-form [editor form-id]
-  {:post [(number? %)]}
   (let [spatial-web (get-spatial-web-for-form editor form-id)
         _ (assert spatial-web)
         last-line (second (last spatial-web))

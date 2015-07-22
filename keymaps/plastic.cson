@@ -39,11 +39,14 @@
   'ctrl-up': 'plastic:stop-editing'
   'ctrl-down': 'plastic:nop'
   'escape': 'plastic:stop-editing'
-  'space': 'plastic:space'
-  'enter': 'plastic:enter'
   'alt-enter': 'plastic:alt-enter'
-  'tab': 'plastic:next-token'
-  'alt-tab': 'plastic:prev-token'
 
 '.plastic-editor-view atom-text-editor.empty':
+  'backspace': 'plastic:backspace'
   '(': 'plastic:open-list'
+
+'.plastic-editor-view atom-text-editor:not(.plastic-mode-string)':
+  'enter': 'plastic:enter'
+  'space': 'plastic:space'
+  'tab': 'plastic:next-token'
+  'alt-tab': 'plastic:prev-token'
