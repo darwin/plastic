@@ -141,8 +141,34 @@
   (let [cursor-id (editor/get-cursor editor)]
     (editor/remove-left-siblink editor cursor-id)))
 
-(defn open-list [editor]
+(defn open-compound [editor node-prepare-fn]
   (let [placeholder-node (editor/prepare-placeholder-node)
-        list-node (editor/prepare-list-node [placeholder-node])]
-    (-> editor
-      (insert-and-start-editing (:id placeholder-node) list-node))))
+        compound-node (node-prepare-fn [placeholder-node])]
+    (insert-and-start-editing editor (:id placeholder-node) compound-node)))
+
+(defn open-list [editor]
+  (open-compound editor editor/prepare-list-node))
+
+(defn open-vector [editor]
+  (open-compound editor editor/prepare-vector-node))
+
+(defn open-map [editor]
+  (open-compound editor editor/prepare-map-node))
+
+(defn open-set [editor]
+  (open-compound editor editor/prepare-set-node))
+
+(defn open-fn [editor]
+  (open-compound editor editor/prepare-fn-node))
+
+(defn open-meta [editor]
+  (let [placeholder-node (editor/prepare-placeholder-node)
+        temporary-meta-data (editor/prepare-keyword-node :meta)
+        compound-node (editor/prepare-meta-node [temporary-meta-data placeholder-node])]
+    (insert-and-start-editing editor (:id placeholder-node) compound-node)))
+
+(defn open-quote [editor]
+  (open-compound editor editor/prepare-quote-node))
+
+(defn open-deref [editor]
+  (open-compound editor editor/prepare-deref-node))

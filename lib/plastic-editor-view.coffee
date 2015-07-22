@@ -79,6 +79,13 @@ class PlasticEditorView extends ScrollView
       'plastic:enter'
       'plastic:alt-enter'
       'plastic:open-list'
+      'plastic:open-vector'
+      'plastic:open-map'
+      'plastic:open-set'
+      'plastic:open-fn'
+      'plastic:open-meta'
+      'plastic:open-deref'
+      'plastic:open-quote'
     ]
 
   createMiniEditor: ->

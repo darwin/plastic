@@ -61,7 +61,6 @@
           (let [[left-items right-items] (if (= (id/key-part (first line-items)) :spot)
                                            [[(first line-items) (second line-items)] (drop 2 line-items)]
                                            [[(first line-items)] (rest line-items)])]
-            (log "XXX" left-items right-items line-items)
             ^{:key index} [:tr
                            [:td (code-elements-row emit hints left-items)]
                            [:td (code-elements-row emit {} right-items)]])
@@ -85,6 +84,7 @@
         layout (subscribe [:editor-form-node-layout editor-id form-id node-id])
         analysis (subscribe [:editor-form-node-analysis editor-id form-id node-id])]
     (fn [editor-id form-id node-id opener closer]
+      {:pre [(or opener closer)]}
       (log-render "wrapper-code-block" node-id
         (let [{:keys [id selectable? depth tag]} @layout
               {:keys [new-scope?]} @analysis
@@ -99,9 +99,11 @@
                                     (if new-scope?
                                       (let [scope (get @analysis :scope)]
                                         (str "scope scope-" (:id scope) " scope-depth-" (:depth scope)))))}
-           [:div.punctuation.opener opener]
+           (if opener
+             [:div.punctuation.opener opener])
            [code-element-component editor-id form-id node-id]
-           [:div.punctuation.closer closer]])))))
+           (if closer
+             [:div.punctuation.closer closer])])))))
 
 (defn code-block-component [editor-id form-id node-id]
   (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
@@ -114,7 +116,12 @@
             :set (wrapped-code-element "#{" "}")
             :map (wrapped-code-element "{" "}")
             :fn (wrapped-code-element "#(" ")")
-            :meta (wrapped-code-element "^" "")
+            :meta (wrapped-code-element "^")
+            :deref (wrapped-code-element "@")
+            :quote (wrapped-code-element "'")
+            :syntax-quote (wrapped-code-element "`")
+            :unquote (wrapped-code-element "~")
+            :unquote-splicing (wrapped-code-element "~@")
             [code-element-component editor-id form-id node-id]))))))
 
 (defn code-box-component [editor-id form-id node-id]

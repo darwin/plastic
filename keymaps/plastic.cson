@@ -33,6 +33,13 @@
   'tab': 'plastic:next-token'
   'alt-tab': 'plastic:prev-token'
   '(': 'plastic:open-list'
+  '[': 'plastic:open-vector'
+  '{': 'plastic:open-map'
+  '<': 'plastic:open-set'
+  '#': 'plastic:open-fn'
+  '^': 'plastic:open-meta'
+  '@': 'plastic:open-deref'
+  '\'': 'plastic:open-quote'
 
 # inlined text editor
 '.plastic-editor-view atom-text-editor':
@@ -44,6 +51,12 @@
 '.plastic-editor-view atom-text-editor.empty':
   'backspace': 'plastic:backspace'
   '(': 'plastic:open-list'
+  '[': 'plastic:open-vector'
+  '{': 'plastic:open-map'
+  '<': 'plastic:open-set'
+  '#': 'plastic:open-fn'
+  '^': 'plastic:open-meta'
+  '@': 'plastic:open-deref'
 
 '.plastic-editor-view atom-text-editor:not(.plastic-mode-string)':
   'enter': 'plastic:enter'

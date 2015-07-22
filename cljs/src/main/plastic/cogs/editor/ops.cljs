@@ -103,6 +103,27 @@
 (defmethod handle :open-list [_ editor]
   (editing/open-list editor))
 
+(defmethod handle :open-vector [_ editor]
+  (editing/open-vector editor))
+
+(defmethod handle :open-map [_ editor]
+  (editing/open-map editor))
+
+(defmethod handle :open-set [_ editor]
+  (editing/open-set editor))
+
+(defmethod handle :open-fn [_ editor]
+  (editing/open-fn editor))
+
+(defmethod handle :open-meta [_ editor]
+  (editing/open-meta editor))
+
+(defmethod handle :open-quote [_ editor]
+  (editing/open-quote editor))
+
+(defmethod handle :open-deref [_ editor]
+  (editing/open-deref editor))
+
 ; ----------------------------------------------------------------------------------------------------------------
 
 (defmethod handle :default [command]
