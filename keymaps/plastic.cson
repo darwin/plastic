@@ -37,6 +37,7 @@
 # inlined text editor
 '.plastic-editor-view atom-text-editor':
   'ctrl-up': 'plastic:stop-editing'
+  'ctrl-down': 'plastic:nop'
   'escape': 'plastic:stop-editing'
   'space': 'plastic:space'
   'enter': 'plastic:enter'

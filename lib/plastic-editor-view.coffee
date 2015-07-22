@@ -60,6 +60,7 @@ class PlasticEditorView extends ScrollView
 
     @addOps [
       'plastic:abort-keybinding'
+      'plastic:nop'
       'plastic:spatial-left'
       'plastic:spatial-right'
       'plastic:spatial-up'

@@ -11,6 +11,9 @@
 
 ; ----------------------------------------------------------------------------------------------------------------
 
+(defmethod handle :nop [_ editor]
+  editor)
+
 (defmethod handle :spatial-up [_ editor]
   (-> editor
     editing/stop-editing
