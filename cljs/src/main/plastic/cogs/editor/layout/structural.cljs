@@ -13,7 +13,7 @@
 
 (defn safe-make-spot-id [id]
   (if id
-    (utils/make-spot-id id)))
+    (id/make-spot id)))
 
 (defn structure? [loc]
   (let [node (z/node loc)]
@@ -25,7 +25,7 @@
 (def zip-right (partial zip-utils/zip-right structure?))
 
 (defn structural-web-for-spot-item [accum id loc]
-  (let [spot-id (utils/make-spot-id id)]
+  (let [spot-id (id/make-spot id)]
     (assoc accum spot-id {:left  nil
                           :right (safe-loc-id loc)
                           :up    id

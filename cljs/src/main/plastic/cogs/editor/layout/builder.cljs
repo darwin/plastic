@@ -50,7 +50,7 @@
   (and (is-simple? (first line)) (not (is-newline? (second line))) (is-newline? (nth line 2 nil))))
 
 (defn prepend-spot [table node-id]
-  (let [spot-id (utils/make-spot-id node-id)
+  (let [spot-id (id/make-spot node-id)
         [opts & lines] table
         [hints & line] (first lines)]
     (cons opts (cons (cons hints (cons spot-id line)) (rest lines)))))
@@ -104,7 +104,7 @@
 (defn add-spot-item [accum loc]
   (let [node (zip/node loc)
         node-id (:id node)
-        spot-id (utils/make-spot-id node-id)]
+        spot-id (id/make-spot node-id)]
     (assoc-in accum [:data spot-id] {:id          spot-id
                                      :tag         :token
                                      :type        :spot

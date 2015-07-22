@@ -94,6 +94,3 @@
 
 (defn extract-all-selectables [render-data]
   (into {} (filter #(:selectable? (second %)) render-data)))
-
-(defn make-spot-id [node-id]
-  (id/make node-id :spot))

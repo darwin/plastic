@@ -1,7 +1,8 @@
 (ns plastic.cogs.editor.layout.spatial
   (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
   (:require [plastic.cogs.editor.layout.utils :as utils]
-            [plastic.util.zip :as zip-utils]))
+            [plastic.util.zip :as zip-utils]
+            [plastic.cogs.editor.toolkit.id :as id]))
 
 (defn token? [selectable]
   (= (:tag selectable) :token))
@@ -16,7 +17,7 @@
   (let [all-locs (zip-utils/zip-seq root-loc)
         loc-tokens (fn [loc]
                      (let [id (zip-utils/loc-id loc)
-                           spot-id (utils/make-spot-id id)]
+                           spot-id (id/make-spot id)]
                        [(get selectables id) (get selectables spot-id)]))
         selectable-tokens (filter token? (remove nil? (mapcat loc-tokens all-locs)))]
     (->> selectable-tokens

@@ -30,18 +30,20 @@
       (editor/update-layout-node-in-focused-form node-id value) ; ugly: this prevents brief display of previous value before re-layouting finishes
       (set-cursor-to-node-if-exists node-id))))
 
-(defn apply-editing [editor action]
-  (let [should-be-editing? (= action :start)
-        can-edit? (editor/can-edit-cursor? editor)]
-    (editor/set-editing editor (if (and can-edit? should-be-editing?) (editor/get-cursor editor)))))
-
 (defn should-commit? [editor-id]
   (and (onion/is-inline-editor-modified? editor-id)))
 
 ; ----------------------------------------------------------------------------------------------------------------
 
 (defn start-editing [editor]
-  (apply-editing editor :start))
+  (let [cursor-id (editor/get-cursor editor)]
+    (if (id/spot? cursor-id)
+      (let [placeholder-node (editor/prepare-placeholder-node)]
+        (-> editor
+          (editor/insert-values--before-first-child-of-node cursor-id [placeholder-node])
+          (editor/set-cursor (:id placeholder-node))
+          (editor/set-editing (:id placeholder-node))))
+      (editor/set-editing editor (if (editor/can-edit-cursor? editor) cursor-id)))))
 
 (defn stop-editing [editor]
   (or
@@ -50,7 +52,7 @@
             editor-after-commit (if (should-commit? editor-id)
                                   (commit-value editor (onion/get-postprocessed-value-after-editing editor-id))
                                   editor)]
-        (apply-editing editor-after-commit :stop)))
+        (editor/set-editing editor-after-commit nil)))
     editor))
 
 (defn insert-and-start-editing [editor node-id-to-be-edited & values]

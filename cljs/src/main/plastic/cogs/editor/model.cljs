@@ -190,11 +190,22 @@
         inserter (fn [loc val] {:pre [(:id val)]} (z/insert-left loc val))]
     (reduce inserter node-loc values)))
 
+(defn insert-values-before-first-child-of-node-loc [node-id values loc]
+  (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))
+        _ (assert (zip-utils/valid-loc? node-loc))
+        first-child-loc (z/down node-loc)
+        _ (assert (zip-utils/valid-loc? first-child-loc))
+        inserter (fn [loc val] {:pre [(:id val)]} (z/insert-left loc val))]
+    (reduce inserter first-child-loc values)))
+
 (defn insert-values-after-node [editor node-id values]
   (transform-parse-tree editor (parse-tree-transformer (partial insert-values-after-node-loc (id/id-part node-id) values))))
 
 (defn insert-values-before-node [editor node-id values]
   (transform-parse-tree editor (parse-tree-transformer (partial insert-values-before-node-loc (id/id-part node-id) values))))
+
+(defn insert-values--before-first-child-of-node [editor node-id values]
+  (transform-parse-tree editor (parse-tree-transformer (partial insert-values-before-first-child-of-node-loc (id/id-part node-id) values))))
 
 (defn remove-linebreak-before-node-loc [node-id loc]
   (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))

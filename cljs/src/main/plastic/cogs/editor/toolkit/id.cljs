@@ -25,3 +25,9 @@
 
 (defn is? [id key]
   (= key (key-part id)))
+
+(defn make-spot [node-id]
+  (make node-id :spot))
+
+(defn spot? [node-id]
+  (is? node-id :spot))
