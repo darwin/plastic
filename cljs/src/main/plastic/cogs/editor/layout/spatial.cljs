@@ -14,8 +14,12 @@
 
 (defn build-spatial-web [root-loc selectables]
   (let [all-locs (zip-utils/zip-seq root-loc)
-        selectable-tokens (filter token? (keep #(get selectables (zip-utils/loc-id %)) all-locs))]
-    (add-empty-lines
-      (into (sorted-map)
-        (group-by :line
-          selectable-tokens)))))                            ; guaranteed to be in left-to-right order because all-locs are left-to-right
+        loc-tokens (fn [loc]
+                     (let [id (zip-utils/loc-id loc)
+                           spot-id (utils/make-spot-id id)]
+                       [(get selectables id) (get selectables spot-id)]))
+        selectable-tokens (filter token? (remove nil? (mapcat loc-tokens all-locs)))]
+    (->> selectable-tokens
+      (group-by :line)                                      ; guaranteed to be in left-to-right order because all-locs are left-to-right
+      (into (sorted-map))
+      (add-empty-lines))))

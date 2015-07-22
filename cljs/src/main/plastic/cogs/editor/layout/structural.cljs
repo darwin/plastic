@@ -4,11 +4,16 @@
             [plastic.util.zip :as zip-utils]
             [plastic.cogs.editor.layout.utils :as utils]
             [rewrite-clj.node :as node]
-            [plastic.cogs.editor.toolkit.id :as id]))
+            [plastic.cogs.editor.toolkit.id :as id]
+            [rewrite-clj.zip :as zip]))
 
 (defn safe-loc-id [loc]
   (if (zip-utils/valid-loc? loc)
     (zip-utils/loc-id loc)))
+
+(defn safe-make-spot-id [id]
+  (if id
+    (utils/make-spot-id id)))
 
 (defn structure? [loc]
   (let [node (z/node loc)]
@@ -19,17 +24,27 @@
 (def zip-left (partial zip-utils/zip-left structure?))
 (def zip-right (partial zip-utils/zip-right structure?))
 
+(defn structural-web-for-spot-item [accum id loc]
+  (let [spot-id (utils/make-spot-id id)]
+    (assoc accum spot-id {:left  nil
+                          :right (safe-loc-id loc)
+                          :up    id
+                          :down  nil})))
+
 (defn structural-web-for-item [accum loc]
-  (let [id (zip-utils/loc-id loc)
+  (let [node (zip/node loc)
+        id (:id node)
         up-loc (zip-up loc)
         down-loc (zip-down loc)
         left-loc (zip-left loc)
         right-loc (zip-right loc)
-        record {:left  (safe-loc-id left-loc)
+        record {:left  (or (safe-loc-id left-loc) (safe-make-spot-id (safe-loc-id up-loc)))
                 :right (safe-loc-id right-loc)
                 :up    (safe-loc-id up-loc)
                 :down  (safe-loc-id down-loc)}]
-    (assoc accum id record)))
+    (cond-> accum
+      true (assoc id record)
+      (node/inner? node) (structural-web-for-spot-item id down-loc))))
 
 (defn build-structural-web-for-code [web code-locs]
   (reduce structural-web-for-item web code-locs))

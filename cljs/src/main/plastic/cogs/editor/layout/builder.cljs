@@ -29,15 +29,6 @@
     (layout-utils/keyword-node? node) (helpers/strip-colon (node/string node))
     :else (node/string node)))
 
-(defn doc-item [loc]
-  (let [node (z/node loc)]
-    {:id          (:id node)
-     :tag         :token
-     :type        :doc
-     :selectable? true
-     :line        -1
-     :text        (layout-utils/prepare-string-for-display (node/string node))}))
-
 (defn is-newline? [loc]
   (if (nil? loc)
     true
@@ -58,6 +49,12 @@
 (defn is-double-column-line? [line]
   (and (is-simple? (first line)) (not (is-newline? (second line))) (is-newline? (nth line 2 nil))))
 
+(defn prepend-spot [table node-id]
+  (let [spot-id (utils/make-spot-id node-id)
+        [opts & lines] table
+        [hints & line] (first lines)]
+    (cons opts (cons (cons hints (cons spot-id line)) (rest lines)))))
+
 (defn prepare-children-table [locs]
   (let [locs-without-docs (remove utils/is-doc? (remove utils/is-whitespace-or-nl-after-doc? locs))
         lines (reduce break-locs-into-lines [[]] locs-without-docs)]
@@ -72,34 +69,67 @@
               (let [indent? (not= line (first lines))]
                 (cons {:indent indent?} (map zip-utils/loc-id line))))))))))
 
-(defn code-item [loc]
-  (let [node (zip/node loc)]
-    (cond-> {:id  (:id node)
-             :tag (node/tag node)}
-      (is-newline? loc) (assoc :tag :newline)
-      (node/inner? node) (assoc :children (prepare-children-table (child-locs loc)))
-      (not (node/inner? node)) (assoc :text (prepare-node-text node))
-      (layout-utils/is-selectable? (node/tag node)) (assoc :selectable? true)
-      (layout-utils/string-node? node) (assoc :type :string)
-      (layout-utils/keyword-node? node) (assoc :type :keyword))))
+(defn process-children [loc]
+  (-> loc
+    (child-locs)
+    (prepare-children-table)
+    (prepend-spot (zip-utils/loc-id loc))))
+
+(defn add-code-item [accum loc]
+  (let [node (zip/node loc)
+        node-id (:id node)]
+    (assoc-in accum [:data node-id]
+      (cond-> {:id   node-id
+               :line (:line accum)
+               :tag  (node/tag node)}
+        (is-newline? loc) (assoc :tag :newline)
+        (node/inner? node) (assoc :children (process-children loc))
+        (not (node/inner? node)) (assoc :text (prepare-node-text node))
+        (layout-utils/is-selectable? (node/tag node)) (assoc :selectable? true)
+        (layout-utils/string-node? node) (assoc :type :string)
+        (layout-utils/keyword-node? node) (assoc :type :keyword)))))
+
+(defn add-doc-item [accum loc]
+  (let [node (z/node loc)
+        node-id (:id node)
+        text (node/string node)]
+    (assoc-in accum [:data node-id]
+      {:id          node-id
+       :tag         :token
+       :type        :doc
+       :selectable? true
+       :line        -1
+       :text        (layout-utils/prepare-string-for-display text)})))
+
+(defn add-spot-item [accum loc]
+  (let [node (zip/node loc)
+        node-id (:id node)
+        spot-id (utils/make-spot-id node-id)]
+    (assoc-in accum [:data spot-id] {:id          spot-id
+                                     :tag         :token
+                                     :type        :spot
+                                     :line        (:line accum)
+                                     :selectable? true
+                                     :text        ""})))
 
 (defn build-node-layout [accum loc]
-  (let [node-id (zip-utils/loc-id loc)
+  (let [node (zip/node loc)
+        node-id (:id node)
         layout-item (fn [accum] (cond
                                   (utils/is-whitespace-or-nl-after-doc? loc) accum
                                   (utils/is-doc? loc) (-> accum
-                                                        (assoc-in [:data node-id] (doc-item loc))
+                                                        (add-doc-item loc)
                                                         (update-in [:docs] #(conj % node-id)))
                                   (utils/is-def-name? loc) (-> accum
-                                                             (assoc-in [:data node-id] (code-item loc))
+                                                             (add-code-item loc)
                                                              (update-in [:headers] #(conj % node-id)))
-                                  :else (assoc-in accum [:data node-id] (code-item loc))))
-        add-line-number (fn [accum] (update-in accum [:data node-id :line] (fn [line] (or line (:line accum)))))
-        count-new-lines (fn [accum] (if (is-newline? loc) (update accum :line inc) accum))]
+                                  :else (cond-> accum
+                                          (node/inner? node) (add-spot-item loc)
+                                          true (add-code-item loc))))
+        detect-new-lines (fn [accum] (if (is-newline? loc) (update accum :line inc) accum))]
     (-> accum
       layout-item
-      add-line-number
-      count-new-lines)))
+      detect-new-lines)))
 
 (defn build-layout [form-loc]
   (let [form-id (zip-utils/loc-id form-loc)

@@ -5,7 +5,8 @@
             [plastic.cogs.editor.render.inline-editor :refer [inline-editor-component]]
             [plastic.cogs.editor.render.reusables :refer [raw-html-component]]
             [plastic.frame.core :refer [subscribe]]
-            [plastic.util.helpers :as helpers]))
+            [plastic.util.helpers :as helpers]
+            [plastic.cogs.editor.toolkit.id :as id]))
 
 (declare code-block-component)
 
@@ -57,9 +58,13 @@
      [:tbody
       (for [[index [hints & line-items]] (helpers/indexed-iteration lines)]
         (if (:double-column? hints)
-          ^{:key index} [:tr
-                         [:td (code-elements-row emit hints [(first line-items)])]
-                         [:td (code-elements-row emit {} (rest line-items))]]
+          (let [[left-items right-items] (if (= (id/key-part (first line-items)) :spot)
+                                           [[(first line-items) (second line-items)] (drop 2 line-items)]
+                                           [[(first line-items)] (rest line-items)])]
+            (log "XXX" left-items right-items line-items)
+            ^{:key index} [:tr
+                           [:td (code-elements-row emit hints left-items)]
+                           [:td (code-elements-row emit {} right-items)]])
           ^{:key index} [:tr
                          [:td {:col-span 2} (code-elements-row emit hints line-items)]]))]]))
 

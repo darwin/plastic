@@ -7,7 +7,8 @@
             [rewrite-clj.node.keyword :refer [KeywordNode]]
             [rewrite-clj.zip :as zip]
             [clojure.zip :as z]
-            [plastic.util.zip :as zip-utils]))
+            [plastic.util.zip :as zip-utils]
+            [plastic.cogs.editor.toolkit.id :as id]))
 
 (defn unwrap-metas [nodes]
   (let [unwrap-meta-node (fn [node]
@@ -93,3 +94,6 @@
 
 (defn extract-all-selectables [render-data]
   (into {} (filter #(:selectable? (second %)) render-data)))
+
+(defn make-spot-id [node-id]
+  (id/make node-id :spot))
