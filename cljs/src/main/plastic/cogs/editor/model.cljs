@@ -17,6 +17,7 @@
             [rewrite-clj.node.seq :refer [list-node vector-node map-node set-node]]
             [rewrite-clj.node.reader-macro :refer [deref-node]]
             [rewrite-clj.node.quote :refer [quote-node]]
+            [reagent.ratom :refer [IDisposable dispose!]]
             [clojure.zip :as z]
             [plastic.cogs.editor.toolkit.id :as id]))
 
@@ -252,7 +253,7 @@
         _ (assert (zip-utils/valid-loc? node-loc))
         first-child-loc (zip-down node-loc)]
     (if first-child-loc
-      (loop [loc first-child-loc ]
+      (loop [loc first-child-loc]
         (let [new-loc (z/remove loc)]
           (if (= (zip-utils/loc-id new-loc) node-id)
             new-loc
@@ -325,11 +326,11 @@
 
 (defn apply-to-specified-editors [f editors id-or-ids]
   (apply array-map
-    (flatten
-      (for [[editor-id editor] editors]
-        (if (selector-matches-editor? editor-id id-or-ids)
-          [editor-id (f editor)]
-          [editor-id editor])))))
+         (flatten
+           (for [[editor-id editor] editors]
+             (if (selector-matches-editor? editor-id id-or-ids)
+               [editor-id (f editor)]
+               [editor-id editor])))))
 
 (defn doall-specified-editors [f editors id-or-ids]
   (doall
@@ -431,9 +432,9 @@
   (let [new-cursor (if cursor #{cursor} #{})
         new-focus (if cursor #{(zip-utils/loc-id (lookup-form-for-node-id editor (id/id-part cursor)))} #{})]
     (cond-> editor
-      (or link? (cursor-and-selection-are-linked? editor)) (assoc :selection new-cursor)
-      true (assoc :cursor new-cursor)
-      true (assoc :focused-form-id new-focus))))
+            (or link? (cursor-and-selection-are-linked? editor)) (assoc :selection new-cursor)
+            true (assoc :cursor new-cursor)
+            true (assoc :focused-form-id new-focus))))
 
 (defn clear-cursor [editor & [link?]]
   (set-cursor editor nil link?))
@@ -445,3 +446,11 @@
       (clear-cursor editor nil link?)
       editor)))
 
+(defn register-reaction [editor reaction]
+  (update editor :reactions (fn [reactions] (conj (or reactions []) reaction))))
+
+(defn dispose-reactions! [editor]
+  (doall
+    (for [reaction (:reactions editor)]
+      (dispose! reaction)))
+  (dissoc editor :reactions))
