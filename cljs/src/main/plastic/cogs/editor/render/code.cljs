@@ -14,12 +14,12 @@
   (let [selected? (subscribe [:editor-selection-node editor-id node-id])
         edited? (subscribe [:editor-editing-node editor-id node-id])
         cursor? (subscribe [:editor-cursor-node editor-id node-id])
-        analysis (subscribe [:editor-form-node-analysis editor-id form-id node-id])
-        layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
+        analysis-subscription (subscribe [:editor-form-node-analysis editor-id form-id node-id])
+        layout-subscription (subscribe [:editor-form-node-layout editor-id form-id node-id])]
     (fn [_editor-id _form-id node-id]
-      (log-render "code-token" [node-id (subs (:text @layout) 0 10)]
-        (let [{:keys [selectable? type text id]} @layout
-              {:keys [decl-scope call? def-name?]} @analysis
+      (log-render "code-token" [node-id (subs (:text @layout-subscription) 0 10)]
+        (let [{:keys [selectable? type text id]} @layout-subscription
+              {:keys [decl-scope call? def-name?]} @analysis-subscription
               props (merge
                       {:data-qnid id
                        :class     (classv
@@ -67,27 +67,26 @@
           ^{:key index} [:tr
                          [:td {:col-span 2} (code-elements-row emit hints line-items)]]))]]))
 
-(defn code-element-component [editor-id form-id node-id]
-  (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
-    (fn [editor-id form-id node-id]
-      (let [{:keys [tag children]} @layout]
-        (condp = tag
-          :newline [:span.newline "↵"]
-          :token [code-token-component editor-id form-id node-id]
-          (if children
-            (code-elements-layout (partial emit-code-block editor-id form-id) children)
-            [:span]))))))
+(defn code-element-component [editor-id form-id node-id layout]
+  (fn [editor-id form-id node-id layout]
+    (let [{:keys [tag children]} layout]
+      (condp = tag
+        :newline [:span.newline "↵"]
+        :token [code-token-component editor-id form-id node-id]
+        (if children
+          (code-elements-layout (partial emit-code-block editor-id form-id) children)
+          [:span])))))
 
-(defn wrapped-code-element-component [editor-id form-id node-id _opener _closer]
+(defn wrapped-code-element-component [editor-id form-id node-id layout _opener _closer]
   (let [selected? (subscribe [:editor-selection-node editor-id node-id])
         cursor? (subscribe [:editor-cursor-node editor-id node-id])
-        layout (subscribe [:editor-form-node-layout editor-id form-id node-id])
-        analysis (subscribe [:editor-form-node-analysis editor-id form-id node-id])]
-    (fn [editor-id form-id node-id opener closer]
+        analysis-subscription (subscribe [:editor-form-node-analysis editor-id form-id node-id])]
+    (fn [editor-id form-id node-id layout opener closer]
       {:pre [(or opener closer)]}
       (log-render "wrapper-code-block" node-id
-        (let [{:keys [id selectable? depth tag]} @layout
-              {:keys [new-scope?]} @analysis
+        (let [{:keys [id selectable? depth tag]} layout
+              analysis @analysis-subscription
+              {:keys [new-scope?]} analysis
               tag-name (name tag)]
           [:div.block {:data-qnid id
                        :class     (classv
@@ -97,20 +96,21 @@
                                     (if @cursor? "cursor")
                                     (if depth (str "depth-" depth))
                                     (if new-scope?
-                                      (let [scope (get @analysis :scope)]
+                                      (let [scope (get analysis :scope)]
                                         (str "scope scope-" (:id scope) " scope-depth-" (:depth scope)))))}
            (if opener
              [:div.punctuation.opener opener])
-           [code-element-component editor-id form-id node-id]
+           [code-element-component editor-id form-id node-id layout]
            (if closer
              [:div.punctuation.closer closer])])))))
 
 (defn code-block-component [editor-id form-id node-id]
-  (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
+  (let [layout-subscription (subscribe [:editor-form-node-layout editor-id form-id node-id])]
     (fn [editor-id form-id node-id]
       (log-render "code-block" node-id
-        (let [wrapped-code-element (fn [& params] (vec (concat [wrapped-code-element-component editor-id form-id node-id] params)))]
-          (condp = (:tag @layout)
+        (let [layout @layout-subscription
+              wrapped-code-element (fn [& params] (vec (concat [wrapped-code-element-component editor-id form-id node-id layout] params)))]
+          (condp = (:tag layout)
             :list (wrapped-code-element "(" ")")
             :vector (wrapped-code-element "[" "]")
             :set (wrapped-code-element "#{" "}")
@@ -122,7 +122,7 @@
             :syntax-quote (wrapped-code-element "`")
             :unquote (wrapped-code-element "~")
             :unquote-splicing (wrapped-code-element "~@")
-            [code-element-component editor-id form-id node-id]))))))
+            [code-element-component editor-id form-id node-id layout]))))))
 
 (defn code-box-component [editor-id form-id node-id]
   (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]

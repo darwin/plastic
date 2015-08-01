@@ -6,9 +6,8 @@
 
 (defonce ^:dynamic prev nil)
 
-(def editors-subscription (subscribe [:editors]))
-
 (comment
+  (def editors-subscription (subscribe [:editors]))
 
   ; for debugging only - this may be slow
   (react!

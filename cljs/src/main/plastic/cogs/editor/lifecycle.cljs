@@ -50,7 +50,7 @@
       (watch-uri)
       (watch-raw-text)
       (watch-parse-tree)
-      (watch-selections)                                    ; debug
+      ;(watch-selections)                                    ; debug
       (watch-settings)))
 
 (defn add-editor [editors [id editor-def]]

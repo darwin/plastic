@@ -326,11 +326,11 @@
 
 (defn apply-to-specified-editors [f editors id-or-ids]
   (apply array-map
-         (flatten
-           (for [[editor-id editor] editors]
-             (if (selector-matches-editor? editor-id id-or-ids)
-               [editor-id (f editor)]
-               [editor-id editor])))))
+    (flatten
+      (for [[editor-id editor] editors]
+        (if (selector-matches-editor? editor-id id-or-ids)
+          [editor-id (f editor)]
+          [editor-id editor])))))
 
 (defn doall-specified-editors [f editors id-or-ids]
   (doall
@@ -432,9 +432,9 @@
   (let [new-cursor (if cursor #{cursor} #{})
         new-focus (if cursor #{(zip-utils/loc-id (lookup-form-for-node-id editor (id/id-part cursor)))} #{})]
     (cond-> editor
-            (or link? (cursor-and-selection-are-linked? editor)) (assoc :selection new-cursor)
-            true (assoc :cursor new-cursor)
-            true (assoc :focused-form-id new-focus))))
+      (or link? (cursor-and-selection-are-linked? editor)) (assoc :selection new-cursor)
+      true (assoc :cursor new-cursor)
+      true (assoc :focused-form-id new-focus))))
 
 (defn clear-cursor [editor & [link?]]
   (set-cursor editor nil link?))
@@ -450,7 +450,6 @@
   (update editor :reactions (fn [reactions] (conj (or reactions []) reaction))))
 
 (defn dispose-reactions! [editor]
-  (doall
-    (for [reaction (:reactions editor)]
-      (dispose! reaction)))
+  (doseq [reaction (:reactions editor)]
+    (dispose! reaction))
   (dissoc editor :reactions))
