@@ -3,21 +3,38 @@
   (:require [reagent.ratom :as ratom]
             [plastic.util.helpers :as helpers]))
 
+; Sonars - pools of lightweight path-aware reactions
+; for rationale see https://github.com/reagent-project/reagent/issues/165
+
 (defonce ^:mutable sonars {})
+
+; this is the main optimization
+; when ratom changes, sonar's -handle-change is called
+; this method is called to prune the tree of paths and run only reactions on paths affected by changes
+; we use identical? check to keep this fast and try reject whole branches as soon as possible
+; see discussion: https://github.com/reagent-project/reagent/pull/143
+(defn match-paths [old-data new-data paths-tree]
+  (doseq [[key val] paths-tree]
+    (if (= val ::reaction)
+      (ratom/run key)                                         ; in case of ::reaction stopper, the key is actual SonarReaction instance
+      (let [old (get old-data key)
+            new (get new-data key)]
+        (if-not (identical? old new)
+          (match-paths old new val))))))
 
 (declare destroy-sonar!)
 
 (defprotocol ISonar)
 
-(defprotocol ISonarGet
-  (-get [this path]))
+(defprotocol ISonarPeek
+  (-peek-at-path [this path]))
 
 (defprotocol ISonarFilter
   (-handle-change [this sender oldval newval]))
 
 (defprotocol ISonarRegistration
-  (-register [this path sonar-reaction])
-  (-unregister [this path sonar-reaction]))
+  (-register [this sonar-reaction])
+  (-unregister [this sonar-reaction]))
 
 (defprotocol ISonarWatching
   (-start-watching [this])
@@ -26,24 +43,15 @@
 (defprotocol ISonarDispose
   (-dispose [this]))
 
-(defn match-paths [oldval newval paths]
-  (doseq [[k v] paths]
-    (if (= v ::reaction)
-      (ratom/run k)
-      (let [old (get oldval k)
-            new (get newval k)]
-        (if-not (identical? old new)
-          (match-paths old new v))))))
-
-(deftype Sonar [source ^:mutable paths]
+(deftype Sonar [source ^:mutable paths-tree]
 
   IHash
   (-hash [this] (goog/getUid this))
 
   ISonar
 
-  ISonarGet
-  (-get [_this path]
+  ISonarPeek
+  (-peek-at-path [_this path]
     (binding [ratom/*ratom-context* nil]
       (get-in @source path)))
 
@@ -52,9 +60,9 @@
     (destroy-sonar! source))
 
   ISonarFilter
-  (-handle-change [_this _sender oldval newval]
-    (measure-time (str "S! ")
-      (match-paths oldval newval paths)))
+  (-handle-change [this _sender old-data new-data]
+    (measure-time (str "S! #" (hash this))
+      (match-paths old-data new-data paths-tree)))
 
   ISonarWatching
   (-start-watching [this]
@@ -63,28 +71,28 @@
     (remove-watch source this))
 
   ISonarRegistration
-  (-register [this path sonar-reaction]
-    {:pre [(nil? (get paths (conj path sonar-reaction)))]}
-    (if (empty? paths)
+  (-register [this sonar-reaction]
+    {:pre [(nil? (get paths-tree (conj (.-path sonar-reaction) sonar-reaction)))]}
+    (if (empty? paths-tree)
       (-start-watching this))
-    (set! paths (assoc-in paths (conj path sonar-reaction) ::reaction)))
-  (-unregister [this path sonar-reaction]
-    {:pre [(get paths (conj path sonar-reaction))]}
-    (set! paths (helpers/dissoc-in paths (conj path sonar-reaction)))
-    (when (empty? paths)
+    (set! paths-tree (assoc-in paths-tree (conj (.-path sonar-reaction) sonar-reaction) ::reaction)))
+  (-unregister [this sonar-reaction]
+    {:pre [(get paths-tree (conj (.-path sonar-reaction) sonar-reaction))]}
+    (set! paths-tree (helpers/dissoc-in paths-tree (conj (.-path sonar-reaction) sonar-reaction)))
+    (when (empty? paths-tree)
       (-stop-watching this)
       (-dispose this)))
 
   IPrintWithWriter
   (-pr-writer [this writer opts]
-    (-write writer (str "#<Sonar " (hash this) " :"))
-    (pr-writer paths writer opts)
+    (-write writer (str "#<Sonar #" (hash this) " :"))
+    (pr-writer paths-tree writer opts)
     (-write writer " <~~ ")
     (pr-writer source writer opts)
     (-write writer ">")))
 
 (defn make-sonar [ratom]
-  (Sonar. ratom {}))
+  (Sonar. ratom nil))
 
 (deftype SonarReaction [sonar path ^:mutable state ^:mutable watches]
 
@@ -94,11 +102,11 @@
   (-hash [this] (goog/getUid this))
 
   IEquiv
-  (-equiv [o other] (identical? o other))
+  (-equiv [this other] (identical? this other))
 
   IPrintWithWriter
   (-pr-writer [this writer opts]
-    (-write writer (str "#<SonarReaction " (hash this) " :"))
+    (-write writer (str "#<SonarReaction #" (hash this) " :"))
     (pr-writer path writer opts)
     (-write writer " | ")
     (pr-writer state writer opts)
@@ -120,7 +128,7 @@
   (-deref [this]
     (ratom/notify-deref-watcher! this)
     (if (= state ::nil)
-      (set! state (-get sonar path)))
+      (set! state (-peek-at-path sonar path)))
     state)
 
   ratom/IReactiveAtom
@@ -128,18 +136,18 @@
   ratom/IRunnable
   (run [this]
     (let [old-state state
-          new-state (-get sonar path)]
+          new-state (-peek-at-path sonar path)]
       (set! state new-state)
       (-notify-watches this old-state new-state)))
 
   ratom/IDisposable
   (dispose! [this]
-    (-unregister sonar path this)))
+    (-unregister sonar this)))
 
 (defn make-sonar-reaction [sonar path]
   {:pre [(vector? path)]}
   (let [reaction (SonarReaction. sonar path ::nil nil)]
-    (-register sonar path reaction)
+    (-register sonar reaction)
     reaction))
 
 (defn create-sonar! [source]
