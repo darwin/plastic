@@ -5,7 +5,9 @@
 
 (defonce ^:mutable sonars {})
 
-(declare destroy-sonar)
+(declare destroy-sonar!)
+
+(defprotocol ISonar)
 
 (defprotocol ISonarGet
   (-get [this path]))
@@ -38,6 +40,8 @@
   IHash
   (-hash [this] (goog/getUid this))
 
+  ISonar
+
   ISonarGet
   (-get [_this path]
     (binding [ratom/*ratom-context* nil]
@@ -45,7 +49,7 @@
 
   ISonarDispose
   (-dispose [_this]
-    (destroy-sonar source))
+    (destroy-sonar! source))
 
   ISonarFilter
   (-handle-change [_this _sender oldval newval]
@@ -138,7 +142,7 @@
     (-register sonar path reaction)
     reaction))
 
-(defn create-sonar [source]
+(defn create-sonar! [source]
   {:pre [(nil? (get sonars source))]}
   (let [sonar (make-sonar source)]
     (set! sonars (assoc sonars source sonar))
@@ -146,9 +150,10 @@
     sonar))
 
 (defn get-or-create-sonar! [source]
-  (or (get sonars source) (create-sonar source)))
+  {:post [(satisfies? ISonar %)]}
+  (or (get sonars source) (create-sonar! source)))
 
-(defn destroy-sonar [source]
+(defn destroy-sonar! [source]
   {:pre [(get sonars source)]}
   (log "destroyed " (get sonars source))
   (set! sonars (dissoc sonars source)))
