@@ -11,7 +11,7 @@
                  [figwheel "0.3.7"]
                  [rm-hull/inkspot "0.0.1-SNAPSHOT"]
                  [spellhouse/phalanges "0.1.6"]
-                 [funcool/cuerdas "0.5.0"]
+                 [funcool/cuerdas "0.6.0"]
                  [reagent "0.5.0" :exclusions [cljsjs/react]]
                  [cljsjs/react "0.13.3-1"]]
 
