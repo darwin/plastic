@@ -23,10 +23,7 @@
         selectables (utils/extract-all-selectables layout)
         spatial-web (build-spatial-web form-loc selectables)
         structural-web (build-structural-web form-loc)]
-    (dispatch :editor-commit-selectables editor-id form-id selectables)
-    (dispatch :editor-commit-spatial-web editor-id form-id spatial-web)
-    (dispatch :editor-commit-structural-web editor-id form-id structural-web)
-    (dispatch :editor-commit-layout editor-id form-id layout)))
+    (dispatch :editor-commit-layout editor-id form-id layout selectables spatial-web structural-web)))
 
 (defn update-forms-layout-if-needed [editor form-locs]
   (let [reducer (fn [editor form-loc]
@@ -53,25 +50,14 @@
 (defn update-layout [editors [editor-selector]]
   (editor/apply-to-specified-editors layout-editor editors editor-selector))
 
-(defn commit-layout [editors [editor-id form-id layout]]
+(defn commit-layout [editors [editor-id form-id layout selectables spatial-web structural-web]]
   (let [editor (get editors editor-id)
-        new-editor (editor/set-layout-for-form editor form-id layout)]
+        new-editor (-> editor
+                     (editor/set-layout-for-form form-id layout)
+                     (editor/set-selectables-for-form form-id selectables)
+                     (editor/set-spatial-web-for-form form-id spatial-web)
+                     (editor/set-structural-web-for-form form-id structural-web))]
     (dispatch :editor-run-analysis editor-id form-id)
-    (assoc editors editor-id new-editor)))
-
-(defn commit-selectables [editors [editor-id form-id selectables]]
-  (let [editor (get editors editor-id)
-        new-editor (editor/set-selectables-for-form editor form-id selectables)]
-    (assoc editors editor-id new-editor)))
-
-(defn commit-spatial-web [editors [editor-id form-id spatial-web]]
-  (let [editor (get editors editor-id)
-        new-editor (editor/set-spatial-web-for-form editor form-id spatial-web)]
-    (assoc editors editor-id new-editor)))
-
-(defn commit-structural-web [editors [editor-id form-id structural-web]]
-  (let [editor (get editors editor-id)
-        new-editor (editor/set-structural-web-for-form editor form-id structural-web)]
     (assoc editors editor-id new-editor)))
 
 ; ----------------------------------------------------------------------------------------------------------------
@@ -79,6 +65,3 @@
 
 (register-handler :editor-update-layout paths/editors-path update-layout)
 (register-handler :editor-commit-layout paths/editors-path commit-layout)
-(register-handler :editor-commit-selectables paths/editors-path commit-selectables)
-(register-handler :editor-commit-spatial-web paths/editors-path commit-spatial-web)
-(register-handler :editor-commit-structural-web paths/editors-path commit-structural-web)
