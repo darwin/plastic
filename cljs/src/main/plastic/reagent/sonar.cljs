@@ -1,7 +1,5 @@
 (ns plastic.reagent.sonar
-  (:refer-clojure :exclude [atom])
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end measure-time]]
-                   reagent.ratom)
+  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end measure-time]])
   (:require [reagent.ratom :as ratom]
             [plastic.util.helpers :as helpers]))
 
@@ -37,6 +35,9 @@
 
 (deftype Sonar [source ^:mutable paths]
 
+  IHash
+  (-hash [this] (goog/getUid this))
+
   ISonarGet
   (-get [_this path]
     (binding [ratom/*ratom-context* nil]
@@ -71,9 +72,11 @@
       (-dispose this)))
 
   IPrintWithWriter
-  (-pr-writer [_o writer opts]
-    (-write writer "#<Sonar:")
+  (-pr-writer [this writer opts]
+    (-write writer (str "#<Sonar " (hash this) " :"))
     (pr-writer paths writer opts)
+    (-write writer " <~~ ")
+    (pr-writer source writer opts)
     (-write writer ">")))
 
 (defn make-sonar [ratom]
@@ -91,7 +94,9 @@
 
   IPrintWithWriter
   (-pr-writer [this writer opts]
-    (-write writer (str "#<SonarReaction " (hash this) " " path ": "))
+    (-write writer (str "#<SonarReaction " (hash this) " :"))
+    (pr-writer path writer opts)
+    (-write writer " | ")
     (pr-writer state writer opts)
     (-write writer ">"))
 
@@ -129,8 +134,6 @@
 
 (defn make-sonar-reaction [sonar path]
   {:pre [(vector? path)]}
-  (if (= path [:editors])
-    (js-debugger))
   (let [reaction (SonarReaction. sonar path ::nil nil)]
     (-register sonar path reaction)
     reaction))
@@ -139,7 +142,7 @@
   {:pre [(nil? (get sonars source))]}
   (let [sonar (make-sonar source)]
     (set! sonars (assoc sonars source sonar))
-    (log "created sonar" sonar "for" source)
+    (log "created " sonar)
     sonar))
 
 (defn get-or-create-sonar! [source]
@@ -147,5 +150,5 @@
 
 (defn destroy-sonar [source]
   {:pre [(get sonars source)]}
-  (log "destroyed sonar" (get sonars source) "for" source)
+  (log "destroyed " (get sonars source))
   (set! sonars (dissoc sonars source)))
