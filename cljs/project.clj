@@ -3,7 +3,7 @@
   :url "http://github.com/darwin/plastic"
 
   :dependencies [[org.clojure/clojure "1.7.0"]
-                 [org.clojure/clojurescript "0.0-3308"]
+                 [org.clojure/clojurescript "1.7.28"]
                  [org.clojure/tools.reader "0.10.0-SNAPSHOT"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                  [rewrite-cljs "0.3.0"]
