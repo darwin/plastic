@@ -1,4 +1,4 @@
-(ns plastic.macros.logging)
+(ns plastic.logging)
 
 ; -------------------------------------------------------------------------------------------
 ; logging - these need to be macros to preserve source location for devtools

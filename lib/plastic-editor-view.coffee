@@ -1,8 +1,8 @@
 path = require 'path'
 {View} = require 'space-pen'
 {Disposable, TextEditor} = require 'atom'
-bridge = require './bridge'
 {ScrollView} = require 'atom-space-pen-views'
+bridge = require './bridge'
 
 lastId = 0
 

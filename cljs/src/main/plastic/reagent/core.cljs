@@ -1,6 +1,6 @@
 (ns plastic.reagent.core
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end with-group-collapsed stopwatch]])
-  (:require [plastic.schema.paths]
+  (:require-macros [plastic.logging :refer [log info warn error group group-end with-group-collapsed stopwatch]])
+  (:require [plastic.main.schema.paths]
             [reagent.impl.batching :as batching]
             [reagent.interop :refer-macros [.' .!]]
             [reagent.impl.component :as comp]))

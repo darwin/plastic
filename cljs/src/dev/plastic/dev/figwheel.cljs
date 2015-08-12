@@ -1,7 +1,5 @@
 (ns plastic.dev.figwheel
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]]
-                   [plastic.macros.common :refer [defonce]]
-                   [plastic.macros.glue :refer [dispatch]])
+  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [clojure.string :as string]
             [figwheel.client :as figwheel]
             [figwheel.client.socket :as socket]
@@ -11,11 +9,9 @@
 
 (def need-loophole? true)
 
-(defonce vm (js/require "vm"))
-
 (defn eval [code]
   (if need-loophole?
-    (.runInThisContext vm code)                             ; https://github.com/atom/loophole
+    (.runInThisContext (js/require "vm") code)                             ; https://github.com/atom/loophole
     (js* "eval(~{code})")))
 
 (defn figwheel-repl-fix [code]
@@ -33,7 +29,8 @@
     (binding [*print-fn* (fn [& args] (-> args figwheel/console-print figwheel/figwheel-repl-print))
               *print-newline* false]
       (let [res (eval code)]
-        (.log js/console "F>" res)
+        (if res
+          (.log js/console "F>" res))
         (result-handler {:status :success
                          :value  (pr-str res)})))
     (catch js/Error e
@@ -58,7 +55,7 @@
 
 (defn on-js-load []
   ;(.remount-editors js/plastic.onion.remounter)
-  (dispatch :editor-update-layout)
+  ;(dispatch :editor-update-layout)
   )
 
 (figwheel/start

@@ -12,7 +12,7 @@ require('source-map-support').install
         map: fs.readFileSync mapPath, 'utf8'
       }
 
-require("./_build/goog/bootstrap/nodejs.js")
+require("./_build/main/goog/bootstrap/nodejs.js")
 
 prevImportScript = goog.global.CLOSURE_IMPORT_SCRIPT
 
@@ -25,13 +25,13 @@ goog.global.CLOSURE_IMPORT_SCRIPT = (src) ->
 oldNodeGlobalRequire = goog.nodeGlobalRequire
 
 goog.nodeGlobalRequire = (path) ->
-  return oldNodeGlobalRequire(path) unless path == "../lib/_build/react.inc.js"
+  return oldNodeGlobalRequire(path) unless path == "../lib/_build/main/react.inc.js"
   console.log "cljs-patch: prevented loading ", path
 
-global.React = require("./_build/react.inc.js")
+global.React = require("./_build/main/react.inc.js")
 # ---------------- END OF THE HACK
 
-require("./_build/cljs_deps.js")
+require("./_build/main/cljs_deps.js")
 
-goog.require("plastic.init")
-goog.require("plastic.main")
+goog.require("plastic.main.init")
+goog.require("plastic.main.loop")

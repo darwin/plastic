@@ -1,12 +1,9 @@
 (ns plastic.onion.core
-  (:require-macros [plastic.macros.logging :refer [log info warn error group group-end]])
+  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [plastic.onion.inface :as inface]
             [plastic.onion.api :refer [$ atom]]
             [plastic.onion.remounter]
-            [plastic.onion.api :refer [File]]
-            [rewrite-clj.node.keyword :refer [keyword-node]]
-            [rewrite-clj.node :as node]
-            [plastic.cogs.editor.parser.utils :as parser]))
+            [plastic.onion.api :refer [File]]))
 
 (defonce ^:dynamic *initial-text* nil)
 (defonce ^:dynamic *on-did-change-disposables* {})
@@ -81,12 +78,12 @@
     ;:keyword (strip-colon text)
     text))
 
-(defn postprocess-text-after-editing [editor-mode text]
-  (condp = editor-mode
-    :symbol (node/coerce (symbol text))
-    :keyword (keyword-node (keyword text))                  ; TODO: investigate - coerce does not work for keywords?
-    :string (node/coerce text)
-    (throw "unknown editor mode in postprocess-text-after-editing:" editor-mode)))
+;(defn postprocess-text-after-editing [editor-mode text]
+;  (condp = editor-mode
+;    :symbol (node/coerce (symbol text))
+;    :keyword (keyword-node (keyword text))                  ; TODO: investigate - coerce does not work for keywords?
+;    :string (node/coerce text)
+;    (throw "unknown editor mode in postprocess-text-after-editing:" editor-mode)))
 
 (defn is-inline-editor-modified? [editor-id]
   (let [inline-editor (get-atom-inline-editor-instance editor-id)
@@ -98,8 +95,15 @@
   (let [$inline-editor-view ($ (get-atom-inline-editor-view-instance editor-id))]
     (class-name-to-editor-mode (some #(if (.hasClass $inline-editor-view %) %) known-editor-modes-classes))))
 
-(defn get-postprocessed-value-after-editing [editor-id]
+(defn get-value-after-editing [editor-id]
   (let [inline-editor (get-atom-inline-editor-instance editor-id)
+        editor-mode (get-inline-editor-mode editor-id)
+        raw-text (.getText inline-editor)]
+    [editor-mode raw-text]))
+
+(defn get-postprocessed-value-after-editing [editor-id]
+  "TODO"
+  #_(let [inline-editor (get-atom-inline-editor-instance editor-id)
         editor-mode (get-inline-editor-mode editor-id)
         raw-text (.getText inline-editor)]
     (parser/assoc-node-id (postprocess-text-after-editing editor-mode raw-text))))
