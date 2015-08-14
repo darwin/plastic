@@ -1,4 +1,4 @@
-These steps are for my OS X box. Worked around commit #100. 
+These steps are for my OS X box. Worked around commit [#bf7975ddb9](https://github.com/darwin/plastic/commit/bf7975ddb9306afb3446fd725b04fd1eaa372ef5). 
 
 All is still in flux. You have to know a bit about node.js and clojurescript ecosystems. I don't cover it here. 
 
@@ -79,18 +79,17 @@ Alternatively, you may try to comment those bleeding-edge checkouts out, it migh
 
 First run Figwheel and wait for it to finish compilation and enter into waiting mode:
 
-    cd cljs
-    lein figwheel
+    cd $workspace/plastic/cljs
+    ./script/figwheel.sh
 
 And in another terminal session
 
-    cd $workspace
-    cd plastic/cljs
+    cd $workspace/plastic/cljs
     ./script/atom.sh
 
-Atom file browser should point to $workspace/plastic/cljs/src, open some cljs files from `src/sandbox` and have fun!
+Atom file browser should point to $workspace/plastic/cljs/src, open some cljs files from `src/playground` and have fun!
 
-The keyboard shortuts are listed in $workspace/plastic/keymaps/plastic.cson.
+Note: effective keyboard shortcuts are specified in $workspace/plastic/keymaps/plastic.cson.
 
 ##### native modules => apm rebuild
 
@@ -104,7 +103,7 @@ Sometimes Atom needs you to compile some native modules, it will shout at you fr
 First run Figwheel and wait for it to finish compilation and enter into waiting mode:
 
     cd $workspace/plastic/cljs
-    lein figwheel
+    ./script/figwheel.sh
 
 And in another shell session:
 
@@ -132,5 +131,21 @@ I use this `$workspace/.atom/init.coffee` script to open devtools console at lau
 Plastic uses cljs-devtools heavily. You should enable it in your Atom devtools console. follow [this article](https://github.com/binaryage/cljs-devtools#enable-custom-formatters-in-your-chrome-canary)
 
 This setting should persist, so next time you kill Atom and launch it again, cljs-devtools should be enabled from the beginning.
+
+#### running with web workers
+
+For development it is easier to run all code on main thread. That is default behaviour for now.
+In release mode Plastic will be able to utilize multiple threads thanks to web workers. You can run Plastic using web workers by following steps below.
+Warning: This is experimental and could be broken from time to time. But general idea is to have editor heavy-lifting on worker thread and main thread available for Atom and UI updates only.
+
+First run Figwheel and wait for it to finish compilation and enter into waiting mode:
+
+    cd $workspace/plastic/cljs
+    ./script/figwheel.sh main worker
+
+And in another shell session:
+
+    cd $workspace/plastic/cljs
+    ./script/atom.sh
 
 ## happy hacking!
