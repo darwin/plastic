@@ -37,7 +37,8 @@
                                        "src/main"
                                        "src/worker"]
                         :compiler     {:main           plastic.main
-                                       :closure-defines {"plastic.env.run_worker_on_main_thread" true}
+                                       :closure-defines {"plastic.env.run_worker_on_main_thread" true
+                                                         "plastic.env.log_all_dispatches" true}
                                        :output-to      "../lib/_build/dev/plastic.js"
                                        :output-dir     "../lib/_build/dev"
                                        :optimizations  :none

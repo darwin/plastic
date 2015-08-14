@@ -4,13 +4,11 @@
   (:require [rewrite-clj.zip :as zip]
             [rewrite-clj.node :as node]
             [plastic.worker.frame :refer [subscribe register-handler]]
-            [plastic.worker.schema.paths :as paths]
             [plastic.worker.editor.model :as editor]
             [plastic.worker.editor.layout.analysis.calls :refer [analyze-calls]]
             [plastic.worker.editor.layout.analysis.scopes :refer [analyze-scopes]]
             [plastic.worker.editor.layout.analysis.defs :refer [analyze-defs]]
-            [plastic.util.zip :as zip-utils]
-            [clojure.zip :as z]))
+            [plastic.util.zip :as zip-utils]))
 
 (defn prepare-form-analysis [root-loc _opts]
   {:pre [(= (node/tag (zip/node (zip/up root-loc))) :forms)]} ; parent has to be :forms
@@ -21,7 +19,7 @@
                    (analyze-calls root-loc)
                    (analyze-scopes root-loc)
                    (analyze-defs root-loc))]
-    (fancy-log "ANALYSIS" ["form #" root-id "=>" analysis])
+    (fancy-log "ANALYSIS" "form #" root-id "=>" analysis)
     analysis))
 
 (defn run-analysis-for-editor-and-form [editor opts form-loc]
@@ -40,13 +38,7 @@
     (editor/doall-specified-editors (partial run-analysis-for-editor-and-forms form-selector opts) editors editor-selector)
     db))
 
-;(defn commit-analysis [editors [editor-id form-id analysis]]
-;  (let [editor (get editors editor-id)
-;        new-editor (editor/set-analysis-for-form editor form-id analysis)]
-;    (assoc editors editor-id new-editor)))
-
 ; ----------------------------------------------------------------------------------------------------------------
 ; register handlers
 
 (register-handler :editor-run-analysis run-analysis)
-;(register-handler :editor-commit-analysis paths/editors-path commit-analysis)

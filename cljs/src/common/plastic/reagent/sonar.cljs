@@ -1,6 +1,7 @@
 (ns plastic.reagent.sonar
   (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]])
   (:require [reagent.ratom :as ratom]
+            [plastic.env :as env]
             [plastic.util.helpers :as helpers]))
 
 ; Sonars - pools of lightweight path-aware reactions
@@ -16,7 +17,7 @@
 (defn match-paths [old-data new-data paths-tree]
   (doseq [[key val] paths-tree]
     (if (= val ::reaction)
-      (ratom/run key)                                         ; in case of ::reaction stopper, the key is actual SonarReaction instance
+      (ratom/run key)                                       ; in case of ::reaction stopper, the key is actual SonarReaction instance
       (let [old (get old-data key)
             new (get new-data key)]
         (if-not (identical? old new)
@@ -61,7 +62,7 @@
 
   ISonarFilter
   (-handle-change [this _sender old-data new-data]
-    (measure-time "SONAR" [(str "#" (hash this))]
+    (measure-time env/bench-sonars "SONAR" [(str "#" (hash this))]
       (match-paths old-data new-data paths-tree)))
 
   ISonarWatching
@@ -154,7 +155,8 @@
   {:pre [(nil? (get sonars source))]}
   (let [sonar (make-sonar source)]
     (set! sonars (assoc sonars source sonar))
-    (log "created " sonar)
+    (if env/debug-sonars
+      (log "created " sonar))
     sonar))
 
 (defn get-or-create-sonar! [source]
@@ -163,5 +165,6 @@
 
 (defn destroy-sonar! [source]
   {:pre [(get sonars source)]}
-  (log "destroyed " (get sonars source))
+  (if env/debug-sonars
+    (log "destroyed " (get sonars source)))
   (set! sonars (dissoc sonars source)))

@@ -4,7 +4,7 @@
                    [cljs.core.async.macros :refer [go-loop go]])
   (:require [plastic.worker.frame.core :as frame :refer [pure trim-v]]
             [plastic.worker.frame.router :refer [event-chan purge-chan]]
-            [clojure.string :as string]
+            [plastic.env :as env]
             [plastic.worker.frame.handlers :refer [handle register-base]]
             [cljs.core.async :refer [chan put! <!]]))
 
@@ -13,7 +13,7 @@
 
 (defn timing [handler]
   (fn timing-handler [db v]
-    (measure-time "PROCESS" [v (str "#" *current-event-id*)]
+    (measure-time (or env/bench-processing env/bench-main-processing) "PROCESS" [v (str "#" *current-event-id*)]
       (handler db v))))
 
 (defn log-ex [handler]

@@ -2,11 +2,10 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]]
                    [cljs.core.async.macros :refer [go-loop go]])
   (:require [plastic.main.frame.core :as frame :refer [pure trim-v]]
+            [plastic.env :as env]
             [plastic.main.frame.router :refer [event-chan purge-chan]]
-            [clojure.string :as string]
             [plastic.main.frame.handlers :refer [handle register-base]]
-            [cljs.core.async :refer [chan put! <!]]
-            [reagent.ratom :as ratom]))
+            [cljs.core.async :refer [chan put! <!]]))
 
 (def ^:dynamic *current-event-id* nil)
 (defonce ^:dynamic effects (js-obj))
@@ -19,7 +18,7 @@
 
 (defn timing [handler]
   (fn timing-handler [db v]
-    (measure-time "PROCESS" [v (str "#" *current-event-id*)]
+    (measure-time (or env/bench-processing env/bench-main-processing) "PROCESS" [v (str "#" *current-event-id*)]
       (handler db v))))
 
 (defn log-ex [handler]
