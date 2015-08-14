@@ -61,7 +61,7 @@
 
   ISonarFilter
   (-handle-change [this _sender old-data new-data]
-    (measure-time (str "S! #" (hash this))
+    (measure-time "SONAR" [(str "#" (hash this))]
       (match-paths old-data new-data paths-tree)))
 
   ISonarWatching

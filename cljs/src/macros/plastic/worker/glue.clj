@@ -1,5 +1,5 @@
 (ns plastic.worker.glue
-  (:require [plastic.logging :refer [log info warn error group group-end]]))
+  (:require [plastic.logging :refer [log info warn error group group-end fancy-log*]]))
 
 ; -------------------------------------------------------------------------------------------
 ; these need to be macros to preserve source location for logging into devtools
@@ -7,7 +7,7 @@
 (defmacro dispatch-args [id event+args]
   `(let [event+args# ~event+args
          id# ~id]
-     (log "WORK: DISPATCH!" (str "#" id#) event+args#)
+     (fancy-log* "" "WORK" "DISPATCH" event+args#  (str "#" id#))
      (plastic.worker.frame/dispatch id# event+args#)))
 
 (defmacro dispatch [& event+args]

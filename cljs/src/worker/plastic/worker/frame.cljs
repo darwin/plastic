@@ -11,20 +11,9 @@
 (def ^:dynamic *current-event-id* nil)
 (def ^:dynamic *event-id-counters* {})
 
-(defn simple-printer [acc val]
-  (conj acc (cond
-              (vector? val) "[…]"
-              (map? val) "{…}"
-              (set? val) "#{…}"
-              (string? val) "\"…\""
-              :else (pr-str val))))
-
-(defn print-simple [vec]
-  (str "[" (string/join " " (reduce simple-printer [] vec)) "]"))
-
 (defn timing [handler]
   (fn timing-handler [db v]
-    (measure-time (str "WORK: PROCESS! #" *current-event-id* (print-simple v))
+    (measure-time "PROCESS" [v (str "#" *current-event-id*)]
       (handler db v))))
 
 (defn log-ex [handler]
@@ -66,7 +55,8 @@
 (defn worker-loop []
   (go-loop []
     (let [[id event-v] (<! event-chan)]
-      (binding [*current-event-id* id]
+      (binding [*current-event-id* id
+                plastic.env/*current-thread* "WORK"]
         (process-event-and-silently-swallow-exceptions event-v))
       (update-counter id)
       (recur))))

@@ -54,19 +54,39 @@
          (.profileEnd js/console)
          (throw e#)))))
 
-(defmacro measure-time [title & body]
-  `(try
-     (.time js/console ~title)
-     (let [res# ~@body]
-       (.timeEnd js/console ~title)
-       res#)
-     (catch :default e#
-       (do
-         (.timeEnd js/console)
-         (throw e#)))))
+(defmacro pad-str [s len]
+  `(let [padlen# (- ~len (count ~s))]
+     (str (apply str (repeat padlen# " ")) ~s)))
 
+(defmacro fancy-log* [time thread label & args]
+  `(let [thread# ~thread
+         label# ~label
+         thread-color# (case thread#
+                         "MAIN" "green"
+                         "WORK" "orange"
+                         "red")]
+     (log "%c%s%c%s%c%s"
+       "color:#aaa" (pad-str ~time 10)
+       (str "color:" thread-color#) (if thread# (pad-str (str "[" thread# "]") 10) "")
+       "color:blue" (if label# (pad-str (str label# ":") 12) "")
+       ~@args)))
+
+(defmacro fancy-log [label & args]
+  `(fancy-log* "" plastic.env/*current-thread* ~label ~@args))
+
+(defmacro ms [val]
+  `(str (.toFixed ~val 3) "ms"))
+
+(defmacro measure-time [label more & body]
+  `(let [start# (.now js/performance)
+         ret# ~@body
+         diff# (- (.now js/performance) start#)]
+     (fancy-log* (ms diff#) plastic.env/*current-thread* ~label ~@more)
+     ret#))
+
+; see https://developers.google.com/web/updates/2012/08/When-milliseconds-are-not-enough-performance-now
 (defmacro stopwatch [expr]
-  `(let [start# (.getTime (js/Date.))
+  `(let [start# (.now js/performance)
          ret# ~expr
-         diff# (- (.getTime (js/Date.)) start#)]
+         diff# (- (.now js/performance) start#)]
      [ret# diff#]))

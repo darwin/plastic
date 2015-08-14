@@ -1,5 +1,5 @@
 (ns plastic.worker.editor.analysis.core
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
+  (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]]
                    [plastic.worker.glue :refer [react! dispatch main-dispatch]])
   (:require [rewrite-clj.zip :as zip]
             [rewrite-clj.node :as node]
@@ -21,7 +21,7 @@
                    (analyze-calls root-loc)
                    (analyze-scopes root-loc)
                    (analyze-defs root-loc))]
-    (log "ANALYSIS: form #" root-id "=>" analysis)
+    (fancy-log "ANALYSIS" ["form #" root-id "=>" analysis])
     analysis))
 
 (defn run-analysis-for-editor-and-form [editor opts form-loc]

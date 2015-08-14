@@ -1,5 +1,5 @@
 (ns plastic.reagent.core
-  (:require-macros [plastic.logging :refer [log info warn error group group-end with-group-collapsed stopwatch]])
+  (:require-macros [plastic.logging :refer [log info warn error group group-end with-group-collapsed stopwatch ms fancy-log*]])
   (:require [plastic.main.schema.paths]
             [reagent.impl.batching :as batching]
             [reagent.interop :refer-macros [.' .!]]
@@ -34,9 +34,9 @@
                                     (let [[res ms-time] (with-group-collapsed (.cljsName c)
                                                           (stopwatch
                                                             (.' c forceUpdate)))]
-                                      (log (str "  => " ms-time "ms"))
+                                      (fancy-log* (ms ms-time) nil nil)
                                       res))))))]
-        (log (str "  => " ms-time "ms"))
+        (fancy-log* (ms ms-time) nil nil)
         res))
     (catch js/Error e                                       ;  You don't need it any more IF YOU ARE USING CHROME 44. Chrome now seems to now produce good stack traces.
       (do
