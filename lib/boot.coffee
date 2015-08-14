@@ -1,8 +1,5 @@
-dev = true
-buildName = if dev then "dev" else "main"
-
-require("./_build/#{buildName}/plastic.js")
+require("./_build/main/plastic.js")
 
 goog.require("plastic.dev")
 goog.require("plastic.main.loop")
-goog.require("plastic.worker.loop") if dev
+goog.require("plastic.worker.loop") if plastic.env.run_worker_on_main_thread
