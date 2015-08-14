@@ -7,7 +7,7 @@
 (defmacro dispatch-args [id event+args]
   `(let [event+args# ~event+args
          id# ~id]
-     (log "MD!" (str "#" id#) event+args#)
+     (log "MAIN: DISPATCH!" (str "#" id#) event+args#)
      (plastic.main.frame/dispatch id# event+args#)))
 
 (defmacro dispatch [& event+args]

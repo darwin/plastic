@@ -3,7 +3,7 @@
   (:require [plastic.main.frame :refer [main-loop]]
             [plastic.main.init]))
 
-(log "PLASTIC MAIN: ENTERING EVENT LOOP")
+(log "MAIN: ENTERING EVENT LOOP")
 
 ; start event processing
 (main-loop)

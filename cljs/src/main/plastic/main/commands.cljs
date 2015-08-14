@@ -1,0 +1,25 @@
+(ns plastic.main.commands
+  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
+  (:require [plastic.main.frame :refer [subscribe register-handler]]
+            [plastic.main.commands.settings :as settings]))
+
+(def command-handlers
+  {:toggle-headers           settings/toggle-headers
+   :toggle-code              settings/toggle-code
+   :toggle-docs              settings/toggle-docs
+   :toggle-parser-debug      settings/toggle-parser-debug
+   :toggle-text-input-debug  settings/toggle-text-input-debug
+   :toggle-text-output-debug settings/toggle-text-output-debug
+   :toggle-selections-debug  settings/toggle-selections-debug})
+
+(defn dispatch-command [db [command & args]]
+  (if-let [handler (get command-handlers command)]
+    (or (handler db args) db)
+    (do
+      (error "unimplemented command" command)
+      db)))
+
+; ----------------------------------------------------------------------------------------------------------------
+; register handlers
+
+(register-handler :command dispatch-command)

@@ -15,8 +15,11 @@ module.exports = Plastic =
   subscriptions: null
 
   activate: (state) ->
-    bridge.send "apis", apis
-    bridge.send "init", state # TODO: unserialize our part and pass rest
+    initPlastic = ->
+      bridge.send "apis", apis
+      bridge.send "init", state # TODO: unserialize our part and pass rest
+      
+    setTimeout initPlastic, 1000 # TODO: this is temporary, give figwheel and cljs-devtools some time to intialize
 
     atom.workspace.addOpener plasticEditorOpener
 

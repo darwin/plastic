@@ -4,7 +4,7 @@
   (:require [plastic.worker.init]
             [plastic.worker.frame :refer [worker-loop]]))
 
-(log "PLASTIC WORKER: ENTERING EVENT LOOP")
+(log "WORK: ENTERING EVENT LOOP")
 
 ; start event processing
 (worker-loop)

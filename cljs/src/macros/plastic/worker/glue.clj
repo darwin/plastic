@@ -7,7 +7,7 @@
 (defmacro dispatch-args [id event+args]
   `(let [event+args# ~event+args
          id# ~id]
-     (log "WD!" (str "#" id#) event+args#)
+     (log "WORK: DISPATCH!" (str "#" id#) event+args#)
      (plastic.worker.frame/dispatch id# event+args#)))
 
 (defmacro dispatch [& event+args]

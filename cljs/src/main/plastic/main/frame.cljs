@@ -30,7 +30,7 @@
 
 (defn timing [handler]
   (fn timing-handler [db v]
-    (measure-time (str "MH! #" *current-event-id* " " (print-simple v))
+    (measure-time (str "MAIN: PROCESS! #" *current-event-id* " " (print-simple v))
       (handler db v))))
 
 (defn log-ex [handler]

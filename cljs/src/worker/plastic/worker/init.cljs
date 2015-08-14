@@ -7,13 +7,10 @@
             [plastic.worker.db]
             [plastic.worker.frame :refer [register-handler]]))
 
-(defn init [db [state]]
-  (log "init" state)
+(defn init [db [_state]]
   db)
 
 ; ----------------------------------------------------------------------------------------------------------------
 ; register handlers
 
 (register-handler :init init)
-
-(log "PLASTIC WORKER: INIT DONE")
