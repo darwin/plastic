@@ -20,6 +20,7 @@
             [lein-figwheel "0.3.3"]]
 
   :source-paths ["src/macros"
+                 "src/env"
                  "target/classes"]
 
   :clean-targets ^{:protect false} ["../lib/_build" "target" ".tmp"]
@@ -28,13 +29,31 @@
              :nrepl-port     7777
              :server-logfile ".tmp/figwheel_server.log"}
 
-  :cljsbuild {:builds [{:id           "main"
+  :cljsbuild {:builds [{:id "dev"
                         :source-paths ["src/macros"
+                                       "src/env"
+                                       "src/dev"
+                                       "src/common"
+                                       "src/main"
+                                       "src/worker"]
+                        :compiler     {:main           plastic.main
+                                       :closure-defines {"plastic.env.run_worker_on_main_thread" true}
+                                       :output-to      "../lib/_build/dev/plastic.js"
+                                       :output-dir     "../lib/_build/dev"
+                                       :optimizations  :none
+                                       :target         :nodejs
+                                       :compiler-stats true
+                                       :cache-analysis true
+                                       :figwheel       true
+                                       :source-map     true}}
+                       {:id           "main"
+                        :source-paths ["src/macros"
+                                       "src/env"
                                        "src/dev"
                                        "src/common"
                                        "src/main"]
-                        :compiler     {:main           plastic.main.init
-                                       :output-to      "../lib/_build/main/plastic-main.js"
+                        :compiler     {:main           plastic.main
+                                       :output-to      "../lib/_build/main/plastic.js"
                                        :output-dir     "../lib/_build/main"
                                        :optimizations  :none
                                        :target         :nodejs
@@ -44,11 +63,12 @@
                                        :source-map     true}}
                        {:id           "worker"
                         :source-paths ["src/macros"
+                                       "src/env"
                                        "src/dev"
                                        "src/common"
                                        "src/worker"]
-                        :compiler     {:main           plastic.worker.init
-                                       :output-to      "../lib/_build/worker/plastic-worker.js"
+                        :compiler     {:main           plastic.worker
+                                       :output-to      "../lib/_build/worker/plastic.js"
                                        :output-dir     "../lib/_build/worker"
                                        :optimizations  :none
                                        :target         :nodejs

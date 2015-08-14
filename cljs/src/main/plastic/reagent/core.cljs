@@ -72,5 +72,5 @@
 
 (def plastic-render-queue (RenderQueue. (array) false (array)))
 
-(log "resetting render queue")
+(log "resetting reagent's render queue")
 (set! batching/render-queue plastic-render-queue)

@@ -1,10 +1,19 @@
 (ns plastic.worker.init
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.worker.schema.core]))
+  (:require [plastic.env]
+            [plastic.worker.schema.core]
+            [plastic.worker.servant]
+            [plastic.worker.editor.core]
+            [plastic.worker.db]
+            [plastic.worker.frame :refer [register-handler]]))
 
-; this namespace is :main entry point for cljsbuild
+(defn init [db [state]]
+  (log "init" state)
+  db)
 
-; this namespace exists to enforce order of requiring other namespaces
-; namely init should go first, devtools and fighwheel early and main should go last
+; ----------------------------------------------------------------------------------------------------------------
+; register handlers
+
+(register-handler :init init)
 
 (log "PLASTIC WORKER: INIT DONE")
