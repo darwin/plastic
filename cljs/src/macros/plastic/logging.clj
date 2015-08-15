@@ -93,3 +93,10 @@
          ret# ~expr
          diff# (- (.now js/performance) start#)]
      [ret# diff#]))
+
+(defmacro log-render [title params & body]
+  `(do
+     (if plastic.env/log-rendering
+       (plastic.logging/fancy-log "RENDER" ~title ~params))
+     (let [res# ~@body]
+       res#)))

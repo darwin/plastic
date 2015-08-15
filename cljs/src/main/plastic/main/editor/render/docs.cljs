@@ -1,6 +1,5 @@
 (ns plastic.main.editor.render.docs
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.main.render :refer [log-render]])
+  (:require-macros [plastic.logging :refer [log info warn error group group-end log-render]])
   (:require [plastic.main.editor.render.utils :refer [dangerously-set-html wrap-specials classv]]
             [plastic.main.editor.render.inline-editor :refer [inline-editor-component]]
             [plastic.main.editor.render.reusables :refer [raw-html-component]]

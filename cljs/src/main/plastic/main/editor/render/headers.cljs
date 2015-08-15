@@ -1,6 +1,5 @@
 (ns plastic.main.editor.render.headers
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.main.render :refer [log-render]])
+  (:require-macros [plastic.logging :refer [log info warn error group group-end log-render]])
   (:require [plastic.main.editor.render.utils :refer [wrap-specials classv]]
             [plastic.main.frame.core :refer [subscribe]]))
 
