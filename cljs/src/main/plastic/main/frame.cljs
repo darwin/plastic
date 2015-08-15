@@ -2,18 +2,24 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]]
                    [cljs.core.async.macros :refer [go-loop go]])
   (:require [plastic.main.frame.core :as frame :refer [pure trim-v]]
+            [plastic.main.db :refer [db]]
             [plastic.main.frame.router :refer [event-chan purge-chan]]
-            [plastic.main.frame.handlers :refer [handle register-base]]
+            [plastic.main.frame.handlers :refer [handle register-base *handling*]]
+            [reagent.core :as reagent]
             [cljs.core.async :refer [chan put! <!]]))
 
 (defonce ^:dynamic *current-job-id* nil)
-(defonce ^:dynamic effects (js-obj))
+(defonce ^:dynamic *jobs* {})
 
-(defn register-after-effect [id fun]
-  (aset effects id fun))
+(defn register-job [job-id continuation]
+  (set! *jobs* (assoc *jobs* job-id {:events       []
+                                     :continuation continuation})))
 
-(defn unregister-after-effect [id]
-  (aset effects id nil))
+(defn unregister-job [job-id]
+  (set! *jobs* (dissoc *jobs* job-id)))
+
+(defn buffer-job-event [job-id event]
+  (set! *jobs* (update-in *jobs* [job-id :events] (fn [events] (conj events event)))))
 
 (defn timing [handler]
   (fn timing-handler [db v]
@@ -37,31 +43,34 @@
   ([id handler] (register-handler id nil handler))
   ([id middleware handler] (register-base id [pure log-ex timing trim-v middleware] handler)))
 
-(defn job-done [db [job-id]]
-  (or
-    (if-let [after-effect (aget effects job-id)]
-      (when-let [new-db-after-effect (after-effect db)]
-        (unregister-after-effect job-id)
-        new-db-after-effect))
-    db))
-
-(register-handler :worker-job-done job-done)
-
 (def subscribe frame/subscribe)
 
 (defn handle-event-and-silently-swallow-exceptions [event]
   (try
-    (handle event)
+    (handle event db)
     (catch :default _)))
 
 (defn main-loop []
   (go-loop []
-    (let [[id event] (<! event-chan)]
-      (binding [*current-job-id* id
-                plastic.env/*current-thread* "MAIN"]
-        (handle-event-and-silently-swallow-exceptions event))
+    (let [[job-id event] (<! event-chan)]
+      (binding [plastic.env/*current-thread* "MAIN"]
+        (if (zero? job-id)
+          (handle-event-and-silently-swallow-exceptions event)
+          (buffer-job-event job-id event)))
       (recur))))
 
 (defn ^:export dispatch [job-id event]
   (put! event-chan [job-id event])
   nil)
+
+(defn job-done [db [job-id]]
+  (let [job (get *jobs* job-id)
+        _ (assert job)
+        coallesced-db (reagent/atom db)]
+    (binding [*handling* false]                             ; we know what we are doing here in job-done
+      (doseq [event (:events job)]                          ; replay all buffered job events...
+        (handle event coallesced-db)))
+    (unregister-job job-id)
+    (or ((:continuation job) @coallesced-db) db)))          ; contination can decide not to publish results (and maybe apply them later)
+
+(register-handler :worker-job-done job-done)

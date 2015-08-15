@@ -6,11 +6,11 @@
 
 (defonce worker-script "/worker.js")
 (defonce ^:dynamic worker nil)
-(defonce ^:dynamic msg-id 0)
+(defonce ^:dynamic *last-job-id* 0)
 
-(defn next-msg-id! []
-  (set! msg-id (inc msg-id))
-  msg-id)
+(defn next-job-id! []
+  (set! *last-job-id* (inc *last-job-id*))
+  *last-job-id*)
 
 (defn ^:export dispatch-message [data]
   (let [reader (transit/reader :json)
@@ -40,8 +40,8 @@
       (plastic.worker.servant.dispatch-message data))))
 
 (defn ^:export dispatch-on-worker
-  ([event-v] (dispatch-on-worker event-v nil))
-  ([event-v after-effect] (let [id (next-msg-id!)]
-                            (if after-effect
-                              (frame/register-after-effect id after-effect))
-                            (post-dispatch-message event-v id))))
+  ([event] (dispatch-on-worker event nil))
+  ([event continuation] (let [job-id (if continuation (next-job-id!) 0)]
+                          (if continuation
+                            (frame/register-job job-id continuation))
+                          (post-dispatch-message event job-id))))

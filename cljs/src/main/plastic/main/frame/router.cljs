@@ -4,6 +4,7 @@
                    [plastic.logging :refer [log info warn error group group-end]]
                    [plastic.common :refer [defonce]])
   (:require [reagent.core :refer [flush]]
+            [plastic.main.db :refer [db]]
             [plastic.main.frame.handlers :refer [handle]]
             [cljs.core.async :refer [chan put! <! timeout]]))
 
@@ -43,7 +44,7 @@
               (do (flush) (<! (timeout 20)))                ;; wait just over one annimation frame (16ms), to rensure all pending GUI work is flushed to the DOM.
               (<! (timeout 0)))]                            ;; just in case we are handling one dispatch after an other, give the browser back control to do its stuff
       (try
-        (handle event-v)
+        (handle event-v db)
 
         ;; If the handler throws:
         ;;   - allow the exception to bubble up because the app, in production,
@@ -84,5 +85,5 @@
   Usage example:
      (dispatch-sync [:delete-item 42])"
   [event-v]
-  (handle event-v)
+  (handle event-v db)
   nil)                                                      ;; Ensure nil return. See https://github.com/Day8/re-frame/wiki/Beware-Returning-False
