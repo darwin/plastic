@@ -3,7 +3,7 @@
                    [plastic.main.glue :refer [dispatch react! worker-dispatch]])
   (:require [plastic.main.frame :refer [subscribe register-handler]]
             [plastic.main.servant]
-            [plastic.main.editor.render.core :as render]
+            [plastic.main.editor.render :as render]
             [plastic.main.schema.paths :as paths]
             [plastic.main.editor.model :as editor]))
 

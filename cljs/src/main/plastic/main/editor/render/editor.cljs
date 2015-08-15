@@ -1,9 +1,8 @@
-(ns plastic.main.editor.render.core
+(ns plastic.main.editor.render.editor
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
                    [plastic.main.render :refer [log-render]]
                    [plastic.main.glue :refer [react! dispatch]])
-  (:require [reagent.core :as reagent]
-            [plastic.main.frame.core :refer [register-sub subscribe]]
+  (:require [plastic.main.frame.core :refer [register-sub subscribe]]
             [plastic.main.editor.render.headers :refer [headers-group-component]]
             [plastic.main.editor.render.docs :refer [docs-group-component]]
             [plastic.main.editor.render.code :refer [code-box-component]]
@@ -56,10 +55,8 @@
     (if selectable-dom-node
       (let [selected-node-id (dom/read-node-id selectable-dom-node)
             _ (assert selected-node-id)
-            form-id (dom/lookup-form-id selectable-dom-node)
             editor-id (dom/lookup-editor-id selectable-dom-node)]
         (.stopPropagation event)
-;        (dispatch :editor-set-focused-form editor-id form-id)
         (if-not (dom/event-shift-key? event)
           (dispatch :editor-set-cursor editor-id selected-node-id true)
           (dispatch :editor-toggle-selection editor-id #{selected-node-id}))))))
@@ -107,9 +104,3 @@
            [forms-component editor-id order]
            (if @parser-debug-visible [parser-debug-component debug-parse-tree])
            (if @text-output-debug-visible [text-output-debug-component debug-text-output])])))))
-
-(defn mount-editor [element editor-id]
-  (reagent/render [editor-root-component editor-id] element))
-
-(defn unmount-editor [element]
-  (reagent/unmount-component-at-node element))

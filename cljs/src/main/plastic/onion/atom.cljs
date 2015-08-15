@@ -1,4 +1,4 @@
-(ns plastic.onion.core
+(ns plastic.onion.atom
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [plastic.onion.inface :as inface]
             [plastic.onion.api :refer [$ atom]]
@@ -78,13 +78,6 @@
     ;:keyword (strip-colon text)
     text))
 
-;(defn postprocess-text-after-editing [editor-mode text]
-;  (condp = editor-mode
-;    :symbol (node/coerce (symbol text))
-;    :keyword (keyword-node (keyword text))                  ; TODO: investigate - coerce does not work for keywords?
-;    :string (node/coerce text)
-;    (throw "unknown editor mode in postprocess-text-after-editing:" editor-mode)))
-
 (defn is-inline-editor-modified? [editor-id]
   (let [inline-editor (get-atom-inline-editor-instance editor-id)
         raw-text (.getText inline-editor)]
@@ -100,13 +93,6 @@
         editor-mode (get-inline-editor-mode editor-id)
         raw-text (.getText inline-editor)]
     [editor-mode raw-text]))
-
-(defn get-postprocessed-value-after-editing [editor-id]
-  "TODO"
-  #_(let [inline-editor (get-atom-inline-editor-instance editor-id)
-        editor-mode (get-inline-editor-mode editor-id)
-        raw-text (.getText inline-editor)]
-    (parser/assoc-node-id (postprocess-text-after-editing editor-mode raw-text))))
 
 (defn is-inline-editor-empty? [editor-id]
   (let [inline-editor (get-atom-inline-editor-instance editor-id)]

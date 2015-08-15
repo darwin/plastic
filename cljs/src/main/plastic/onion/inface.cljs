@@ -3,7 +3,7 @@
                    [plastic.main.glue :refer [dispatch react!]])
   (:require [plastic.main.frame]
             [plastic.onion.api :as api]
-            [plastic.util.dom-shim]
+            [plastic.util.dom.shim]
             [clojure.string :as string]))
 
 (defonce ids->views (atom {}))

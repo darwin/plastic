@@ -1,4 +1,4 @@
-(ns plastic.worker.editor.analysis.core
+(ns plastic.worker.editor.analysis
   (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]]
                    [plastic.worker.glue :refer [react! dispatch main-dispatch]])
   (:require [rewrite-clj.zip :as zip]

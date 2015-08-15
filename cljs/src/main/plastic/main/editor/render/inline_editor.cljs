@@ -4,7 +4,7 @@
   (:require [reagent.core :as reagent]
             [plastic.onion.api :refer [$]]
             [plastic.main.editor.render.dom :as dom]
-            [plastic.onion.core :as onion]))
+            [plastic.onion.atom :as onion]))
 
 ; inline-editor-component is only an empty shell for existing atom editor instance to be attached there
 ; shared atom editor instance is managed by onion (created outside clojurescript land, one instance per editor)

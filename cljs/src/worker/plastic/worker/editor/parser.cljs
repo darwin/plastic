@@ -1,4 +1,4 @@
-(ns plastic.worker.editor.parser.core
+(ns plastic.worker.editor.parser
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
                    [plastic.worker.glue :refer [react! dispatch]])
   (:require [plastic.worker.frame :refer [subscribe register-handler]]

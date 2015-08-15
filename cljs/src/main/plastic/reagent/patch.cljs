@@ -1,4 +1,4 @@
-(ns plastic.reagent.core
+(ns plastic.reagent.patch
   (:require-macros [plastic.logging :refer [log info warn error group group-end with-group-collapsed stopwatch ms fancy-log* measure-time]])
   (:require [plastic.main.schema.paths]
             [plastic.env :as env]

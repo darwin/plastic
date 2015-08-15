@@ -1,9 +1,9 @@
 (ns plastic.main.editor.render.dom
   (:refer-clojure :exclude [find])
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.util.dom-shim]
+  (:require [plastic.util.dom.shim]
             [plastic.onion.api :refer [$]]
-            [plastic.onion.core :as onion]
+            [plastic.onion.atom :as onion]
             [clojure.string :as string]
             [plastic.main.editor.toolkit.id :as id]))
 

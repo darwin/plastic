@@ -3,7 +3,7 @@
                    [plastic.main.glue :refer [react! dispatch worker-dispatch]])
   (:require [plastic.main.frame :refer [subscribe register-handler]]
             [plastic.main.schema.paths :as paths]
-            [plastic.onion.core :as onion]))
+            [plastic.onion.atom :as onion]))
 
 (defn fetch-text [editors [editor-id uri]]
   (onion/load-file-content uri #(worker-dispatch :editor-set-text editor-id %))

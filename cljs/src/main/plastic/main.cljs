@@ -1,4 +1,4 @@
 (ns plastic.main
   (:require [plastic.env]))
 
-; leave this file empty, see boot.coffee
+; leave this namespace empty, we will require root namespaces by hand,, see boot.coffee

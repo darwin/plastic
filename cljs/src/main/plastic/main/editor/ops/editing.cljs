@@ -5,7 +5,7 @@
             [plastic.main.editor.model :as editor]
             [plastic.main.editor.ops.cursor :as cursor]
             [plastic.main.editor.toolkit.id :as id]
-            [plastic.onion.core :as onion]))
+            [plastic.onion.atom :as onion]))
 
 (defn xform-on-worker [editor command+args & [callback]]
   (worker-dispatch-args (vec (concat [:editor-xform (editor/get-id editor)] command+args)) callback)
