@@ -2,18 +2,18 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]]
                    [plastic.worker.glue :refer [main-dispatch]]
                    [cljs.core.async.macros :refer [go-loop go]])
-  (:require [plastic.worker.frame.core :as frame :refer [pure trim-v]]
+  (:require [plastic.env :as env]
+            [plastic.worker.frame.core :as frame :refer [pure trim-v]]
             [plastic.worker.frame.router :refer [event-chan purge-chan]]
-            [plastic.env :as env]
             [plastic.worker.frame.handlers :refer [handle register-base]]
             [cljs.core.async :refer [chan put! <!]]))
 
-(def ^:dynamic *current-event-id* nil)
-(def ^:dynamic *event-id-counters* {})
+(def ^:dynamic *current-job-id* nil)
+(def ^:dynamic *pending-jobs-counters* {})
 
 (defn timing [handler]
   (fn timing-handler [db v]
-    (measure-time (or env/bench-processing env/bench-main-processing) "PROCESS" [v (str "#" *current-event-id*)]
+    (measure-time (or env/bench-processing env/bench-main-processing) "PROCESS" [v (str "#" *current-job-id*)]
       (handler db v))))
 
 (defn log-ex [handler]
@@ -35,33 +35,38 @@
 
 (def subscribe frame/subscribe)
 
-(defn process-event-and-silently-swallow-exceptions [event-v]
+(defn handle-event-and-silently-swallow-exceptions [event]
   (try
-    (handle event-v)
+    (handle event)
     (catch :default _)))
 
-(defn update-counter [id]
-  (let [old-counter (get *event-id-counters* id)
-        new-counter (dec old-counter)]
-    (if (zero? new-counter)
-      (do
-        (set! *event-id-counters* (dissoc *event-id-counters* id))
-        (main-dispatch :worker-job-done id))
-      (set! *event-id-counters* (assoc *event-id-counters* id new-counter)))))
+(defn inc-counter-for-job [job-id]
+  (set! *pending-jobs-counters* (update *pending-jobs-counters* job-id inc)))
 
-(defn raise-counter [id]
-  (set! *event-id-counters* (update *event-id-counters* id inc)))
+(defn dec-counter-for-job [job-id]
+  (set! *pending-jobs-counters* (update *pending-jobs-counters* job-id dec))
+  (get *pending-jobs-counters* job-id))
+
+(defn remove-counter-for-job [job-id]
+  (set! *pending-jobs-counters* (dissoc *pending-jobs-counters* job-id)))
+
+(defn update-counter-for-job [job-id]
+  (when (zero? (dec-counter-for-job job-id))
+    (remove-counter-for-job job-id)
+    (main-dispatch :worker-job-done job-id)))
 
 (defn worker-loop []
   (go-loop []
-    (let [[id event-v] (<! event-chan)]
-      (binding [*current-event-id* id
+    (let [[job-id event] (<! event-chan)]
+      (binding [*current-job-id* job-id
                 plastic.env/*current-thread* "WORK"]
-        (process-event-and-silently-swallow-exceptions event-v))
-      (update-counter id)
+        (handle-event-and-silently-swallow-exceptions event))
+      (if-not (zero? job-id)                                ; jobs with id 0 are without continuation
+        (update-counter-for-job job-id))
       (recur))))
 
-(defn dispatch [id event-v]
-  (raise-counter id)
-  (put! event-chan [id event-v])
+(defn dispatch [job-id event]
+  (if-not (zero? job-id)                                    ; jobs with id 0 are without continuation
+    (inc-counter-for-job job-id))
+  (put! event-chan [job-id event])
   nil)

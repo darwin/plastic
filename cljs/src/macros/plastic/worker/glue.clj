@@ -12,7 +12,7 @@
      (plastic.worker.frame/dispatch id# event+args#)))
 
 (defmacro dispatch [& event+args]
-  `(dispatch-args plastic.worker.frame/*current-event-id* [~@event+args]))
+  `(dispatch-args plastic.worker.frame/*current-job-id* [~@event+args]))
 
 (defmacro main-dispatch-args [id event+args]
   `(let [event+args# ~event+args
@@ -20,7 +20,7 @@
      (plastic.worker.servant/dispatch-on-main id# event+args#)))
 
 (defmacro main-dispatch [& event+args]
-  `(main-dispatch-args plastic.worker.frame/*current-event-id* [~@event+args]))
+  `(main-dispatch-args plastic.worker.frame/*current-job-id* [~@event+args]))
 
 (defmacro react!
   "Runs body immediately, and runs again whenever atoms deferenced in the body change. Body should side effect."

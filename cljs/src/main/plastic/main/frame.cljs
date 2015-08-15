@@ -1,13 +1,13 @@
 (ns plastic.main.frame
   (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]]
                    [cljs.core.async.macros :refer [go-loop go]])
-  (:require [plastic.main.frame.core :as frame :refer [pure trim-v]]
-            [plastic.env :as env]
+  (:require [plastic.env :as env]
+            [plastic.main.frame.core :as frame :refer [pure trim-v]]
             [plastic.main.frame.router :refer [event-chan purge-chan]]
             [plastic.main.frame.handlers :refer [handle register-base]]
             [cljs.core.async :refer [chan put! <!]]))
 
-(def ^:dynamic *current-event-id* nil)
+(defonce ^:dynamic *current-job-id* nil)
 (defonce ^:dynamic effects (js-obj))
 
 (defn register-after-effect [id fun]
@@ -18,7 +18,7 @@
 
 (defn timing [handler]
   (fn timing-handler [db v]
-    (measure-time (or env/bench-processing env/bench-main-processing) "PROCESS" [v (str "#" *current-event-id*)]
+    (measure-time (or env/bench-processing env/bench-main-processing) "PROCESS" [v (str "#" *current-job-id*)]
       (handler db v))))
 
 (defn log-ex [handler]
@@ -38,31 +38,31 @@
   ([id handler] (register-handler id nil handler))
   ([id middleware handler] (register-base id [pure log-ex timing trim-v middleware] handler)))
 
-(defn event-separator [db [id]]
+(defn job-done [db [job-id]]
   (or
-    (if-let [after-effect (aget effects id)]
+    (if-let [after-effect (aget effects job-id)]
       (when-let [new-db-after-effect (after-effect db)]
-        (unregister-after-effect id)
+        (unregister-after-effect job-id)
         new-db-after-effect))
     db))
 
-(register-handler :worker-job-done event-separator)
+(register-handler :worker-job-done job-done)
 
 (def subscribe frame/subscribe)
 
-(defn process-event-and-silently-swallow-exceptions [event-v]
+(defn handle-event-and-silently-swallow-exceptions [event]
   (try
-    (handle event-v)
+    (handle event)
     (catch :default _)))
 
 (defn main-loop []
   (go-loop []
-    (let [[id event-v] (<! event-chan)]
-      (binding [*current-event-id* id
+    (let [[id event] (<! event-chan)]
+      (binding [*current-job-id* id
                 plastic.env/*current-thread* "MAIN"]
-        (process-event-and-silently-swallow-exceptions event-v))
+        (handle-event-and-silently-swallow-exceptions event))
       (recur))))
 
-(defn dispatch [id event-v]
-  (put! event-chan [id event-v])
+(defn dispatch [job-id event]
+  (put! event-chan [job-id event])
   nil)
