@@ -1,6 +1,6 @@
 (ns plastic.worker.frame
   (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]]
-                   [plastic.worker.glue :refer [main-dispatch]]
+                   [plastic.worker :refer [main-dispatch]]
                    [cljs.core.async.macros :refer [go-loop go]])
   (:require [plastic.env :as env]
             [plastic.worker.frame.core :as frame :refer [pure trim-v]]

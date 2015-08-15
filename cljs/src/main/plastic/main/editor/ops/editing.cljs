@@ -1,6 +1,6 @@
 (ns plastic.main.editor.ops.editing
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.main.glue :refer [worker-dispatch worker-dispatch-with-effect worker-dispatch-args]])
+                   [plastic.main :refer [worker-dispatch worker-dispatch-with-effect worker-dispatch-args]])
   (:require [plastic.main.frame :refer [subscribe register-handler]]
             [plastic.main.editor.model :as editor]
             [plastic.main.editor.ops.cursor :as cursor]

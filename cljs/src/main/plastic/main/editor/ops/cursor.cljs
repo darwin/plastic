@@ -1,6 +1,6 @@
 (ns plastic.main.editor.ops.cursor
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.main.glue :refer [react! dispatch]])
+                   [plastic.main :refer [react! dispatch]])
   (:require [plastic.main.editor.model :as editor]
             [plastic.util.helpers :as helpers]
             [plastic.main.editor.render.dom :as dom]))

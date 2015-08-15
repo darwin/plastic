@@ -1,6 +1,6 @@
 (ns plastic.onion.remounter
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.main.glue :refer [dispatch react!]])
+                   [plastic.main :refer [dispatch react!]])
   (:require [plastic.main.frame]
             [plastic.onion.inface :refer [ids->views find-mount-point]]))
 

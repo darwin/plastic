@@ -1,6 +1,6 @@
 (ns plastic.worker.editor.analysis
   (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]]
-                   [plastic.worker.glue :refer [react! dispatch main-dispatch]])
+                   [plastic.worker :refer [react! dispatch main-dispatch]])
   (:require [rewrite-clj.zip :as zip]
             [rewrite-clj.node :as node]
             [plastic.worker.frame :refer [subscribe register-handler]]

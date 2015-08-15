@@ -1,6 +1,6 @@
 (ns plastic.worker.editor.analysis.analyzer
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.worker.glue :refer [react! dispatch]]
+                   [plastic.worker :refer [react! dispatch]]
                    [cljs.core.async.macros :refer [go]]
                    ;[cljs.env.macros :refer [ensure with-compiler-env]]
                    ;[cljs.analyzer.macros :refer [no-warn wrapping-errors]]

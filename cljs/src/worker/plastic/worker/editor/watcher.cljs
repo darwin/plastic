@@ -1,6 +1,6 @@
 (ns plastic.worker.editor.watcher
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.worker.glue :refer [react!]])
+                   [plastic.worker :refer [react!]])
   (:require [plastic.worker.frame.core :refer [subscribe]]
             [clojure.data :as data]))
 

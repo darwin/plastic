@@ -1,6 +1,6 @@
 (ns plastic.main.editor.loader
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.main.glue :refer [react! dispatch worker-dispatch]])
+                   [plastic.main :refer [react! dispatch worker-dispatch]])
   (:require [plastic.main.frame :refer [subscribe register-handler]]
             [plastic.main.schema.paths :as paths]
             [plastic.onion.atom :as onion]))

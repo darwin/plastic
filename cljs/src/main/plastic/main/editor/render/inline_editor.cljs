@@ -1,6 +1,6 @@
 (ns plastic.main.editor.render.inline-editor
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.main.glue :refer [react! dispatch]])
+                   [plastic.main :refer [react! dispatch]])
   (:require [reagent.core :as reagent]
             [plastic.onion.api :refer [$]]
             [plastic.main.editor.render.dom :as dom]

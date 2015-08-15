@@ -1,6 +1,6 @@
 (ns plastic.worker.schema.subs
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.worker.glue :refer [react!]]
+                   [plastic.worker :refer [react!]]
                    [reagent.ratom :refer [reaction]])
   (:require [plastic.worker.frame.core :refer [register-sub]]
             [plastic.worker.schema.paths :as paths]

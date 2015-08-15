@@ -1,6 +1,6 @@
 (ns plastic.worker.editor.layout
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.worker.glue :refer [react! dispatch main-dispatch dispatch-args]])
+                   [plastic.worker :refer [react! dispatch main-dispatch dispatch-args]])
   (:require [rewrite-clj.zip :as zip]
             [rewrite-clj.node :as node]
             [clojure.zip :as z]

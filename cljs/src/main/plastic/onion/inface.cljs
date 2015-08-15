@@ -1,6 +1,6 @@
 (ns plastic.onion.inface
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.main.glue :refer [dispatch react!]])
+                   [plastic.main :refer [dispatch react!]])
   (:require [plastic.main.frame]
             [plastic.onion.api :as api]
             [plastic.util.dom.shim]

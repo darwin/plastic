@@ -1,6 +1,6 @@
 (ns plastic.main.editor.analysis
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.main.glue :refer [react! dispatch]])
+                   [plastic.main :refer [react! dispatch]])
   (:require [plastic.main.frame :refer [subscribe register-handler]]
             [plastic.main.schema.paths :as paths]
             [plastic.main.editor.model :as editor]

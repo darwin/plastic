@@ -1,6 +1,6 @@
 (ns plastic.worker.servant
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.worker.glue :refer [react! dispatch dispatch-args]])
+                   [plastic.worker :refer [react! dispatch dispatch-args]])
   (:require [plastic.env :as env]
             [plastic.worker.frame]
             [cognitect.transit :as transit]))

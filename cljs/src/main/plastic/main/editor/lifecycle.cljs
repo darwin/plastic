@@ -1,6 +1,6 @@
 (ns plastic.main.editor.lifecycle
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.main.glue :refer [dispatch react! worker-dispatch]])
+                   [plastic.main :refer [dispatch react! worker-dispatch]])
   (:require [plastic.main.frame :refer [subscribe register-handler]]
             [plastic.main.servant]
             [plastic.main.editor.render :as render]

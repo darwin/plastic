@@ -1,6 +1,6 @@
 (ns plastic.main.init
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.main.glue :refer [worker-dispatch worker-dispatch-with-effect worker-dispatch-args]])
+                   [plastic.main :refer [worker-dispatch worker-dispatch-with-effect worker-dispatch-args]])
   (:require [plastic.env]
             [plastic.reagent.patch]
             [plastic.onion.atom]

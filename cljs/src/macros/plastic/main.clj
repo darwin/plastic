@@ -1,4 +1,4 @@
-(ns plastic.worker.glue
+(ns plastic.main
   (:require [plastic.logging :refer [log info warn error group group-end fancy-log*]]))
 
 ; -------------------------------------------------------------------------------------------
@@ -7,20 +7,22 @@
 (defmacro dispatch-args [id event+args]
   `(let [event+args# ~event+args
          id# ~id]
-     (if (or plastic.env/log-all-dispatches plastic.env/log-worker-dispatches)
-       (fancy-log* "" "WORK" "DISPATCH" event+args# (str "#" id#)))
-     (plastic.worker.frame/dispatch id# event+args#)))
+     (if (or plastic.env/log-all-dispatches plastic.env/log-main-dispatches)
+       (fancy-log* "" "MAIN" "DISPATCH" event+args# (str "#" id#)))
+     (plastic.main.frame/dispatch id# event+args#)))
 
 (defmacro dispatch [& event+args]
-  `(dispatch-args plastic.worker.frame/*current-job-id* [~@event+args]))
+  `(dispatch-args 0 [~@event+args]))
 
-(defmacro main-dispatch-args [id event+args]
-  `(let [event+args# ~event+args
-         id# ~id]
-     (plastic.worker.servant/dispatch-on-main id# event+args#)))
+(defmacro worker-dispatch-args [event+args after-effect]
+  `(let [event+args# ~event+args]
+     (plastic.main.servant/dispatch-on-worker event+args# ~after-effect)))
 
-(defmacro main-dispatch [& event+args]
-  `(main-dispatch-args plastic.worker.frame/*current-job-id* [~@event+args]))
+(defmacro worker-dispatch [& event+args]
+  `(worker-dispatch-args [~@event+args] nil))
+
+(defmacro worker-dispatch-with-effect [event+args effect]
+  `(worker-dispatch-args ~event+args ~effect))
 
 (defmacro react!
   "Runs body immediately, and runs again whenever atoms deferenced in the body change. Body should side effect."
