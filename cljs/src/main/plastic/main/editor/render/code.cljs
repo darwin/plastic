@@ -3,7 +3,7 @@
   (:require [plastic.main.editor.render.utils :refer [wrap-specials classv apply-shadowing-subscripts]]
             [plastic.main.editor.render.inline-editor :refer [inline-editor-component]]
             [plastic.main.editor.render.reusables :refer [raw-html-component]]
-            [plastic.main.frame.core :refer [subscribe]]
+            [plastic.main.frame :refer [subscribe]]
             [plastic.util.helpers :as helpers]
             [plastic.main.editor.toolkit.id :as id]))
 

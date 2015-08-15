@@ -1,7 +1,7 @@
 (ns plastic.main.editor.watcher
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
                    [plastic.main :refer [react!]])
-  (:require [plastic.main.frame.core :refer [subscribe]]
+  (:require [plastic.main.frame :refer [subscribe]]
             [clojure.data :as data]))
 
 (defonce ^:dynamic prev nil)

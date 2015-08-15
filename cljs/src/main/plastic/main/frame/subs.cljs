@@ -1,6 +1,5 @@
 (ns plastic.main.frame.subs
-  (:require [plastic.main.db :refer [db]]
-            [plastic.main.frame.utils :refer [first-in-vector]])
+  (:require [plastic.main.frame.utils :refer [first-in-vector]])
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
                    [plastic.common :refer [defonce]]))
 
@@ -25,7 +24,7 @@
 
 (defn subscribe
   "Returns a reagent/reaction which observes a part of app-db"
-  [v]
+  [db v]
   (let [key-v (first-in-vector v)
         handler-fn (get @key->fn key-v)]
     (if (nil? handler-fn)

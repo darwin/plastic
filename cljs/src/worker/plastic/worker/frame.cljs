@@ -3,6 +3,7 @@
                    [plastic.worker :refer [main-dispatch]]
                    [cljs.core.async.macros :refer [go-loop go]])
   (:require [plastic.worker.frame.counters :as counters]
+            [plastic.worker.db :refer [db]]
             [plastic.worker.frame.core :as frame :refer [pure trim-v]]
             [plastic.worker.frame.router :refer [event-chan purge-chan]]
             [plastic.worker.frame.handlers :refer [handle register-base]]
@@ -32,19 +33,19 @@
   ([id handler] (register-handler id nil handler))
   ([id middleware handler] (register-base id [pure log-ex timing trim-v middleware] handler)))
 
-(def subscribe frame/subscribe)
+(def subscribe (partial frame/subscribe db))
 
-(defn handle-event-and-silently-swallow-exceptions [event]
+(defn handle-event-and-silently-swallow-exceptions [db event]
   (try
-    (handle event)
+    (handle db event)
     (catch :default _)))
 
-(defn worker-loop []
+(defn worker-loop [db]
   (go-loop []
     (let [[job-id event] (<! event-chan)]
       (binding [*current-job-id* job-id
                 plastic.env/*current-thread* "WORK"]
-        (handle-event-and-silently-swallow-exceptions event))
+        (handle-event-and-silently-swallow-exceptions db event))
       (if-not (zero? job-id)                                ; jobs with id 0 are without continuation
         (counters/update-counter-for-job job-id))
       (recur))))

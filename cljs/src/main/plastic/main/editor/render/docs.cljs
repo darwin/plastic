@@ -3,7 +3,7 @@
   (:require [plastic.main.editor.render.utils :refer [dangerously-set-html wrap-specials classv]]
             [plastic.main.editor.render.inline-editor :refer [inline-editor-component]]
             [plastic.main.editor.render.reusables :refer [raw-html-component]]
-            [plastic.main.frame.core :refer [subscribe]]))
+            [plastic.main.frame :refer [subscribe]]))
 
 (defn doc-component [editor-id form-id node-id]
   (let [selected? (subscribe [:editor-selection-node editor-id node-id])

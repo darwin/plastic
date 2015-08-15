@@ -1,6 +1,5 @@
 (ns plastic.worker.frame.handlers
-  (:require [plastic.worker.db :refer [db]]
-            [plastic.worker.frame.utils :refer [first-in-vector]])
+  (:require [plastic.worker.frame.utils :refer [first-in-vector]])
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]))
 
 
@@ -86,7 +85,7 @@
     - the event vector
   The handler is assumed to side-effect on `app-db` - the return value is ignored.
   To write a pure handler, use the \"pure\" middleware when registering the handler."
-  [event-v]
+  [db event-v]
   (let [event-id (first-in-vector event-v)
         handler-fn (lookup-handler event-id)]
     (if (nil? handler-fn)
