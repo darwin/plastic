@@ -1,8 +1,7 @@
 (ns plastic.main.frame
   (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]]
                    [cljs.core.async.macros :refer [go-loop go]])
-  (:require [plastic.env :as env]
-            [plastic.main.frame.core :as frame :refer [pure trim-v]]
+  (:require [plastic.main.frame.core :as frame :refer [pure trim-v]]
             [plastic.main.frame.router :refer [event-chan purge-chan]]
             [plastic.main.frame.handlers :refer [handle register-base]]
             [cljs.core.async :refer [chan put! <!]]))
@@ -18,7 +17,7 @@
 
 (defn timing [handler]
   (fn timing-handler [db v]
-    (measure-time (or env/bench-processing env/bench-main-processing) "PROCESS" [v (str "#" *current-job-id*)]
+    (measure-time (or plastic.env.bench-processing plastic.env.bench-main-processing) "PROCESS" [v (str "#" *current-job-id*)]
       (handler db v))))
 
 (defn log-ex [handler]
@@ -63,6 +62,6 @@
         (handle-event-and-silently-swallow-exceptions event))
       (recur))))
 
-(defn dispatch [job-id event]
+(defn ^:export dispatch [job-id event]
   (put! event-chan [job-id event])
   nil)

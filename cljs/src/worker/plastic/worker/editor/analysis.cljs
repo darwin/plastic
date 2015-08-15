@@ -3,6 +3,7 @@
                    [plastic.worker :refer [react! dispatch main-dispatch]])
   (:require [rewrite-clj.zip :as zip]
             [rewrite-clj.node :as node]
+            [plastic.worker.servant]
             [plastic.worker.frame :refer [subscribe register-handler]]
             [plastic.worker.editor.model :as editor]
             [plastic.worker.editor.layout.analysis.calls :refer [analyze-calls]]
@@ -25,8 +26,8 @@
 (defn run-analysis-for-editor-and-form [editor opts form-loc]
   (main-dispatch :editor-commit-analysis (editor/get-id editor) (zip-utils/loc-id form-loc) (prepare-form-analysis form-loc opts))
   #_(let [old-analysis nil #_(editor/get-analysis-for-form editor (zip-utils/loc-id form-loc))] ; TODO: optimize
-    (if-not (= (:node old-analysis) (z/node form-loc))      ; skip analysis if nothing changed
-      (main-dispatch :editor-commit-analysis (editor/get-id editor) (zip-utils/loc-id form-loc) (prepare-form-analysis form-loc opts)))))
+      (if-not (= (:node old-analysis) (z/node form-loc))    ; skip analysis if nothing changed
+        (main-dispatch :editor-commit-analysis (editor/get-id editor) (zip-utils/loc-id form-loc) (prepare-form-analysis form-loc opts)))))
 
 (defn run-analysis-for-editor-and-forms [form-selector opts editor]
   (if (editor/parsed? editor)

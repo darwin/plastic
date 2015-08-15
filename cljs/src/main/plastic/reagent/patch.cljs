@@ -1,7 +1,6 @@
 (ns plastic.reagent.patch
   (:require-macros [plastic.logging :refer [log info warn error group group-end with-group-collapsed stopwatch ms fancy-log* measure-time]])
   (:require [plastic.main.schema.paths]
-            [plastic.env :as env]
             [reagent.impl.batching :as batching]
             [reagent.interop :refer-macros [.' .!]]
             [reagent.impl.component :as comp]))
@@ -27,11 +26,11 @@
   (try
     (.sort a compare-mount-order)
     (let [len (alength a)]
-      (measure-time env/bench-render-queue "RENDER-Q" [a]
+      (measure-time plastic.env.bench-render-queue "RENDER-Q" [a]
         (dotimes [i len]
           (let [c (aget a i)]
             (when (.' c :cljsIsDirty)
-              (measure-time env/bench-rendering "RENDER-C" [(.cljsName c)]
+              (measure-time plastic.env.bench-rendering "RENDER-C" [(.cljsName c)]
                 (.' c forceUpdate)))))))
     (catch js/Error e                                       ;  You don't need it any more IF YOU ARE USING CHROME 44. Chrome now seems to now produce good stack traces.
       (do

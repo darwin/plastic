@@ -1,8 +1,7 @@
 (ns plastic.worker.servant
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
                    [plastic.worker :refer [react! dispatch dispatch-args]])
-  (:require [plastic.env :as env]
-            [plastic.worker.frame]
+  (:require [plastic.worker.frame]
             [cognitect.transit :as transit]))
 
 (defn ^:export dispatch-message [data]
@@ -23,9 +22,9 @@
                "id" id
                "command" "dispatch"
                "args" (transit/write writer args))]
-    (if-not env/run-worker-on-main-thread
+    (if-not plastic.env.run-worker-on-main-thread
       (.postMessage js/self data)
       (plastic.main.servant.dispatch-message data))))
 
-(defn dispatch-on-main [id event-v]
+(defn ^:export dispatch-on-main [id event-v]
   (post-dispatch-message id event-v))

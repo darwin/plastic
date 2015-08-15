@@ -7,16 +7,16 @@
 (defmacro dispatch-args [id event+args]
   `(let [event+args# ~event+args
          id# ~id]
-     (if (or plastic.env/log-all-dispatches plastic.env/log-main-dispatches)
+     (if (or plastic.env.log-all-dispatches plastic.env.log-main-dispatches)
        (fancy-log* "" "MAIN" "DISPATCH" event+args# (str "#" id#)))
-     (plastic.main.frame/dispatch id# event+args#)))
+     (plastic.main.frame.dispatch id# event+args#)))
 
 (defmacro dispatch [& event+args]
   `(dispatch-args 0 [~@event+args]))
 
 (defmacro worker-dispatch-args [event+args after-effect]
   `(let [event+args# ~event+args]
-     (plastic.main.servant/dispatch-on-worker event+args# ~after-effect)))
+     (plastic.main.servant.dispatch-on-worker event+args# ~after-effect)))
 
 (defmacro worker-dispatch [& event+args]
   `(worker-dispatch-args [~@event+args] nil))

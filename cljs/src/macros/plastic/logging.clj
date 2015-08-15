@@ -72,18 +72,18 @@
        ~@args)))
 
 (defmacro fancy-log [label & args]
-  `(fancy-log* "" plastic.env/*current-thread* ~label ~@args))
+  `(fancy-log* "" plastic.env.*current-thread* ~label ~@args))
 
 (defmacro ms [val]
   `(str (.toFixed ~val 3) "ms"))
 
 ; see https://developers.google.com/web/updates/2012/08/When-milliseconds-are-not-enough-performance-now
 (defmacro measure-time [enabled? label more & body]
-  `(if (or plastic.env/bench-all ~enabled?)
+  `(if (or plastic.env.bench-all ~enabled?)
      (let [start# (.now js/performance)
            ret# ~@body
            diff# (- (.now js/performance) start#)]
-       (fancy-log* (ms diff#) plastic.env/*current-thread* ~label ~@more)
+       (fancy-log* (ms diff#) plastic.env.*current-thread* ~label ~@more)
        ret#)
      (let [res# ~@body]
        res#)))
@@ -96,7 +96,7 @@
 
 (defmacro log-render [title params & body]
   `(do
-     (if plastic.env/log-rendering
+     (if plastic.env.log-rendering
        (plastic.logging/fancy-log "RENDER" ~title ~params))
      (let [res# ~@body]
        res#)))

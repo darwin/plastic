@@ -2,18 +2,17 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]]
                    [plastic.worker :refer [main-dispatch]]
                    [cljs.core.async.macros :refer [go-loop go]])
-  (:require [plastic.env :as env]
+  (:require [plastic.worker.frame.counters :as counters]
             [plastic.worker.frame.core :as frame :refer [pure trim-v]]
             [plastic.worker.frame.router :refer [event-chan purge-chan]]
             [plastic.worker.frame.handlers :refer [handle register-base]]
             [cljs.core.async :refer [chan put! <!]]))
 
 (def ^:dynamic *current-job-id* nil)
-(def ^:dynamic *pending-jobs-counters* {})
 
 (defn timing [handler]
   (fn timing-handler [db v]
-    (measure-time (or env/bench-processing env/bench-main-processing) "PROCESS" [v (str "#" *current-job-id*)]
+    (measure-time (or plastic.env.bench-processing plastic.env.bench-main-processing) "PROCESS" [v (str "#" *current-job-id*)]
       (handler db v))))
 
 (defn log-ex [handler]
@@ -40,21 +39,6 @@
     (handle event)
     (catch :default _)))
 
-(defn inc-counter-for-job [job-id]
-  (set! *pending-jobs-counters* (update *pending-jobs-counters* job-id inc)))
-
-(defn dec-counter-for-job [job-id]
-  (set! *pending-jobs-counters* (update *pending-jobs-counters* job-id dec))
-  (get *pending-jobs-counters* job-id))
-
-(defn remove-counter-for-job [job-id]
-  (set! *pending-jobs-counters* (dissoc *pending-jobs-counters* job-id)))
-
-(defn update-counter-for-job [job-id]
-  (when (zero? (dec-counter-for-job job-id))
-    (remove-counter-for-job job-id)
-    (main-dispatch :worker-job-done job-id)))
-
 (defn worker-loop []
   (go-loop []
     (let [[job-id event] (<! event-chan)]
@@ -62,11 +46,11 @@
                 plastic.env/*current-thread* "WORK"]
         (handle-event-and-silently-swallow-exceptions event))
       (if-not (zero? job-id)                                ; jobs with id 0 are without continuation
-        (update-counter-for-job job-id))
+        (counters/update-counter-for-job job-id))
       (recur))))
 
-(defn dispatch [job-id event]
+(defn ^:export dispatch [job-id event]
   (if-not (zero? job-id)                                    ; jobs with id 0 are without continuation
-    (inc-counter-for-job job-id))
+    (counters/inc-counter-for-job job-id))
   (put! event-chan [job-id event])
   nil)
