@@ -3,6 +3,7 @@
                    [cljs.core.async.macros :refer [go]])
   (:require [cljs.pprint :as pprint :refer [pprint]]
             [cljs.core.async :refer [put! <! chan timeout close!]]
+            [goog.object :as gobj]
             [clojure.set :as set]
             [cuerdas.core :as str]))
 
@@ -156,3 +157,11 @@
           (dissoc m k)))
       m)
     (dissoc m k)))
+
+; https://gist.github.com/ptaoussanis/2556c56d93bde4af0415
+(defn oget
+  "Like `aget` for JS objects, Ref. https://goo.gl/eze8hY. Unlike `aget`,
+  returns nil for missing keys instead of throwing."
+  ([o k] (when o (gobj/get o k nil)))
+  ([o k1 k2] (when-let [o (oget o k1)] (gobj/get o k2 nil))) ; Optimized common case
+  ([o k1 k2 & ks] (when-let [o (oget o k1 k2)] (apply oget o ks)))) ; Can also lean on optimized 2-case
