@@ -1,8 +1,9 @@
 (ns plastic.main.frame
   (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]]
                    [cljs.core.async.macros :refer [go-loop go]])
-  (:require [plastic.main.frame.core :as frame :refer [pure trim-v]]
+  (:require [plastic.main.frame.middleware :refer [pure trim-v]]
             [plastic.main.frame.router :refer [event-chan purge-chan]]
+            [plastic.main.frame.subs :as subs]
             [plastic.main.frame.handlers :refer [handle register-base *handling*]]
             [plastic.main.db :refer [db]]
             [reagent.core :as reagent]
@@ -43,7 +44,8 @@
   ([id handler] (register-handler id nil handler))
   ([id middleware handler] (register-base id [pure log-ex timing trim-v middleware] handler)))
 
-(def subscribe (partial frame/subscribe db))
+(def subscribe (partial subs/subscribe db))
+(def register-sub subs/register)
 
 (defn handle-event-and-silently-swallow-exceptions [db event]
   (try

@@ -36,14 +36,14 @@
 ;;
 
 (defn router-loop
-  []
+  [db]
   (go-loop []
     (let [event-v (<! event-chan)                           ;; wait for an event
           _ (if (:flush-dom (meta event-v))                 ;; check the event for metadata
               (do (flush) (<! (timeout 20)))                ;; wait just over one annimation frame (16ms), to rensure all pending GUI work is flushed to the DOM.
               (<! (timeout 0)))]                            ;; just in case we are handling one dispatch after an other, give the browser back control to do its stuff
       (try
-        (handle event-v)
+        (handle db event-v)
 
         ;; If the handler throws:
         ;;   - allow the exception to bubble up because the app, in production,
@@ -57,7 +57,7 @@
           (do
             ;; try to recover from this (probably uncaught) error as best we can
             (purge-chan)                                    ;; get rid of any pending events
-            (router-loop)                                   ;; Exception throw will cause termination of go-loop. So, start another.
+            (router-loop db)                                   ;; Exception throw will cause termination of go-loop. So, start another.
 
             (throw e)))))                                   ;; re-throw so the rest of the app's infrastructure (window.onerror?) gets told
     (recur)))
@@ -83,6 +83,6 @@
 
   Usage example:
      (dispatch-sync [:delete-item 42])"
-  [event-v]
-  (handle event-v)
+  [db event-v]
+  (handle db event-v)
   nil)                                                      ;; Ensure nil return. See https://github.com/Day8/re-frame/wiki/Beware-Returning-False

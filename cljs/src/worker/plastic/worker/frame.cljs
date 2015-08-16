@@ -4,7 +4,8 @@
                    [cljs.core.async.macros :refer [go-loop go]])
   (:require [plastic.worker.frame.counters :as counters]
             [plastic.worker.db :refer [db]]
-            [plastic.worker.frame.core :as frame :refer [pure trim-v]]
+            [plastic.worker.frame.subs :as subs]
+            [plastic.worker.frame.middleware :refer [pure trim-v]]
             [plastic.worker.frame.router :refer [event-chan purge-chan]]
             [plastic.worker.frame.handlers :refer [handle register-base]]
             [cljs.core.async :refer [chan put! <!]]))
@@ -33,7 +34,8 @@
   ([id handler] (register-handler id nil handler))
   ([id middleware handler] (register-base id [pure log-ex timing trim-v middleware] handler)))
 
-(def subscribe (partial frame/subscribe db))
+(def subscribe (partial subs/subscribe db))
+(def register-sub subs/register)
 
 (defn handle-event-and-silently-swallow-exceptions [db event]
   (try
