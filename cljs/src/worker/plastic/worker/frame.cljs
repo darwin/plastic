@@ -35,7 +35,7 @@
 
 (defn handle-event-and-report-exceptions [frame-atom db event]
   (try
-    (scaffold/transduce-event-by-resetting-atom frame-atom db event) ; let re-frame handle the event
+    (frame/process-event-on-atom @frame-atom db event)
     (catch :default e
       (error e (.-stack e)))))
 
