@@ -3,57 +3,54 @@
                    [plastic.worker :refer [main-dispatch]]
                    [cljs.core.async.macros :refer [go-loop go]])
   (:require [plastic.worker.frame.counters :as counters]
+            [cljs.core.async :refer [chan put! <!]]
             [plastic.worker.db :refer [db]]
-            [plastic.worker.frame.subs :as subs]
-            [plastic.worker.frame.middleware :refer [pure trim-v]]
-            [plastic.worker.frame.router :refer [event-chan purge-chan]]
-            [plastic.worker.frame.handlers :refer [handle register-base]]
-            [cljs.core.async :refer [chan put! <!]]))
+            [re-frame.middleware :as middleware]
+            [re-frame.scaffold :as scaffold]
+            [re-frame.frame :as frame]
+            [re-frame.utils :as utils]))
 
-(def ^:dynamic *current-job-id* nil)
+(defonce ^:dynamic *current-job-id* nil)
+(defonce ^:private event-chan (chan))
+(defonce worker-frame (atom (frame/make-frame)))
 
 (defn timing [handler]
   (fn timing-handler [db v]
     (measure-time (or plastic.env.bench-processing plastic.env.bench-main-processing) "PROCESS" [v (str "#" *current-job-id*)]
       (handler db v))))
 
-(defn log-ex [handler]
-  (fn log-ex-handler [db v]
-    (try
-      (handler db v)
-      (catch js/Error e                                     ;  You don't need it any more IF YOU ARE USING CHROME 44. Chrome now seems to now produce good stack traces.
-        (do
-          (.error js/console (.-stack e))
-          (throw e)))
-      (catch :default e
-        (do
-          (.error js/console e)
-          (throw e))))))
+(def path (middleware/path worker-frame))
+
+(def common-middleware [timing (middleware/trim-v worker-frame)])
 
 (defn register-handler
-  ([id handler] (register-handler id nil handler))
-  ([id middleware handler] (register-base id [pure log-ex timing trim-v middleware] handler)))
+  ([event-id handler-fn] (register-handler event-id nil handler-fn))
+  ([event-id middleware handler-fn] (scaffold/register-base worker-frame event-id [common-middleware middleware] handler-fn)))
 
-(def subscribe (partial subs/subscribe db))
-(def register-sub subs/register)
+(defn register-sub [subscription-id handler-fn]
+  (swap! worker-frame #(frame/register-subscription-handler % subscription-id handler-fn)))
 
-(defn handle-event-and-silently-swallow-exceptions [db event]
+(defn subscribe [subscription-spec]
+  (scaffold/legacy-subscribe worker-frame db subscription-spec))
+
+(defn handle-event-and-report-exceptions [frame-atom db event]
   (try
-    (handle db event)
-    (catch :default _)))
-
-(defn worker-loop [db]
-  (go-loop []
-    (let [[job-id event] (<! event-chan)]
-      (binding [*current-job-id* job-id
-                plastic.env/*current-thread* "WORK"]
-        (handle-event-and-silently-swallow-exceptions db event))
-      (if-not (zero? job-id)                                ; jobs with id 0 are without continuation
-        (counters/update-counter-for-job job-id))
-      (recur))))
+    (scaffold/transduce-event-by-resetting-atom frame-atom db event) ; let re-frame handle the event
+    (catch :default e
+      (error e (.-stack e)))))
 
 (defn ^:export dispatch [job-id event]
   (if-not (zero? job-id)                                    ; jobs with id 0 are without continuation
     (counters/inc-counter-for-job job-id))
   (put! event-chan [job-id event])
   nil)
+
+(defn worker-loop []
+  (go-loop []
+    (let [[job-id event] (<! event-chan)]
+      (binding [*current-job-id* job-id
+                plastic.env/*current-thread* "WORK"]
+        (handle-event-and-report-exceptions worker-frame db event))
+      (if-not (zero? job-id)                                ; jobs with id 0 are without continuation
+        (counters/update-counter-for-job job-id))
+      (recur))))

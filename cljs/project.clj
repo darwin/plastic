@@ -7,6 +7,7 @@
                  [org.clojure/tools.reader "0.10.0-SNAPSHOT"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                  [com.cognitect/transit-cljs "0.8.220"]
+                 [re-frame "0.4.1"]
                  [rewrite-cljs "0.3.1"]
                  [binaryage/devtools "0.1.2"]               ; Electron 0.28.2 has old Blink, we have to stick with this old version of devtools for now
                  [figwheel "0.3.7"]
@@ -30,7 +31,8 @@
              :server-logfile ".tmp/figwheel_server.log"}
 
   :cljsbuild {:builds [{:id "dev"
-                        :source-paths ["src/macros"
+                        :source-paths ["checkouts/re-frame/src"
+                                       "src/macros"
                                        "src/env"
                                        "src/dev"
                                        "src/common"
@@ -48,7 +50,8 @@
                                        :figwheel       true
                                        :source-map     true}}
                        {:id           "main"
-                        :source-paths ["src/macros"
+                        :source-paths ["checkouts/re-frame/src"
+                                       "src/macros"
                                        "src/env"
                                        "src/dev"
                                        "src/common"
@@ -63,7 +66,8 @@
                                        :figwheel       true
                                        :source-map     true}}
                        {:id           "worker"
-                        :source-paths ["src/macros"
+                        :source-paths ["checkouts/re-frame/src"
+                                       "src/macros"
                                        "src/env"
                                        "src/dev"
                                        "src/common"

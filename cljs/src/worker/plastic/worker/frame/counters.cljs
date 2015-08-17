@@ -1,7 +1,6 @@
 (ns plastic.worker.frame.counters
   (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]]
-                   [plastic.worker :refer [main-dispatch-args]])
-  (:require [plastic.worker.frame.router :refer [event-chan purge-chan]]))
+                   [plastic.worker :refer [main-dispatch-args]]))
 
 (def ^:dynamic *pending-jobs-counters* {})
 
