@@ -25,7 +25,7 @@
 
 ; ----------------------------------------------------------------------------------------------------------------------
 
-(defn dispatch-command [editors [editor-id xform & args]]
+(defn dispatch-xform [editors [editor-id xform & args]]
   (let [old-editor (get editors editor-id)]
     (if-let [handler (xform ops)]
       (if-let [new-editor (apply handler old-editor args)]
@@ -38,4 +38,4 @@
 ; ----------------------------------------------------------------------------------------------------------------------
 ; register handlers
 
-(register-handler :editor-xform paths/editors-path dispatch-command)
+(register-handler :editor-xform paths/editors-path dispatch-xform)
