@@ -14,9 +14,13 @@
 (defonce ^:private event-chan (chan))
 (defonce frame (atom (frame/make-frame)))
 
+(defn current-job-desc
+  ([] (current-job-desc *current-job-id*))
+  ([id] (if-not (zero? id) (str "(job " id ")") "")))
+
 (defn timing [handler]
   (fn timing-handler [db v]
-    (measure-time (or plastic.env.bench-processing plastic.env.bench-main-processing) "PROCESS" [v (str "#" *current-job-id*)]
+    (measure-time (or plastic.env.bench-processing plastic.env.bench-main-processing) "PROCESS" [v (current-job-desc)]
       (handler db v))))
 
 (def register-job jobs/register-job)

@@ -8,7 +8,7 @@
   `(let [event+args# ~event+args
          id# ~id]
      (if (or plastic.env.log-all-dispatches plastic.env.log-main-dispatches)
-       (fancy-log* "" "MAIN" "DISPATCH" event+args# (str "#" id#)))
+       (fancy-log* "" "MAIN" "DISPATCH" event+args# (plastic.main.frame.current-job-desc id#)))
      (plastic.main.frame.dispatch id# event+args#)))
 
 (defmacro dispatch [& event+args]
