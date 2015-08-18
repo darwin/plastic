@@ -4,22 +4,22 @@
 ; logging - these need to be macros to preserve source location for devtools
 
 (defmacro log [& args]
-  `(.log js/console ~@args))
+  `(do (.log js/console ~@args) nil))
 
 (defmacro info [& args]
-  `(.info js/console ~@args))
+  `(do (.info js/console ~@args) nil))
 
 (defmacro error [& args]
-  `(.error js/console ~@args))
+  `(do (.error js/console ~@args) nil))
 
 (defmacro warn [& args]
-  `(.warn js/console ~@args))
+  `(do (.warn js/console ~@args) nil))
 
 (defmacro group [& args]
-  `(.group js/console ~@args))
+  `(do (.group js/console ~@args) nil))
 
 (defmacro group-end [& args]
-  `(.groupEnd js/console ~@args))
+  `(do (.groupEnd js/console ~@args) nil))
 
 (defmacro with-group [title & body]
   `(try
