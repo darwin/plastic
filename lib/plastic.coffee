@@ -16,6 +16,8 @@ module.exports = Plastic =
 
   activate: (state) ->
     initPlastic = ->
+      goog.require("plastic.main.loop")
+      goog.require("plastic.worker.loop") if plastic.env.run_worker_on_main_thread
       bridge.send "apis", apis
       bridge.send "init", state # TODO: unserialize our part and pass rest
       
