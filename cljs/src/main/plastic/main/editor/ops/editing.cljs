@@ -93,6 +93,11 @@
             (xform-on-worker editor [:edit-node edited-node-id value-after-editing] effect)))))
     (call-continuation cb editor)))
 
+(defn apply-operation-but-preserve-editing-mode [editor op]
+  (if (editor/editing? editor)
+    (stop-editing editor (comp start-editing op))
+    (op editor)))
+
 (defn perform-enter [editor]
   (let [continuation (fn [editor]
                        (let [edit-point (get-edit-point editor)]
@@ -161,3 +166,9 @@
 
 (defn open-deref [editor]
   (open editor :open-deref [:right :down]))
+
+(defn next-token [editor]
+  (apply-operation-but-preserve-editing-mode editor cursor/next-token))
+
+(defn prev-token [editor]
+  (apply-operation-but-preserve-editing-mode editor cursor/prev-token))

@@ -34,22 +34,6 @@
       (dispatch :editor-op (editor/get-id editor) :toggle-editing))
     new-editor))
 
-(defn next-token [editor]
-  (let [editor-with-moved-selection (-> editor cursor/next-token)
-        moved-selection (editor/get-selection editor-with-moved-selection)]
-    (-> editor
-      editing/stop-editing
-      (editor/set-selection moved-selection)
-      editing/start-editing)))
-
-(defn prev-token [editor]
-  (let [editor-with-moved-selection (-> editor cursor/prev-token)
-        moved-selection (editor/get-selection editor-with-moved-selection)]
-    (-> editor
-      editing/stop-editing
-      (editor/set-selection moved-selection)
-      editing/start-editing)))
-
 (defn toggle-editing [editor]
   (if (editor/editing? editor)
     (editing/stop-editing editor)
@@ -84,8 +68,8 @@
    :structural-right structural-right
    :structural-up    structural-up
    :structural-down  structural-down
-   :next-token       next-token
-   :prev-token       prev-token
+   :next-token       editing/next-token
+   :prev-token       editing/prev-token
    :start-editing    editing/start-editing
    :stop-editing     editing/stop-editing
    :toggle-editing   toggle-editing
