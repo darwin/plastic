@@ -5,70 +5,37 @@
             [plastic.worker.schema.paths :as paths]
             [plastic.worker.editor.xforms.editing :as editing]))
 
-(defmulti handle (fn [command & _] command))
+(def ops
+  {:edit-node                         editing/edit-node
+   :enter                             editing/enter
+   :alt-enter                         editing/alt-enter
+   :space                             editing/space
+   :backspace                         editing/backspace
+   :delete                            editing/delete
+   :alt-delete                        editing/alt-delete
+   :open-list                         editing/open-list
+   :open-vector                       editing/open-vector
+   :open-map                          editing/open-map
+   :open-set                          editing/open-set
+   :open-fn                           editing/open-fn
+   :open-meta                         editing/open-meta
+   :open-quote                        editing/open-quote
+   :open-deref                        editing/open-deref
+   :insert-placeholder-as-first-child editing/insert-placeholder-as-first-child})
 
-; ----------------------------------------------------------------------------------------------------------------
+; ----------------------------------------------------------------------------------------------------------------------
 
-(defmethod handle :edit-node [_ editor edit-point value]
-  (editing/edit-node editor edit-point value))
-
-(defmethod handle :enter [_ editor edit-point]
-  (editing/enter editor edit-point))
-
-(defmethod handle :alt-enter [_ editor edit-point]
-  (editing/alt-enter editor edit-point))
-
-(defmethod handle :space [_ editor edit-point]
-  (editing/space editor edit-point))
-
-(defmethod handle :backspace [_ editor edit-point]
-  (editing/backspace editor edit-point))
-
-(defmethod handle :delete [_ editor edit-point]
-  (editing/delete editor edit-point))
-
-(defmethod handle :alt-delete [_ editor edit-point]
-  (editing/alt-delete editor edit-point))
-
-(defmethod handle :open-list [_ editor edit-point]
-  (editing/open-list editor edit-point))
-
-(defmethod handle :open-vector [_ editor edit-point]
-  (editing/open-vector editor edit-point))
-
-(defmethod handle :open-map [_ editor edit-point]
-  (editing/open-map editor edit-point))
-
-(defmethod handle :open-set [_ editor edit-point]
-  (editing/open-set editor edit-point))
-
-(defmethod handle :open-fn [_ editor edit-point]
-  (editing/open-fn editor edit-point))
-
-(defmethod handle :open-meta [_ editor edit-point]
-  (editing/open-meta editor edit-point))
-
-(defmethod handle :open-quote [_ editor edit-point]
-  (editing/open-quote editor edit-point))
-
-(defmethod handle :open-deref [_ editor edit-point]
-  (editing/open-deref editor edit-point))
-
-(defmethod handle :insert-placeholder-as-first-child [_ editor edit-point]
-  (editing/insert-placeholder-as-first-child editor edit-point))
-
-; ----------------------------------------------------------------------------------------------------------------
-
-(defmethod handle :default [command]
-  (error (str "Unknown editor command for dispatch '" command "'")))
-
-(defn dispatch-command [editors [editor-id command & args]]
+(defn dispatch-command [editors [editor-id xform & args]]
   (let [old-editor (get editors editor-id)]
-    (if-let [new-editor (apply handle command old-editor args)]
-      (assoc-in editors [editor-id] new-editor)
-      editors)))
+    (if-let [handler (xform ops)]
+      (if-let [new-editor (apply handler old-editor args)]
+        (assoc-in editors [editor-id] new-editor)
+        editors)
+      (do
+        (error (str "Unknown editor xform for dispatch '" xform "'"))
+        editors))))
 
-; ----------------------------------------------------------------------------------------------------------------
+; ----------------------------------------------------------------------------------------------------------------------
 ; register handlers
 
 (register-handler :editor-xform paths/editors-path dispatch-command)
