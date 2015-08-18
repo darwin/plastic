@@ -5,7 +5,7 @@
             [plastic.worker.schema.paths :as paths]
             [plastic.worker.editor.xforms.editing :as editing]))
 
-(def ops
+(def xforms
   {:edit-node                         editing/edit-node
    :enter                             editing/enter
    :alt-enter                         editing/alt-enter
@@ -27,7 +27,7 @@
 
 (defn dispatch-xform [editors [editor-id xform & args]]
   (let [old-editor (get editors editor-id)]
-    (if-let [handler (xform ops)]
+    (if-let [handler (xform xforms)]
       (if-let [new-editor (apply handler old-editor args)]
         (assoc-in editors [editor-id] new-editor)
         editors)

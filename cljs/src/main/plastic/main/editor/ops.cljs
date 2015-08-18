@@ -7,55 +7,48 @@
             [plastic.main.editor.ops.cursor :as cursor]
             [plastic.main.editor.model :as editor]))
 
-(defmulti handle (fn [command & _] command))
-
-; ----------------------------------------------------------------------------------------------------------------
-
-(defmethod handle :nop [_ editor]
-  editor)
-
-(defmethod handle :spatial-up [_ editor]
+(defn spatial-up [editor]
   (-> editor
     editing/stop-editing
     cursor/spatial-up))
 
-(defmethod handle :spatial-down [_ editor]
+(defn spatial-down [editor]
   (-> editor
     editing/stop-editing
     cursor/spatial-down))
 
-(defmethod handle :spatial-left [_ editor]
+(defn spatial-left [editor]
   (-> editor
     editing/stop-editing
     cursor/spatial-left))
 
-(defmethod handle :spatial-right [_ editor]
+(defn spatial-right [editor]
   (-> editor
     editing/stop-editing
     cursor/spatial-right))
 
-(defmethod handle :structural-left [_ editor]
+(defn structural-left [editor]
   (-> editor
     editing/stop-editing
     cursor/structural-left))
 
-(defmethod handle :structural-right [_ editor]
+(defn structural-right [editor]
   (-> editor
     editing/stop-editing
     cursor/structural-right))
 
-(defmethod handle :structural-up [_ editor]
+(defn structural-up [editor]
   (-> editor
     editing/stop-editing
     cursor/structural-up))
 
-(defmethod handle :structural-down [_ editor]
+(defn structural-down [editor]
   (let [new-editor (cursor/structural-down editor)]
     (if (identical? new-editor editor)
       (dispatch :editor-op (editor/get-id editor) :toggle-editing))
     new-editor))
 
-(defmethod handle :next-token [_ editor]
+(defn next-token [editor]
   (let [editor-with-moved-selection (-> editor cursor/next-token)
         moved-selection (editor/get-selection editor-with-moved-selection)]
     (-> editor
@@ -63,7 +56,7 @@
       (editor/set-selection moved-selection)
       editing/start-editing)))
 
-(defmethod handle :prev-token [_ editor]
+(defn prev-token [editor]
   (let [editor-with-moved-selection (-> editor cursor/prev-token)
         moved-selection (editor/get-selection editor-with-moved-selection)]
     (-> editor
@@ -71,76 +64,71 @@
       (editor/set-selection moved-selection)
       editing/start-editing)))
 
-(defmethod handle :toggle-editing [_ editor]
+(defn toggle-editing [editor]
   (if (editor/editing? editor)
     (editing/stop-editing editor)
     (editing/start-editing editor)))
 
-(defmethod handle :start-editing [_ editor]
-  (editing/start-editing editor))
-
-(defmethod handle :stop-editing [_ editor]
-  (editing/stop-editing editor))
-
-(defmethod handle :enter [_ editor]
+(defn enter [editor]
   {:pre [(not (editing/editing-string? editor))]}
   (editing/perform-enter editor))
 
-(defmethod handle :alt-enter [_ editor]
+(defn alt-enter [editor]
   {:pre [(not (editing/editing-string? editor))]}
   (editing/perform-alt-enter editor))
 
-(defmethod handle :space [_ editor]
+(defn space [editor]
   {:pre [(not (editing/editing-string? editor))]}
   (editing/perform-space editor))
 
-(defmethod handle :backspace [_ editor]
+(defn backspace [editor]
   (if (editor/editing? editor)
     (editing/perform-backspace-in-empty-cell editor)
     (editing/perform-backspace editor)))
 
-(defmethod handle :delete [_ editor]
-  (editing/delete-linebreak-or-token-after-cursor editor))
+; ----------------------------------------------------------------------------------------------------------------------
 
-(defmethod handle :alt-delete [_ editor]
-  (editing/delete-linebreak-or-token-before-cursor editor))
+(def ops
+  {:nop              identity
+   :spatial-up       spatial-up
+   :spatial-down     spatial-down
+   :spatial-left     spatial-left
+   :spatial-right    spatial-right
+   :structural-left  structural-left
+   :structural-right structural-right
+   :structural-up    structural-up
+   :structural-down  structural-down
+   :next-token       next-token
+   :prev-token       prev-token
+   :start-editing    editing/start-editing
+   :stop-editing     editing/stop-editing
+   :toggle-editing   toggle-editing
+   :enter            enter
+   :alt-enter        alt-enter
+   :space            space
+   :backspace        backspace
+   :delete           editing/delete-linebreak-or-token-after-cursor
+   :alt-delete       editing/delete-linebreak-or-token-before-cursor
+   :open-list        editing/open-list
+   :open-vector      editing/open-vector
+   :open-map         editing/open-map
+   :open-set         editing/open-set
+   :open-fn          editing/open-fn
+   :open-meta        editing/open-meta
+   :open-quote       editing/open-quote
+   :open-deref       editing/open-deref})
 
-(defmethod handle :open-list [_ editor]
-  (editing/open-list editor))
-
-(defmethod handle :open-vector [_ editor]
-  (editing/open-vector editor))
-
-(defmethod handle :open-map [_ editor]
-  (editing/open-map editor))
-
-(defmethod handle :open-set [_ editor]
-  (editing/open-set editor))
-
-(defmethod handle :open-fn [_ editor]
-  (editing/open-fn editor))
-
-(defmethod handle :open-meta [_ editor]
-  (editing/open-meta editor))
-
-(defmethod handle :open-quote [_ editor]
-  (editing/open-quote editor))
-
-(defmethod handle :open-deref [_ editor]
-  (editing/open-deref editor))
-
-; ----------------------------------------------------------------------------------------------------------------
-
-(defmethod handle :default [op]
-  (error (str "Unknown editor operation '" op "'")))
-
-(defn dispatch-command [editors [editor-id op]]
+(defn dispatch-op [editors [editor-id op]]
   (let [old-editor (get editors editor-id)]
-    (if-let [new-editor (handle op old-editor)]
-      (assoc-in editors [editor-id] new-editor)
-      editors)))
+    (if-let [handler (op ops)]
+      (if-let [new-editor (handler old-editor)]
+        (assoc-in editors [editor-id] new-editor)
+        editors)
+      (do
+        (error (str "Unknown editor operation '" op "'"))
+        editors))))
 
-; ----------------------------------------------------------------------------------------------------------------
+; ----------------------------------------------------------------------------------------------------------------------
 ; register handlers
 
-(register-handler :editor-op paths/editors-path dispatch-command)
+(register-handler :editor-op paths/editors-path dispatch-op)
