@@ -104,15 +104,15 @@
    :open-quote       editing/open-quote
    :open-deref       editing/open-deref})
 
-(defn dispatch-op [editors [editor-id op]]
+(defn dispatch-op* [editors [editor-id op]]
   (let [old-editor (get editors editor-id)]
     (if-let [handler (op ops)]
       (if-let [new-editor (handler old-editor)]
-        (assoc-in editors [editor-id] new-editor)
-        editors)
-      (do
-        (error (str "Unknown editor operation '" op "'"))
-        editors))))
+        (assoc-in editors [editor-id] new-editor))
+      (error (str "Unknown editor operation '" op "'")))))
+
+(defn dispatch-op [& args]
+  (or (apply dispatch-op* args) (first args)))
 
 ; ----------------------------------------------------------------------------------------------------------------------
 ; register handlers
