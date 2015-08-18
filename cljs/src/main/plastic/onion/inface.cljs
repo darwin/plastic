@@ -1,5 +1,5 @@
 (ns plastic.onion.inface
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
+  (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]]
                    [plastic.main :refer [dispatch react!]])
   (:require [plastic.main.frame]
             [plastic.onion.api :as api]
@@ -42,7 +42,9 @@
   (let [editor-id (.-id atom-view)
         internal-command (keyword (string/replace command #"^plastic:" ""))]
     (if (= internal-command :abort-keybinding)
-      (do (log "abort keybinding") (.abortKeyBinding event))
+      (do
+        (log "abort keybinding")
+        (.abortKeyBinding event))
       (do
         (dispatch :editor-op editor-id internal-command)
         (.stopPropagation event)))))
@@ -63,6 +65,10 @@
    :command           command})
 
 (defn ^:export send [msg-id & args]
+  (when (or plastic.env.log-onion plastic.env.log-onion-inface)
+    (if (= plastic.env.*current-thread* "WORK")
+      (js-debugger))
+    (fancy-log "ONION IN" msg-id args))
   (if-let [handler (get inface (keyword msg-id))]
     (apply handler args)
     (error (str "Invalid onion message '" msg-id "'"))))
