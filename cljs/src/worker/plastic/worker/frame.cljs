@@ -46,11 +46,11 @@
   nil)
 
 (defn worker-loop []
-  (go-loop []
-    (let [[job-id event] (<! event-chan)]
-      (binding [*current-job-id* job-id
-                plastic.env/*current-thread* "WORK"]
-        (handle-event-and-report-exceptions worker-frame db event))
-      (if-not (zero? job-id)                                ; jobs with id 0 are without continuation
-        (counters/update-counter-for-job job-id))
-      (recur))))
+  (binding [plastic.env/*current-thread* "WORK"]
+    (go-loop []
+      (let [[job-id event] (<! event-chan)]
+        (set! *current-job-id* job-id)
+        (handle-event-and-report-exceptions worker-frame db event)
+        (if-not (zero? job-id)                              ; jobs with id 0 are without continuation
+          (counters/update-counter-for-job job-id))
+        (recur)))))

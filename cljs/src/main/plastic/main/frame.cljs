@@ -65,9 +65,9 @@
 (register-handler :worker-job-done job-done)
 
 (defn main-loop []
-  (go-loop []
-    (let [[job-id event] (<! event-chan)]
-      (binding [plastic.env/*current-thread* "MAIN"]
+  (binding [plastic.env/*current-thread* "MAIN"]
+    (go-loop []
+      (let [[job-id event] (<! event-chan)]
         (if (zero? job-id)
           (handle-event-and-report-exceptions main-frame db event)
           (buffer-job-event job-id event)))
