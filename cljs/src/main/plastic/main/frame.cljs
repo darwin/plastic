@@ -64,11 +64,14 @@
 
 (register-handler :worker-job-done job-done)
 
+(defn handle-event [frame db job-id event]
+  (if (zero? job-id)
+    (handle-event-and-report-exceptions frame db event)
+    (buffer-job-event job-id event)))
+
 (defn main-loop []
   (binding [plastic.env/*current-thread* "MAIN"]
     (go-loop []
       (let [[job-id event] (<! event-chan)]
-        (if (zero? job-id)
-          (handle-event-and-report-exceptions main-frame db event)
-          (buffer-job-event job-id event)))
+        (handle-event main-frame db job-id event))
       (recur))))

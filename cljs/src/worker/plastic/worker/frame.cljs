@@ -33,11 +33,14 @@
 (defn subscribe [subscription-spec]
   (scaffold/legacy-subscribe worker-frame db subscription-spec))
 
-(defn handle-event-and-report-exceptions [frame-atom db event]
-  (try
-    (frame/process-event-on-atom @frame-atom db event)
-    (catch :default e
-      (error e (.-stack e)))))
+(defn handle-event-and-report-exceptions [frame-atom db job-id event]
+  (binding [*current-job-id* job-id]
+    (try
+      (frame/process-event-on-atom @frame-atom db event)
+      (catch :default e
+        (error e (.-stack e))))
+    (if-not (zero? job-id)                                  ; jobs with id 0 are without continuation
+      (counters/update-counter-for-job job-id))))
 
 (defn ^:export dispatch [job-id event]
   (if-not (zero? job-id)                                    ; jobs with id 0 are without continuation
@@ -49,8 +52,5 @@
   (binding [plastic.env/*current-thread* "WORK"]
     (go-loop []
       (let [[job-id event] (<! event-chan)]
-        (set! *current-job-id* job-id)
-        (handle-event-and-report-exceptions worker-frame db event)
-        (if-not (zero? job-id)                              ; jobs with id 0 are without continuation
-          (counters/update-counter-for-job job-id))
-        (recur)))))
+        (handle-event-and-report-exceptions worker-frame db job-id event))
+      (recur))))
