@@ -12,26 +12,26 @@
 
 (defonce ^:dynamic *current-job-id* nil)
 (defonce ^:private event-chan (chan))
-(defonce worker-frame (atom (frame/make-frame)))
+(defonce frame (atom (frame/make-frame)))
 
 (defn timing [handler]
   (fn timing-handler [db v]
     (measure-time (or plastic.env.bench-processing plastic.env.bench-main-processing) "PROCESS" [v (str "#" *current-job-id*)]
       (handler db v))))
 
-(def path (middleware/path worker-frame))
+(def path (middleware/path frame))
 
-(def common-middleware [timing (middleware/trim-v worker-frame)])
+(def common-middleware [timing (middleware/trim-v frame)])
 
 (defn register-handler
   ([event-id handler-fn] (register-handler event-id nil handler-fn))
-  ([event-id middleware handler-fn] (scaffold/register-base worker-frame event-id [common-middleware middleware] handler-fn)))
+  ([event-id middleware handler-fn] (scaffold/register-base frame event-id [common-middleware middleware] handler-fn)))
 
 (defn register-sub [subscription-id handler-fn]
-  (swap! worker-frame #(frame/register-subscription-handler % subscription-id handler-fn)))
+  (swap! frame #(frame/register-subscription-handler % subscription-id handler-fn)))
 
 (defn subscribe [subscription-spec]
-  (scaffold/legacy-subscribe worker-frame db subscription-spec))
+  (scaffold/legacy-subscribe frame db subscription-spec))
 
 (defn handle-event-and-report-exceptions [frame-atom db job-id event]
   (binding [*current-job-id* job-id]
@@ -52,5 +52,5 @@
   (binding [plastic.env/*current-thread* "WORK"]
     (go-loop []
       (let [[job-id event] (<! event-chan)]
-        (handle-event-and-report-exceptions worker-frame db job-id event))
+        (handle-event-and-report-exceptions frame db job-id event))
       (recur))))
