@@ -8,39 +8,25 @@
             [plastic.main.editor.model :as editor]))
 
 (defn spatial-up [editor]
-  (-> editor
-    editing/stop-editing
-    cursor/spatial-up))
+  (-> editor editing/stop-editing cursor/spatial-up))
 
 (defn spatial-down [editor]
-  (-> editor
-    editing/stop-editing
-    cursor/spatial-down))
+  (-> editor editing/stop-editing cursor/spatial-down))
 
 (defn spatial-left [editor]
-  (-> editor
-    editing/stop-editing
-    cursor/spatial-left))
+  (-> editor editing/stop-editing cursor/spatial-left))
 
 (defn spatial-right [editor]
-  (-> editor
-    editing/stop-editing
-    cursor/spatial-right))
+  (-> editor editing/stop-editing cursor/spatial-right))
 
 (defn structural-left [editor]
-  (-> editor
-    editing/stop-editing
-    cursor/structural-left))
+  (-> editor editing/stop-editing cursor/structural-left))
 
 (defn structural-right [editor]
-  (-> editor
-    editing/stop-editing
-    cursor/structural-right))
+  (-> editor editing/stop-editing cursor/structural-right))
 
 (defn structural-up [editor]
-  (-> editor
-    editing/stop-editing
-    cursor/structural-up))
+  (-> editor editing/stop-editing cursor/structural-up))
 
 (defn structural-down [editor]
   (let [new-editor (cursor/structural-down editor)]

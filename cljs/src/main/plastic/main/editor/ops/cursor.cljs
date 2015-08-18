@@ -72,66 +72,73 @@
     (if-let [result (direction-fn #(= (:id %) cursor-id) all-lines)]
       (editor/set-cursor editor (:id result)))))
 
-; ----------------------------------------------------------------------------------------------------------------
+; ----------------------------------------------------------------------------------------------------------------------
 
-(defmulti op (fn [op-type & _] op-type))
-
-(defmethod op :spatial-down [_ editor]
+(defn move-to-spatial-down [editor]
   (spatial-movement-up-down editor inc))
 
-(defmethod op :spatial-up [_ editor]
+(defn move-to-spatial-up [editor]
   (spatial-movement-up-down editor dec))
 
-(defmethod op :spatial-right [_ editor]
+(defn move-to-spatial-right [editor]
   (spatial-movement-left-right editor helpers/next-item))
 
-(defmethod op :spatial-left [_ editor]
+(defn move-to-spatial-left [editor]
   (spatial-movement-left-right editor helpers/prev-item))
 
-(defmethod op :structural-up [_ editor]
+(defn move-to-structural-up [editor]
   (structural-movemement editor :up))
 
-(defmethod op :structural-down [_ editor]
+(defn move-to-structural-down [editor]
   (structural-movemement editor :down))
 
-(defmethod op :structural-left [_ editor]
+(defn move-to-structural-left [editor]
   (structural-movemement editor :left))
 
-(defmethod op :structural-right [_ editor]
+(defn move-to-structural-right [editor]
   (structural-movemement editor :right))
 
-(defmethod op :move-prev-form [_ editor]
+(defn move-to-prev-form [editor]
   (move-to-form editor helpers/prev-item editor/get-last-selectable-token-id-for-form))
 
-(defmethod op :move-next-form [_ editor]
+(defn move-to-next-form [editor]
   (move-to-form editor helpers/next-item editor/get-first-selectable-token-id-for-form))
 
-(defmethod op :next-token [_ editor]
+(defn move-to-next-token [editor]
   (token-movement-prev-next editor helpers/next-item))
 
-(defmethod op :prev-token [_ editor]
+(defn move-to-prev-token [editor]
   (token-movement-prev-next editor helpers/prev-item))
 
-; ----------------------------------------------------------------------------------------------------------------
+; ----------------------------------------------------------------------------------------------------------------------
 
-(defmethod op :default [command]
-  (error (str "Unknown selection operation '" command "'"))
-  nil)
+(def movements
+  {:spatial-up       move-to-spatial-up
+   :spatial-down     move-to-spatial-down
+   :spatial-left     move-to-spatial-left
+   :spatial-right    move-to-spatial-right
+   :structural-up    move-to-structural-up
+   :structural-down  move-to-structural-down
+   :structural-left  move-to-structural-left
+   :structural-right move-to-structural-right
+   :prev-form        move-to-prev-form
+   :next-form        move-to-next-form
+   :next-token       move-to-next-token
+   :prev-token       move-to-prev-token})
 
-; ====================================================================================
-
-(defn apply-movements [editor movements]
-  (if-let [movement (first movements)]
-    (if-let [result (op movement editor)]
-      result
-      (recur editor (rest movements)))))
+(defn apply-moves [editor moves-to-try]
+  (if-let [movement (first moves-to-try)]
+    (if-let [op (movement movements)]
+      (if-let [result (op editor)]
+        result
+        (recur editor (rest moves-to-try)))
+      (error (str "Unknown movement '" movement "'")))))
 
 (defn apply-move-cursor [editor & movements]
-  (if-let [result (apply-movements editor movements)]
-    result
-    editor))
+  (or (apply-moves editor movements) editor))
 
-; ---------------------------
+; ----------------------------------------------------------------------------------------------------------------------
+
 ; spatial movement
 
 (defn spatial-up [editor]
@@ -146,7 +153,6 @@
 (defn spatial-right [editor]
   (apply-move-cursor editor :spatial-right))
 
-; ---------------------------
 ; structural movement
 
 (defn structural-up [editor]
@@ -161,7 +167,6 @@
 (defn structural-right [editor]
   (apply-move-cursor editor :structural-right))
 
-; ---------------------------
 ; token movement
 
 (defn next-token [editor]
@@ -170,11 +175,10 @@
 (defn prev-token [editor]
   (apply-move-cursor editor :prev-token))
 
-; ---------------------------
 ; form movement
 
 (defn prev-form [editor]
-  (apply-move-cursor editor :move-prev-form))
+  (apply-move-cursor editor :prev-form))
 
 (defn next-form [editor]
-  (apply-move-cursor editor :move-next-form))
+  (apply-move-cursor editor :next-form))
