@@ -46,8 +46,6 @@
 
 (register-sub :editor-render-state (path-query-factory (editor-selector [:render-state])))
 (register-sub :editor-uri (path-query-factory (editor-selector [:def :uri])))
-(register-sub :editor-text (path-query-factory (editor-selector [:text])))
-(register-sub :editor-parse-tree (path-query-factory (editor-selector [:parse-tree])))
 (register-sub :editor-cursors (path-query-factory (editor-selector [:cursors])))
 (register-sub :editor-selection (path-query-factory (editor-selector [:selection])))
 (register-sub :editor-selection-node (path-query-factory (selection-selector)))

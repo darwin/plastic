@@ -4,6 +4,3 @@
 
 (def editors [:editors])
 (def editors-path (path editors))
-
-(def settings [:settings])
-(def settings-path (path settings))
