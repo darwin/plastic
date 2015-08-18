@@ -62,18 +62,20 @@ install plastic npm deps:
     npm install
     apm rebuild
 
-##### plastic bleeding-edge clojurescript dependencies
+##### plastic bleeding-edge  dependencies
 
-I might be using bleeding edge version of some clojurescript libraries, look into $workspace/plastic/cljs/project.clj and look for uncommented paths into checkouts directories.
+I might be using bleeding-edge versions of some clojurescript libraries, look into $workspace/plastic/cljs/project.clj and look for uncommented paths into checkouts directory.
 
-For example there might be "checkouts/clojurescript/src/main/cljs", so you need to find clojurescript repo on github and clone it into checkouts.
+Most likely they should point to forks of libraries maintained under https://github.com/darwin/[lib-name].
+
+For example there might be "checkouts/re-frame/src", so you need to find https://github.com/darwin/re-frame repo on github and clone it into checkouts.
 
     cd cljs
     mkdir checkouts
     cd checkouts
-    git clone git@github.com:clojure/clojurescript.git
+    git clone https://github.com/darwin/re-frame.git
 
-Alternatively, you may try to comment those bleeding-edge checkouts out, it might work.
+Alternatively, you may try to comment out those bleeding-edge checkouts out, it might work.
 
 ##### compile plastic clojurescript files
 
