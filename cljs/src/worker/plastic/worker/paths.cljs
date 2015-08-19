@@ -1,4 +1,4 @@
-(ns plastic.worker.schema.paths
+(ns plastic.worker.paths
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [plastic.worker.frame :refer [path]]))
 

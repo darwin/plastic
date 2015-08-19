@@ -2,7 +2,7 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
                    [plastic.worker :refer [dispatch react!]])
   (:require [plastic.worker.frame :refer [subscribe register-handler]]
-            [plastic.worker.schema.paths :as paths]
+            [plastic.worker.paths :as paths]
             [plastic.worker.editor.model :as editor]))
 
 (defn watch-raw-text [editor]

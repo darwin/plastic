@@ -12,7 +12,7 @@
             [plastic.worker.editor.layout.spatial :refer [build-spatial-web]]
             [plastic.util.zip :as zip-utils]
             [plastic.worker.editor.layout.utils :as utils]
-            [plastic.worker.schema.paths :as paths]))
+            [plastic.worker.paths :as paths]))
 
 (defn update-form-layout [editor-id form-loc]
   {:pre [(zip/node form-loc)

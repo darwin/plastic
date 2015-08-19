@@ -2,7 +2,7 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
                    [plastic.main :refer [react! dispatch]])
   (:require [plastic.worker.frame :refer [subscribe register-handler]]
-            [plastic.worker.schema.paths :as paths]))
+            [plastic.worker.paths :as paths]))
 
 (defn set-text [editors [editor-id text]]
   (assoc-in editors [editor-id :text] text))

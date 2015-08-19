@@ -2,7 +2,7 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [plastic.main.frame :refer [subscribe register-handler]]
             [plastic.main.editor.model :as editor]
-            [plastic.main.schema.paths :as paths]))
+            [plastic.main.paths :as paths]))
 
 (defn commit-layout [editors [editor-id form-id layout selectables spatial-web structural-web]]
   (let [editor (get editors editor-id)

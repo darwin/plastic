@@ -19,7 +19,7 @@
             [goog.object :as gobject]
             [goog.string :as gstring]
             [clojure.string :as string]
-            [plastic.worker.schema.paths :as paths]))
+            [plastic.worker.paths :as paths]))
 ;(comment
 ;
 ;  (defonce fs (js/require "fs"))

@@ -2,7 +2,7 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
                    [plastic.main :refer [react! dispatch worker-dispatch worker-dispatch-args]])
   (:require [plastic.main.frame :refer [subscribe register-handler]]
-            [plastic.main.schema.paths :as paths]
+            [plastic.main.paths :as paths]
             [plastic.main.editor.ops.editing :as editing]
             [plastic.main.editor.ops.cursor :as cursor]
             [plastic.main.editor.model :as editor]))

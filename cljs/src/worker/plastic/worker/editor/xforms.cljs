@@ -2,7 +2,7 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
                    [plastic.worker :refer [react! dispatch]])
   (:require [plastic.worker.frame :refer [subscribe register-handler]]
-            [plastic.worker.schema.paths :as paths]
+            [plastic.worker.paths :as paths]
             [plastic.worker.editor.xforms.editing :as editing]))
 
 (def xforms
