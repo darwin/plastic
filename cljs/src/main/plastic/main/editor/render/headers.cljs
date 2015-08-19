@@ -13,9 +13,11 @@
            [:div.name [:div text]]])))))
 
 (defn headers-group-component [editor-id form-id node-id]
-  (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
+  (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])
+        headers-visible (subscribe [:settings :headers-visible])]
     (fn [editor-id form-id node-id]
       (log-render "headers-group" node-id
         [:div.headers-group
-         (for [header-id (:children @layout)]
-           ^{:key header-id} [header-component editor-id form-id header-id])]))))
+         (if @headers-visible
+           (for [header-id (:children @layout)]
+             ^{:key header-id} [header-component editor-id form-id header-id]))]))))

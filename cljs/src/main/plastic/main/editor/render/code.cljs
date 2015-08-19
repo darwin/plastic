@@ -128,9 +128,11 @@
             [code-element-component editor-id form-id node-id layout]))))))
 
 (defn code-box-component [editor-id form-id node-id]
-  (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
+  (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])
+        code-visible (subscribe [:settings :code-visible])]
     (fn [editor-id form-id node-id]
       (log-render "code-box" node-id
-        (let [child-id (first (:children @layout))]
-          [:div.code-box
-           [code-block-component editor-id form-id child-id]])))))
+        [:div.code-box
+         (if @code-visible
+           (let [child-id (first (:children @layout))]
+             [code-block-component editor-id form-id child-id]))]))))

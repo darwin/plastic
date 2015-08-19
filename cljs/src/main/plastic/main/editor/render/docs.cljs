@@ -25,9 +25,11 @@
               [raw-html-component (str (wrap-specials text) " ")])]]))))) ; that added space is important, last newline could be ignored without it
 
 (defn docs-group-component [editor-id form-id node-id]
-  (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
+  (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])
+        docs-visible (subscribe [:settings :docs-visible])]
     (fn [editor-id form-id node-id]
       (log-render "docs-group" node-id
         [:div.docs-group
-         (for [doc-id (:children @layout)]
-           ^{:key doc-id} [doc-component editor-id form-id doc-id])]))))
+         (if @docs-visible
+           (for [doc-id (:children @layout)]
+             ^{:key doc-id} [doc-component editor-id form-id doc-id]))]))))
