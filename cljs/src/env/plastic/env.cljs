@@ -26,3 +26,4 @@
 (goog-define log-rendering false)
 (goog-define log-onion false)
 (goog-define log-onion-inface false)
+(goog-define log-inline-editor false)

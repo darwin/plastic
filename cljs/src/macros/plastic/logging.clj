@@ -68,7 +68,7 @@
      (log "%c%s%c%s%c%s"
        "color:#aaa" (pad-str ~time 10)
        (str "color:" thread-color#) (if thread# (pad-str (str "[" thread# "]") 10) "")
-       "color:blue" (if label# (pad-str (str label# ":") 12) "")
+       "color:blue" (if label# (pad-str (str label# ":") 16) "")
        ~@args)))
 
 (defmacro fancy-log [label & args]
