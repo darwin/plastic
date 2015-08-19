@@ -4,4 +4,4 @@
             [plastic.main.init]))
 
 (fancy-log "MAIN LOOP" @frame)
-(main-loop)                                                 ; start event processing
+(main-loop)                                                                                                           ; start event processing

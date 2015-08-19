@@ -8,7 +8,7 @@
             [plastic.main.editor.toolkit.id :as id]))
 
 (defn node-from-react [react-component]
-  (let [dom-node (.getDOMNode react-component)]             ; TODO: deprecated!
+  (let [dom-node (.getDOMNode react-component)]                                                                       ; TODO: deprecated!
     (assert dom-node)
     dom-node))
 

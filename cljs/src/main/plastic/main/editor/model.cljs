@@ -92,10 +92,6 @@
          (<= (count (get editor :cursor)) 1)]}
   (first (get editor :cursor)))
 
-(defn cursor-and-selection-are-linked? [editor]
-  (let [selection (get-selection editor)]
-    (or (empty? selection) (and (= (count selection) 1) (= (first selection) (get-cursor editor))))))
-
 (defn selector-matches-editor? [editor-id selector]
   (cond
     (vector? selector) (some #{editor-id} selector)
@@ -183,13 +179,12 @@
   (let [form-ids (get-top-level-form-ids editor)]
     (some #(if (is-node-present-in-form? editor node-id %) %) form-ids)))
 
-(defn set-cursor [editor cursor & [link?]]
+(defn set-cursor [editor cursor]
   (let [new-cursor (if cursor #{cursor} #{})
         new-cursor-form-id (if cursor (get-form-id-for-node-id editor cursor))]
-    (cond-> editor
-      ;(or link? (cursor-and-selection-are-linked? editor)) (assoc :selection new-cursor)
-      true (assoc :cursor new-cursor)
-      true (set-focused-form-id new-cursor-form-id))))
+    (-> editor
+      (assoc :cursor new-cursor)
+      (set-focused-form-id new-cursor-form-id))))
 
 (defn replace-cursor-if-not-valid [editor new-cursor]
   (let [cursor (get-cursor editor)

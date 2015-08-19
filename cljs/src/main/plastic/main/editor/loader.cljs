@@ -9,7 +9,7 @@
   (onion/load-file-content uri #(worker-dispatch :editor-set-text editor-id %))
   editors)
 
-; ---------------------------------------------------------------------------------------------------------------------
+; -------------------------------------------------------------------------------------------------------------------
 ; register handlers
 
 (register-handler :editor-fetch-text paths/editors-path fetch-text)

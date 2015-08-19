@@ -20,7 +20,7 @@
 (defn move-cursor-for-case-of-selected-node-removal [editor]
   (let [cursor-id (id/id-part (editor/get-cursor editor))
         moves-to-try (if (= cursor-id (editor/get-focused-form-id editor))
-                       [:move-next-form :move-prev-form]    ; case of deleting whole focused form
+                       [:move-next-form :move-prev-form]                                                              ; case of deleting whole focused form
                        [:structural-left :structural-right :structural-up])]
     (apply cursor/apply-move-cursor editor moves-to-try)))
 
@@ -68,8 +68,9 @@
       (if (id/spot? cursor-id)
         (let [edit-point (get-edit-point editor)
               focused-form-id (editor/get-focused-form-id editor)
-              select (fn [db]
-                       (editor/update-in-db db editor-id (make-continuation cb (partial select-neighbour-and-start-editing focused-form-id edit-point [:up :down]))))]
+              select-edit (partial select-neighbour-and-start-editing focused-form-id edit-point [:up :down])
+              continuation (make-continuation cb select-edit)
+              select (fn [db] (editor/update-in-db db editor-id continuation))]
           (xform-on-worker editor [:insert-placeholder-as-first-child edit-point] select))
         (call-continuation cb (editor/set-editing editor cursor-id))))))
 
@@ -136,7 +137,8 @@
         continuation (fn [editor]
                        (let [edit-point (get-edit-point editor)
                              focused-form-id (editor/get-focused-form-id editor)
-                             select-placeholder (fn [db] (editor/update-in-db db editor-id (partial select-neighbour-and-start-editing focused-form-id edit-point path)))]
+                             select-edit (partial select-neighbour-and-start-editing focused-form-id edit-point path)
+                             select-placeholder (fn [db] (editor/update-in-db db editor-id select-edit))]
                          (xform-on-worker editor [op edit-point] select-placeholder)))]
     (stop-editing editor continuation)))
 

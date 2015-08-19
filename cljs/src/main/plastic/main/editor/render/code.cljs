@@ -35,7 +35,10 @@
                                     (if edited? "editing")
                                     (if call? "call")
                                     (if decl-scope
-                                      (str (if (:decl? decl-scope) "decl ") "decl-scope decl-scope-" (:id decl-scope)))
+                                      (str
+                                        (if (:decl? decl-scope) "decl ")
+                                        "decl-scope decl-scope-"
+                                        (:id decl-scope)))
                                     (if def-name? "def-name"))})
               emit-token (fn [html] [:div.token props
                                      (if edited?
@@ -109,13 +112,11 @@
                                       (let [scope (get analysis :scope)]
                                         (str "scope scope-" (:id scope) " scope-depth-" (:depth scope)))))}
            (if opener
-             [:div.punctuation.opener {:class (classv
-                                                (if highlight-opener? "highlighted"))}
+             [:div.punctuation.opener {:class (classv (if highlight-opener? "highlighted"))}
               opener])
            [code-element-component editor-id form-id node-id layout]
            (if closer
-             [:div.punctuation.closer {:class (classv
-                                                (if highlight-closer? "highlighted"))}
+             [:div.punctuation.closer {:class (classv (if highlight-closer? "highlighted"))}
               closer])])))))
 
 (defn code-block-component [editor-id form-id node-id]
@@ -123,7 +124,8 @@
     (fn [editor-id form-id node-id]
       (log-render "code-block" node-id
         (let [layout @layout-subscription
-              wrapped-code-element (fn [& params] (vec (concat [wrapped-code-element-component editor-id form-id node-id layout] params)))]
+              args [wrapped-code-element-component editor-id form-id node-id layout]
+              wrapped-code-element (fn [& params] (vec (concat args params)))]
           (condp = (:tag layout)
             :list (wrapped-code-element "(" ")")
             :vector (wrapped-code-element "[" "]")

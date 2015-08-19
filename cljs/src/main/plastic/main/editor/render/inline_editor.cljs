@@ -19,7 +19,8 @@
           inline-editor-mode (keyword (.data $dom-node "qmode"))
           inline-editor-text (str (.data $dom-node "qtext"))
           root-view (dom/find-closest-plastic-editor-view $dom-node)]
-      (if plastic.env.log-inline-editor (fancy-log log-label "setup, append, focus and add \"inline-editor-active\" class to the root-view"))
+      (if plastic.env.log-inline-editor
+        (fancy-log log-label "setup, append, focus and add \"inline-editor-active\" class to the root-view"))
       (onion/setup-inline-editor-for-editing editor-id inline-editor-mode inline-editor-text)
       (onion/append-inline-editor editor-id $dom-node)
       (onion/focus-inline-editor editor-id)
@@ -30,10 +31,12 @@
   (if (dom/inline-editor-present? $dom-node)
     (let [editor-id (dom/lookup-editor-id $dom-node)
           root-view (dom/find-closest-plastic-editor-view $dom-node)]
-      (if plastic.env.log-inline-editor (fancy-log log-label "removing \"inline-editor-active\" class from the root-view"))
+      (if plastic.env.log-inline-editor
+        (fancy-log log-label "removing \"inline-editor-active\" class from the root-view"))
       (.removeClass ($ root-view) "inline-editor-active")
       (when (onion/is-inline-editor-focused? editor-id)
-        (if plastic.env.log-inline-editor (fancy-log log-label "returning focus back to root-view"))
+        (if plastic.env.log-inline-editor
+          (fancy-log log-label "returning focus back to root-view"))
         (.focus root-view)))))
 
 (defn inline-editor-transplantation [action react-component]

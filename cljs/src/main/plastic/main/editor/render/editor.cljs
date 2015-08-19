@@ -95,7 +95,7 @@
       (log-render "editor-root" editor-id
         (let [{:keys [order]} @state
               {:keys [debug-parse-tree debug-text-input debug-text-output]} @state]
-          [:div.plastic-editor                                                                                         ; .editor class is taken by Atom
+          [:div.plastic-editor                                                                                        ; .editor class is taken by Atom
            {:data-qeid editor-id
             :class     (classv (if @selections-debug-visible "debug-selections"))
             :on-click  (partial handle-editor-click editor-id)}

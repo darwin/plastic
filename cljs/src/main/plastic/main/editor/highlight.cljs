@@ -6,7 +6,7 @@
             [plastic.main.editor.ops.editing :as editing]
             [plastic.main.editor.toolkit.id :as id]))
 
-; ---------------------------------------------------------------------------------------------------------------------
+; -------------------------------------------------------------------------------------------------------------------
 
 (defn update-highlight [editors [selector]]
   (editor/apply-to-editors editors selector
@@ -18,7 +18,7 @@
                           (editor/find-related-ring editor id))]
           (editor/set-highlight editor highlight))))))
 
-; ---------------------------------------------------------------------------------------------------------------------
+; -------------------------------------------------------------------------------------------------------------------
 ; register handlers
 
 (register-handler :editor-update-highlight paths/editors-path update-highlight)

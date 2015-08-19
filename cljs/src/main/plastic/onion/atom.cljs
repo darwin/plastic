@@ -81,7 +81,7 @@
 (defn is-inline-editor-modified? [editor-id]
   (let [inline-editor (get-atom-inline-editor-instance editor-id)
         raw-text (.getText inline-editor)]
-    (or (empty? raw-text) (not= raw-text *initial-text*)))) ; empty editor is a special case of placeholder which has to removed
+    (or (empty? raw-text) (not= raw-text *initial-text*))))                                                           ; empty editor is a special case of placeholder which has to removed
 
 (defn get-inline-editor-mode [editor-id]
   {:post [(contains? known-editor-modes %)]}
@@ -106,7 +106,7 @@
   (let [inline-editor (get-atom-inline-editor-instance editor-id)]
     (.insertText inline-editor text)))
 
-(defn set-editor-mode-as-class-name-and-clear-text [_editor-id inline-editor inline-editor-view mode]
+(defn set-editor-mode-and-clear-text [_editor-id inline-editor inline-editor-view mode]
   (let [has-mode? (.hasClass ($ inline-editor-view) (editor-mode-to-class-name mode))]
     (when-not has-mode?
       (set-editor-mode-as-class-name inline-editor-view mode)
@@ -117,7 +117,7 @@
     (.addClass ($ inline-editor-view) "empty")
     (.removeClass ($ inline-editor-view) "empty"))
   (let [text (.getText inline-editor)
-        switch-mode (partial set-editor-mode-as-class-name-and-clear-text editor-id inline-editor inline-editor-view)]
+        switch-mode (partial set-editor-mode-and-clear-text editor-id inline-editor inline-editor-view)]
     (condp = text
       ":" (switch-mode :keyword)
       "\"" (switch-mode :string)
@@ -126,8 +126,9 @@
 
 (defn intial-inline-editor-setup-if-needed [editor-id inline-editor inline-editor-view]
   (if-not (get *on-did-change-disposables* editor-id)
-    (set! *on-did-change-disposables*
-      (assoc *on-did-change-disposables* editor-id (.onDidChange inline-editor (partial on-did-change editor-id inline-editor inline-editor-view))))))
+    (let [handler (partial on-did-change editor-id inline-editor inline-editor-view)
+          disposable-id (.onDidChange inline-editor handler)]
+      (set! *on-did-change-disposables* (assoc *on-did-change-disposables* editor-id disposable-id)))))
 
 (defn setup-inline-editor-for-editing [editor-id editor-mode text]
   {:pre [(contains? known-editor-modes editor-mode)]}

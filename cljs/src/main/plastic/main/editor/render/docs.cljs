@@ -22,7 +22,7 @@
                           (if @edited? "editing"))}
             (if @edited?
               [inline-editor-component id text :string]
-              [raw-html-component (str (wrap-specials text) " ")])]]))))) ; that added space is important, last newline could be ignored without it
+              [raw-html-component (str (wrap-specials text) " ")])]])))))                                             ; that added space is important, last newline could be ignored without it
 
 (defn docs-group-component [editor-id form-id node-id]
   (let [layout (subscribe [:editor-layout-form-node editor-id form-id node-id])

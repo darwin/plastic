@@ -18,9 +18,11 @@
   ([] (current-job-desc *current-job-id*))
   ([id] (if-not (zero? id) (str "(job " id ")") "")))
 
+(def bench? (or plastic.env.bench-processing plastic.env.bench-main-processing))
+
 (defn timing [handler]
   (fn timing-handler [db v]
-    (measure-time (or plastic.env.bench-processing plastic.env.bench-main-processing) "PROCESS" [v (current-job-desc)]
+    (measure-time bench? "PROCESS" [v (current-job-desc)]
       (handler db v))))
 
 (def register-job jobs/register-job)
@@ -30,8 +32,10 @@
 (def common-middleware [timing (middleware/trim-v frame)])
 
 (defn register-handler
-  ([event-id handler-fn] (register-handler event-id nil handler-fn))
-  ([event-id middleware handler-fn] (scaffold/register-base frame event-id [common-middleware middleware] handler-fn)))
+  ([event-id handler-fn]
+   (register-handler event-id nil handler-fn))
+  ([event-id middleware handler-fn]
+   (scaffold/register-base frame event-id [common-middleware middleware] handler-fn)))
 
 (defn register-sub [subscription-id handler-fn]
   (swap! frame #(frame/register-subscription-handler % subscription-id handler-fn)))
@@ -52,10 +56,10 @@
 (defn job-done [db [job-id]]
   (let [job (jobs/get-job job-id)
         coallesced-db (reagent/atom db)]
-    (doseq [event (jobs/events job)]                                                                                   ; replay all buffered job events...
+    (doseq [event (jobs/events job)]                                                                                  ; replay all buffered job events...
       (handle-event-and-report-exceptions frame coallesced-db event))
     (jobs/unregister-job job-id)
-    (or ((jobs/continuation job) @coallesced-db) db)))                                                                 ; contination can decide not to publish results (and maybe apply them later)
+    (or ((jobs/continuation job) @coallesced-db) db)))                                                                ; contination can decide not to publish results (and maybe apply them later)
 
 (register-handler :worker-job-done job-done)
 

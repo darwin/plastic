@@ -22,9 +22,9 @@
   (let [{:keys [id geometry]} item
         {:keys [left top width height]} geometry]
     [:div.debug-selection {:data-id id
-                              :style   {:transform (str "translateY(" top "px) translateX(" left "px)")
-                                        :width     (str width "px")
-                                        :height    (str height "px")}}]))
+                           :style   {:transform (str "translateY(" top "px) translateX(" left "px)")
+                                     :width     (str width "px")
+                                     :height    (str height "px")}}]))
 
 (defn selections-debug-overlay-component []
   (fn [selections]

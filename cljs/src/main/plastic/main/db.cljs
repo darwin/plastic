@@ -8,7 +8,7 @@
     :code-visible true
     :docs-visible true}})
 
-;; -- Application State  --------------------------------------------------------------------------
+;; -- Application State  --------------------------------------------------------------------------------------------
 ;;
 ;; Should not be accessed directly by application code
 ;; Read access goes through subscriptions.

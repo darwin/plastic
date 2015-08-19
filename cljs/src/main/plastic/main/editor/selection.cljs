@@ -5,7 +5,7 @@
             [plastic.main.editor.model :as editor]
             [plastic.main.editor.ops.editing :as editing]))
 
-; ---------------------------------------------------------------------------------------------------------------------
+; -------------------------------------------------------------------------------------------------------------------
 
 (defn clear-selection [editors [selector]]
   (editor/apply-to-editors editors selector
@@ -22,7 +22,7 @@
     (fn [editor]
       (editing/stop-editing editor #(editor/toggle-selection % selection)))))
 
-; ---------------------------------------------------------------------------------------------------------------------
+; -------------------------------------------------------------------------------------------------------------------
 ; register handlers
 
 (register-handler :editor-clear-selection paths/editors-path clear-selection)

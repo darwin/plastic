@@ -11,7 +11,7 @@
         new-editor (editor/set-analysis-for-form editor form-id analysis)]
     (assoc editors editor-id new-editor)))
 
-; ---------------------------------------------------------------------------------------------------------------------
+; -------------------------------------------------------------------------------------------------------------------
 ; register handlers
 
 (register-handler :editor-commit-analysis paths/editors-path commit-analysis)
