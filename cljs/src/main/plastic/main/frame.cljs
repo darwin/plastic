@@ -52,10 +52,10 @@
 (defn job-done [db [job-id]]
   (let [job (jobs/get-job job-id)
         coallesced-db (reagent/atom db)]
-    (doseq [event (jobs/events job)]                        ; replay all buffered job events...
+    (doseq [event (jobs/events job)]                                                                                   ; replay all buffered job events...
       (handle-event-and-report-exceptions frame coallesced-db event))
     (jobs/unregister-job job-id)
-    (or ((jobs/continuation job) @coallesced-db) db)))      ; contination can decide not to publish results (and maybe apply them later)
+    (or ((jobs/continuation job) @coallesced-db) db)))                                                                 ; contination can decide not to publish results (and maybe apply them later)
 
 (register-handler :worker-job-done job-done)
 

@@ -26,15 +26,19 @@
   (fn [editor-id node-id]
     (concat paths/editors [editor-id :editing node-id])))
 
-(defn form-node-layout-selector []
+(defn layout-form-node-selector []
   (fn [editor-id form-id node-id]
     (concat paths/editors [editor-id :layout form-id node-id])))
 
-(defn form-layout-selector []
+(defn layout-form-selector []
   (fn [editor-id form-id]
     (concat paths/editors [editor-id :layout form-id])))
 
-(defn analysis-selector []
+(defn analysis-form-selector []
+  (fn [editor-id form-id]
+    (concat paths/editors [editor-id :analysis form-id])))
+
+(defn analysis-form-node-selector []
   (fn [editor-id form-id node-id]
     (concat paths/editors [editor-id :analysis form-id node-id])))
 
@@ -56,9 +60,11 @@
 (register-sub :editor-highlight-node (path-query-factory (highlight-selector)))
 (register-sub :editor-editing (path-query-factory (editor-selector [:editing])))
 (register-sub :editor-editing-node (path-query-factory (editing-selector)))
-(register-sub :editor-form-layout (path-query-factory (form-layout-selector)))
-(register-sub :editor-form-node-layout (path-query-factory (form-node-layout-selector)))
-(register-sub :editor-form-node-analysis (path-query-factory (analysis-selector)))
+(register-sub :editor-layout-form (path-query-factory (layout-form-selector)))
+(register-sub :editor-layout-form-node (path-query-factory (layout-form-node-selector)))
+(register-sub :editor-analysis (path-query-factory (editor-selector [:analysis])))
+(register-sub :editor-analysis-form (path-query-factory (analysis-form-selector)))
+(register-sub :editor-analysis-form-node (path-query-factory (analysis-form-node-selector)))
 (register-sub :editor-focused-form-id (path-query-factory (editor-selector [:focused-form-id])))
 (register-sub :editor-focused-form-node (path-query-factory (focused-form-selector)))
 (register-sub :editor-cursor (path-query-factory (editor-selector [:cursor])))

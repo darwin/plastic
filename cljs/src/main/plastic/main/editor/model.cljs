@@ -103,12 +103,13 @@
     :default (= editor-id selector)))
 
 (defn apply-to-editors [editors selector f]
-  (apply array-map
-    (flatten
-      (for [[editor-id editor] editors]
-        (if (selector-matches-editor? editor-id selector)
-          [editor-id (f editor)]
-          [editor-id editor])))))
+  (let [reducer (fn [editors editor-id]
+                  (or
+                    (if (selector-matches-editor? editor-id selector)
+                      (if-let [new-editor (f (get editors editor-id))]
+                        (assoc editors editor-id new-editor)))
+                    editors))]
+    (reduce reducer editors (keys editors))))
 
 (defn set-focused-form-id [editor form-id]
   (assoc editor :focused-form-id (if form-id #{form-id} #{})))
@@ -186,7 +187,7 @@
   (let [new-cursor (if cursor #{cursor} #{})
         new-cursor-form-id (if cursor (get-form-id-for-node-id editor cursor))]
     (cond-> editor
-      (or link? (cursor-and-selection-are-linked? editor)) (assoc :selection new-cursor)
+      ;(or link? (cursor-and-selection-are-linked? editor)) (assoc :selection new-cursor)
       true (assoc :cursor new-cursor)
       true (set-focused-form-id new-cursor-form-id))))
 
@@ -196,3 +197,12 @@
     (if (is-node-selectable? editor focused-form-id cursor)
       editor
       (set-cursor editor new-cursor))))
+
+(defn find-related-ring [editor node-id]
+  ; TODO: in future searching for related ring should be across whole file, not just form specific
+  (let [form-id (get-form-id-for-node-id editor node-id)
+        _ (assert form-id)
+        analysis (get-analysis-for-form editor form-id)
+        _ (assert analysis)
+        info (get analysis node-id)]
+    (or (:related info) #{})))

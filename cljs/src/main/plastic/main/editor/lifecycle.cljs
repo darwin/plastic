@@ -15,18 +15,20 @@
         (when-let [uri @uri-subscription]
           (dispatch :editor-fetch-text editor-id uri))))))
 
-(defn watch-cursor [editor]
+(defn watch-for-highlight-updates [editor]
   (let [editor-id (editor/get-id editor)
-        cursor (subscribe [:editor-cursor editor-id])]
+        cursor (subscribe [:editor-cursor editor-id])
+        analysis (subscribe [:editor-analysis editor-id])]
     (editor/register-reaction editor
       (react!
-        (let [_ @cursor]
-          (worker-dispatch :editor-update-highlight editor-id))))))
+        (let [_ @cursor
+              _ @analysis]
+          (dispatch :editor-update-highlight editor-id))))))
 
 (defn wire-editor [editor]
   (-> editor
     (watch-uri)
-    (watch-cursor)))
+    (watch-for-highlight-updates)))
 
 (defn add-editor [editors [editor-id editor-def]]
   (let [editors (if (map? editors) editors {})
@@ -46,7 +48,7 @@
   (render/mount-editor dom-node editor-id)
   editors)
 
-; ----------------------------------------------------------------------------------------------------------------------
+; ---------------------------------------------------------------------------------------------------------------------
 ; register handlers
 
 (register-handler :add-editor paths/editors-path add-editor)

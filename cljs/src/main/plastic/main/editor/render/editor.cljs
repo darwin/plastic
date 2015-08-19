@@ -13,7 +13,7 @@
 (declare unified-rendering-component)
 
 (defn render-tree-component [editor-id form-id node-id]
-  (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])
+  (let [layout (subscribe [:editor-layout-form-node editor-id form-id node-id])
         selection-subscription (subscribe [:editor-selection-node editor-id node-id])]
     (fn [editor-id form-id node-id]
       (log-render "render-tree" node-id
@@ -27,7 +27,7 @@
              ^{:key child-id} [unified-rendering-component editor-id form-id child-id])])))))
 
 (defn unified-rendering-component [editor-id form-id node-id]
-  (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
+  (let [layout (subscribe [:editor-layout-form-node editor-id form-id node-id])]
     (fn [editor-id form-id node-id]
       (let [{:keys [id tag]} @layout]
         (log-render "unified-rendering" node-id
@@ -47,7 +47,7 @@
       [:div.form-skelet
        [unified-rendering-component editor-id form-id (id/make form-id :root)]])))
 
-(defn handle-form-click [form-id event]
+(defn handle-form-click [_form-id event]
   (let [target-dom-node (.-target event)
         _ (assert target-dom-node)
         selectable-dom-node (dom/find-closest target-dom-node ".selectable")]
@@ -95,7 +95,7 @@
       (log-render "editor-root" editor-id
         (let [{:keys [order]} @state
               {:keys [debug-parse-tree debug-text-input debug-text-output]} @state]
-          [:div.plastic-editor                              ; .editor class is taken by Atom
+          [:div.plastic-editor                                                                                         ; .editor class is taken by Atom
            {:data-qeid editor-id
             :class     (classv (if @selections-debug-visible "debug-selections"))
             :on-click  (partial handle-editor-click editor-id)}

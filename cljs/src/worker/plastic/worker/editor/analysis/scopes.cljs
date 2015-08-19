@@ -10,6 +10,7 @@
 
 (defonce ^:dynamic *scope-id* 0)
 (defonce ^:dynamic *scope-locals* nil)
+(defonce ^:dynamic *related-rings* nil)
 
 (defn next-scope-id! []
   (set! *scope-id* (inc *scope-id*))
@@ -115,6 +116,12 @@
           matching-locals (filter (partial matching-local? loc) locals)
           hit-count (count matching-locals)
           best-node (first (last matching-locals))]
+      (if best-node
+        (set! *related-rings* (update *related-rings* (:id best-node) (fn [node-ids]
+                                                                        (let [new-id (zip-utils/loc-id loc)]
+                                                                          (if node-ids
+                                                                            (conj node-ids new-id)
+                                                                            [new-id]))))))
       (if-not (= hit-count 0)
         (merge (:scope scope-info)
           {:shadows hit-count}
@@ -123,10 +130,10 @@
         (find-symbol-declaration loc (:parent-scope scope-info))))))
 
 (defn resolve-symbol [loc scope-info]
-  (if (= (zip/tag loc) :token)
-    (if-let [declaration-scope (find-symbol-declaration loc scope-info)]
-      (assoc scope-info :decl-scope declaration-scope)
-      scope-info)
+  (or
+    (if (= (zip/tag loc) :token)
+      (if-let [declaration-scope (find-symbol-declaration loc scope-info)]
+        (assoc scope-info :decl-scope declaration-scope)))
     scope-info))
 
 (defn analyze-scope [scope-info loc]
@@ -141,8 +148,23 @@
       (let [old-scope-info (dissoc scope-info :new-scope?)]
         (conj (analyze-child-scopes old-scope-info) [id (resolve-symbol loc old-scope-info)])))))
 
+(defn transpose [rings]
+  (let [transpose-ring (fn [[node-id node-ids]] (map (fn [id] [id node-id]) node-ids))]
+    (into {} (mapcat transpose-ring rings))))
+
+(defn fill-in-related [analysis rings]
+  (let [index (transpose rings)
+        lookup-related (fn [[node-id data]]
+                         (if-let [ring-id (get index node-id)]
+                           [node-id (assoc data :related (set (rings ring-id)))]
+                           [node-id data]))]
+    (into {} (map lookup-related analysis))))
+
 (defn analyze-scopes [analysis loc]
   (binding [*scope-id* 0
-            *scope-locals* {}]
-    (let [starting-loc (if-not (scope-related? loc) (zip-next loc) loc)]
-      (helpers/deep-merge analysis (analyze-scope nil starting-loc)))))
+            *scope-locals* {}
+            *related-rings* {}]
+    (let [starting-loc (if-not (scope-related? loc) (zip-next loc) loc)
+          new-analysis (-> (analyze-scope nil starting-loc)
+                         (fill-in-related *related-rings*))]
+      (helpers/deep-merge analysis new-analysis))))

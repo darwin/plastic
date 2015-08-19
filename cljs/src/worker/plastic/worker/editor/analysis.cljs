@@ -32,9 +32,12 @@
         (error "editor not parsed!" editor)
         (editor/apply-to-forms editor form-selector
           (fn [editor form-loc]
-            (main-dispatch :editor-commit-analysis (editor/get-id editor) (zip-utils/loc-id form-loc) (prepare-form-analysis form-loc))))))))
+            (let [editor-id (editor/get-id editor)
+                  form-id (zip-utils/loc-id form-loc)
+                  analysis (prepare-form-analysis form-loc)]
+              (main-dispatch :editor-commit-analysis editor-id form-id analysis))))))))
 
-; ----------------------------------------------------------------------------------------------------------------
+; ---------------------------------------------------------------------------------------------------------------------
 ; register handlers
 
 (register-handler :editor-run-analysis paths/editors-path run-analysis)

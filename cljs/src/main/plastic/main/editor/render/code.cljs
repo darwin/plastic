@@ -13,8 +13,9 @@
   (let [selected? (subscribe [:editor-selection-node editor-id node-id])
         edited? (subscribe [:editor-editing-node editor-id node-id])
         cursor? (subscribe [:editor-cursor-node editor-id node-id])
-        analysis-subscription (subscribe [:editor-form-node-analysis editor-id form-id node-id])
-        layout-subscription (subscribe [:editor-form-node-layout editor-id form-id node-id])]
+        highlight? (subscribe [:editor-highlight-node editor-id node-id])
+        analysis-subscription (subscribe [:editor-analysis-form-node editor-id form-id node-id])
+        layout-subscription (subscribe [:editor-layout-form-node editor-id form-id node-id])]
     (fn [_editor-id _form-id node-id]
       (log-render "code-token" [node-id (subs (:text @layout-subscription) 0 10)]
         (let [{:keys [selectable? type text id]} @layout-subscription
@@ -22,6 +23,7 @@
               selected? @selected?
               edited? @edited?
               cursor? @cursor?
+              highlight? @highlight?
               props (merge
                       {:data-qnid id
                        :class     (classv
@@ -29,6 +31,7 @@
                                     (if (and selectable? (not edited?)) "selectable")
                                     (if (and selectable? (not edited?) selected?) "selected")
                                     (if cursor? "cursor")
+                                    (if highlight? "highlighted")
                                     (if edited? "editing")
                                     (if call? "call")
                                     (if decl-scope
@@ -81,8 +84,10 @@
 
 (defn wrapped-code-element-component [editor-id form-id node-id _layout _opener _closer]
   (let [selected? (subscribe [:editor-selection-node editor-id node-id])
+        highlight-opener? (subscribe [:editor-highlight-node editor-id (id/make node-id :opener)])
+        highlight-closer? (subscribe [:editor-highlight-node editor-id (id/make node-id :closer)])
         cursor? (subscribe [:editor-cursor-node editor-id node-id])
-        analysis-subscription (subscribe [:editor-form-node-analysis editor-id form-id node-id])]
+        analysis-subscription (subscribe [:editor-analysis-form-node editor-id form-id node-id])]
     (fn [editor-id form-id node-id layout opener closer]
       {:pre [(or opener closer)]}
       (log-render "wrapper-code-block" node-id
@@ -90,7 +95,9 @@
               analysis @analysis-subscription
               {:keys [new-scope?]} analysis
               tag-name (name tag)
-              cursor? @cursor?]
+              cursor? @cursor?
+              highlight-opener? @highlight-opener?
+              highlight-closer? @highlight-closer?]
           [:div.block {:data-qnid id
                        :class     (classv
                                     tag-name
@@ -102,13 +109,17 @@
                                       (let [scope (get analysis :scope)]
                                         (str "scope scope-" (:id scope) " scope-depth-" (:depth scope)))))}
            (if opener
-             [:div.punctuation.opener opener])
+             [:div.punctuation.opener {:class (classv
+                                                (if highlight-opener? "highlighted"))}
+              opener])
            [code-element-component editor-id form-id node-id layout]
            (if closer
-             [:div.punctuation.closer closer])])))))
+             [:div.punctuation.closer {:class (classv
+                                                (if highlight-closer? "highlighted"))}
+              closer])])))))
 
 (defn code-block-component [editor-id form-id node-id]
-  (let [layout-subscription (subscribe [:editor-form-node-layout editor-id form-id node-id])]
+  (let [layout-subscription (subscribe [:editor-layout-form-node editor-id form-id node-id])]
     (fn [editor-id form-id node-id]
       (log-render "code-block" node-id
         (let [layout @layout-subscription
@@ -128,7 +139,7 @@
             [code-element-component editor-id form-id node-id layout]))))))
 
 (defn code-box-component [editor-id form-id node-id]
-  (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])
+  (let [layout (subscribe [:editor-layout-form-node editor-id form-id node-id])
         code-visible (subscribe [:settings :code-visible])]
     (fn [editor-id form-id node-id]
       (log-render "code-box" node-id

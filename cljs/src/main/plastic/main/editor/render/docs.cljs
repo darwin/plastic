@@ -8,7 +8,7 @@
 (defn doc-component [editor-id form-id node-id]
   (let [selected? (subscribe [:editor-selection-node editor-id node-id])
         edited? (subscribe [:editor-editing-node editor-id node-id])
-        layout (subscribe [:editor-form-node-layout editor-id form-id node-id])]
+        layout (subscribe [:editor-layout-form-node editor-id form-id node-id])]
     (fn [_editor-id _form-id node-id]
       (log-render "doc" node-id
         (let [{:keys [text id selectable?]} @layout]
@@ -25,7 +25,7 @@
               [raw-html-component (str (wrap-specials text) " ")])]]))))) ; that added space is important, last newline could be ignored without it
 
 (defn docs-group-component [editor-id form-id node-id]
-  (let [layout (subscribe [:editor-form-node-layout editor-id form-id node-id])
+  (let [layout (subscribe [:editor-layout-form-node editor-id form-id node-id])
         docs-visible (subscribe [:settings :docs-visible])]
     (fn [editor-id form-id node-id]
       (log-render "docs-group" node-id
