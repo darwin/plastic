@@ -18,7 +18,7 @@
         new-editor (editor/set-render-state editor render-state)]
     (assoc editors editor-id new-editor)))
 
-; ----------------------------------------------------------------------------------------------------------------
+; ----------------------------------------------------------------------------------------------------------------------
 ; register handlers
 
 (register-handler :editor-commit-layout paths/editors-path commit-layout)
