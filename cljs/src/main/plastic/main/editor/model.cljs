@@ -94,11 +94,11 @@
     (set? selector) (contains? selector editor-id)
     :default (= editor-id selector)))
 
-(defn apply-to-specified-editors [f editors id-or-ids]
+(defn apply-to-editors [editors selector f]
   (apply array-map
     (flatten
       (for [[editor-id editor] editors]
-        (if (selector-matches-editor? editor-id id-or-ids)
+        (if (selector-matches-editor? editor-id selector)
           [editor-id (f editor)]
           [editor-id editor])))))
 

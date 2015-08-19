@@ -39,20 +39,19 @@
                           (editor/remember-previously-layouted-form-node form-node))))))]
     (reduce reducer editor form-locs)))
 
-(defn layout-editor [editor]
-  (if-not (editor/parsed? editor)
-    editor
-    (let [independent-top-level-locs (map zip/down (map zip-utils/independent-zipper (editor/get-top-level-locs editor)))
-          render-state {:order (map #(zip-utils/loc-id %) independent-top-level-locs)}]
-      (main-dispatch :editor-update-render-state (:id editor) render-state)
-      (-> editor
-        (editor/set-render-state render-state)
-        (update-forms-layout-if-needed independent-top-level-locs)))))
+(defn update-layout [editors [selector]]
+  (editor/apply-to-editors editors selector
+    (fn [editor]
+      (if-not (editor/parsed? editor)
+        editor
+        (let [independent-top-level-locs (map zip/down (map zip-utils/independent-zipper (editor/get-top-level-locs editor)))
+              render-state {:order (map #(zip-utils/loc-id %) independent-top-level-locs)}]
+          (main-dispatch :editor-update-render-state (:id editor) render-state)
+          (-> editor
+            (editor/set-render-state render-state)
+            (update-forms-layout-if-needed independent-top-level-locs)))))))
 
-(defn update-layout [editors [editor-selector]]
-  (editor/apply-to-specified-editors layout-editor editors editor-selector))
-
-; ----------------------------------------------------------------------------------------------------------------
+; ----------------------------------------------------------------------------------------------------------------------
 ; register handlers
 
 (register-handler :editor-update-layout paths/editors-path update-layout)
