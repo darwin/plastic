@@ -11,36 +11,27 @@
 (defn clear-selection [editors [selector]]
   (editor/apply-to-editors editors selector
     (fn [editor]
-      (-> editor
-        (editing/stop-editing)
-        (editor/set-selection #{})))))
+      (editing/stop-editing editor #(editor/set-selection % #{})))))
 
 (defn set-selection [editors [selector selection]]
   (editor/apply-to-editors editors selector
     (fn [editor]
-      (-> editor
-        (editing/stop-editing)
-        (editor/set-selection selection)))))
+      (editing/stop-editing editor #(editor/set-selection % selection)))))
 
 (defn toggle-selection [editors [selector selection]]
   (editor/apply-to-editors editors selector
     (fn [editor]
-      (-> editor
-        (editing/stop-editing)
-        (editor/toggle-selection selection)))))
+      (editing/stop-editing editor #(editor/toggle-selection % selection)))))
 
 (defn set-cursor [editors [selector cursor link?]]
   (editor/apply-to-editors editors selector
     (fn [editor]
-      (-> editor
-        (editor/set-cursor cursor link?)))))
+      (editing/stop-editing editor #(editor/set-cursor % cursor link?)))))
 
 (defn clear-cursor [editors [selector]]
   (editor/apply-to-editors editors selector
     (fn [editor]
-      (-> editor
-        (editing/stop-editing)
-        (editor/set-cursor nil)))))
+      (editing/stop-editing editor #(editor/set-cursor % nil)))))
 
 ; ----------------------------------------------------------------------------------------------------------------------
 ; register handlers
