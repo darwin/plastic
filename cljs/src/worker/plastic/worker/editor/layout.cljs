@@ -45,10 +45,12 @@
       (if-not (editor/parsed? editor)
         editor
         (let [independent-top-level-locs (map zip/down (map zip-utils/independent-zipper (editor/get-top-level-locs editor)))
-              render-state {:order (map #(zip-utils/loc-id %) independent-top-level-locs)}]
-          (main-dispatch :editor-update-render-state (:id editor) render-state)
+              old-render-stae (editor/get-render-state editor)
+              new-render-state {:order (map #(zip-utils/loc-id %) independent-top-level-locs)}]
+          (if (not= old-render-stae new-render-state)
+            (main-dispatch :editor-update-render-state (:id editor) new-render-state))
           (-> editor
-            (editor/set-render-state render-state)
+            (editor/set-render-state new-render-state)
             (update-forms-layout-if-needed independent-top-level-locs)))))))
 
 ; ----------------------------------------------------------------------------------------------------------------------
