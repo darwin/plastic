@@ -261,12 +261,13 @@
     :default (= editor-id selector)))
 
 (defn apply-to-editors [editors selector f]
-  (apply array-map
-    (flatten
-      (for [[editor-id editor] editors]
-        (if (selector-matches-editor? editor-id selector)
-          [editor-id (or (f editor) editor)]
-          [editor-id editor])))))
+  (let [reducer (fn [editors editor-id]
+                  (or
+                    (if (selector-matches-editor? editor-id selector)
+                      (if-let [new-editor (f (get editors editor-id))]
+                        (assoc editors editor-id new-editor)))
+                    editors))]
+    (reduce reducer editors (keys editors))))
 
 (defn apply-to-forms [editor selector f]
   (let [reducer (fn [editor form-loc]
