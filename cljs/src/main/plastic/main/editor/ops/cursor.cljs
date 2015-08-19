@@ -123,8 +123,8 @@
    :structural-right move-to-structural-right
    :prev-form        move-to-prev-form
    :next-form        move-to-next-form
-   :next-token       move-to-next-token
-   :prev-token       move-to-prev-token})
+   :prev-token       move-to-prev-token
+   :next-token       move-to-next-token})
 
 (defn apply-moves [editor moves-to-try]
   (if-let [movement (first moves-to-try)]
@@ -142,10 +142,10 @@
 ; spatial movement
 
 (defn spatial-up [editor]
-  (apply-move-cursor editor :spatial-up :move-prev-form))
+  (apply-move-cursor editor :spatial-up :prev-form))
 
 (defn spatial-down [editor]
-  (apply-move-cursor editor :spatial-down :move-next-form))
+  (apply-move-cursor editor :spatial-down :next-form))
 
 (defn spatial-left [editor]
   (apply-move-cursor editor :spatial-left))
