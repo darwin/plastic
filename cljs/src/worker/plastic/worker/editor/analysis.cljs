@@ -9,37 +9,32 @@
             [plastic.worker.editor.layout.analysis.calls :refer [analyze-calls]]
             [plastic.worker.editor.layout.analysis.scopes :refer [analyze-scopes]]
             [plastic.worker.editor.layout.analysis.defs :refer [analyze-defs]]
-            [plastic.util.zip :as zip-utils]))
+            [plastic.util.zip :as zip-utils]
+            [plastic.worker.paths :as paths]))
 
-(defn prepare-form-analysis [root-loc _opts]
-  {:pre [(= (node/tag (zip/node (zip/up root-loc))) :forms)]} ; parent has to be :forms
-  (let [root-node (zip/node root-loc)
-        _ (assert root-node)
-        root-id (:id root-node)
+; TODO: implement a cache to prevent recomputing analysis for unchanged forms
+(defn prepare-form-analysis [form-loc]
+  {:pre [(= (node/tag (zip/node (zip/up form-loc))) :forms)]} ; parent has to be :forms
+  (let [form-node (zip/node form-loc)
+        _ (assert form-node)
+        root-id (:id form-node)
         analysis (-> {}
-                   (analyze-calls root-loc)
-                   (analyze-scopes root-loc)
-                   (analyze-defs root-loc))]
-    (fancy-log "ANALYSIS" "form #" root-id "=>" analysis)
+                   (analyze-calls form-loc)
+                   (analyze-scopes form-loc)
+                   (analyze-defs form-loc))]
+    (fancy-log "ANALYSIS" "form" root-id "=>" analysis)
     analysis))
 
-(defn run-analysis-for-editor-and-form [editor opts form-loc]
-  (main-dispatch :editor-commit-analysis (editor/get-id editor) (zip-utils/loc-id form-loc) (prepare-form-analysis form-loc opts))
-  #_(let [old-analysis nil #_(editor/get-analysis-for-form editor (zip-utils/loc-id form-loc))] ; TODO: optimize
-      (if-not (= (:node old-analysis) (z/node form-loc))    ; skip analysis if nothing changed
-        (main-dispatch :editor-commit-analysis (editor/get-id editor) (zip-utils/loc-id form-loc) (prepare-form-analysis form-loc opts)))))
-
-(defn run-analysis-for-editor-and-forms [form-selector opts editor]
-  (if (editor/parsed? editor)
-    (editor/doall-specified-forms editor (partial run-analysis-for-editor-and-form editor opts) form-selector)
-    (error "editor not parsed!" editor)))
-
-(defn run-analysis [db [editor-selector form-selector opts]]
-  (let [{:keys [editors]} db]
-    (editor/doall-specified-editors (partial run-analysis-for-editor-and-forms form-selector opts) editors editor-selector)
-    db))
+(defn run-analysis [editors [editor-selector form-selector]]
+  (editor/apply-to-editors editors editor-selector
+    (fn [editor]
+      (if-not (editor/parsed? editor)
+        (error "editor not parsed!" editor)
+        (editor/apply-to-forms editor form-selector
+          (fn [editor form-loc]
+            (main-dispatch :editor-commit-analysis (editor/get-id editor) (zip-utils/loc-id form-loc) (prepare-form-analysis form-loc))))))))
 
 ; ----------------------------------------------------------------------------------------------------------------
 ; register handlers
 
-(register-handler :editor-run-analysis run-analysis)
+(register-handler :editor-run-analysis paths/editors-path run-analysis)

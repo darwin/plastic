@@ -254,12 +254,6 @@
 (defn prepare-deref-node [children]
   (parser/assoc-node-id (deref-node children)))
 
-(defn doall-specified-forms [editor f selector]
-  (doall
-    (for [loc (get-top-level-locs editor)]
-      (if (helpers/selector-matches? selector (zip-utils/loc-id loc))
-        (f loc)))))
-
 (defn selector-matches-editor? [editor-id selector]
   (cond
     (vector? selector) (some #{editor-id} selector)
@@ -271,14 +265,15 @@
     (flatten
       (for [[editor-id editor] editors]
         (if (selector-matches-editor? editor-id selector)
-          [editor-id (f editor)]
+          [editor-id (or (f editor) editor)]
           [editor-id editor])))))
 
-(defn doall-specified-editors [f editors id-or-ids]
-  (doall
-    (for [[editor-id editor] editors]
-      (if (selector-matches-editor? editor-id id-or-ids)
-        (f editor)))))
+(defn apply-to-forms [editor selector f]
+  (let [reducer (fn [editor form-loc]
+                  (if (helpers/selector-matches? selector (zip-utils/loc-id form-loc))
+                    (or (f editor form-loc) editor)
+                    editor))]
+    (reduce reducer editor (get-top-level-locs editor))))
 
 (defn get-previously-layouted-form-node [editor form-id]
   (get-in editor [:previously-layouted-forms form-id]))
