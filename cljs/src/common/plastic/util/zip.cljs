@@ -6,7 +6,7 @@
             [rewrite-clj.node :as node]))
 
 (defn valid-loc? [loc]
-  (not (or (nil? loc) (z/end? loc) (zip/end? loc))))        ; why is zip/end? doing it differently than z/end?
+  (not (or (nil? loc) (z/end? loc))))
 
 (defn make-zipper* [node]
   (z/zipper
@@ -93,7 +93,7 @@
     (or (zero? res) (neg? res))))
 
 (defn collect-all-right [loc]
-  (take-while (complement zip/end?) (iterate zip/right loc)))
+  (take-while valid-loc? (iterate zip/right loc)))
 
 (defn collect-all-parents [loc]
   (take-while valid-loc? (iterate z/up loc)))
