@@ -8,6 +8,10 @@
             [plastic.worker.editor.layout.utils :as utils])
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]))
 
+(defn structure? [loc]
+  (let [node (z/node loc)]
+    (not (or (node/whitespace? node) (node/comment? node)))))
+
 (defn essential-nodes [nodes]
   (filter #(not (or (node/whitespace? %) (node/comment? %))) nodes))
 
@@ -23,10 +27,6 @@
                   ;:def-name-node first-symbol-node
                   ;:def-doc-node  first-string-node
                   }]]))
-
-(defn structure? [loc]
-  (let [node (z/node loc)]
-    (not (or (node/whitespace? node) (node/comment? node)))))
 
 (def zip-next (partial zip-utils/zip-next structure?))
 

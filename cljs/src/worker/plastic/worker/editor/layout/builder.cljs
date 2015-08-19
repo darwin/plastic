@@ -30,10 +30,7 @@
     :else (node/string node)))
 
 (defn is-newline? [loc]
-  (if (nil? loc)
-    true
-    (let [node (z/node loc)]
-      (or (node/linebreak? node) (node/comment? node)))))   ; comments have newlines embedded
+  (or (nil? loc) (node/linebreak? (z/node loc))))
 
 (defn break-locs-into-lines [accum loc]
   (let [new-accum (assoc accum (dec (count accum)) (conj (last accum) loc))]
