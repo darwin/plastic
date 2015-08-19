@@ -18,9 +18,11 @@
   ([] (current-job-desc *current-job-id*))
   ([id] (if-not (zero? id) (str "(job " id ")") "")))
 
+(def bench? (or plastic.env.bench-processing plastic.env.bench-main-processing))
+
 (defn timing [handler]
   (fn timing-handler [db v]
-    (measure-time (or plastic.env.bench-processing plastic.env.bench-main-processing) "PROCESS" [v (current-job-desc)]
+    (measure-time bench? "PROCESS" [v (current-job-desc)]
       (handler db v))))
 
 (def path (middleware/path frame))
@@ -28,8 +30,10 @@
 (def common-middleware [timing (middleware/trim-v frame)])
 
 (defn register-handler
-  ([event-id handler-fn] (register-handler event-id nil handler-fn))
-  ([event-id middleware handler-fn] (scaffold/register-base frame event-id [common-middleware middleware] handler-fn)))
+  ([event-id handler-fn]
+   (register-handler event-id nil handler-fn))
+  ([event-id middleware handler-fn]
+   (scaffold/register-base frame event-id [common-middleware middleware] handler-fn)))
 
 (defn register-sub [subscription-id handler-fn]
   (swap! frame #(frame/register-subscription-handler % subscription-id handler-fn)))
@@ -43,11 +47,11 @@
       (frame/process-event-on-atom! @frame-atom db event)
       (catch :default e
         (error e (.-stack e))))
-    (if-not (zero? job-id)                                  ; jobs with id 0 are without continuation
+    (if-not (zero? job-id)                                                                                            ; jobs with id 0 are without continuation
       (counters/update-counter-for-job job-id))))
 
 (defn ^:export dispatch [job-id event]
-  (if-not (zero? job-id)                                    ; jobs with id 0 are without continuation
+  (if-not (zero? job-id)                                                                                              ; jobs with id 0 are without continuation
     (counters/inc-counter-for-job job-id))
   (put! event-chan [job-id event])
   nil)

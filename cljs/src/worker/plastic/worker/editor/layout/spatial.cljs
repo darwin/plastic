@@ -21,6 +21,6 @@
                        [(get selectables id) (get selectables spot-id)]))
         selectable-tokens (filter token? (remove nil? (mapcat loc-tokens all-locs)))]
     (->> selectable-tokens
-      (group-by :line)                                      ; guaranteed to be in left-to-right order because all-locs are left-to-right
+      (group-by :line)                                                                                                ; guaranteed to be in left-to-right order because all-locs are left-to-right
       (into (sorted-map))
       (add-empty-lines))))

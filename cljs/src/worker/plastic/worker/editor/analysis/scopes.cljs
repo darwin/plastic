@@ -57,8 +57,10 @@
 ; TODO: here must be proper parsing of destructuring
 (defn collect-vector-pairs [loc]
   (if loc
-    (let [pairs (partition 2 (filter scope-related? (zip-utils/collect-all-children loc)))]
-      (mapcat #(collect-node-params (first %) (zip-utils/inc-path (zip-utils/inc-path (zip-utils/loc->path (second %))))) pairs))))
+    (let [pairs (partition 2 (filter scope-related? (zip-utils/collect-all-children loc)))
+          inc-path zip-utils/inc-path
+          loc->path zip-utils/loc->path]
+      (mapcat #(collect-node-params (first %) (inc-path (inc-path (loc->path (second %))))) pairs))))
 
 (defn collect-specified-param [loc num]
   (let [relevant-child-locs (filter scope-related? (zip-utils/collect-all-children loc))]

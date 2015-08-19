@@ -35,7 +35,7 @@
     (editor/dispose-reactions! editor)
     (dissoc editors editor-id)))
 
-; ----------------------------------------------------------------------------------------------------------------
+; -------------------------------------------------------------------------------------------------------------------
 ; register handlers
 
 (register-handler :add-editor paths/editors-path add-editor)

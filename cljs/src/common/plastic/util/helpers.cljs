@@ -19,8 +19,7 @@
     ;(log "DM" inputs "===>" res)
     res))
 
-; --------------------------------------------------------
-;
+; -------------------------------------------------------------------------------------------------------------------
 
 (defn- type-dispatcher [obj]
   (cond
@@ -33,7 +32,7 @@
   (pprint/simple-dispatch thing))
 
 #_(defmethod clean-dispatch :fn []
-  (-write *out* "..."))
+    (-write *out* "..."))
 
 (defn nice-print [o]
   (with-out-str
@@ -43,7 +42,7 @@
                 pprint/*print-lines* true]
         (pprint o)))))
 
-; --------------------------------------------------------
+; -------------------------------------------------------------------------------------------------------------------
 
 ; underscore-like debounce
 (defn debounce [f wait]
@@ -87,7 +86,7 @@
   (last (take-while #(not (f %)) coll)))
 
 (defn strip-colon [text]
-  (str/ltrim text ":"))                                     ; TODO: this must be more robust
+  (str/ltrim text ":"))                                                                                               ; TODO: this must be more robust
 
 (defn selector-matches? [selector id]
   (cond
@@ -140,9 +139,9 @@
   {:pre [(coll? coll)]}
   (map-indexed (fn [i v] [i v]) coll))
 
-;; ----------------------------------------------------------------------
-;; scgilardi at gmail
-;; taken from https://github.com/clojure/core.incubator/blob/master/src/main/clojure/clojure/core/incubator.clj
+; -------------------------------------------------------------------------------------------------------------------
+; scgilardi at gmail
+; taken from https://github.com/clojure/core.incubator/blob/master/src/main/clojure/clojure/core/incubator.clj
 
 (defn dissoc-in
   "Dissociates an entry from a nested associative structure returning a new
@@ -163,5 +162,5 @@
   "Like `aget` for JS objects, Ref. https://goo.gl/eze8hY. Unlike `aget`,
   returns nil for missing keys instead of throwing."
   ([o k] (when o (gobj/get o k nil)))
-  ([o k1 k2] (when-let [o (oget o k1)] (gobj/get o k2 nil))) ; Optimized common case
-  ([o k1 k2 & ks] (when-let [o (oget o k1 k2)] (apply oget o ks)))) ; Can also lean on optimized 2-case
+  ([o k1 k2] (when-let [o (oget o k1)] (gobj/get o k2 nil)))                                                          ; Optimized common case
+  ([o k1 k2 & ks] (when-let [o (oget o k1 k2)] (apply oget o ks))))                                                   ; Can also lean on optimized 2-case

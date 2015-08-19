@@ -5,7 +5,7 @@
 (def defaults
   {})
 
-;; -- Application State  --------------------------------------------------------------------------
+;; -- Application State  --------------------------------------------------------------------------------------------
 ;;
 ;; Should not be accessed directly by application code
 ;; Read access goes through subscriptions.

@@ -5,4 +5,4 @@
             [plastic.worker.frame :refer [worker-loop frame]]))
 
 (fancy-log "WORK LOOP" @frame)
-(worker-loop)                                               ; start event processing
+(worker-loop)                                                                                                         ; start event processing

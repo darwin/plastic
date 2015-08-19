@@ -15,7 +15,7 @@
 (defn set-parse-tree [editors [editor-id parse-tree]]
   (assoc-in editors [editor-id :parse-tree] parse-tree))
 
-; ----------------------------------------------------------------------------------------------------------------
+; -------------------------------------------------------------------------------------------------------------------
 ; register handlers
 
 (register-handler :editor-parse-source paths/editors-path parse-source)

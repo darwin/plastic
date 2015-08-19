@@ -14,7 +14,7 @@
 
 ; TODO: implement a cache to prevent recomputing analysis for unchanged forms
 (defn prepare-form-analysis [form-loc]
-  {:pre [(= (node/tag (zip/node (zip/up form-loc))) :forms)]} ; parent has to be :forms
+  {:pre [(= (node/tag (zip/node (zip/up form-loc))) :forms)]}                                                         ; parent has to be :forms
   (let [form-node (zip/node form-loc)
         _ (assert form-node)
         root-id (:id form-node)
@@ -37,7 +37,7 @@
                   analysis (prepare-form-analysis form-loc)]
               (main-dispatch :editor-commit-analysis editor-id form-id analysis))))))))
 
-; ---------------------------------------------------------------------------------------------------------------------
+; -------------------------------------------------------------------------------------------------------------------
 ; register handlers
 
 (register-handler :editor-run-analysis paths/editors-path run-analysis)

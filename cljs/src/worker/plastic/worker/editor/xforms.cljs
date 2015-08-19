@@ -23,7 +23,7 @@
    :open-deref                        editing/open-deref
    :insert-placeholder-as-first-child editing/insert-placeholder-as-first-child})
 
-; ----------------------------------------------------------------------------------------------------------------------
+; -------------------------------------------------------------------------------------------------------------------
 
 (defn dispatch-xform [editors [editor-id xform & args]]
   (let [old-editor (get editors editor-id)]
@@ -35,7 +35,7 @@
         (error (str "Unknown editor xform for dispatch '" xform "'"))
         editors))))
 
-; ----------------------------------------------------------------------------------------------------------------------
+; -------------------------------------------------------------------------------------------------------------------
 ; register handlers
 
 (register-handler :editor-xform paths/editors-path dispatch-xform)

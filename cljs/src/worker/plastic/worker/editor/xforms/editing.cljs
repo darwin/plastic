@@ -15,7 +15,7 @@
 (defn postprocess-text-after-editing [editor-mode text]
   (condp = editor-mode
     :symbol (node/coerce (symbol text))
-    :keyword (keyword-node (keyword text))                  ; TODO: investigate - coerce does not work for keywords?
+    :keyword (keyword-node (keyword text))                                                                            ; TODO: investigate - coerce does not work for keywords?
     :string (node/coerce text)
     (throw "unknown editor mode in postprocess-text-after-editing:" editor-mode)))
 

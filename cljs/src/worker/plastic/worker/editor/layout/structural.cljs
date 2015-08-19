@@ -61,7 +61,9 @@
   (reduce structural-web-for-doc web docs-locs))
 
 (defn link-forests-to-top [web root-id]
-  (merge web (map (fn [[id record]] (if (or (:up record) (= id root-id)) [id record] [id (assoc record :up root-id)])) web)))
+  (merge web (map (fn [[id record]] (if (or (:up record) (= id root-id))
+                                      [id record]
+                                      [id (assoc record :up root-id)])) web)))
 
 (defn link-top-selectable [web root-id form-id]
   (assoc web root-id {:left  nil

@@ -45,8 +45,8 @@
   (some->> loc z/next (skip z/right policy)))
 
 (defn leaf-nodes [policy loc]
-  (filter (complement z/branch?)                            ; filter only non-branch nodes
-    (take-while valid-loc?                                  ; take until the :end
+  (filter (complement z/branch?)                                                                                      ; filter only non-branch nodes
+    (take-while valid-loc?                                                                                            ; take until the :end
       (iterate (partial zip-next policy) loc))))
 
 (defn ancestor-count [policy loc]

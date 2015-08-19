@@ -1,7 +1,7 @@
 (ns plastic.worker
   (:require [plastic.logging :refer [log info warn error group group-end fancy-log*]]))
 
-; ----------------------------------------------------------------------------------------------------------------------
+; -------------------------------------------------------------------------------------------------------------------
 ; these need to be macros to preserve source location for logging into devtools
 
 (defmacro dispatch-args [id event+args]

@@ -7,10 +7,10 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn set-cursor [editors [selector cursor link?]]
+(defn set-cursor [editors [selector cursor]]
   (editor/apply-to-editors editors selector
     (fn [editor]
-      (editing/stop-editing editor #(editor/set-cursor % cursor link?)))))
+      (editing/stop-editing editor #(editor/set-cursor % cursor)))))
 
 (defn clear-cursor [editors [selector]]
   (editor/apply-to-editors editors selector

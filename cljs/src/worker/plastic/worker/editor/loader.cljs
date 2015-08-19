@@ -7,7 +7,7 @@
 (defn set-text [editors [editor-id text]]
   (assoc-in editors [editor-id :text] text))
 
-; ----------------------------------------------------------------------------------------------------------------
+; -------------------------------------------------------------------------------------------------------------------
 ; register handlers
 
 (register-handler :editor-set-text paths/editors-path set-text)

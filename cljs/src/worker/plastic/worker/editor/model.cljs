@@ -71,9 +71,9 @@
     (set-parse-tree editor new-parse-tree)))
 
 (defn get-top-level-locs [editor]
-  (let [top-loc (zip-utils/make-zipper (get-parse-tree editor)) ; root "forms" node
+  (let [top-loc (zip-utils/make-zipper (get-parse-tree editor))                                                       ; root "forms" node
         first-top-level-form-loc (zip/down top-loc)]
-    (zip-utils/collect-all-right first-top-level-form-loc))) ; TODO: here we should use explicit zipping policy
+    (zip-utils/collect-all-right first-top-level-form-loc)))                                                          ; TODO: here we should use explicit zipping policy
 
 (defn find-node-loc [editor node-id]
   (let [parse-tree (get-parse-tree editor)
@@ -108,14 +108,18 @@
 (defn delete-whitespaces-and-newlines-after-loc [loc]
   (loop [cur-loc loc]
     (let [possibly-white-space-loc (z/right cur-loc)]
-      (if (and (zip-utils/valid-loc? possibly-white-space-loc) (node/whitespace? (zip/node possibly-white-space-loc)))
+      (if (and
+            (zip-utils/valid-loc? possibly-white-space-loc)
+            (node/whitespace? (zip/node possibly-white-space-loc)))
         (recur (z/remove possibly-white-space-loc))
         cur-loc))))
 
 (defn delete-whitespaces-and-newlines-before-loc [loc]
   (loop [cur-loc loc]
     (let [possibly-white-space-loc (z/left cur-loc)]
-      (if (and (zip-utils/valid-loc? possibly-white-space-loc) (node/whitespace? (zip/node possibly-white-space-loc)))
+      (if (and
+            (zip-utils/valid-loc? possibly-white-space-loc)
+            (node/whitespace? (zip/node possibly-white-space-loc)))
         (let [loc-after-removal (z/remove possibly-white-space-loc)
               next-step-loc (z/next loc-after-removal)]
           (recur next-step-loc))
@@ -165,23 +169,28 @@
     (reduce inserter first-child-loc values)))
 
 (defn insert-values-after-node [editor node-id values]
-  (transform-parse-tree editor (parse-tree-transformer (partial insert-values-after-node-loc (id/id-part node-id) values))))
+  (transform-parse-tree editor
+    (parse-tree-transformer (partial insert-values-after-node-loc (id/id-part node-id) values))))
 
 (defn insert-values-before-node [editor node-id values]
-  (transform-parse-tree editor (parse-tree-transformer (partial insert-values-before-node-loc (id/id-part node-id) values))))
+  (transform-parse-tree editor
+    (parse-tree-transformer (partial insert-values-before-node-loc (id/id-part node-id) values))))
 
 (defn insert-values-before-first-child-of-node [editor node-id values]
-  (transform-parse-tree editor (parse-tree-transformer (partial insert-values-before-first-child-of-node-loc (id/id-part node-id) values))))
+  (transform-parse-tree editor
+    (parse-tree-transformer (partial insert-values-before-first-child-of-node-loc (id/id-part node-id) values))))
 
 (defn remove-linebreak-before-node-loc [node-id loc]
   (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))
         _ (assert (zip-utils/valid-loc? node-loc))
-        first-linebreak (first (filter #(node/linebreak? (zip/node %)) (take-while zip-utils/valid-loc? (iterate z/prev node-loc))))]
+        prev-locs (take-while zip-utils/valid-loc? (iterate z/prev node-loc))
+        first-linebreak (first (filter #(node/linebreak? (zip/node %)) prev-locs))]
     (if first-linebreak
       (z/remove first-linebreak))))
 
 (defn remove-linebreak-before-node [editor node-id]
-  (transform-parse-tree editor (parse-tree-transformer (partial remove-linebreak-before-node-loc (id/id-part node-id)))))
+  (transform-parse-tree editor
+    (parse-tree-transformer (partial remove-linebreak-before-node-loc (id/id-part node-id)))))
 
 (defn remove-right-siblink-of-loc [node-id loc]
   (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))
@@ -195,7 +204,8 @@
             (recur new-loc)))))))
 
 (defn remove-right-siblink [editor node-id]
-  (transform-parse-tree editor (parse-tree-transformer (partial remove-right-siblink-of-loc (id/id-part node-id)))))
+  (transform-parse-tree editor
+    (parse-tree-transformer (partial remove-right-siblink-of-loc (id/id-part node-id)))))
 
 (defn remove-left-siblink-of-loc [node-id loc]
   (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))
@@ -205,7 +215,8 @@
       (z/remove left-loc))))
 
 (defn remove-left-siblink [editor node-id]
-  (transform-parse-tree editor (parse-tree-transformer (partial remove-left-siblink-of-loc (id/id-part node-id)))))
+  (transform-parse-tree editor
+    (parse-tree-transformer (partial remove-left-siblink-of-loc (id/id-part node-id)))))
 
 (defn remove-first-child-of-node-loc [node-id loc]
   (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))
@@ -219,7 +230,8 @@
             (recur new-loc)))))))
 
 (defn remove-first-child-of-node [editor node-id]
-  (transform-parse-tree editor (parse-tree-transformer (partial remove-first-child-of-node-loc (id/id-part node-id)))))
+  (transform-parse-tree editor
+    (parse-tree-transformer (partial remove-first-child-of-node-loc (id/id-part node-id)))))
 
 (defn prepare-placeholder-node []
   (parser/assoc-node-id (token-node "" "")))

@@ -16,8 +16,8 @@
 
 (defn update-form-layout [editor-id form-loc]
   {:pre [(zip/node form-loc)
-         (= (zip/tag (zip/up form-loc)) :forms)             ; parent has to be :forms
-         (= 1 (count (node/children (zip/node (zip/up form-loc)))))]} ; root-loc is the only child
+         (= (zip/tag (zip/up form-loc)) :forms)                                                                       ; parent has to be :forms
+         (= 1 (count (node/children (zip/node (zip/up form-loc)))))]}                                                 ; root-loc is the only child
   (let [form-id (zip-utils/loc-id form-loc)
         layout (build-layout form-loc)
         selectables (utils/extract-all-selectables layout)
@@ -53,7 +53,7 @@
             (editor/set-render-state new-render-state)
             (update-forms-layout-if-needed independent-top-level-locs)))))))
 
-; ----------------------------------------------------------------------------------------------------------------------
+; -------------------------------------------------------------------------------------------------------------------
 ; register handlers
 
 (register-handler :editor-update-layout paths/editors-path update-layout)

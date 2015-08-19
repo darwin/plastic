@@ -16,7 +16,7 @@
 (defn match-paths [old-data new-data paths-tree]
   (doseq [[key val] paths-tree]
     (if (= val ::reaction)
-      (ratom/run key)                                       ; in case of ::reaction stopper, the key is actual SonarReaction instance
+      (ratom/run key)                                                                                                 ; in case of ::reaction stopper, the key is actual SonarReaction instance
       (let [old (get old-data key)
             new (get new-data key)]
         (if-not (identical? old new)

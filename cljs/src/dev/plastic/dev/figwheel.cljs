@@ -11,11 +11,13 @@
 
 (defn eval [code]
   (if need-loophole?
-    (.runInThisContext (js/require "vm") code)                             ; https://github.com/atom/loophole
+    (.runInThisContext (js/require "vm") code)                                                                        ; https://github.com/atom/loophole
     (js* "eval(~{code})")))
 
 (defn figwheel-repl-fix [code]
-  (.replace code #"^\(function \(\)\{try\{return cljs\.core\.pr_str\.call" "(function (){try{return cljs.core.identity.call"))
+  (.replace code
+    #"^\(function \(\)\{try\{return cljs\.core\.pr_str\.call"
+    "(function (){try{return cljs.core.identity.call"))
 
 (defn intellij-repl-fix [code]
   (.replace code #"^try\{cljs\.core\.pr_str\.call" "try{cljs.core.identity.call"))
