@@ -45,7 +45,7 @@
 
 (defn handle-event-and-report-exceptions [frame-atom db event]
   (try
-    (frame/process-event-on-atom @frame-atom db event)
+    (frame/process-event-on-atom! @frame-atom db event)
     (catch :default e
       (error e (.-stack e)))))
 

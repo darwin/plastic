@@ -40,7 +40,7 @@
 (defn handle-event-and-report-exceptions [frame-atom db job-id event]
   (binding [*current-job-id* job-id]
     (try
-      (frame/process-event-on-atom @frame-atom db event)
+      (frame/process-event-on-atom! @frame-atom db event)
       (catch :default e
         (error e (.-stack e))))
     (if-not (zero? job-id)                                  ; jobs with id 0 are without continuation

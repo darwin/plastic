@@ -18,6 +18,10 @@
   (fn [editor-id node-id]
     (concat paths/editors [editor-id :selection node-id])))
 
+(defn highlight-selector []
+  (fn [editor-id node-id]
+    (concat paths/editors [editor-id :highlight node-id])))
+
 (defn editing-selector []
   (fn [editor-id node-id]
     (concat paths/editors [editor-id :editing node-id])))
@@ -46,9 +50,10 @@
 
 (register-sub :editor-render-state (path-query-factory (editor-selector [:render-state])))
 (register-sub :editor-uri (path-query-factory (editor-selector [:def :uri])))
-(register-sub :editor-cursors (path-query-factory (editor-selector [:cursors])))
 (register-sub :editor-selection (path-query-factory (editor-selector [:selection])))
 (register-sub :editor-selection-node (path-query-factory (selection-selector)))
+(register-sub :editor-highlight (path-query-factory (editor-selector [:highlight])))
+(register-sub :editor-highlight-node (path-query-factory (highlight-selector)))
 (register-sub :editor-editing (path-query-factory (editor-selector [:editing])))
 (register-sub :editor-editing-node (path-query-factory (editing-selector)))
 (register-sub :editor-form-layout (path-query-factory (form-layout-selector)))

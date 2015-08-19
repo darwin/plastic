@@ -8,28 +8,25 @@
             [plastic.main.editor.model :as editor]))
 
 (defn watch-uri [editor]
-  (let [uri-subscription (subscribe [:editor-uri (:id editor)])]
+  (let [editor-id (editor/get-id editor)
+        uri-subscription (subscribe [:editor-uri editor-id])]
     (editor/register-reaction editor
       (react!
         (when-let [uri @uri-subscription]
-          (dispatch :editor-fetch-text (:id editor) uri))))))
+          (dispatch :editor-fetch-text editor-id uri))))))
 
-(defn watch-settings [editor]
-  (let [code-visible-subscription (subscribe [:settings :code-visible])
-        docs-visible-subscription (subscribe [:settings :docs-visible])
-        headers-visible-subscription (subscribe [:settings :headers-visible])]
+(defn watch-cursor [editor]
+  (let [editor-id (editor/get-id editor)
+        cursor (subscribe [:editor-cursor editor-id])]
     (editor/register-reaction editor
       (react!
-        (let [_ @code-visible-subscription
-              _ @docs-visible-subscription
-              _ @headers-visible-subscription]
-          (worker-dispatch :editor-update-layout (:id editor)))))))
+        (let [_ @cursor]
+          (worker-dispatch :editor-update-highlight editor-id))))))
 
 (defn wire-editor [editor]
-  editor
   (-> editor
     (watch-uri)
-    (watch-settings)))
+    (watch-cursor)))
 
 (defn add-editor [editors [editor-id editor-def]]
   (let [editors (if (map? editors) editors {})

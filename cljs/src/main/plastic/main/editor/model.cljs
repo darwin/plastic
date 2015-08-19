@@ -65,15 +65,6 @@
   {:post [(set? %)]}
   (or (get editor :selection) #{}))
 
-(defn get-cursor [editor]
-  {:pre [(set? (or (get editor :cursor) #{}))
-         (<= (count (get editor :cursor)) 1)]}
-  (first (get editor :cursor)))
-
-(defn cursor-and-selection-are-linked? [editor]
-  (let [selection (get-selection editor)]
-    (or (empty? selection) (and (= (count selection) 1) (= (first selection) (get-cursor editor))))))
-
 (defn set-selection [editor selection]
   {:pre [(set? selection)]}
   (assoc editor :selection selection))
@@ -87,6 +78,23 @@
         old-selection (get-selection editor)
         new-selection (reduce toggler old-selection toggle-set)]
     (set-selection editor new-selection)))
+
+(defn get-highlight [editor]
+  {:post [(set? %)]}
+  (or (get editor :highlight) #{}))
+
+(defn set-highlight [editor highlight]
+  {:pre [(set? highlight)]}
+  (assoc editor :highlight highlight))
+
+(defn get-cursor [editor]
+  {:pre [(set? (or (get editor :cursor) #{}))
+         (<= (count (get editor :cursor)) 1)]}
+  (first (get editor :cursor)))
+
+(defn cursor-and-selection-are-linked? [editor]
+  (let [selection (get-selection editor)]
+    (or (empty? selection) (and (= (count selection) 1) (= (first selection) (get-cursor editor))))))
 
 (defn selector-matches-editor? [editor-id selector]
   (cond

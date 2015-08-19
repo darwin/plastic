@@ -1,7 +1,6 @@
-(ns plastic.main.editor.cursors
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.main :refer [react! dispatch]])
-  (:require [plastic.main.frame :refer [subscribe register-handler]]
+(ns plastic.main.editor.cursor
+  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
+  (:require [plastic.main.frame :refer [register-handler]]
             [plastic.main.paths :as paths]
             [plastic.main.editor.model :as editor]
             [plastic.main.editor.ops.editing :as editing]))

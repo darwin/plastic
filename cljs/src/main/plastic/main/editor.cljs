@@ -9,5 +9,6 @@
             [plastic.main.editor.analysis]
             [plastic.main.editor.ops]
             [plastic.main.editor.render]
-            [plastic.main.editor.selections]
-            [plastic.main.editor.cursors]))
+            [plastic.main.editor.selection]
+            [plastic.main.editor.highlight]
+            [plastic.main.editor.cursor]))
