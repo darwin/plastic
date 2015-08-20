@@ -3,7 +3,7 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [plastic.util.dom.shim]
             [plastic.onion.api :refer [$]]
-            [plastic.onion.atom :as onion]
+            [plastic.onion.atom :as atom]
             [clojure.string :as string]
             [plastic.main.editor.toolkit.id :as id]))
 
@@ -90,7 +90,7 @@
    (find-all $ selector)))
 
 (defn find-plastic-editor-view [editor-id]
-  (onion/get-plastic-editor-view editor-id))
+  (atom/get-plastic-editor-view editor-id))
 
 (defn find-plastic-editor [editor-id]
   (let [$editor-view ($ (find-plastic-editor-view editor-id))]

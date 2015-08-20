@@ -4,8 +4,7 @@
   (:require [plastic.main.frame :refer [subscribe register-handler]]
             [plastic.main.editor.model :as editor]
             [plastic.main.editor.ops.cursor :as cursor]
-            [plastic.main.editor.toolkit.id :as id]
-            [plastic.onion.atom :as onion]))
+            [plastic.main.editor.toolkit.id :as id]))
 
 (defn xform-on-worker [editor command+args & [callback]]
   (worker-dispatch-args (vec (concat [:editor-xform (editor/get-id editor)] command+args)) callback)
@@ -24,19 +23,11 @@
                        [:structural-left :structural-right :structural-up])]
     (apply cursor/apply-move-cursor editor moves-to-try)))
 
-(defn should-commit? [editor-id]
-  (onion/is-inline-editor-modified? editor-id))
-
 (defn editing-string? [editor]
   (if (editor/editing? editor)
     (let [editor-id (editor/get-id editor)
-          mode (onion/get-inline-editor-mode editor-id)]
+          mode (editor/get-inline-editor-mode editor-id)]
       (= mode :string))))
-
-(defn is-inline-editor-empty? [editor]
-  {:pre [(editor/editing? editor)]}
-  (let [editor-id (editor/get-id editor)]
-    (onion/is-inline-editor-empty? editor-id)))
 
 (defn get-edit-point [editor]
   (if (editor/editing? editor)
@@ -52,6 +43,9 @@
     (reduce walker start path)))
 
 (declare start-editing)
+
+(defn should-commit? [editor]
+  (or (editor/is-inline-editor-empty? editor) (editor/is-inline-editor-modified? editor)))                            ; empty inline editor is a placeholder and must be comitted regardless
 
 (defn select-neighbour-and-start-editing [form-id edit-point path editor]
   (let [structural-web (editor/get-structural-web-for-form editor form-id)
@@ -83,15 +77,15 @@
   (or
     (let [editor-id (editor/get-id editor)]
       (if (editor/editing? editor)
-        (if-not (should-commit? editor-id)
+        (if-not (should-commit? editor)
           (call-continuation cb (editor/set-editing editor nil))
           (let [edited-node-id (editor/get-editing editor)
-                value-after-editing (onion/get-value-after-editing editor-id)
+                value (editor/get-inline-editor-value editor)
                 editor-with-moved-cursor (move-cursor-for-case-of-selected-node-removal editor)
                 moved-cursor (editor/get-cursor editor-with-moved-cursor)
                 effect (fn [db]
                          (editor/update-in-db db editor-id (make-continuation cb reset-editing) moved-cursor))]
-            (xform-on-worker editor [:edit-node edited-node-id value-after-editing] effect)))))
+            (xform-on-worker editor [:edit-node edited-node-id value] effect)))))
     (call-continuation cb editor)))
 
 (defn apply-operation-but-preserve-editing-mode [editor op]
@@ -112,7 +106,7 @@
     (stop-editing editor continuation)))
 
 (defn perform-backspace-in-empty-cell [editor]
-  {:pre [(is-inline-editor-empty? editor)]}
+  {:pre [(editor/is-inline-editor-empty? (editor/get-id editor))]}
   (stop-editing editor))
 
 (defn perform-backspace [editor & [cb]]

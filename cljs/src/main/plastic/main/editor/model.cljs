@@ -194,10 +194,33 @@
       (set-cursor editor new-cursor))))
 
 (defn find-related-ring [editor node-id]
-  ; TODO: in future searching for related ring should be across whole file, not just form specific
+  ; TODO: in future searching for related ring should be across whole file, not just form-specific
   (let [form-id (get-form-id-for-node-id editor node-id)
         _ (assert form-id)
         analysis (get-analysis-for-form editor form-id)
         _ (assert analysis)
         info (get analysis node-id)]
     (or (:related info) #{})))
+
+; -------------------------------------------------------------------------------------------------------------------
+
+(defn get-inline-editor [editor]
+  (get editor :inline-editor))
+
+(defn set-inline-editor [editor new-state]
+  (assoc editor :inline-editor new-state))
+
+(defn is-inline-editor-modified? [editor]
+  (:modified? (get-inline-editor editor)))
+
+(defn is-inline-editor-empty? [editor]
+  (:empty? (get-inline-editor editor)))
+
+(defn get-inline-editor-value [editor]
+  (:value (get-inline-editor editor)))
+
+(defn get-inline-editor-mode [editor]
+  (:mode (get-inline-editor-value editor)))
+
+(defn get-inline-editor-text [editor]
+  (:text (get-inline-editor-value editor)))

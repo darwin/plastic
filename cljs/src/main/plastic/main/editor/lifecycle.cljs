@@ -48,9 +48,15 @@
   (render/mount-editor dom-node editor-id)
   editors)
 
+(defn update-inline-editor [editors [selector inline-editor-state]]
+  (editor/apply-to-editors editors selector
+    (fn [editor]
+      (editor/set-inline-editor editor inline-editor-state))))
+
 ; -------------------------------------------------------------------------------------------------------------------
 ; register handlers
 
 (register-handler :add-editor paths/editors-path add-editor)
 (register-handler :remove-editor paths/editors-path remove-editor)
 (register-handler :mount-editor paths/editors-path mount-editor)
+(register-handler :editor-update-inline-editor paths/editors-path update-inline-editor)

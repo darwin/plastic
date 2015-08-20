@@ -12,16 +12,16 @@
     (editor/insert-values-after-node editor node-id values)
     (editor/insert-values-before-first-child-of-node editor node-id values)))
 
-(defn postprocess-text-after-editing [editor-mode text]
-  (condp = editor-mode
+(defn build-node [{:keys [text mode]}]
+  (condp = mode
     :symbol (node/coerce (symbol text))
     :keyword (keyword-node (keyword text))                                                                            ; TODO: investigate - coerce does not work for keywords?
     :string (node/coerce text)
-    (throw "unknown editor mode in postprocess-text-after-editing:" editor-mode)))
+    (throw "unknown editor mode passed to build-node:" mode)))
 
-(defn edit-node [editor node-id [editor-mode text]]
-  (let [node-value (parser/assoc-node-id (postprocess-text-after-editing editor-mode text))]
-    (editor/commit-node-value editor node-id node-value)))
+(defn edit-node [editor node-id value]
+  (let [new-node (parser/assoc-node-id (build-node value))]
+    (editor/commit-node-value editor node-id new-node)))
 
 (defn enter [editor edit-point]
   (let [placeholder-node (editor/prepare-placeholder-node)]
