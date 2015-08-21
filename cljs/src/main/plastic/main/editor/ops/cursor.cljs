@@ -5,21 +5,34 @@
             [plastic.util.helpers :as helpers]
             [plastic.main.editor.render.geometry :as geometry]))
 
-(defn mid-point [geometry]
-  (let [{:keys [left width] :or {left 0 width 0}} geometry]
-    (+ left (/ width 2))))
+(defn get-left-score-fn [node-geometry]
+  (let [node-point (geometry/left-point (second node-geometry))]
+    (fn [geometry] (- node-point (geometry/right-point geometry)))))
 
-(defn find-best-spatial-match [node-geometry candidates-geometries]
-  (let [node-point (mid-point (second node-geometry))
-        score (fn [geometry] (helpers/abs (- node-point (mid-point geometry))))
-        scores (map (fn [[id geometry]] {:score (score geometry) :id id}) candidates-geometries)
-        best-match (first (sort-by :score scores))]
+(defn get-right-score-fn [node-geometry]
+  (let [node-point (geometry/right-point (second node-geometry))]
+    (fn [geometry] (- (geometry/left-point geometry) node-point))))
+
+(defn get-mid-score-fn [node-geometry]
+  (let [node-dim (second node-geometry)
+        node-range [(geometry/left-point node-dim) (geometry/right-point node-dim)]]
+    (fn [geometry] (geometry/overlap node-range [(geometry/left-point geometry) (geometry/right-point geometry)]))))
+
+(defn find-best-spatial-match [node-geometry candidates-geometries kind]
+  (let [score-fn (case kind
+                   :left (get-left-score-fn node-geometry)
+                   :right (get-right-score-fn node-geometry)
+                   :mid (get-mid-score-fn node-geometry))
+        best (if (= kind :mid) last first)
+        scores (map (fn [[id geometry]] {:score (score-fn geometry) :id id}) candidates-geometries)
+        best-match (best (sort-by :score (remove #(neg? (:score %)) scores)))]
     (:id best-match)))
 
-(defn resolve-best-spatial-match [editor-id form-id node-id candidate-ids]
+(defn resolve-best-spatial-match [editor-id form-id node-id candidate-ids direction]
   (let [node-geometry (first (geometry/retrieve-form-nodes-geometries editor-id form-id [node-id]))
-        candidates-geometries (geometry/retrieve-form-nodes-geometries editor-id form-id candidate-ids)]
-    (find-best-spatial-match node-geometry candidates-geometries)))
+        candidates-without-node-id (disj candidate-ids node-id)
+        candidates-geometries (geometry/retrieve-form-nodes-geometries editor-id form-id candidates-without-node-id)]
+    (find-best-spatial-match node-geometry candidates-geometries direction)))
 
 (defn structural-movemement [editor op]
   (let [cursor-id (editor/get-cursor editor)
@@ -38,23 +51,24 @@
           spatial-web (editor/get-spatial-web-for-form editor form-id)
           sel-node (get selectables cursor-id)
           line-selectables (find-first-non-empty-line-in-given-direction spatial-web (:line sel-node) direction-fn)
-          line-selections (map :id line-selectables)]
-      (if-let [result (resolve-best-spatial-match (editor/get-id editor) form-id (:id sel-node) line-selections)]
+          line-ids (set (map :id line-selectables))]
+      (if-let [result (resolve-best-spatial-match (editor/get-id editor) form-id (:id sel-node) line-ids :mid)]
         (editor/set-cursor editor result)))
     (let [form-id (or (editor/get-focused-form-id editor) (editor/get-first-form-id editor))
           token-id (editor/get-first-selectable-token-id-for-form editor form-id)]
       (editor/set-cursor editor token-id))))
 
-(defn spatial-movement-left-right [editor direction-fn]
-  (let [cursor-id (editor/get-cursor editor)
+(defn spatial-movement-left-right [editor direction]
+  (let [editor-id (editor/get-id editor)
+        cursor-id (editor/get-cursor editor)
         form-id (editor/get-focused-form-id editor)
         selectables (editor/get-selectables-for-form editor form-id)
         spatial-web (editor/get-spatial-web-for-form editor form-id)
-        sel-node (get selectables cursor-id)]
-    (if (empty? (:children sel-node))
-      (let [line-selectables (get spatial-web (:line sel-node))]
-        (if-let [result (direction-fn #(= (:id %) cursor-id) line-selectables)]
-          (editor/set-cursor editor (:id result)))))))
+        sel-node (get selectables cursor-id)
+        line-selectables (get spatial-web (:line sel-node))
+        line-ids (set (map :id line-selectables))]
+    (if-let [result (resolve-best-spatial-match editor-id form-id cursor-id line-ids direction)]
+      (editor/set-cursor editor result))))
 
 (defn move-form [editor direction-fn next-selection-fn]
   (let [focused-form-id (editor/get-focused-form-id editor)
@@ -81,10 +95,10 @@
   (spatial-movement-up-down editor dec))
 
 (defn move-spatial-right [editor]
-  (spatial-movement-left-right editor helpers/next-item))
+  (spatial-movement-left-right editor :right))
 
 (defn move-spatial-left [editor]
-  (spatial-movement-left-right editor helpers/prev-item))
+  (spatial-movement-left-right editor :left))
 
 (defn move-structural-up [editor]
   (structural-movemement editor :up))

@@ -22,3 +22,18 @@
         selector (dom/build-nodes-selector node-ids)
         dom-nodes (dom/find-all-as-vec $form selector)]
     (collect-geometry form-offset dom-nodes)))
+
+(defn mid-point [geometry]
+  (+ (:left geometry) (/ (:width geometry) 2)))
+
+(defn left-point [geometry]
+  (or (:left geometry) 0))
+
+(defn right-point [geometry]
+  (+ (:left geometry) (:width geometry)))
+
+(defn overlap [[l1 r1] [l2 r2]]
+  (let [intersection [(max l1 l2) (min r1 r2)]
+        width (- (second intersection) (first intersection))]
+    (if (pos? width) width 0)))
+
