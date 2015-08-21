@@ -7,18 +7,22 @@
 
 (defn doc-component [editor-id form-id node-id]
   (let [selected? (subscribe [:editor-selection-node editor-id node-id])
+        cursor? (subscribe [:editor-cursor-node editor-id node-id])
         edited? (subscribe [:editor-editing-node editor-id node-id])
         layout (subscribe [:editor-layout-form-node editor-id form-id node-id])]
     (fn [_editor-id _form-id node-id]
       (log-render "doc" node-id
-        (let [{:keys [text id selectable?]} @layout]
+        (let [{:keys [text id selectable?]} @layout
+              selected? @selected?
+              cursor? @cursor?]
           ^{:key id}
           [:div.doc
            [:div.docstring.token
             {:data-qnid id
              :class     (classv
                           (if (and (not @edited?) selectable?) "selectable")
-                          (if (and (not @edited?) selectable? @selected?) "selected")
+                          (if (and (not @edited?) selectable? selected?) "selected")
+                          (if cursor? "cursor")
                           (if @edited? "editing"))}
             (if @edited?
               [inline-editor-component id text :string]
