@@ -26,8 +26,7 @@
 
 (defn add-editor [editors [id editor-def]]
   (let [editors (if (map? editors) editors {})
-        editor {:id  id
-                :def editor-def}]
+        editor (editor/make id editor-def)]
     (assoc editors id (wire-editor editor))))
 
 (defn remove-editor [editors [editor-id]]
