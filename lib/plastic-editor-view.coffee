@@ -86,6 +86,9 @@ class PlasticEditorView extends ScrollView
       'plastic:open-meta'
       'plastic:open-deref'
       'plastic:open-quote'
+      'plastic:activate-puppets'
+      'plastic:deactivate-puppets'
+      'plastic:toggle-puppets'
     ]
 
   createMiniEditor: ->

@@ -3,7 +3,7 @@
                    [plastic.main :refer [react! dispatch]])
   (:require [reagent.core :as reagent]
             [plastic.onion.api :refer [$]]
-            [plastic.main.editor.render.dom :as dom]
+            [plastic.util.dom :as dom]
             [plastic.onion.atom.inline-editor :as inline-editor]))
 
 ; inline-editor-component is only an empty shell for existing atom editor instance to be attached there
@@ -33,12 +33,12 @@
           root-view (dom/find-closest-plastic-editor-view $dom-node)]
       (if plastic.env.log-inline-editor
         (fancy-log log-label "removing \"inline-editor-active\" class from the root-view"))
-      (inline-editor/deactivate-inline-editor editor-id)
       (.removeClass ($ root-view) "inline-editor-active")
       (when (inline-editor/is-inline-editor-focused? editor-id)
         (if plastic.env.log-inline-editor
           (fancy-log log-label "returning focus back to root-view"))
-        (.focus root-view)))))
+        (.focus root-view))
+      (inline-editor/deactivate-inline-editor editor-id))))
 
 (defn inline-editor-transplantation [action react-component]
   (let [$dom-node ($ (dom/node-from-react react-component))]

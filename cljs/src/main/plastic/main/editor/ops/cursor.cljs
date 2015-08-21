@@ -3,7 +3,7 @@
                    [plastic.main :refer [react! dispatch]])
   (:require [plastic.main.editor.model :as editor]
             [plastic.util.helpers :as helpers]
-            [plastic.main.editor.render.dom :as dom]))
+            [plastic.main.editor.render.geometry :as geometry]))
 
 (defn mid-point [geometry]
   (let [{:keys [left width] :or {left 0 width 0}} geometry]
@@ -17,8 +17,8 @@
     (:id best-match)))
 
 (defn resolve-best-spatial-match [editor-id form-id node-id candidate-ids]
-  (let [node-geometry (first (dom/retrieve-form-nodes-geometries editor-id form-id [node-id]))
-        candidates-geometries (dom/retrieve-form-nodes-geometries editor-id form-id candidate-ids)]
+  (let [node-geometry (first (geometry/retrieve-form-nodes-geometries editor-id form-id [node-id]))
+        candidates-geometries (geometry/retrieve-form-nodes-geometries editor-id form-id candidate-ids)]
     (find-best-spatial-match node-geometry candidates-geometries)))
 
 (defn structural-movemement [editor op]
@@ -56,7 +56,7 @@
         (if-let [result (direction-fn #(= (:id %) cursor-id) line-selectables)]
           (editor/set-cursor editor (:id result)))))))
 
-(defn move-to-form [editor direction-fn next-selection-fn]
+(defn move-form [editor direction-fn next-selection-fn]
   (let [focused-form-id (editor/get-focused-form-id editor)
         top-level-ids (editor/get-top-level-form-ids editor)
         next-focused-form-id (direction-fn #(= % focused-form-id) top-level-ids)]
@@ -74,57 +74,57 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn move-to-spatial-down [editor]
+(defn move-spatial-down [editor]
   (spatial-movement-up-down editor inc))
 
-(defn move-to-spatial-up [editor]
+(defn move-spatial-up [editor]
   (spatial-movement-up-down editor dec))
 
-(defn move-to-spatial-right [editor]
+(defn move-spatial-right [editor]
   (spatial-movement-left-right editor helpers/next-item))
 
-(defn move-to-spatial-left [editor]
+(defn move-spatial-left [editor]
   (spatial-movement-left-right editor helpers/prev-item))
 
-(defn move-to-structural-up [editor]
+(defn move-structural-up [editor]
   (structural-movemement editor :up))
 
-(defn move-to-structural-down [editor]
+(defn move-structural-down [editor]
   (structural-movemement editor :down))
 
-(defn move-to-structural-left [editor]
+(defn move-structural-left [editor]
   (structural-movemement editor :left))
 
-(defn move-to-structural-right [editor]
+(defn move-structural-right [editor]
   (structural-movemement editor :right))
 
-(defn move-to-prev-form [editor]
-  (move-to-form editor helpers/prev-item editor/get-last-selectable-token-id-for-form))
+(defn move-prev-form [editor]
+  (move-form editor helpers/prev-item editor/get-last-selectable-token-id-for-form))
 
-(defn move-to-next-form [editor]
-  (move-to-form editor helpers/next-item editor/get-first-selectable-token-id-for-form))
+(defn move-next-form [editor]
+  (move-form editor helpers/next-item editor/get-first-selectable-token-id-for-form))
 
-(defn move-to-next-token [editor]
+(defn move-next-token [editor]
   (token-movement-prev-next editor helpers/next-item))
 
-(defn move-to-prev-token [editor]
+(defn move-prev-token [editor]
   (token-movement-prev-next editor helpers/prev-item))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
 (def movements
-  {:spatial-up       move-to-spatial-up
-   :spatial-down     move-to-spatial-down
-   :spatial-left     move-to-spatial-left
-   :spatial-right    move-to-spatial-right
-   :structural-up    move-to-structural-up
-   :structural-down  move-to-structural-down
-   :structural-left  move-to-structural-left
-   :structural-right move-to-structural-right
-   :prev-form        move-to-prev-form
-   :next-form        move-to-next-form
-   :prev-token       move-to-prev-token
-   :next-token       move-to-next-token})
+  {:spatial-up       move-spatial-up
+   :spatial-down     move-spatial-down
+   :spatial-left     move-spatial-left
+   :spatial-right    move-spatial-right
+   :structural-up    move-structural-up
+   :structural-down  move-structural-down
+   :structural-left  move-structural-left
+   :structural-right move-structural-right
+   :prev-form        move-prev-form
+   :next-form        move-next-form
+   :prev-token       move-prev-token
+   :next-token       move-next-token})
 
 (defn apply-moves [editor moves-to-try]
   (if-let [movement (first moves-to-try)]

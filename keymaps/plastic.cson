@@ -47,6 +47,7 @@
   'ctrl-down': 'plastic:nop'
   'escape': 'plastic:stop-editing'
   'alt-enter': 'plastic:alt-enter'
+  'ctrl-shift-space': 'plastic:toggle-puppets'
 
 '.plastic-editor-view atom-text-editor.empty':
   'backspace': 'plastic:backspace'

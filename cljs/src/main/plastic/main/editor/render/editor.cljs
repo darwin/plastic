@@ -1,13 +1,13 @@
 (ns plastic.main.editor.render.editor
   (:require-macros [plastic.logging :refer [log info warn error group group-end log-render]]
                    [plastic.main :refer [react! dispatch]])
-  (:require [plastic.main.frame :refer [subscribe]]
+  (:require [plastic.util.dom :as dom]
+            [plastic.main.frame :refer [subscribe]]
             [plastic.main.editor.render.headers :refer [headers-group-component]]
             [plastic.main.editor.render.docs :refer [docs-group-component]]
             [plastic.main.editor.render.code :refer [code-box-component]]
             [plastic.main.editor.render.debug :refer [parser-debug-component text-input-debug-component text-output-debug-component render-tree-debug-component selections-debug-overlay-component]]
             [plastic.main.editor.render.utils :refer [dangerously-set-html classv]]
-            [plastic.main.editor.render.dom :as dom]
             [plastic.main.editor.toolkit.id :as id]))
 
 (declare unified-rendering-component)

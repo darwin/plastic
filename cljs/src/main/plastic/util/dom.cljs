@@ -1,11 +1,11 @@
-(ns plastic.main.editor.render.dom
+(ns plastic.util.dom
   (:refer-clojure :exclude [find])
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [plastic.util.dom.shim]
             [plastic.onion.api :refer [$]]
             [plastic.onion.atom :as atom]
-            [clojure.string :as string]
-            [plastic.main.editor.toolkit.id :as id]))
+            [plastic.main.editor.toolkit.id :as id]
+            [clojure.string :as string]))
 
 (defn node-from-react [react-component]
   (let [dom-node (.getDOMNode react-component)]                                                                       ; TODO: deprecated!
@@ -85,9 +85,12 @@
 
 (defn find-all
   ([$dom-node selector]
-   ($->vec (.find $dom-node selector)))
+   (.find $dom-node selector))
   ([selector]
    (find-all $ selector)))
+
+(defn find-all-as-vec [& args]
+  ($->vec (apply find-all args)))
 
 (defn find-plastic-editor-view [editor-id]
   (atom/get-plastic-editor-view editor-id))
@@ -106,20 +109,5 @@
 (defn inline-editor-present? [dom-node]
   (single-result? (.children ($ dom-node) "atom-text-editor")))
 
-(defn read-geometry [parent-offset dom-node]
-  (if-let [node-id (read-node-id dom-node)]
-    (let [offset (.offset ($ dom-node))]
-      [node-id {:left   (- (.-left offset) (.-left parent-offset))
-                :top    (- (.-top offset) (.-top parent-offset))
-                :width  (.-offsetWidth dom-node)
-                :height (.-offsetHeight dom-node)}])))
-
-(defn collect-geometry [parent-offset dom-nodes]
-  (apply hash-map (mapcat (partial read-geometry parent-offset) dom-nodes)))
-
-(defn retrieve-form-nodes-geometries [editor-id form-id node-ids]
-  (let [$form ($ (find-plastic-editor-form editor-id form-id))
-        form-offset (.offset $form)
-        selector (string/join "," (map (fn [id] (str "[data-qnid=" id "]")) node-ids))
-        dom-nodes (find-all $form selector)]
-    (collect-geometry form-offset dom-nodes)))
+(defn build-nodes-selector [node-ids]
+  (string/join "," (map (fn [id] (str "[data-qnid=" id "]")) node-ids)))

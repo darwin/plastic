@@ -54,6 +54,11 @@
       (editor/set-cursor target-node-id)
       (start-editing))))
 
+(defn switch-to-editing [editor cursor-id]
+  (-> editor
+    (editor/set-editing cursor-id)
+    (editor/set-inline-editor-puppets-state true)))                                                                   ; puppets should get enabled for each new editing session
+
 (defn start-editing [editor & [cb]]
   (if (editor/editing? editor)
     (call-continuation cb editor)
@@ -66,7 +71,7 @@
               continuation (make-continuation cb select-edit)
               select (fn [db] (editor/update-in-db db editor-id continuation))]
           (xform-on-worker editor [:insert-placeholder-as-first-child edit-point] select))
-        (call-continuation cb (editor/set-editing editor cursor-id))))))
+        (call-continuation cb (switch-to-editing editor cursor-id))))))
 
 (defn reset-editing [editor moved-cursor]
   (-> editor
@@ -83,9 +88,11 @@
                 value (editor/get-inline-editor-value editor)
                 editor-with-moved-cursor (move-cursor-for-case-of-selected-node-removal editor)
                 moved-cursor (editor/get-cursor editor-with-moved-cursor)
+                effective? (editor/get-inline-editor-puppets-effective? editor)
+                puppets (if effective? (editor/get-puppets editor) #{})
                 effect (fn [db]
                          (editor/update-in-db db editor-id (make-continuation cb reset-editing) moved-cursor))]
-            (xform-on-worker editor [:edit-node edited-node-id value] effect)))))
+            (xform-on-worker editor [:edit-node edited-node-id puppets value] effect)))))
     (call-continuation cb editor)))
 
 (defn apply-operation-but-preserve-editing-mode [editor op]
@@ -106,7 +113,7 @@
     (stop-editing editor continuation)))
 
 (defn perform-backspace-in-empty-cell [editor]
-  {:pre [(editor/is-inline-editor-empty? (editor/get-id editor))]}
+  {:pre [(editor/is-inline-editor-empty? editor)]}
   (stop-editing editor))
 
 (defn perform-backspace [editor & [cb]]
@@ -168,3 +175,14 @@
 
 (defn prev-token [editor]
   (apply-operation-but-preserve-editing-mode editor cursor/prev-token))
+
+(defn activate-puppets [editor]
+  (editor/set-inline-editor-puppets-state editor true))
+
+(defn deactivate-puppets [editor]
+  (editor/set-inline-editor-puppets-state editor false))
+
+(defn toggle-puppets [editor]
+  (if (editor/get-inline-editor-puppets-active? editor)
+    (deactivate-puppets editor)
+    (activate-puppets editor)))

@@ -142,6 +142,18 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
+(defn get-puppets [editor]
+  {:pre  [(valid-editor? editor)]
+   :post [(set? %)]}
+  (or (get editor :puppets) #{}))
+
+(defn set-puppets [editor puppets]
+  {:pre [(valid-editor? editor)
+         (set? puppets)]}
+  (assoc editor :puppets puppets))
+
+; -------------------------------------------------------------------------------------------------------------------
+
 (defn selector-matches-editor? [editor-id selector]
   {:pre [(valid-editor-id? editor-id)]}
   (cond
@@ -312,3 +324,17 @@
 (defn get-inline-editor-text [editor]
   {:pre [(valid-editor? editor)]}
   (:text (get-inline-editor-value editor)))
+
+(defn get-inline-editor-puppets-active? [editor]
+  {:pre [(valid-editor? editor)]}
+  (not (:puppets-deactivated? (get-inline-editor editor))))
+
+(defn set-inline-editor-puppets-state [editor active?]
+  {:pre [(valid-editor? editor)]}
+  (assoc-in editor [:inline-editor :puppets-deactivated?] (not active?)))
+
+(defn get-inline-editor-puppets-effective? [editor]
+  {:pre [(valid-editor? editor)]}
+  (let [active? (get-inline-editor-puppets-active? editor)
+        mode (get-inline-editor-mode editor)]
+    (and (= mode :symbol) active?)))

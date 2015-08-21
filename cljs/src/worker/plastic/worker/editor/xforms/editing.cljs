@@ -5,7 +5,8 @@
             [plastic.worker.editor.toolkit.id :as id]
             [rewrite-clj.node.keyword :refer [keyword-node]]
             [rewrite-clj.node :as node]
-            [plastic.worker.editor.parser.utils :as parser]))
+            [plastic.worker.editor.parser.utils :as parser]
+            [clojure.set :as set]))
 
 (defn insert-and-start-editing [editor node-id & values]
   (if-not (id/spot? node-id)
@@ -19,9 +20,10 @@
     :string (node/coerce text)
     (throw "unknown editor mode passed to build-node:" mode)))
 
-(defn edit-node [editor node-id value]
-  (let [new-node (parser/assoc-node-id (build-node value))]
-    (editor/commit-node-value editor node-id new-node)))
+(defn edit-node [editor node-id puppets value]
+  (let [new-node (parser/assoc-node-id (build-node value))
+        affected-node-ids (set/union #{node-id} puppets)]
+    (reduce #(editor/commit-node-value %1 %2 new-node) editor affected-node-ids)))
 
 (defn enter [editor edit-point]
   (let [placeholder-node (editor/prepare-placeholder-node)]

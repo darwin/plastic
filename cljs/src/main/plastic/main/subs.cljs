@@ -69,5 +69,6 @@
 (register-sub :editor-focused-form-node (path-query-factory (focused-form-selector)))
 (register-sub :editor-cursor (path-query-factory (editor-selector [:cursor])))
 (register-sub :editor-cursor-node (path-query-factory (cursor-selector)))
+(register-sub :editor-inline-editor (path-query-factory (editor-selector [:inline-editor])))
 
 (register-sub :settings (path-query-factory (settings-selector)))

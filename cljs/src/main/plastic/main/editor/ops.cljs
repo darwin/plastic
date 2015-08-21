@@ -59,34 +59,37 @@
 ; -------------------------------------------------------------------------------------------------------------------
 
 (def ops
-  {:nop              identity
-   :spatial-up       spatial-up
-   :spatial-down     spatial-down
-   :spatial-left     spatial-left
-   :spatial-right    spatial-right
-   :structural-left  structural-left
-   :structural-right structural-right
-   :structural-up    structural-up
-   :structural-down  structural-down
-   :next-token       editing/next-token
-   :prev-token       editing/prev-token
-   :start-editing    editing/start-editing
-   :stop-editing     editing/stop-editing
-   :toggle-editing   toggle-editing
-   :enter            enter
-   :alt-enter        alt-enter
-   :space            space
-   :backspace        backspace
-   :delete           editing/delete-linebreak-or-token-after-cursor
-   :alt-delete       editing/delete-linebreak-or-token-before-cursor
-   :open-list        editing/open-list
-   :open-vector      editing/open-vector
-   :open-map         editing/open-map
-   :open-set         editing/open-set
-   :open-fn          editing/open-fn
-   :open-meta        editing/open-meta
-   :open-quote       editing/open-quote
-   :open-deref       editing/open-deref})
+  {:nop                identity
+   :spatial-up         spatial-up
+   :spatial-down       spatial-down
+   :spatial-left       spatial-left
+   :spatial-right      spatial-right
+   :structural-left    structural-left
+   :structural-right   structural-right
+   :structural-up      structural-up
+   :structural-down    structural-down
+   :next-token         editing/next-token
+   :prev-token         editing/prev-token
+   :start-editing      editing/start-editing
+   :stop-editing       editing/stop-editing
+   :toggle-editing     toggle-editing
+   :enter              enter
+   :alt-enter          alt-enter
+   :space              space
+   :backspace          backspace
+   :delete             editing/delete-linebreak-or-token-after-cursor
+   :alt-delete         editing/delete-linebreak-or-token-before-cursor
+   :activate-puppets   editing/activate-puppets
+   :deactivate-puppets editing/deactivate-puppets
+   :toggle-puppets     editing/toggle-puppets
+   :open-list          editing/open-list
+   :open-vector        editing/open-vector
+   :open-map           editing/open-map
+   :open-set           editing/open-set
+   :open-fn            editing/open-fn
+   :open-meta          editing/open-meta
+   :open-quote         editing/open-quote
+   :open-deref         editing/open-deref})
 
 (defn dispatch-op* [editors [editor-id op]]
   (let [old-editor (get editors editor-id)]

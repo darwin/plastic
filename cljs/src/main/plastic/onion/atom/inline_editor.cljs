@@ -3,6 +3,9 @@
                    [plastic.onion :refer [update-inline-editor-synchronously]]
                    [plastic.main :refer [dispatch react!]])
   (:require [plastic.onion.api :refer [$ atom-api]]
+            [plastic.main.db :refer [db]]
+            [plastic.main.editor.model :as editor]
+            [plastic.util.dom :as dom]
             [plastic.onion.atom :refer [get-plastic-editor-view]]))
 
 (defonce book-keeping (atom {}))
@@ -49,14 +52,17 @@
 (def known-editor-modes-classes (map editor-mode-to-class-name known-editor-modes))
 (def known-editor-types-classes (map editor-mode-to-token-type-class-name known-editor-modes))
 
-(defn sync-editor-mode-with-token-type [inline-editor-view editor-mode]
-  (let [$token (.closest ($ inline-editor-view) ".token")]
-    (-> $token
-      (.removeClass (apply str (interpose " " known-editor-types-classes)))
-      (.addClass (editor-mode-to-token-type-class-name editor-mode)))))
+(defn sync-token-type-with-editor-mode [$token editor-mode]
+  (-> $token
+    (.removeClass (apply str (interpose " " known-editor-types-classes)))
+    (.addClass (editor-mode-to-token-type-class-name editor-mode))))
+
+(defn set-token-raw-text [$token text]
+  (let [$raw (.children $token ".raw")]
+    (.text $raw text)))
 
 (defn set-editor-mode-as-class-name [inline-editor-view editor-mode]
-  (sync-editor-mode-with-token-type inline-editor-view editor-mode)
+  (sync-token-type-with-editor-mode (.closest ($ inline-editor-view) ".token") editor-mode)
   (-> ($ inline-editor-view)
     (.removeClass (apply str (interpose " " known-editor-modes-classes)))
     (.addClass (editor-mode-to-class-name editor-mode))))
@@ -93,8 +99,23 @@
                        :modified? (not= current-value initial-value)}]
     (dispatch :editor-update-inline-editor editor-id current-state)))
 
-(defn deactivate-inline-editor [editor-id]
-  (dispatch :editor-update-inline-editor editor-id nil))
+(defn update-puppets! [editor-id]
+  (let [$atom-editor-view ($ (get-plastic-editor-view editor-id))
+        editor (get-in @db [:editors editor-id])
+        puppets (editor/get-puppets editor)
+        selector (dom/build-nodes-selector (seq puppets))
+        $puppets (dom/find-all $atom-editor-view selector)
+        mode (editor/get-inline-editor-mode editor)
+        effective? (editor/get-inline-editor-puppets-effective? editor)
+        initial-value (get-in @book-keeping [editor-id :initial-value])
+        effective-text (if effective? (editor/get-inline-editor-text editor) (:text initial-value))
+        effective-mode (if effective? mode (:mode initial-value))]
+    (sync-token-type-with-editor-mode $puppets effective-mode)
+    (set-token-raw-text $puppets effective-text)))
+
+(defn update-state! [editor-id]
+  (when (get-in @book-keeping [editor-id :active])
+    (update-puppets! editor-id)))
 
 (defn on-did-change [editor-id inline-editor inline-editor-view]
   (if (.isEmpty inline-editor)
@@ -107,7 +128,7 @@
       "\"" (switch-mode :string)
       "'" (switch-mode :symbol)
       nil))
-  (update-inline-editor-state editor-id inline-editor))
+  (update-inline-editor-state editor-id inline-editor))                                                               ; this will trigger async update-puppets call, see lifecycle
 
 (defn initial-inline-editor-setup-if-needed [editor-id inline-editor inline-editor-view]
   (if-not (get @book-keeping editor-id)
@@ -115,19 +136,28 @@
           disposable-id (.onDidChange inline-editor handler)]
       (swap! book-keeping assoc editor-id {:on-did-change-disposable-id disposable-id}))))
 
-(defn set-initial-value [editor-id text mode]
-  (swap! book-keeping update-in [editor-id :initial-value] {:text text :mode mode}))
-
 (defn setup-inline-editor-for-editing [editor-id text mode]
   {:pre [(contains? known-editor-modes mode)]}
   (let [inline-editor (get-atom-inline-editor-instance editor-id)
         inline-editor-view (get-atom-inline-editor-view-instance editor-id)
         initial-text (preprocess-text-before-editing mode text)]
     (initial-inline-editor-setup-if-needed editor-id inline-editor inline-editor-view)
-    (set-initial-value editor-id initial-text mode)
+    (swap! book-keeping update editor-id #(-> %
+                                           (assoc :active true)
+                                           (assoc :initial-value {:text text :mode mode})))
     ; synchronous updates prevent intermittent jumps
     ; editor gets correct dimensions before it gets appended in the DOM
     (update-inline-editor-synchronously inline-editor-view
       (set-editor-mode-as-class-name inline-editor-view mode)
       (.setText inline-editor initial-text)                                                                           ; this will trigger forst on-did-change call, which updates initial editor state in app-db
       (.selectAll inline-editor))))
+
+(defn teardown-inline-editor-editing! [editor-id]
+  (swap! book-keeping update editor-id #(-> %
+                                         (assoc :active false)
+                                         (assoc :initial-value nil))))
+
+(defn deactivate-inline-editor [editor-id]
+  (teardown-inline-editor-editing! editor-id)
+  (dispatch :editor-update-inline-editor editor-id nil))
+
