@@ -32,8 +32,7 @@
 
 (defn add-editor [editors [editor-id editor-def]]
   (let [editors (if (map? editors) editors {})
-        editor {:id  editor-id
-                :def editor-def}]
+        editor (editor/make editor-id editor-def)]
     (worker-dispatch :add-editor editor-id editor-def)
     (assoc editors editor-id (wire-editor editor))))
 
