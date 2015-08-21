@@ -114,26 +114,30 @@
 ; A similar strategy should be applied everywhere where we are touching individual
 ; data pieces observed by reagent's reactions (and re-frame subscriptions).
 ;
-(defn overwrite-map [old-map new-map]
-  {:pre [(or (nil? old-map) (map? old-map))
-         (map? new-map)]}
-  (if (nil? old-map)
-    new-map
-    (let [new-keys (set (keys new-map))
-          old-keys (set (keys old-map))
-          keys-to-be-removed (set/difference old-keys new-keys)
-          keys-to-be-added (set/difference new-keys old-keys)
-          keys-to-be-updated (set/intersection old-keys new-keys)
-          careful-updater (fn [accum k]
-                            (update accum k (fn [old-val]
-                                              (let [new-val (get new-map k)]
-                                                (if (= old-val new-val)
-                                                  old-val
-                                                  new-val)))))
-          simple-adder (fn [accum k] (assoc accum k (get new-map k)))
-          old-map-after-removal (apply dissoc old-map keys-to-be-removed)
-          old-map-after-removal-and-update (reduce careful-updater old-map-after-removal keys-to-be-updated)]
-      (reduce simple-adder old-map-after-removal-and-update keys-to-be-added))))
+(defn overwrite-map
+  ([old-map new-map] (overwrite-map old-map new-map nil))
+  ([old-map new-map construct]
+   {:pre [(or (nil? old-map) (map? old-map))
+          (map? new-map)]}
+   (if (nil? old-map)
+     (if construct
+       (into (construct) new-map)
+       new-map)
+     (let [new-keys (set (keys new-map))
+           old-keys (set (keys old-map))
+           keys-to-be-removed (set/difference old-keys new-keys)
+           keys-to-be-added (set/difference new-keys old-keys)
+           keys-to-be-updated (set/intersection old-keys new-keys)
+           careful-updater (fn [accum k]
+                             (update accum k (fn [old-val]
+                                               (let [new-val (get new-map k)]
+                                                 (if (= old-val new-val)
+                                                   old-val
+                                                   new-val)))))
+           simple-adder (fn [accum k] (assoc accum k (get new-map k)))
+           old-map-after-removal (apply dissoc old-map keys-to-be-removed)
+           old-map-after-removal-and-update (reduce careful-updater old-map-after-removal keys-to-be-updated)]
+       (reduce simple-adder old-map-after-removal-and-update keys-to-be-added)))))
 
 (defn indexed-iteration [coll]
   {:pre [(coll? coll)]}
