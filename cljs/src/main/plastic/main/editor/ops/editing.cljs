@@ -24,10 +24,7 @@
     (apply cursor/apply-move-cursor editor moves-to-try)))
 
 (defn editing-string? [editor]
-  (if (editor/editing? editor)
-    (let [editor-id (editor/get-id editor)
-          mode (editor/get-inline-editor-mode editor-id)]
-      (= mode :string))))
+  (and (editor/editing? editor) (= (editor/get-inline-editor-mode editor) :string)))
 
 (defn get-edit-point [editor]
   (if (editor/editing? editor)
