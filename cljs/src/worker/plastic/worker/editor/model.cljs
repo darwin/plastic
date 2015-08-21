@@ -45,16 +45,6 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn register-reaction [editor reaction]
-  (update editor :reactions (fn [reactions] (conj (or reactions []) reaction))))
-
-(defn dispose-reactions! [editor]
-  (doseq [reaction (:reactions editor)]
-    (dispose! reaction))
-  (dissoc editor :reactions))
-
-; -------------------------------------------------------------------------------------------------------------------
-
 ; note comments are treated as line-breaks because they have new-lines embedded
 (defn strip-whitespaces-but-keep-linebreaks-policy [loc]
   (let [node (z/node loc)]

@@ -1,41 +1,49 @@
 (ns plastic.worker.editor.lifecycle
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
                    [plastic.worker :refer [dispatch react!]])
-  (:require [plastic.worker.frame :refer [subscribe register-handler]]
+  (:require [plastic.util.booking :as booking]
+            [plastic.util.reactions :refer [register-reaction dispose-reactions!]]
+            [plastic.worker.frame :refer [subscribe register-handler]]
             [plastic.worker.paths :as paths]
             [plastic.worker.editor.model :as editor]))
 
-(defn watch-raw-text [editor]
-  (let [text-subscription (subscribe [:editor-text (:id editor)])]
-    (editor/register-reaction editor
+(defonce book (booking/make-booking))
+
+(defn watch-to-parse-sources! [editor]
+  (let [editor-id (editor/get-id editor)
+        text-subscription (subscribe [:editor-text editor-id])]
+    (booking/update-item! book editor-id register-reaction
       (react!
         (when-let [text @text-subscription]
-          (dispatch :editor-parse-source (:id editor) text))))))
+          (dispatch :editor-parse-source editor-id text))))))
 
-(defn watch-parse-tree [editor]
-  (let [parsed-subscription (subscribe [:editor-parse-tree (:id editor)])]
-    (editor/register-reaction editor
+(defn watch-to-update-layout! [editor]
+  (let [editor-id (editor/get-id editor)
+        parsed-subscription (subscribe [:editor-parse-tree editor-id])]
+    (booking/update-item! book editor-id register-reaction
       (react!
         (when-let [_ @parsed-subscription]
-          (dispatch :editor-update-layout (:id editor)))))))
+          (dispatch :editor-update-layout editor-id))))))
 
-(defn wire-editor [editor]
-  (-> editor
-    (watch-raw-text)
-    (watch-parse-tree)))
+(defn wire-editor! [editor]
+  (watch-to-parse-sources! editor)
+  (watch-to-update-layout! editor))
 
-(defn add-editor [editors [id editor-def]]
+(defn add-editor! [editors [editor-id editor-def]]
   (let [editors (if (map? editors) editors {})
-        editor (editor/make id editor-def)]
-    (assoc editors id (wire-editor editor))))
+        editor (editor/make editor-id editor-def)]
+    (booking/register-item! book editor-id {})
+    (wire-editor! editor)
+    (assoc editors editor-id editor)))
 
-(defn remove-editor [editors [editor-id]]
+(defn remove-editor! [editors [editor-id]]
   (let [editor (get editors editor-id)]
-    (editor/dispose-reactions! editor)
+    (dispose-reactions! editor)
+    (booking/unregister-item! book editor-id)
     (dissoc editors editor-id)))
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; register handlers
 
-(register-handler :add-editor paths/editors-path add-editor)
-(register-handler :remove-editor paths/editors-path remove-editor)
+(register-handler :add-editor paths/editors-path add-editor!)
+(register-handler :remove-editor paths/editors-path remove-editor!)

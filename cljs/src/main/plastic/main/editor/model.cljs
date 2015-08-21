@@ -1,7 +1,6 @@
 (ns plastic.main.editor.model
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [plastic.util.helpers :as helpers]
-            [reagent.ratom :refer [IDisposable dispose!]]
             [plastic.main.editor.toolkit.id :as id]))
 
 (defprotocol IEditor)
@@ -24,18 +23,6 @@
   {:pre  [(valid-editor? editor)]
    :post [(valid-editor-id? %)]}
   (:id editor))
-
-; -------------------------------------------------------------------------------------------------------------------
-
-(defn register-reaction [editor reaction]
-  {:pre [(valid-editor? editor)]}
-  (update editor :reactions (fn [reactions] (conj (or reactions []) reaction))))
-
-(defn dispose-reactions! [editor]
-  {:pre [(valid-editor? editor)]}
-  (doseq [reaction (:reactions editor)]
-    (dispose! reaction))
-  (dissoc editor :reactions))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
