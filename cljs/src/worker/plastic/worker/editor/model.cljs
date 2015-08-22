@@ -3,25 +3,8 @@
   (:require [rewrite-clj.zip :as zip]
             [rewrite-clj.zip.findz :as findz]
             [rewrite-clj.node :as node]
-            [plastic.worker.editor.parser.utils :as parser]
             [plastic.util.helpers :as helpers]
-            [plastic.worker.editor.layout.builder :as layout]
-            [plastic.util.zip :as zip-utils]
-            [rewrite-clj.node.whitespace :refer [whitespace-node]]
-            [rewrite-clj.node.token :refer [token-node]]
-            [rewrite-clj.node.keyword :refer [keyword-node]]
-            [rewrite-clj.node.whitespace :refer [newline-node]]
-            [rewrite-clj.node.meta :refer [meta-node]]
-            [rewrite-clj.node.fn :refer [fn-node]]
-            [rewrite-clj.node.seq :refer [list-node vector-node map-node set-node]]
-            [rewrite-clj.node.reader-macro :refer [deref-node]]
-            [rewrite-clj.node.quote :refer [quote-node]]
-            [reagent.ratom :refer [IDisposable dispose!]]
-            [clojure.zip :as z]
-            [plastic.worker.editor.model.zipping :as zipping]
-            [plastic.worker.editor.toolkit.id :as id]))
-
-; also see 'xforms' folder for more high-level editor transformations
+            [plastic.util.zip :as zip-utils]))
 
 (defprotocol IEditor)
 
@@ -37,22 +20,13 @@
 (defn valid-editor-id? [editor-id]
   (pos? editor-id))
 
+(def valid-loc? zip-utils/valid-loc?)
+
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn get-id [editor]
   {:post [(pos? %)]}
   (:id editor))
-
-; -------------------------------------------------------------------------------------------------------------------
-
-; note comments are treated as line-breaks because they have new-lines embedded
-(defn strip-whitespaces-but-keep-linebreaks-policy [loc]
-  (let [node (z/node loc)]
-    (and (or (node/linebreak? node) (not (node/whitespace? node))))))
-
-(def zip-down (partial zip-utils/zip-down strip-whitespaces-but-keep-linebreaks-policy))
-(def zip-right (partial zip-utils/zip-right strip-whitespaces-but-keep-linebreaks-policy))
-(def zip-left (partial zip-utils/zip-left strip-whitespaces-but-keep-linebreaks-policy))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -99,24 +73,23 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
+(defn get-parse-tree-zipper [editor]
+  (let [parse-tree (get-parse-tree editor)]
+    (zip-utils/make-zipper parse-tree)))                                                                              ; root "forms" node
+
 (defn get-top-level-locs [editor]
-  {:pre [(valid-editor? editor)]}
-  (let [top-loc (zip-utils/make-zipper (get-parse-tree editor))                                                       ; root "forms" node
-        first-top-level-form-loc (zip/down top-loc)]
+  (let [first-top-level-form-loc (zip/down (get-parse-tree-zipper editor))]
     (zip-utils/collect-all-right first-top-level-form-loc)))                                                          ; TODO: here we should use explicit zipping policy
 
 (defn find-node-loc [editor node-id]
   {:pre [(valid-editor? editor)]}
-  (let [parse-tree (get-parse-tree editor)
-        root-loc (zip-utils/make-zipper parse-tree)
-        node-loc (findz/find-depth-first root-loc (partial zip-utils/loc-id? node-id))]
-    node-loc))
+  (findz/find-depth-first (get-parse-tree-zipper editor) (partial zip-utils/loc-id? node-id)))
 
 (defn find-node [editor node-id]
   {:pre [(valid-editor? editor)]}
   (let [node-loc (find-node-loc editor node-id)]
-    (assert (zip-utils/valid-loc? node-loc))
-    (zip/node node-loc)))
+    (if (valid-loc? node-loc)
+      (zip/node node-loc))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 

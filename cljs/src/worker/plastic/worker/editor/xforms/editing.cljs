@@ -1,7 +1,6 @@
 (ns plastic.worker.editor.xforms.editing
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [plastic.worker.frame :refer [subscribe register-handler]]
-            [plastic.worker.editor.model :as editor]
             [plastic.worker.editor.model.nodes :as nodes]
             [plastic.worker.editor.model.rewriting :as rewriting]
             [plastic.worker.editor.toolkit.id :as id]
@@ -10,10 +9,12 @@
             [plastic.worker.editor.parser.utils :as parser]
             [clojure.set :as set]))
 
-(defn insert-and-start-editing [editor node-id & values]
-  (if-not (id/spot? node-id)
-    (rewriting/insert-values-after-node editor node-id values)
-    (rewriting/insert-values-before-first-child-of-node editor node-id values)))
+(def get-node-id id/id-part)
+
+(defn insert-and-start-editing [editor edit-point & values]
+  (if-not (id/spot? edit-point)
+    (rewriting/insert-values-after editor (get-node-id edit-point) values)
+    (rewriting/insert-values-before-first-child editor (get-node-id edit-point) values)))
 
 (defn build-node [{:keys [text mode]}]
   (condp = mode
@@ -22,9 +23,9 @@
     :string (node/coerce text)
     (throw "unknown editor mode passed to build-node:" mode)))
 
-(defn edit-node [editor node-id puppets value]
+(defn edit-node [editor edit-point puppets value]
   (let [new-node (parser/assoc-node-id (build-node value))
-        affected-node-ids (set/union #{node-id} puppets)]
+        affected-node-ids (set/union #{(get-node-id edit-point)} puppets)]
     (reduce #(rewriting/commit-node-value %1 %2 new-node) editor affected-node-ids)))
 
 (defn enter [editor edit-point]
@@ -32,19 +33,19 @@
     (insert-and-start-editing editor edit-point (nodes/prepare-newline-node) placeholder-node)))
 
 (defn alt-enter [editor edit-point]
-  (rewriting/remove-linebreak-before-node editor edit-point))
+  (rewriting/remove-linebreak-before editor (get-node-id edit-point)))
 
 (defn space [editor edit-point]
   (let [placeholder-node (nodes/prepare-placeholder-node)]
     (insert-and-start-editing editor edit-point placeholder-node)))
 
 (defn backspace [editor edit-point]
-  (rewriting/delete-node editor edit-point))
+  (rewriting/delete-node editor (get-node-id edit-point)))
 
 (defn delete [editor edit-point]
   (if (id/spot? edit-point)
-    (rewriting/remove-first-child-of-node editor edit-point)
-    (rewriting/remove-right-siblink editor edit-point)))
+    (rewriting/remove-first-child editor (get-node-id edit-point))
+    (rewriting/remove-right-siblink editor (get-node-id edit-point))))
 
 (defn alt-delete [editor edit-point]
   (rewriting/remove-left-siblink editor edit-point))
@@ -83,4 +84,4 @@
 
 (defn insert-placeholder-as-first-child [editor edit-point]
   (let [placeholder-node (nodes/prepare-placeholder-node)]
-    (rewriting/insert-values-before-first-child-of-node editor edit-point [placeholder-node])))
+    (rewriting/insert-values-before-first-child editor (get-node-id edit-point) [placeholder-node])))
