@@ -18,9 +18,9 @@
             [rewrite-clj.node.quote :refer [quote-node]]
             [reagent.ratom :refer [IDisposable dispose!]]
             [clojure.zip :as z]
+            [plastic.worker.editor.model.zipping :as zipping]
             [plastic.worker.editor.toolkit.id :as id]))
 
-; a kitchen-sink with helpers for manipulating editor data structure
 ; also see 'xforms' folder for more high-level editor transformations
 
 (defprotocol IEditor)
@@ -99,11 +99,6 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn transform-parse-tree [editor transformation]
-  {:pre [(valid-editor? editor)]}
-  (let [new-parse-tree (transformation (get-parse-tree editor))]
-    (set-parse-tree editor new-parse-tree)))
-
 (defn get-top-level-locs [editor]
   {:pre [(valid-editor? editor)]}
   (let [top-loc (zip-utils/make-zipper (get-parse-tree editor))                                                       ; root "forms" node
@@ -122,163 +117,6 @@
   (let [node-loc (find-node-loc editor node-id)]
     (assert (zip-utils/valid-loc? node-loc))
     (zip/node node-loc)))
-
-(defn transfer-sticky-attrs [old new]
-  (let [sticky-bits (select-keys old [:id])]
-    (merge new sticky-bits)))
-
-(defn empty-value? [node]
-  (let [text (node/string node)
-        sexpr (node/sexpr node)]
-    (or
-      (and (symbol? sexpr) (empty? text))
-      (and (keyword? sexpr) (= ":" text)))))
-
-(defn commit-value-to-loc [loc node-id new-node]
-  {:pre [(:id new-node)]}
-  (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))]
-    (assert (zip-utils/valid-loc? node-loc))
-    (if-not (empty-value? new-node)
-      (z/edit node-loc (fn [old-node] (transfer-sticky-attrs old-node new-node)))
-      (z/remove node-loc))))
-
-(defn delete-whitespaces-and-newlines-after-loc [loc]
-  (loop [cur-loc loc]
-    (let [possibly-white-space-loc (z/right cur-loc)]
-      (if (and
-            (zip-utils/valid-loc? possibly-white-space-loc)
-            (node/whitespace? (zip/node possibly-white-space-loc)))
-        (recur (z/remove possibly-white-space-loc))
-        cur-loc))))
-
-(defn delete-whitespaces-and-newlines-before-loc [loc]
-  (loop [cur-loc loc]
-    (let [possibly-white-space-loc (z/left cur-loc)]
-      (if (and
-            (zip-utils/valid-loc? possibly-white-space-loc)
-            (node/whitespace? (zip/node possibly-white-space-loc)))
-        (let [loc-after-removal (z/remove possibly-white-space-loc)
-              next-step-loc (z/next loc-after-removal)]
-          (recur next-step-loc))
-        cur-loc))))
-
-(defn delete-node-loc [node-id loc]
-  (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))]
-    (assert (zip-utils/valid-loc? node-loc))
-    (z/remove (delete-whitespaces-and-newlines-before-loc node-loc))))
-
-(defn parse-tree-transformer [f]
-  (fn [parse-tree]
-    (if-let [result (f (zip-utils/make-zipper parse-tree))]
-      (z/root result)
-      parse-tree)))
-
-(defn delete-node [editor node-id]
-  {:pre [(valid-editor? editor)]}
-  (transform-parse-tree editor (parse-tree-transformer (partial delete-node-loc (id/id-part node-id)))))
-
-(defn commit-node-value [editor node-id value]
-  {:pre [(valid-editor? editor)
-         node-id
-         value]}
-  (let [old-root (get-parse-tree editor)
-        root-loc (zip-utils/make-zipper old-root)
-        modified-loc (commit-value-to-loc root-loc node-id value)]
-    (if-not modified-loc
-      editor
-      (set-parse-tree editor (zip/root modified-loc)))))
-
-(defn insert-values-after-node-loc [node-id values loc]
-  (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))
-        _ (assert (zip-utils/valid-loc? node-loc))
-        inserter (fn [loc val] {:pre [(:id val)]} (z/insert-right loc val))]
-    (reduce inserter node-loc (reverse values))))
-
-(defn insert-values-before-node-loc [node-id values loc]
-  (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))
-        _ (assert (zip-utils/valid-loc? node-loc))
-        inserter (fn [loc val] {:pre [(:id val)]} (z/insert-left loc val))]
-    (reduce inserter node-loc values)))
-
-(defn insert-values-before-first-child-of-node-loc [node-id values loc]
-  (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))
-        _ (assert (zip-utils/valid-loc? node-loc))
-        first-child-loc (zip-down node-loc)
-        _ (assert (zip-utils/valid-loc? first-child-loc))
-        inserter (fn [loc val] {:pre [(:id val)]} (z/insert-left loc val))]
-    (reduce inserter first-child-loc values)))
-
-(defn insert-values-after-node [editor node-id values]
-  {:pre [(valid-editor? editor)]}
-  (transform-parse-tree editor
-    (parse-tree-transformer (partial insert-values-after-node-loc (id/id-part node-id) values))))
-
-(defn insert-values-before-node [editor node-id values]
-  {:pre [(valid-editor? editor)]}
-  (transform-parse-tree editor
-    (parse-tree-transformer (partial insert-values-before-node-loc (id/id-part node-id) values))))
-
-(defn insert-values-before-first-child-of-node [editor node-id values]
-  {:pre [(valid-editor? editor)]}
-  (transform-parse-tree editor
-    (parse-tree-transformer (partial insert-values-before-first-child-of-node-loc (id/id-part node-id) values))))
-
-(defn remove-linebreak-before-node-loc [node-id loc]
-  (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))
-        _ (assert (zip-utils/valid-loc? node-loc))
-        prev-locs (take-while zip-utils/valid-loc? (iterate z/prev node-loc))
-        first-linebreak (first (filter #(node/linebreak? (zip/node %)) prev-locs))]
-    (if first-linebreak
-      (z/remove first-linebreak))))
-
-(defn remove-linebreak-before-node [editor node-id]
-  {:pre [(valid-editor? editor)]}
-  (transform-parse-tree editor
-    (parse-tree-transformer (partial remove-linebreak-before-node-loc (id/id-part node-id)))))
-
-(defn remove-right-siblink-of-loc [node-id loc]
-  (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))
-        _ (assert (zip-utils/valid-loc? node-loc))
-        right-loc (zip-right node-loc)]
-    (if right-loc
-      (loop [loc right-loc]
-        (let [new-loc (z/remove loc)]
-          (if (= (zip-utils/loc-id new-loc) node-id)
-            new-loc
-            (recur new-loc)))))))
-
-(defn remove-right-siblink [editor node-id]
-  {:pre [(valid-editor? editor)]}
-  (transform-parse-tree editor
-    (parse-tree-transformer (partial remove-right-siblink-of-loc (id/id-part node-id)))))
-
-(defn remove-left-siblink-of-loc [node-id loc]
-  (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))
-        _ (assert (zip-utils/valid-loc? node-loc))
-        left-loc (zip-left node-loc)]
-    (if left-loc
-      (z/remove left-loc))))
-
-(defn remove-left-siblink [editor node-id]
-  {:pre [(valid-editor? editor)]}
-  (transform-parse-tree editor
-    (parse-tree-transformer (partial remove-left-siblink-of-loc (id/id-part node-id)))))
-
-(defn remove-first-child-of-node-loc [node-id loc]
-  (let [node-loc (findz/find-depth-first loc (partial zip-utils/loc-id? node-id))
-        _ (assert (zip-utils/valid-loc? node-loc))
-        first-child-loc (zip-down node-loc)]
-    (if first-child-loc
-      (loop [loc first-child-loc]
-        (let [new-loc (z/remove loc)]
-          (if (= (zip-utils/loc-id new-loc) node-id)
-            new-loc
-            (recur new-loc)))))))
-
-(defn remove-first-child-of-node [editor node-id]
-  {:pre [(valid-editor? editor)]}
-  (transform-parse-tree editor
-    (parse-tree-transformer (partial remove-first-child-of-node-loc (id/id-part node-id)))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
