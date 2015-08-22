@@ -47,6 +47,18 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
+(defn get-xform-report [editor]
+  {:pre [(valid-editor? editor)]}
+  (let [report (get editor :xform-report)]
+    (assert report)
+    report))
+
+(defn set-xform-report [editor report]
+  {:pre [(valid-editor? editor)]}
+  (assoc editor :xform-report report))
+
+; -------------------------------------------------------------------------------------------------------------------
+
 (defn get-render-state [editor]
   {:pre [(valid-editor? editor)]}
   (get editor :render-state))

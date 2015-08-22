@@ -25,9 +25,18 @@
         (when-let [_ @parsed-subscription]
           (dispatch :editor-update-layout editor-id))))))
 
+(defn watch-to-send-xform-report! [editor]
+  (let [editor-id (editor/get-id editor)
+        xform-report-subscription (subscribe [:editor-xform-report editor-id])]
+    (booking/update-item! book editor-id register-reaction
+      (react!
+        (when-let [xform-report @xform-report-subscription]
+          (dispatch :editor-set-xform-report editor-id xform-report))))))
+
 (defn wire-editor! [editor]
   (watch-to-parse-sources! editor)
-  (watch-to-update-layout! editor))
+  (watch-to-update-layout! editor)
+  (watch-to-send-xform-report! editor))
 
 (defn add-editor! [editors [editor-id editor-def]]
   (let [editors (if (map? editors) editors {})

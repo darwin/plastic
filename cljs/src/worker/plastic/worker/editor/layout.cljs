@@ -45,9 +45,9 @@
       (if-not (editor/parsed? editor)
         editor
         (let [independent-top-level-locs (map zip/down (map zip-utils/independent-zipper (editor/get-top-level-locs editor)))
-              old-render-stae (editor/get-render-state editor)
+              old-render-state (editor/get-render-state editor)
               new-render-state {:order (map #(zip-utils/loc-id %) independent-top-level-locs)}]
-          (if (not= old-render-stae new-render-state)
+          (if (not= old-render-state new-render-state)
             (main-dispatch :editor-update-render-state (:id editor) new-render-state))
           (-> editor
             (editor/set-render-state new-render-state)

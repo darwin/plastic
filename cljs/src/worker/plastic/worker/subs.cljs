@@ -16,3 +16,4 @@
 (register-sub :editor-uri (path-query-factory (editor-selector [:def :uri])))
 (register-sub :editor-text (path-query-factory (editor-selector [:text])))
 (register-sub :editor-parse-tree (path-query-factory (editor-selector [:parse-tree])))
+(register-sub :editor-xform-report (path-query-factory (editor-selector [:xform-report])))

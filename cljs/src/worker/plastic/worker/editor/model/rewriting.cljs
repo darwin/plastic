@@ -3,69 +3,66 @@
   (:require [plastic.util.zip :as zip-utils]
             [clojure.zip :as z]
             [plastic.worker.editor.model.zipping :as zipping]
+            [plastic.worker.editor.model.zipops :as zipops]
+            [plastic.worker.editor.model.xforming :as transforming]
             [plastic.worker.editor.model :as editor :refer [valid-editor?]]
             [plastic.worker.editor.toolkit.id :as id]))
 
-; also see 'xforms' folder for more high-level editor transformations
-
-(defn transform-parse-tree [editor transformation]
-  {:pre [(valid-editor? editor)]}
-  (let [new-parse-tree (transformation (editor/get-parse-tree editor))]
-    (editor/set-parse-tree editor new-parse-tree)))
-
-(defn zipping-parse-tree-transformer [operation]
-  (fn [parse-tree]
-    (if-let [result (operation (zip-utils/make-zipper parse-tree))]
-      (z/root result)
-      parse-tree)))
-
-(defn transform-parse-tree-via-zipping [editor operation]
-  (transform-parse-tree editor (zipping-parse-tree-transformer operation)))
-
-; -------------------------------------------------------------------------------------------------------------------
-
 (defn commit-node-value [editor node-id value]
   {:pre [(valid-editor? editor)]}
-  (transform-parse-tree-via-zipping editor
-    (fn [root-loc]
-      (zipping/commit-value root-loc node-id value))))
+  (transforming/apply-zipops editor
+    [[zipops/find node-id]
+     [zipops/commit value]]))
 
 (defn delete-node [editor node-id]
   {:pre [(valid-editor? editor)]}
-  (transform-parse-tree-via-zipping editor
-    (partial zipping/delete-node node-id)))
+  (transforming/apply-zipops editor
+    [[zipops/find node-id]
+     [zipops/remove-whitespaces-and-newlines-before]
+     [zipops/remove]]))
 
 (defn insert-values-after [editor node-id values]
   {:pre [(valid-editor? editor)]}
-  (transform-parse-tree-via-zipping editor
-    (partial zipping/insert-values-after node-id values)))
+  (transforming/apply-zipops editor
+    [[zipops/find node-id]
+     [zipops/insert-after values]]))
 
 (defn insert-values-before [editor node-id values]
   {:pre [(valid-editor? editor)]}
-  (transform-parse-tree-via-zipping editor
-    (partial zipping/insert-values-before node-id values)))
+  (transforming/apply-zipops editor
+    [[zipops/find node-id]
+     [zipops/insert-before values]]))
 
 (defn insert-values-before-first-child [editor node-id values]
   {:pre [(valid-editor? editor)]}
-  (transform-parse-tree-via-zipping editor
-    (partial zipping/insert-values-before-first-child node-id values)))
+  (transforming/apply-zipops editor
+    [[zipops/find node-id]
+     [zipops/step-down]
+     [zipops/insert-before values]]))
 
 (defn remove-linebreak-before [editor node-id]
   {:pre [(valid-editor? editor)]}
-  (transform-parse-tree-via-zipping editor
-    (partial zipping/remove-linebreak-before node-id)))
+  (transforming/apply-zipops editor
+    [[zipops/find node-id]
+     [zipops/remove-linebreak-before]]))
 
 (defn remove-right-siblink [editor node-id]
   {:pre [(valid-editor? editor)]}
-  (transform-parse-tree-via-zipping editor
-    (partial zipping/remove-right-siblink node-id)))
+  (transforming/apply-zipops editor
+    [[zipops/find node-id]
+     [zipops/step-right]
+     [zipops/remove]]))
 
 (defn remove-left-siblink [editor node-id]
   {:pre [(valid-editor? editor)]}
-  (transform-parse-tree-via-zipping editor
-    (partial zipping/remove-left-siblink node-id)))
+  (transforming/apply-zipops editor
+    [[zipops/find node-id]
+     [zipops/step-left]
+     [zipops/remove]]))
 
 (defn remove-first-child [editor node-id]
   {:pre [(valid-editor? editor)]}
-  (transform-parse-tree-via-zipping editor
-    (partial zipping/remove-first-child node-id)))
+  (transforming/apply-zipops editor
+    [[zipops/find node-id]
+     [zipops/step-down]
+     [zipops/remove]]))
