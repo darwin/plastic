@@ -2,6 +2,7 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [plastic.worker.frame :refer [subscribe register-handler]]
             [plastic.worker.editor.model :as editor]
+            [plastic.worker.editor.model.nodes :as nodes]
             [plastic.worker.editor.toolkit.id :as id]
             [rewrite-clj.node.keyword :refer [keyword-node]]
             [rewrite-clj.node :as node]
@@ -26,14 +27,14 @@
     (reduce #(editor/commit-node-value %1 %2 new-node) editor affected-node-ids)))
 
 (defn enter [editor edit-point]
-  (let [placeholder-node (editor/prepare-placeholder-node)]
-    (insert-and-start-editing editor edit-point (editor/prepare-newline-node) placeholder-node)))
+  (let [placeholder-node (nodes/prepare-placeholder-node)]
+    (insert-and-start-editing editor edit-point (nodes/prepare-newline-node) placeholder-node)))
 
 (defn alt-enter [editor edit-point]
   (editor/remove-linebreak-before-node editor edit-point))
 
 (defn space [editor edit-point]
-  (let [placeholder-node (editor/prepare-placeholder-node)]
+  (let [placeholder-node (nodes/prepare-placeholder-node)]
     (insert-and-start-editing editor edit-point placeholder-node)))
 
 (defn backspace [editor edit-point]
@@ -48,37 +49,37 @@
   (editor/remove-left-siblink editor edit-point))
 
 (defn open-compound [editor edit-point node-prepare-fn]
-  (let [placeholder-node (editor/prepare-placeholder-node)
+  (let [placeholder-node (nodes/prepare-placeholder-node)
         compound-node (node-prepare-fn [placeholder-node])]
     (insert-and-start-editing editor edit-point compound-node)))
 
 (defn open-list [editor edit-point]
-  (open-compound editor edit-point editor/prepare-list-node))
+  (open-compound editor edit-point nodes/prepare-list-node))
 
 (defn open-vector [editor edit-point]
-  (open-compound editor edit-point editor/prepare-vector-node))
+  (open-compound editor edit-point nodes/prepare-vector-node))
 
 (defn open-map [editor edit-point]
-  (open-compound editor edit-point editor/prepare-map-node))
+  (open-compound editor edit-point nodes/prepare-map-node))
 
 (defn open-set [editor edit-point]
-  (open-compound editor edit-point editor/prepare-set-node))
+  (open-compound editor edit-point nodes/prepare-set-node))
 
 (defn open-fn [editor edit-point]
-  (open-compound editor edit-point editor/prepare-fn-node))
+  (open-compound editor edit-point nodes/prepare-fn-node))
 
 (defn open-meta [editor edit-point]
-  (let [placeholder-node (editor/prepare-placeholder-node)
-        temporary-meta-data (editor/prepare-keyword-node :meta)
-        compound-node (editor/prepare-meta-node [temporary-meta-data placeholder-node])]
+  (let [placeholder-node (nodes/prepare-placeholder-node)
+        temporary-meta-data (nodes/prepare-keyword-node :meta)
+        compound-node (nodes/prepare-meta-node [temporary-meta-data placeholder-node])]
     (insert-and-start-editing editor edit-point compound-node)))
 
 (defn open-quote [editor edit-point]
-  (open-compound editor edit-point editor/prepare-quote-node))
+  (open-compound editor edit-point nodes/prepare-quote-node))
 
 (defn open-deref [editor edit-point]
-  (open-compound editor edit-point editor/prepare-deref-node))
+  (open-compound editor edit-point nodes/prepare-deref-node))
 
 (defn insert-placeholder-as-first-child [editor edit-point]
-  (let [placeholder-node (editor/prepare-placeholder-node)]
+  (let [placeholder-node (nodes/prepare-placeholder-node)]
     (editor/insert-values-before-first-child-of-node editor edit-point [placeholder-node])))
