@@ -1,4 +1,4 @@
-(ns plastic.worker.editor.model.zipops
+(ns plastic.worker.editor.xforms.zipops
   (:refer-clojure :exclude [find remove])
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [rewrite-clj.zip :as zip]
@@ -18,6 +18,8 @@
 (def zip-down (partial zip-utils/zip-down strip-whitespaces-but-keep-linebreaks-policy))
 (def zip-right (partial zip-utils/zip-right strip-whitespaces-but-keep-linebreaks-policy))
 (def zip-left (partial zip-utils/zip-left strip-whitespaces-but-keep-linebreaks-policy))
+(def zip-next (partial zip-utils/zip-next strip-whitespaces-but-keep-linebreaks-policy))
+(def zip-prev (partial zip-utils/zip-prev strip-whitespaces-but-keep-linebreaks-policy))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -59,11 +61,6 @@
 
 ; movement zip ops
 
-(defn find [node-id [loc report]]
-  (let [found-loc (findz/find-depth-first loc (partial loc-id? node-id))]
-    (assert (valid-loc? found-loc))
-    [found-loc report]))
-
 (defn step-down [[loc report]]
   (let [child-loc (zip-down loc)]
     (assert (valid-loc? child-loc)
@@ -77,6 +74,27 @@
 
 (defn step-up [[loc report]]
   [(zip-up loc) report])
+
+(defn step-next [[loc report]]
+  [(zip-next loc) report])
+
+(defn step-prev [[loc report]]
+  [(zip-prev loc) report])
+
+(defn move-top [[initial-loc report]]
+  (loop [loc initial-loc]
+    (let [up-loc (zip-up loc)]
+      (if (valid-loc? up-loc)
+        (recur up-loc)
+        [loc report]))))
+
+(defn find [node-id [loc report]]
+  (let [found-loc (findz/find-depth-first loc (partial loc-id? node-id))]
+    (assert (valid-loc? found-loc))
+    [found-loc report]))
+
+(defn lookup [node-id [loc report]]
+  (find node-id (move-top [loc report])))
 
 ; editing zip ops
 
@@ -102,7 +120,10 @@
   (remove-by-moving-with-pred z/right node/whitespace? [loc report]))
 
 (defn remove-whitespaces-and-newlines-before [[loc report]]
-  (remove-by-moving-with-pred z/left node/whitespace? [loc report]))
+  (->> [loc report]
+    (step-left)
+    (remove-by-moving-with-pred identity node/whitespace?)
+    (step-right)))
 
 (defn insert-after [values [initial-loc initial-report]]
   (let [inserter (fn [[loc report] val]

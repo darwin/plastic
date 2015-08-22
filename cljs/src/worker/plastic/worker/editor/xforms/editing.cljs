@@ -2,7 +2,8 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [plastic.worker.frame :refer [subscribe register-handler]]
             [plastic.worker.editor.model.nodes :as nodes]
-            [plastic.worker.editor.model.rewriting :as rewriting]
+            [plastic.worker.editor.xforms.rewriting :as rewriting]
+            [plastic.worker.editor.model.xforming :refer [apply-ops chain-ops]]
             [plastic.worker.editor.toolkit.id :as id]
             [rewrite-clj.node.keyword :refer [keyword-node]]
             [rewrite-clj.node :as node]
@@ -13,8 +14,8 @@
 
 (defn insert-and-start-editing [editor edit-point & values]
   (if-not (id/spot? edit-point)
-    (rewriting/insert-values-after editor (get-node-id edit-point) values)
-    (rewriting/insert-values-before-first-child editor (get-node-id edit-point) values)))
+    (apply-ops editor (rewriting/insert-values-after (get-node-id edit-point) values))
+    (apply-ops editor (rewriting/insert-values-before-first-child (get-node-id edit-point) values))))
 
 (defn build-node [{:keys [text mode]}]
   (condp = mode
@@ -26,29 +27,29 @@
 (defn edit-node [editor edit-point puppets value]
   (let [new-node (parser/assoc-node-id (build-node value))
         affected-node-ids (set/union #{(get-node-id edit-point)} puppets)]
-    (reduce #(rewriting/commit-node-value %1 %2 new-node) editor affected-node-ids)))
+    (apply-ops editor (apply chain-ops (map #(rewriting/commit-node-value % new-node) affected-node-ids)))))
 
 (defn enter [editor edit-point]
   (let [placeholder-node (nodes/prepare-placeholder-node)]
     (insert-and-start-editing editor edit-point (nodes/prepare-newline-node) placeholder-node)))
 
 (defn alt-enter [editor edit-point]
-  (rewriting/remove-linebreak-before editor (get-node-id edit-point)))
+  (apply-ops editor (rewriting/remove-linebreak-before (get-node-id edit-point))))
 
 (defn space [editor edit-point]
   (let [placeholder-node (nodes/prepare-placeholder-node)]
     (insert-and-start-editing editor edit-point placeholder-node)))
 
 (defn backspace [editor edit-point]
-  (rewriting/delete-node editor (get-node-id edit-point)))
+  (apply-ops editor (rewriting/delete-node (get-node-id edit-point))))
 
 (defn delete [editor edit-point]
   (if (id/spot? edit-point)
-    (rewriting/remove-first-child editor (get-node-id edit-point))
-    (rewriting/remove-right-siblink editor (get-node-id edit-point))))
+    (apply-ops editor (rewriting/remove-first-child (get-node-id edit-point)))
+    (apply-ops editor (rewriting/remove-right-siblink (get-node-id edit-point)))))
 
 (defn alt-delete [editor edit-point]
-  (rewriting/remove-left-siblink editor edit-point))
+  (apply-ops editor (rewriting/remove-left-siblink edit-point)))
 
 (defn open-compound [editor edit-point node-prepare-fn]
   (let [placeholder-node (nodes/prepare-placeholder-node)
@@ -84,4 +85,4 @@
 
 (defn insert-placeholder-as-first-child [editor edit-point]
   (let [placeholder-node (nodes/prepare-placeholder-node)]
-    (rewriting/insert-values-before-first-child editor (get-node-id edit-point) [placeholder-node])))
+    (apply-ops editor (rewriting/insert-values-before-first-child (get-node-id edit-point) [placeholder-node]))))

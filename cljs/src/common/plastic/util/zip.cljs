@@ -42,7 +42,10 @@
   (some->> loc z/up (skip z/left policy)))
 
 (defn zip-next [policy loc]
-  (some->> loc z/next (skip z/right policy)))
+  (some->> loc z/next (skip z/next policy)))
+
+(defn zip-prev [policy loc]
+  (some->> loc z/prev (skip z/prev policy)))
 
 (defn leaf-nodes [policy loc]
   (filter (complement z/branch?)                                                                                      ; filter only non-branch nodes
