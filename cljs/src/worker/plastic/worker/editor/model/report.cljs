@@ -2,6 +2,9 @@
   (:refer-clojure :exclude [merge])
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]))
 
+; a report is used to collect information on nodes affected by rewriting operation
+; for UI highlighting purposes
+
 (defn make
   ([] (make [] [] [] []))
   ([modified added removed moved]

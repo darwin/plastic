@@ -49,7 +49,7 @@
   (report/merge report (report/make-moved (loc-id loc))))
 
 ; -------------------------------------------------------------------------------------------------------------------
-; elemental zip ops
+; zip ops
 ;
 ; each zip-op receives context [loc report], where
 ;   loc is a zipper before operation
@@ -58,8 +58,11 @@
 ; and returns updated context [loc report], where
 ;   loc is a zipper with effective changes after operation
 ;   report updated with description of new changes
+;
+; zip ops can be composed, see xforming.cljs
 
-; movement zip ops
+; -------------------------------------------------------------------------------------------------------------------
+; movement ops
 
 (defn step-down [[loc report]]
   (let [child-loc (zip-down loc)]
@@ -96,7 +99,8 @@
 (defn lookup [node-id [loc report]]
   (find node-id (move-top [loc report])))
 
-; editing zip ops
+; -------------------------------------------------------------------------------------------------------------------
+; editing ops
 
 (defn remove [[loc report]]
   [(z/remove loc) (report-removed report loc)])
@@ -143,3 +147,57 @@
     (if (valid-loc? ln-loc)
       (remove [ln-loc report])
       [loc report])))
+
+; -------------------------------------------------------------------------------------------------------------------
+; high-level ops
+
+(defn commit-node-value [node-id value [loc report]]
+  (->> [loc report]
+    (lookup node-id)
+    (commit value)))
+
+(defn delete-node [node-id [loc report]]
+  (->> [loc report]
+    (lookup node-id)
+    (remove-whitespaces-and-newlines-before)
+    (remove)))
+
+(defn insert-values-after-node [values node-id [loc report]]
+  (->> [loc report]
+    (lookup node-id)
+    (insert-after values)))
+
+(defn insert-values-before-node [values node-id [loc report]]
+  (->> [loc report]
+    (lookup node-id)
+    (insert-before values)))
+
+(defn insert-values-before-first-child-of-node [values node-id [loc report]]
+  (->> [loc report]
+    (lookup node-id)
+    (step-down)
+    (insert-before values)))
+
+(defn remove-linebreak-before-node [node-id [loc report]]
+  (->> [loc report]
+    (lookup node-id)
+    (remove-linebreak-before)))
+
+(defn remove-right-siblink-of-node [node-id [loc report]]
+  (->> [loc report]
+    (lookup node-id)
+    (step-right)
+    (remove)))
+
+(defn remove-left-siblink-of-node [node-id [loc report]]
+  (->> [loc report]
+    (lookup node-id)
+    (step-left)
+    (remove)
+    (step-next)))
+
+(defn remove-first-child-of-node [node-id [loc report]]
+  (->> [loc report]
+    (lookup node-id)
+    (step-down)
+    (remove)))
