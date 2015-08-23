@@ -34,9 +34,10 @@
 
 (defn apply-ops [editor f coll]
   {:pre [(valid-editor? editor)]}
-  (let [initial-state (make-initial-state editor)
-        state (reduce f initial-state coll)]
-    (commit-state editor state)))
+  (let [initial-state (make-initial-state editor)]
+    (if-let [state (reduce f initial-state coll)]
+      (commit-state editor state)
+      editor)))
 
 (defn apply-op [editor zip-op & args]
   {:pre [(valid-editor? editor)]}

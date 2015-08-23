@@ -28,3 +28,23 @@
   `(let [co# (reagent.ratom/make-reaction (fn [] ~@body) :auto-run true)]
      (deref co#)
      co#))
+
+(defmacro thread-zip-ops
+  "Like ->> but bails on nil and does logging if enabled"
+  [x & forms]
+  (loop [x x, forms forms]
+    (if forms
+      (let [form (first forms)
+            threaded `(let [x# ~x]
+                        (if-not (nil? x#)
+                          (let [op# ~(first form)
+                                args# [~@(next form)]
+                                res# (apply op# (conj args# x#))]
+                            (if (or plastic.env.log-zip-ops plastic.env.log-threaded-zip-ops)
+                              (fancy-log* "" "WORK" "ZIPOP" (.-name op#) args# ":"
+                                (plastic.util.zip.loc-id (first x#))
+                                "=>"
+                                (if res# (plastic.util.zip.loc-id (first res#)))))
+                            res#)))]
+        (recur threaded (next forms)))
+      x)))

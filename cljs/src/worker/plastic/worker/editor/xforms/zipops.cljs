@@ -1,6 +1,7 @@
 (ns plastic.worker.editor.xforms.zipops
   (:refer-clojure :exclude [find remove])
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
+  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
+                   [plastic.worker :refer [thread-zip-ops]])
   (:require [rewrite-clj.zip :as zip]
             [rewrite-clj.zip.findz :as findz]
             [rewrite-clj.node :as node]
@@ -52,8 +53,8 @@
 ; zip ops
 ;
 ; each zip-op receives context [loc report], where
-;   loc is a zipper before operation
-;   report to be updated
+;   loc is a zipper before operation, pointing to operation target
+;   report is existing report to be updated
 ;
 ; and returns updated context [loc report], where
 ;   loc is a zipper with effective changes after operation
@@ -65,24 +66,28 @@
 ; movement ops
 
 (defn step-down [[loc report]]
-  (let [child-loc (zip-down loc)]
-    (assert (valid-loc? child-loc)
-      [child-loc report])))
-
-(defn step-left [[loc report]]
-  [(zip-left loc) report])
-
-(defn step-right [[loc report]]
-  [(zip-right loc) report])
+  (if-let [child-loc (zip-down loc)]
+    [child-loc report]))
 
 (defn step-up [[loc report]]
-  [(zip-up loc) report])
+  (if-let [new-loc (zip-up loc)]
+    [new-loc report]))
+
+(defn step-left [[loc report]]
+  (if-let [new-loc (zip-left loc)]
+    [new-loc report]))
+
+(defn step-right [[loc report]]
+  (if-let [new-loc (zip-right loc)]
+    [new-loc report]))
 
 (defn step-next [[loc report]]
-  [(zip-next loc) report])
+  (if-let [new-loc (zip-next loc)]
+    [new-loc report]))
 
 (defn step-prev [[loc report]]
-  [(zip-prev loc) report])
+  (if-let [new-loc (zip-right loc)]
+    [new-loc report]))
 
 (defn move-top [[initial-loc report]]
   (loop [loc initial-loc]
@@ -93,8 +98,8 @@
 
 (defn find [node-id [loc report]]
   (let [found-loc (findz/find-depth-first loc (partial loc-id? node-id))]
-    (assert (valid-loc? found-loc))
-    [found-loc report]))
+    (if (valid-loc? found-loc)
+      [found-loc report])))
 
 (defn lookup [node-id [loc report]]
   (find node-id (move-top [loc report])))
@@ -124,10 +129,12 @@
   (remove-by-moving-with-pred z/right node/whitespace? [loc report]))
 
 (defn remove-whitespaces-and-newlines-before [[loc report]]
-  (->> [loc report]
-    (step-left)
-    (remove-by-moving-with-pred identity node/whitespace?)
-    (step-right)))
+  (or
+    (thread-zip-ops [loc report]
+      [step-left]
+      [remove-by-moving-with-pred identity node/whitespace?]
+      [step-right])
+    [loc report]))
 
 (defn insert-after [values [initial-loc initial-report]]
   (let [inserter (fn [[loc report] val]
@@ -149,55 +156,60 @@
       [loc report])))
 
 ; -------------------------------------------------------------------------------------------------------------------
-; high-level ops
+; composed ops
+
+; thread-zip-ops macro works like ->>, but
+;   * it uses vectors instead of lists (to make Cursive happy)
+;   * silently bails when nil is result of any operation
+;   * does optional logging, see plastic.env.log-zip-ops and plastic.env.log-threaded-zip-ops
 
 (defn commit-node-value [node-id value [loc report]]
-  (->> [loc report]
-    (lookup node-id)
-    (commit value)))
+  (thread-zip-ops [loc report]
+    [lookup node-id]
+    [commit value]))
 
 (defn delete-node [node-id [loc report]]
-  (->> [loc report]
-    (lookup node-id)
-    (remove-whitespaces-and-newlines-before)
-    (remove)))
+  (thread-zip-ops [loc report]
+    [lookup node-id]
+    [remove-whitespaces-and-newlines-before]
+    [remove]))
 
 (defn insert-values-after-node [values node-id [loc report]]
-  (->> [loc report]
-    (lookup node-id)
-    (insert-after values)))
+  (thread-zip-ops [loc report]
+    [lookup node-id]
+    [insert-after values]))
 
 (defn insert-values-before-node [values node-id [loc report]]
-  (->> [loc report]
-    (lookup node-id)
-    (insert-before values)))
+  (thread-zip-ops [loc report]
+    [lookup node-id]
+    [insert-before values]))
 
 (defn insert-values-before-first-child-of-node [values node-id [loc report]]
-  (->> [loc report]
-    (lookup node-id)
-    (step-down)
-    (insert-before values)))
+  (thread-zip-ops [loc report]
+    [lookup node-id]
+    [step-down]
+    [insert-before values]))
 
 (defn remove-linebreak-before-node [node-id [loc report]]
-  (->> [loc report]
-    (lookup node-id)
-    (remove-linebreak-before)))
+  (thread-zip-ops [loc report]
+    [lookup node-id]
+    [remove-linebreak-before]))
 
 (defn remove-right-siblink-of-node [node-id [loc report]]
-  (->> [loc report]
-    (lookup node-id)
-    (step-right)
-    (remove)))
+  (thread-zip-ops [loc report]
+    [lookup node-id]
+    [step-right]
+    [remove]))
 
 (defn remove-left-siblink-of-node [node-id [loc report]]
-  (->> [loc report]
-    (lookup node-id)
-    (step-left)
-    (remove)
-    (step-next)))
+  (thread-zip-ops [loc report]
+    [lookup node-id]
+    [step-left]
+    [remove]
+    [step-next]))
 
 (defn remove-first-child-of-node [node-id [loc report]]
-  (->> [loc report]
-    (lookup node-id)
-    (step-down)
-    (remove)))
+  (thread-zip-ops [loc report]
+    [lookup node-id]
+    [step-down]
+    [remove]))

@@ -41,7 +41,9 @@
     (insert-and-start-editing editor edit-point placeholder-node)))
 
 (defn backspace [editor edit-point]
-  (apply-op editor ops/delete-node (get-node-id edit-point)))
+  (if-not (id/spot? edit-point)
+    (apply-op editor ops/delete-node (get-node-id edit-point))
+    editor))
 
 (defn delete [editor edit-point]
   (if (id/spot? edit-point)
