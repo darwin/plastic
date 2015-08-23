@@ -15,7 +15,7 @@
 
 (goog-define bench-all false)
 (goog-define bench-sonars false)
-(goog-define bench-processing false)
+(goog-define bench-processing true)
 (goog-define bench-worker-processing false)
 (goog-define bench-main-processing false)
 (goog-define bench-rendering false)

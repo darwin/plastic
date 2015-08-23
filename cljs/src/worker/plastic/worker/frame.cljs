@@ -42,7 +42,8 @@
   (scaffold/legacy-subscribe frame db subscription-spec))
 
 (defn handle-event-and-report-exceptions [frame-atom db job-id event]
-  (binding [*current-job-id* job-id]
+  (binding [*current-job-id* job-id
+            plastic.env/*current-thread* "WORK"]
     (try
       (frame/process-event-on-atom! @frame-atom db event)
       (catch :default e
@@ -57,8 +58,7 @@
   nil)
 
 (defn worker-loop []
-  (binding [plastic.env/*current-thread* "WORK"]
-    (go-loop []
-      (let [[job-id event] (<! event-chan)]
-        (handle-event-and-report-exceptions frame db job-id event))
-      (recur))))
+  (go-loop []
+    (let [[job-id event] (<! event-chan)]
+      (handle-event-and-report-exceptions frame db job-id event))
+    (recur)))
