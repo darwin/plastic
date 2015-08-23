@@ -119,3 +119,9 @@
 (defn loc-id? [id loc]
   (= (loc-id loc) id))
 
+(defn loc-desc [loc]
+  (let [sexpr (node/sexpr (z/node loc))]
+    (if (seq? sexpr)
+      (pr-str (first sexpr))
+      (pr-str sexpr))))
+

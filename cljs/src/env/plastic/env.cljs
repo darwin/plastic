@@ -5,6 +5,7 @@
 (set! *main-cli-fn* (fn [& args] (.log js/console "main-cli-fn:" (into-array args))))
 
 (def ^:dynamic *current-thread* "MAIN")
+(def ^:dynamic *zip-op-nesting* 0)
 
 ; -------------------------------------------------------------------------------------------------------------------
 

@@ -125,17 +125,6 @@
         (recur (remove [next-loc report]))
         [loc report]))))
 
-(defn remove-whitespaces-and-newlines-after [[loc report]]
-  (remove-by-moving-with-pred z/right node/whitespace? [loc report]))
-
-(defn remove-whitespaces-and-newlines-before [[loc report]]
-  (or
-    (thread-zip-ops [loc report]
-      [step-left]
-      [remove-by-moving-with-pred identity node/whitespace?]
-      [step-right])
-    [loc report]))
-
 (defn insert-after [values [initial-loc initial-report]]
   (let [inserter (fn [[loc report] val]
                    (let [inserted-loc (z/insert-right loc val)]
@@ -167,6 +156,22 @@
   (thread-zip-ops [loc report]
     [lookup node-id]
     [commit value]))
+
+(defn remove-with-pred [pred [loc report]]
+  (thread-zip-ops [loc report]
+    [remove-by-moving-with-pred identity pred]))
+
+(defn remove-whitespaces-and-newlines-after [[loc report]]
+  (thread-zip-ops [loc report]
+    [remove-by-moving-with-pred z/right node/whitespace?]))
+
+(defn remove-whitespaces-and-newlines-before [[loc report]]
+  (or
+    (thread-zip-ops [loc report]
+      [step-left]
+      [remove-with-pred node/whitespace?]
+      [step-right])
+    [loc report]))
 
 (defn delete-node [node-id [loc report]]
   (thread-zip-ops [loc report]

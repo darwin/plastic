@@ -39,12 +39,25 @@
                         (if-not (nil? x#)
                           (let [op# ~(first form)
                                 args# [~@(next form)]
+                                _tmp# (if (or plastic.env.log-zip-ops plastic.env.log-threaded-zip-ops)
+                                        (fancy-log* "" "WORK" "ZIPOP"
+                                          (apply str (repeat plastic.env.*zip-op-nesting* "  "))
+                                          (.-name op#) args# "@"
+                                          (plastic.util.zip.loc-id (first x#))
+                                          (plastic.util.zip.loc-desc (first x#))))
                                 res# (apply op# (conj args# x#))]
-                            (if (or plastic.env.log-zip-ops plastic.env.log-threaded-zip-ops)
-                              (fancy-log* "" "WORK" "ZIPOP" (.-name op#) args# ":"
-                                (plastic.util.zip.loc-id (first x#))
-                                "=>"
-                                (if res# (plastic.util.zip.loc-id (first res#)))))
+                            (assert (or (nil? res#) (and (vector? res#)
+                                                      (= 2 (count res#))
+                                                      (plastic.util.zip.valid-loc? (first res#))))
+                              (str "zip op result must be [loc report] or nil, "
+                                (.-name op#) " returned " (pr-str res#) " instead"))
                             res#)))]
         (recur threaded (next forms)))
-      x)))
+      `(do
+         (set! plastic.env.*zip-op-nesting* (inc plastic.env.*zip-op-nesting*))
+         (let [r# ~x]
+           (set! plastic.env.*zip-op-nesting* (dec plastic.env.*zip-op-nesting*))
+           r#)))))
+
+;"=>"
+;(if res# (plastic.util.zip.loc-id (first res#)))

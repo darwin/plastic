@@ -1,6 +1,6 @@
 (ns plastic.worker.editor.lifecycle
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.worker :refer [dispatch react!]])
+                   [plastic.worker :refer [dispatch main-dispatch react!]])
   (:require [plastic.util.booking :as booking]
             [plastic.util.reactions :refer [register-reaction dispose-reactions!]]
             [plastic.worker.frame :refer [subscribe register-handler]]
@@ -25,18 +25,18 @@
         (when-let [_ @parsed-subscription]
           (dispatch :editor-update-layout editor-id))))))
 
-(defn watch-to-send-xform-report! [editor]
+(defn watch-to-announce-xform! [editor]
   (let [editor-id (editor/get-id editor)
         xform-report-subscription (subscribe [:editor-xform-report editor-id])]
     (booking/update-item! book editor-id register-reaction
       (react!
         (when-let [xform-report @xform-report-subscription]
-          (dispatch :editor-set-xform-report editor-id xform-report))))))
+          (main-dispatch :editor-announce-xform editor-id xform-report))))))
 
 (defn wire-editor! [editor]
   (watch-to-parse-sources! editor)
   (watch-to-update-layout! editor)
-  (watch-to-send-xform-report! editor))
+  (watch-to-announce-xform! editor))
 
 (defn add-editor! [editors [editor-id editor-def]]
   (let [editors (if (map? editors) editors {})
