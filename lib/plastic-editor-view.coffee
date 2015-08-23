@@ -89,6 +89,8 @@ class PlasticEditorView extends ScrollView
       'plastic:activate-puppets'
       'plastic:deactivate-puppets'
       'plastic:toggle-puppets'
+      'plastic:undo'
+      'plastic:redo'
     ]
 
   createMiniEditor: ->

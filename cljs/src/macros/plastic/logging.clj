@@ -81,11 +81,11 @@
 (defmacro measure-time [enabled? label more & body]
   `(if (or plastic.env.bench-all ~enabled?)
      (let [start# (.now js/performance)
-           ret# ~@body
+           ret# (do ~@body)
            diff# (- (.now js/performance) start#)]
        (fancy-log* (ms diff#) plastic.env.*current-thread* ~label ~@more)
        ret#)
-     (let [res# ~@body]
+     (let [res# (do ~@body)]
        res#)))
 
 (defmacro stopwatch [expr]

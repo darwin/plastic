@@ -15,7 +15,7 @@
 
 (goog-define bench-all false)
 (goog-define bench-sonars false)
-(goog-define bench-processing true)
+(goog-define bench-processing false)
 (goog-define bench-worker-processing false)
 (goog-define bench-main-processing false)
 (goog-define bench-rendering false)
@@ -29,5 +29,5 @@
 (goog-define log-onion-inface false)
 (goog-define log-inline-editor false)
 (goog-define log-zip-ops false)
-(goog-define log-threaded-zip-ops true)
-
+(goog-define log-threaded-zip-ops false)
+(goog-define log-undo-redo false)

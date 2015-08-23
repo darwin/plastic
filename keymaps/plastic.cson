@@ -40,6 +40,8 @@
   '^': 'plastic:open-meta'
   '@': 'plastic:open-deref'
   '\'': 'plastic:open-quote'
+  'cmd-z': 'plastic:undo'
+  'shift-cmd-z': 'plastic:redo'
 
 # inlined text editor
 '.plastic-editor-view atom-text-editor':

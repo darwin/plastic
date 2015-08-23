@@ -1,5 +1,6 @@
 (ns plastic.main.frame
   (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]]
+                   [plastic.main :refer [dispatch-args]]
                    [cljs.core.async.macros :refer [go-loop go]])
   (:require [cljs.core.async :refer [chan put! <!]]
             [reagent.core :as reagent]
@@ -7,10 +8,9 @@
             [plastic.main.frame.jobs :as jobs]
             [re-frame.middleware :as middleware]
             [re-frame.frame :as frame]
-            [re-frame.scaffold :as scaffold]
-            [re-frame.utils :as utils]))
+            [re-frame.scaffold :as scaffold]))
 
-(defonce ^:dynamic *current-job-id* nil)
+(defonce ^:dynamic *current-job-id* 0)
 (defonce ^:private event-chan (chan))
 (defonce frame (atom (frame/make-frame)))
 
@@ -53,13 +53,20 @@
     (catch :default e
       (error e (.-stack e)))))
 
-(defn job-done [db [job-id]]
+(defn job-done [db [job-id undo-summary]]
   (let [job (jobs/get-job job-id)
         coallesced-db (reagent/atom db)]
     (doseq [event (jobs/events job)]                                                                                  ; replay all buffered job events...
       (handle-event-and-report-exceptions frame coallesced-db event))
     (jobs/unregister-job job-id)
-    (or ((jobs/continuation job) @coallesced-db) db)))                                                                ; contination can decide not to publish results (and maybe apply them later)
+    (or
+      (when-let [result-db ((jobs/continuation job) @coallesced-db)]
+        (if-not (identical? db result-db)
+          (doseq [{:keys [editor-id description]} undo-summary]
+            (let [old-editor (get-in db [:editors editor-id])]
+              (dispatch-args 0 [:store-editor-undo-snapshot editor-id description old-editor]))))
+        result-db)
+      db)))
 
 (register-handler :worker-job-done job-done)
 

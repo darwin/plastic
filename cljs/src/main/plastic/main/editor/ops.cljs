@@ -56,10 +56,18 @@
     (editing/perform-backspace-in-empty-cell editor)
     (editing/perform-backspace editor)))
 
+(defn undo [editor]
+  (dispatch :undo (editor/get-id editor)))
+
+(defn redo [editor]
+  (dispatch :redo (editor/get-id editor)))
+
 ; -------------------------------------------------------------------------------------------------------------------
 
 (def ops
   {:nop                identity
+   :undo               undo
+   :redo               redo
    :spatial-up         spatial-up
    :spatial-down       spatial-down
    :spatial-left       spatial-left

@@ -1,12 +1,19 @@
 (ns plastic.reagent.sonar
   (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]])
   (:require [reagent.ratom :as ratom]
-            [plastic.util.helpers :as helpers]))
+            [plastic.util.helpers :as helpers]
+            [clojure.data :as data]))
 
 ; Sonars - pools of lightweight path-aware reactions
 ; for rationale see https://github.com/reagent-project/reagent/issues/165
 
 (defonce ^:mutable sonars {})
+
+(defn count-reactions [paths-tree]
+  (reduce (fn [sum [_ val]]
+            (if (= val ::reaction)
+              (inc sum)
+              (+ sum (count-reactions val)))) 0 paths-tree))
 
 ; this is the main optimization
 ; when ratom changes, sonar's -handle-change is called
@@ -16,7 +23,9 @@
 (defn match-paths [old-data new-data paths-tree]
   (doseq [[key val] paths-tree]
     (if (= val ::reaction)
-      (ratom/run key)                                                                                                 ; in case of ::reaction stopper, the key is actual SonarReaction instance
+      (do
+        (if plastic.env.debug-sonars (log "triggering" key))
+        (ratom/run key))                                                                                              ; in case of ::reaction stopper, the key is actual SonarReaction instance
       (let [old (get old-data key)
             new (get new-data key)]
         (if-not (identical? old new)
@@ -62,6 +71,8 @@
   ISonarFilter
   (-handle-change [this _sender old-data new-data]
     (measure-time plastic.env.bench-sonars "SONAR" [(str "#" (hash this))]
+      (if plastic.env.debug-sonars
+        (log "handle-change paths-tree:" paths-tree "diff:" (data/diff old-data new-data)))
       (match-paths old-data new-data paths-tree)))
 
   ISonarWatching
@@ -75,18 +86,23 @@
     {:pre [(nil? (get paths-tree (conj (.-path sonar-reaction) sonar-reaction)))]}
     (if (empty? paths-tree)
       (-start-watching this))
-    (set! paths-tree (assoc-in paths-tree (conj (.-path sonar-reaction) sonar-reaction) ::reaction)))
+    (set! paths-tree (assoc-in paths-tree (conj (.-path sonar-reaction) sonar-reaction) ::reaction))
+    (if plastic.env.debug-sonars
+      (log "registered" sonar-reaction "in" this)))
   (-unregister [this sonar-reaction]
     {:pre [(get paths-tree (conj (.-path sonar-reaction) sonar-reaction))]}
     (set! paths-tree (helpers/dissoc-in paths-tree (conj (.-path sonar-reaction) sonar-reaction)))
+    (if plastic.env.debug-sonars
+      (log "unregistered" sonar-reaction "from" this))
     (when (empty? paths-tree)
       (-stop-watching this)
       (-dispose this)))
 
   IPrintWithWriter
   (-pr-writer [this writer opts]
-    (-write writer (str "#<Sonar #" (hash this) " :"))
-    (pr-writer paths-tree writer opts)
+    (-write writer (str "#<Sonar #" (hash this) " "))
+    (-write writer (str (count-reactions (.-paths-tree this)) " reactions | "))
+    (pr-writer (.-paths-tree this) writer opts)
     (-write writer " <~~ ")
     (pr-writer source writer opts)
     (-write writer ">")))

@@ -11,6 +11,10 @@
 (defrecord Editor [id def]
   IEditor)
 
+(extend-protocol IHash
+  Editor
+  (-hash [this] (goog/getUid this)))
+
 (defn make [editor-id editor-def]
   (Editor. editor-id editor-def))
 
@@ -56,6 +60,10 @@
 (defn set-xform-report [editor report]
   {:pre [(valid-editor? editor)]}
   (assoc editor :xform-report report))
+
+(defn remove-xform-report [editor]
+  {:pre [(valid-editor? editor)]}
+  (dissoc editor :xform-report))
 
 ; -------------------------------------------------------------------------------------------------------------------
 

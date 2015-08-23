@@ -89,7 +89,7 @@
                 puppets (if effective? (editor/get-puppets editor) #{})
                 effect (fn [db]
                          (editor/update-in-db db editor-id (make-continuation cb reset-editing) moved-cursor))]
-            (xform-on-worker editor [:edit-node edited-node-id puppets value] effect)))))
+            (xform-on-worker editor [:edit edited-node-id puppets value] effect)))))
     (call-continuation cb editor)))
 
 (defn apply-operation-but-preserve-editing-mode [editor op]

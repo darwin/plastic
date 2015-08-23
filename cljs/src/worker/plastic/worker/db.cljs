@@ -3,7 +3,7 @@
   (:require [reagent.core :as reagent]))
 
 (def defaults
-  {})
+  {:undo-redo {}})
 
 ;; -- Application State  --------------------------------------------------------------------------------------------
 ;;

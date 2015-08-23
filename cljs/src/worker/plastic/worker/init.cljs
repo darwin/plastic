@@ -6,6 +6,7 @@
             [plastic.worker.servant]
             [plastic.worker.editor]
             [plastic.worker.db]
+            [plastic.worker.undo]
             [plastic.worker.frame :refer [register-handler]]))
 
 (defn init [db [_state]]

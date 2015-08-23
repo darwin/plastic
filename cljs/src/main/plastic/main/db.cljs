@@ -3,10 +3,10 @@
   (:require [reagent.core :as reagent]))
 
 (def defaults
-  {:settings
-   {:headers-visible true
-    :code-visible true
-    :docs-visible true}})
+  {:settings    {:headers-visible true
+                 :code-visible    true
+                 :docs-visible    true}
+   :undo-redo {}})
 
 ;; -- Application State  --------------------------------------------------------------------------------------------
 ;;

@@ -24,7 +24,7 @@
     :string (node/coerce text)
     (throw "unknown editor mode passed to build-node:" mode)))
 
-(defn edit-node [editor edit-point puppets value]
+(defn edit [editor edit-point puppets value]
   (let [new-node (parser/assoc-node-id (build-node value))
         affected-node-ids (set/union #{(get-node-id edit-point)} puppets)]
     (apply-ops editor #(ops/commit-node-value %2 new-node %1) affected-node-ids)))

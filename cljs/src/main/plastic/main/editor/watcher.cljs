@@ -6,13 +6,12 @@
 
 (defonce ^:dynamic prev nil)
 
-(comment
-  (def editors-subscription (subscribe [:editors]))
 
+(defn init []
   ; for debugging only - this may be slow
-  (react!
-    (when-let [editors @editors-subscription]
-      (log "editors changed:" (data/diff prev editors) editors)
-      (set! prev editors)))
+  #_(let [editors-subscription (subscribe [:editors])]
+    (react!
+      (when-let [editors @editors-subscription]
+        (log "editors changed:" (data/diff prev editors) editors)
+        (set! prev editors)))))
 
-  )

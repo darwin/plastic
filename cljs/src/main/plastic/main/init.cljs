@@ -8,6 +8,8 @@
             [plastic.main.subs]
             [plastic.main.editor]
             [plastic.main.commands]
+            [plastic.main.undo]
+            [plastic.main.editor.watcher :as watcher]
             [plastic.main.servant :as servant]
             [plastic.onion.api :refer [info]]
             [plastic.main.frame :refer [register-handler]]))
@@ -16,6 +18,7 @@
   (let [lib-path (.getLibPath info)]
     (assert lib-path)
     (servant/spawn-workers lib-path))
+  (watcher/init)
   (worker-dispatch :init)
   db)
 

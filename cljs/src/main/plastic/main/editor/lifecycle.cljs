@@ -8,7 +8,8 @@
             [plastic.main.editor.render :as render]
             [plastic.main.paths :as paths]
             [plastic.onion.atom.inline-editor :as inline-editor]
-            [plastic.main.editor.model :as editor]))
+            [plastic.main.editor.model :as editor]
+            [plastic.undo :as undo]))
 
 (defonce book (booking/make-booking))
 
@@ -50,12 +51,15 @@
     (dispatch :wire-editor editor-id)
     (assoc editors editor-id editor)))
 
-(defn remove-editor! [editors [editor-id dom-node]]
-  (worker-dispatch :remove-editor editor-id)
-  (dispose-reactions! (booking/get-item book editor-id))
-  (booking/unregister-item! book editor-id)
-  (render/unmount-editor dom-node)
-  (dissoc editors editor-id))
+(defn remove-editor! [db [editor-id dom-node]]
+  (let [editors (get db :editors)]
+    (worker-dispatch :remove-editor editor-id)
+    (dispose-reactions! (booking/get-item book editor-id))
+    (booking/unregister-item! book editor-id)
+    (render/unmount-editor dom-node)
+    (-> db
+      (assoc :editors (dissoc editors editor-id))
+      (undo/remove-undo-redo-for-editor editor-id))))
 
 (defn wire-editor! [editors [selector]]
   (editor/apply-to-editors editors selector
@@ -79,7 +83,7 @@
 ; register handlers
 
 (register-handler :add-editor paths/editors-path add-editor!)
-(register-handler :remove-editor paths/editors-path remove-editor!)
+(register-handler :remove-editor remove-editor!)
 (register-handler :mount-editor paths/editors-path mount-editor)
 (register-handler :wire-editor paths/editors-path wire-editor!)
 (register-handler :editor-update-inline-editor paths/editors-path update-inline-editor)

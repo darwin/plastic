@@ -1,8 +1,7 @@
 (ns plastic.worker.frame.counters
-  (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]]
-                   [plastic.worker :refer [main-dispatch-args]]))
+  (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]]))
 
-(def ^:dynamic *pending-jobs-counters* {})
+(defonce ^:dynamic *pending-jobs-counters* {})
 
 (defn inc-counter-for-job [job-id]
   (set! *pending-jobs-counters* (update *pending-jobs-counters* job-id inc)))
@@ -17,4 +16,4 @@
 (defn update-counter-for-job [job-id]
   (when (zero? (dec-counter-for-job job-id))
     (remove-counter-for-job job-id)
-    (main-dispatch-args 0 [:worker-job-done job-id])))
+    true))

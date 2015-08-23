@@ -8,6 +8,10 @@
 (defrecord Editor [id def]
   IEditor)
 
+(extend-protocol IHash
+  Editor
+  (-hash [this] (goog/getUid this)))
+
 (defn make [editor-id editor-def]
   (Editor. editor-id editor-def))
 
@@ -341,7 +345,7 @@
     (and (= mode :symbol) active?)))
 
 ; -------------------------------------------------------------------------------------------------------------------
-; last xform report
+; last xform
 
 (defn get-xform-report [editor]
   {:pre [(valid-editor? editor)]}
