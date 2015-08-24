@@ -11,6 +11,10 @@
 
 (goog-define run-worker-on-main-thread false)
 
+(goog-define validate-dbs false)
+(goog-define validate-main-db false)
+(goog-define validate-worker-db false)
+
 (goog-define debug-sonars false)
 
 (goog-define bench-all false)
@@ -20,6 +24,9 @@
 (goog-define bench-main-processing false)
 (goog-define bench-rendering false)
 (goog-define bench-render-queue false)
+(goog-define bench-db-validation false)
+(goog-define bench-main-db-validation false)
+(goog-define bench-worker-db-validation false)
 
 (goog-define log-all-dispatches false)
 (goog-define log-main-dispatches false)

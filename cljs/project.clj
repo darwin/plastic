@@ -10,11 +10,12 @@
    [com.cognitect/transit-cljs "0.8.220"]
    [re-frame "0.4.1"]
    [rewrite-cljs "0.3.1"]
-   [binaryage/devtools "0.1.2"]                             ; Electron 0.28.2 has old Blink, we have to stick with this old version of devtools for now
+   [binaryage/devtools "0.1.2"]                                                                                       ; Electron 0.28.2 has old Blink, we have to stick with this old version of devtools for now
    [figwheel "0.3.7"]
    [rm-hull/inkspot "0.0.1-SNAPSHOT"]
    [spellhouse/phalanges "0.1.6"]
    [funcool/cuerdas "0.6.0"]
+   [prismatic/schema "0.4.4"]
    [reagent "0.5.0" :exclusions [cljsjs/react]]
    [cljsjs/react "0.13.3-1"]]
 
@@ -47,7 +48,9 @@
                     "src/main"
                     "src/worker"]
      :compiler     {:main            plastic.main
-                    :closure-defines {"plastic.env.run_worker_on_main_thread" true}
+                    :closure-defines {"plastic.env.run_worker_on_main_thread" true
+                                      "plastic.env.validate_dbs"              true
+                                      "plastic.env.log_all_dispatches"        true}
                     :output-to       "../lib/_dev_build/main/plastic.js"
                     :output-dir      "../lib/_dev_build/main"
                     :optimizations   :none

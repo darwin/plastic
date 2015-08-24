@@ -168,3 +168,10 @@
   ([o k] (when o (gobj/get o k nil)))
   ([o k1 k2] (when-let [o (oget o k1)] (gobj/get o k2 nil)))                                                          ; Optimized common case
   ([o k1 k2 & ks] (when-let [o (oget o k1 k2)] (apply oget o ks))))                                                   ; Can also lean on optimized 2-case
+
+(defn remove-nil-values [m]
+  (let [reducer (fn [accum key]
+                  (if (nil? (get m key))
+                    (dissoc accum key)
+                    accum))]
+    (reduce reducer m (keys m))))

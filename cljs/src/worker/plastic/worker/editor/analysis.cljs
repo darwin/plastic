@@ -3,27 +3,24 @@
                    [plastic.worker :refer [react! dispatch main-dispatch]])
   (:require [rewrite-clj.zip :as zip]
             [rewrite-clj.node :as node]
-            [plastic.worker.servant]
-            [plastic.worker.frame :refer [subscribe register-handler]]
+            [plastic.worker.frame :refer [register-handler]]
             [plastic.worker.editor.model :as editor]
             [plastic.worker.editor.layout.analysis.calls :refer [analyze-calls]]
             [plastic.worker.editor.layout.analysis.scopes :refer [analyze-scopes]]
             [plastic.worker.editor.layout.analysis.defs :refer [analyze-defs]]
             [plastic.util.zip :as zip-utils]
-            [plastic.worker.paths :as paths]))
+            [plastic.worker.paths :as paths]
+            [plastic.util.helpers :as helpers]))
 
 ; TODO: implement a cache to prevent recomputing analysis for unchanged forms
 (defn prepare-form-analysis [form-loc]
-  {:pre [(= (node/tag (zip/node (zip/up form-loc))) :forms)]}                                                         ; parent has to be :forms
-  (let [form-node (zip/node form-loc)
-        _ (assert form-node)
-        root-id (:id form-node)
-        analysis (-> {}
-                   (analyze-calls form-loc)
-                   (analyze-scopes form-loc)
-                   (analyze-defs form-loc))]
-    (fancy-log "ANALYSIS" "form" root-id "=>" analysis)
-    analysis))
+  {:pre [(zip-utils/valid-loc? form-loc)
+         (= (node/tag (zip/node (zip/up form-loc))) :forms)]}                                                         ; parent has to be :forms
+  (-> {}
+    (analyze-calls form-loc)
+    (analyze-scopes form-loc)
+    (analyze-defs form-loc)
+    (helpers/remove-nil-values)))
 
 (defn run-analysis [editors [editor-selector form-selector]]
   (editor/apply-to-editors editors editor-selector
