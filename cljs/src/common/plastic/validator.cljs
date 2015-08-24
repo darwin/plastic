@@ -5,17 +5,16 @@
 
 ; shared validation utils
 
-; note: we don't clear this cache, it is just a bool per object instance (under dev environment)
-(defonce *valid-ids* #js {})
+; see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet
+(assert js/WeakSet)
+(defonce *valid-objects* (js/WeakSet.))
 
 (defn check-or-update-cache! [schema obj]
-  (let [id (goog/getUid obj)
-        lookup (gobj/get *valid-ids* id)]
-    (if lookup
-      true
-      (when (nil? (s/check schema obj))
-        (gobj/set *valid-ids* id true)
-        true))))
+  (if (.has *valid-objects* obj)
+    true
+    (when (nil? (s/check schema obj))
+      (.add *valid-objects* obj)
+      true)))
 
 ;  to speed up validation we can cache some expensive validation results
 (defn cached [schema]
