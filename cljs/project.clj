@@ -38,7 +38,8 @@
   :cljsbuild
   {:builds
    {:dev
-    {:source-paths ["checkouts/re-frame/src"
+    {:source-paths ["checkouts/cljs-devtools/src"
+                    "checkouts/re-frame/src"
                     "checkouts/reagent/src"
                     "checkouts/rewrite-cljs/src"
                     "src/macros"
