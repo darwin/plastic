@@ -8,16 +8,17 @@
 
 ; note: figwheel does not play well with advanced optimizations, do not include it
 
-(log "patching figwheel's ns-to-js-file")
-(def original-ns-to-js-file reloading/ns-to-js-file)
-(set! reloading/ns-to-js-file
-  (fn [ns]
-    (let [res (original-ns-to-js-file ns)]
-      (condp = res
-        "goog/string/format.js" "goog/string/stringformat.js"
-        res))))
+(defonce _
+  (let [original-ns-to-js-file reloading/ns-to-js-file]
+    (log "patching figwheel's ns-to-js-file")
+    (set! reloading/ns-to-js-file
+      (fn [ns]
+        (let [res (original-ns-to-js-file ns)]
+          (condp = res
+            "goog/string/format.js" "goog/string/stringformat.js"
+            res))))))
 
-(def need-loophole? true)
+(defonce need-loophole? true)
 
 (defn eval [code]
   (if need-loophole?
