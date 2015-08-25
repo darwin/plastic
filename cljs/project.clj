@@ -48,18 +48,19 @@
                     "src/common"
                     "src/main"
                     "src/worker"]
-     :compiler     {:main            plastic.main
-                    :closure-defines {"plastic.env.run_worker_on_main_thread" true
-                                      "plastic.env.validate_dbs"              true
-                                      "plastic.env.log_all_dispatches"        true}
-                    :output-to       "../lib/_dev_build/main/plastic.js"
-                    :output-dir      "../lib/_dev_build/main"
-                    :optimizations   :none
-                    :target          :nodejs
-                    :compiler-stats  true
-                    :cache-analysis  true
-                    :figwheel        true
-                    :source-map      true}}
+     :compiler     {:main                  plastic.main
+                    :closure-defines       {"plastic.env.run_worker_on_main_thread" true
+                                            "plastic.env.validate_dbs"              true
+                                            "plastic.env.log_all_dispatches"        true}
+                    :output-to             "../lib/_dev_build/main/plastic.js"
+                    :output-dir            "../lib/_dev_build/main"
+                    :optimizations         :none
+                    :target                :nodejs
+                    :anon-fn-naming-policy :unmapped
+                    :compiler-stats        true
+                    :cache-analysis        true
+                    :figwheel              true
+                    :source-map            true}}
     :main
     {:source-paths ["checkouts/re-frame/src"
                     "checkouts/reagent/src"
@@ -68,15 +69,16 @@
                     "src/dev"
                     "src/common"
                     "src/main"]
-     :compiler     {:main           plastic.main
-                    :output-to      "../lib/_build/main/plastic.js"
-                    :output-dir     "../lib/_build/main"
-                    :optimizations  :none
-                    :target         :nodejs
-                    :compiler-stats true
-                    :cache-analysis true
-                    :figwheel       true
-                    :source-map     true}}
+     :compiler     {:main                  plastic.main
+                    :output-to             "../lib/_build/main/plastic.js"
+                    :output-dir            "../lib/_build/main"
+                    :optimizations         :none
+                    :target                :nodejs
+                    :anon-fn-naming-policy :unmapped
+                    :compiler-stats        true
+                    :cache-analysis        true
+                    :figwheel              true
+                    :source-map            true}}
     :worker
     {:source-paths ["checkouts/re-frame/src"
                     "checkouts/rewrite-cljs/src"
@@ -85,12 +87,13 @@
                     "src/dev"
                     "src/common"
                     "src/worker"]
-     :compiler     {:main           plastic.worker
-                    :output-to      "../lib/_build/worker/plastic.js"
-                    :output-dir     "../lib/_build/worker"
-                    :optimizations  :none
-                    :target         :nodejs
-                    :compiler-stats true
-                    :cache-analysis true
-                    :figwheel       true
-                    :source-map     true}}}})
+     :compiler     {:main                  plastic.worker
+                    :output-to             "../lib/_build/worker/plastic.js"
+                    :output-dir            "../lib/_build/worker"
+                    :optimizations         :none
+                    :target                :nodejs
+                    :anon-fn-naming-policy :unmapped
+                    :compiler-stats        true
+                    :cache-analysis        true
+                    :figwheel              true
+                    :source-map            true}}}})
