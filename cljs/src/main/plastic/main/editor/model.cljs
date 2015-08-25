@@ -191,7 +191,7 @@
 
 (defn get-editing [editor]
   {:pre [(valid-editor? editor)
-         (set? (:editing editor))
+         (set? (or (:editing editor) #{}))
          (<= (count (:editing editor)) 1)]}
   (first (:editing editor)))
 

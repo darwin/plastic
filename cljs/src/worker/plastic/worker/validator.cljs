@@ -1,7 +1,7 @@
 (ns plastic.worker.validator
   (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]])
   (:require [schema.core :as s :include-macros true]
-            [plastic.validator :refer [cached]]
+            [plastic.validator :refer [cached factory]]
             [plastic.worker.editor.model :as editor]))
 
 ; -------------------------------------------------------------------------------------------------------------------
@@ -65,13 +65,6 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(def check-worker-db (s/checker root-schema))
-
 (def benchmark? (or plastic.env.bench-db-validation plastic.env.bench-worker-db-validation))
 
-(defn create []
-  (fn [worker-db]
-    (if-let [e (measure-time benchmark? "VALIDATE" ["worker-db"]
-                 (check-worker-db worker-db))]
-      (error "worker db check failed:" e worker-db))
-    true))
+(def create (partial factory "worker-db" benchmark? (s/checker root-schema) (fn [] plastic.env.*current-worker-event*)))

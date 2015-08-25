@@ -1,8 +1,9 @@
 (ns plastic.main.validator
   (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]])
   (:require [schema.core :as s :include-macros true]
-            [plastic.validator :refer [cached]]
-            [plastic.main.editor.model :as editor]))
+            [plastic.validator :refer [cached factory]]
+            [plastic.main.editor.model :as editor]
+            [plastic.main.editor.toolkit.id :as id]))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -125,10 +126,42 @@
    (s/optional-key :inline-editor)   TODO
    (s/optional-key :xform-report)    TODO})
 
+(defn editor-nodes-present-in-layout? [editor node-or-nodes]
+  (let [things (if (coll? node-or-nodes)
+                 node-or-nodes
+                 (if-not (nil? node-or-nodes)
+                   [node-or-nodes]))]
+    (every? #(editor/get-form-id-for-node-id editor (id/id-part %)) things)))
+
+(defn editor-cursor-consistent? [editor]
+  (editor-nodes-present-in-layout? editor (editor/get-cursor editor)))
+
+(defn editor-selection-consistent? [editor]
+  (editor-nodes-present-in-layout? editor (editor/get-selection editor)))
+
+(defn editor-highlight-consistent? [editor]
+  (editor-nodes-present-in-layout? editor (editor/get-highlight editor)))
+
+(defn editor-puppets-consistent? [editor]
+  (editor-nodes-present-in-layout? editor (editor/get-puppets editor)))
+
+(defn editor-focused-form-id-consistent? [editor]
+  (editor-nodes-present-in-layout? editor (editor/get-focused-form-id editor)))
+
+(defn editor-editing-consistent? [editor]
+  (editor-nodes-present-in-layout? editor (editor/get-editing editor)))
+
 (def editor
-  (cached (s/both
-            (s/protocol editor/IEditor)
-            editor-members)))
+  (cached
+    (s/both
+      (s/protocol editor/IEditor)
+      editor-members
+      (s/pred editor-cursor-consistent?)
+      (s/pred editor-selection-consistent?)
+      (s/pred editor-highlight-consistent?)
+      (s/pred editor-puppets-consistent?)
+      (s/pred editor-focused-form-id-consistent?)
+      (s/pred editor-editing-consistent?))))
 
 (def undo-redo-item
   [(s/one s/Str "description")
@@ -148,13 +181,6 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(def check-main-db (s/checker root-schema))
-
 (def benchmark? (or plastic.env.bench-db-validation plastic.env.bench-main-db-validation))
 
-(defn create []
-  (fn [main-db]
-    (if-let [e (measure-time benchmark? "VALIDATE" ["main-db"]
-                 (check-main-db main-db))]
-      (error "main db check failed:" e main-db))
-    true))
+(def create (partial factory "main-db" benchmark? (s/checker root-schema) (fn [] plastic.env.*current-main-event*)))

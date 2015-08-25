@@ -4,8 +4,13 @@
 ; this function has to be specified
 (set! *main-cli-fn* (fn [& args] (.log js/console "main-cli-fn:" (into-array args))))
 
-(def ^:dynamic *current-thread* "MAIN")
-(def ^:dynamic *zip-op-nesting* 0)
+(defonce ^:dynamic *current-thread* "MAIN")
+(defonce ^:dynamic *current-main-job-id* 0)
+(defonce ^:dynamic *current-main-event* nil)
+(defonce ^:dynamic *current-worker-job-id* 0)
+(defonce ^:dynamic *current-worker-event* nil)
+
+(defonce ^:dynamic *zip-op-nesting* 0)
 
 ; -------------------------------------------------------------------------------------------------------------------
 

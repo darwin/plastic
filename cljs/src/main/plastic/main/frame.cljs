@@ -10,12 +10,11 @@
             [re-frame.frame :as frame]
             [re-frame.scaffold :as scaffold]))
 
-(defonce ^:dynamic *current-job-id* 0)
 (defonce ^:private event-chan (chan))
 (defonce frame (atom (frame/make-frame)))
 
 (defn current-job-desc
-  ([] (current-job-desc *current-job-id*))
+  ([] (current-job-desc plastic.env.*current-main-job-id*))
   ([id] (if-not (zero? id) (str "(job " id ")") "")))
 
 (def bench? (or plastic.env.bench-processing plastic.env.bench-main-processing))
@@ -71,7 +70,9 @@
 (register-handler :worker-job-done job-done)
 
 (defn handle-event [frame db job-id event]
-  (binding [plastic.env/*current-thread* "MAIN"]
+  (binding [plastic.env/*current-thread* "MAIN"
+            plastic.env/*current-main-job-id* job-id
+            plastic.env/*current-main-event* event]
     (if (zero? job-id)
       (handle-event-and-report-exceptions frame db event)
       (jobs/buffer-job-event job-id event))))

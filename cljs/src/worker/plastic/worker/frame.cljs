@@ -11,12 +11,11 @@
             [re-frame.utils :as utils]
             [plastic.worker.frame.undo :as undo]))
 
-(defonce ^:dynamic *current-job-id* 0)
 (defonce ^:private event-chan (chan))
 (defonce frame (atom (frame/make-frame)))
 
 (defn current-job-desc
-  ([] (current-job-desc *current-job-id*))
+  ([] (current-job-desc plastic.env.*current-worker-job-id*))
   ([id] (if-not (zero? id) (str "(job " id ")") "")))
 
 (def bench? (or plastic.env.bench-processing plastic.env.bench-main-processing))
@@ -43,8 +42,9 @@
   (scaffold/legacy-subscribe frame db subscription-spec))
 
 (defn handle-event-and-report-exceptions [frame-atom db-atom job-id event]
-  (binding [*current-job-id* job-id
-            plastic.env/*current-thread* "WORK"]
+  (binding [plastic.env/*current-thread* "WORK"
+            plastic.env/*current-worker-job-id* job-id
+            plastic.env/*current-worker-event* event]
     (let [old-db @db-atom]
       (try
         (frame/process-event-on-atom! @frame-atom db-atom event)
