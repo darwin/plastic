@@ -64,11 +64,11 @@ install plastic npm deps:
 
 ##### plastic bleeding-edge  dependencies
 
-I might be using bleeding-edge versions of some clojurescript libraries, look into $workspace/plastic/cljs/project.clj and look for uncommented paths into checkouts directory.
+I might be using bleeding-edge versions of some clojurescript libraries, look into [$workspace/plastic/cljs/project.clj](https://github.com/darwin/plastic/blob/master/cljs/project.clj) and look for uncommented paths into checkouts directory.
 
-Most likely they should point to forks of libraries maintained under https://github.com/darwin/[lib-name].
+Most likely they should point to forks of libraries maintained under [https://github.com/darwin/[lib-name]](https://github.com/darwin?tab=repositories).
 
-For example there might be "checkouts/re-frame/src", so you need to find https://github.com/darwin/re-frame repo on github and clone it into checkouts.
+For example there might be "checkouts/re-frame/src", so you need to find [https://github.com/darwin/re-frame](https://github.com/darwin/re-frame) repo on github and clone it into checkouts.
 
     cd cljs
     mkdir checkouts
@@ -84,14 +84,14 @@ First run Figwheel and wait for it to finish compilation and enter into waiting 
     cd $workspace/plastic/cljs
     ./script/figwheel.sh
 
-And in another terminal session
+Wait for figwheel to finish booting. And then in another terminal session
 
     cd $workspace/plastic/cljs
     ./script/atom.sh
 
 Atom file browser should point to $workspace/plastic/cljs/src, open some cljs files from `src/playground` and have fun!
 
-Note: effective keyboard shortcuts are specified in $workspace/plastic/keymaps/plastic.cson.
+Note: effective keyboard shortcuts are specified in [$workspace/plastic/keymaps/plastic.cson](https://github.com/darwin/plastic/blob/master/keymaps/plastic.cson).
 
 ##### native modules => apm rebuild
 
