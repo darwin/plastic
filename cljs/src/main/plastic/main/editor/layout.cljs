@@ -10,7 +10,9 @@
                      (editor/set-layout-for-form form-id layout)
                      (editor/set-selectables-for-form form-id selectables)
                      (editor/set-spatial-web-for-form form-id spatial-web)
-                     (editor/set-structural-web-for-form form-id structural-web))]
+                     (editor/set-structural-web-for-form form-id structural-web)
+                     (editor/set-puppets #{})
+                     (editor/set-highlight #{}))]
     (assoc editors editor-id new-editor)))
 
 (defn update-render-state [editors [editor-id render-state]]
