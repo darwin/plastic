@@ -1,19 +1,21 @@
 (ns plastic.main.editor.model
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
+  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
+                   [plastic.main :refer [dispatch worker-dispatch]])
   (:require [plastic.util.helpers :as helpers]
-            [plastic.main.editor.toolkit.id :as id]))
+            [plastic.main.editor.toolkit.id :as id]
+            [clojure.set :as set]))
 
 (defprotocol IEditor)
 
-(defrecord Editor [id def]
+(defrecord Editor [id]
   IEditor)
 
 (extend-protocol IHash
   Editor
   (-hash [this] (goog/getUid this)))
 
-(defn make [editor-id editor-def]
-  (Editor. editor-id editor-def))
+(defn make [editor-id]
+  (Editor. editor-id))
 
 (defn valid-editor? [editor]
   (satisfies? IEditor editor))
@@ -21,12 +23,30 @@
 (defn valid-editor-id? [editor-id]
   (pos? editor-id))
 
+(declare update-highlight-and-puppets)
+
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn get-id [editor]
   {:pre  [(valid-editor? editor)]
    :post [(valid-editor-id? %)]}
   (:id editor))
+
+; -------------------------------------------------------------------------------------------------------------------
+
+(defn get-uri [editor]
+  {:pre  [(valid-editor? editor)]
+   :post [(or (nil? %) (string? %))]}
+  (get editor :uri))
+
+(defn set-uri [editor uri]
+  {:pre [(valid-editor? editor)
+         (string? uri)]}
+  (or
+    (when (not= (get-uri editor) uri)
+      (dispatch :editor-fetch-text (get-id editor))
+      (assoc editor :uri uri))
+    editor))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -38,7 +58,9 @@
   {:pre [(valid-editor? editor)]}
   (let [old-analysis (get-analysis-for-form editor form-id)
         updated-analysis (helpers/overwrite-map old-analysis new-analysis)]
-    (assoc-in editor [:analysis form-id] updated-analysis)))
+    (-> editor
+      (assoc-in [:analysis form-id] updated-analysis)
+      (update-highlight-and-puppets))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -272,11 +294,13 @@
 
 (defn set-cursor [editor cursor]
   {:pre [(valid-editor? editor)]}
-  (let [new-cursor (if cursor #{cursor} #{})
+  (let [editor-id (get-id editor)
+        new-cursor (if cursor #{cursor} #{})
         new-cursor-form-id (if cursor (get-form-id-for-node-id editor cursor))]
     (-> editor
       (assoc :cursor new-cursor)
-      (set-focused-form-id new-cursor-form-id))))
+      (set-focused-form-id new-cursor-form-id)
+      (update-highlight-and-puppets))))
 
 (defn replace-cursor-if-not-valid [editor new-cursor]
   {:pre [(valid-editor? editor)]}
@@ -356,3 +380,18 @@
 (defn set-xform-report [editor report]
   {:pre [(valid-editor? editor)]}
   (assoc editor :xform-report report))
+
+
+; -------------------------------------------------------------------------------------------------------------------
+; highlight & puppets update
+
+(defn update-highlight-and-puppets [editor]
+  (if-let [cursor-id (get-cursor editor)]
+    (let [id (id/id-part cursor-id)
+          related-nodes (find-related-ring editor id)
+          puppets (set/difference related-nodes #{cursor-id})
+          spot-closer-node (if (id/spot? cursor-id) #{(id/make id :closer)})]
+      (-> editor
+        (set-highlight (set/union related-nodes spot-closer-node))
+        (set-puppets puppets)))
+    editor))

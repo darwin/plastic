@@ -15,24 +15,6 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn watch-to-fetch-text! [editor]
-  (let [editor-id (editor/get-id editor)
-        uri-subscription (subscribe [:editor-uri editor-id])]
-    (booking/update-item! book editor-id register-reaction
-      (react!
-        (when-let [uri @uri-subscription]
-          (dispatch :editor-fetch-text editor-id uri))))))
-
-(defn watch-to-update-highlight! [editor]
-  (let [editor-id (editor/get-id editor)
-        cursor (subscribe [:editor-cursor editor-id])
-        analysis (subscribe [:editor-analysis editor-id])]
-    (booking/update-item! book editor-id register-reaction
-      (react!
-        (let [_ @cursor
-              _ @analysis]
-          (dispatch :editor-update-highlight-and-puppets editor-id))))))
-
 (defn watch-to-update-inline-editor! [editor]
   (let [editor-id (editor/get-id editor)
         inline-editor (subscribe [:editor-inline-editor editor-id])]
@@ -43,11 +25,11 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn add-editor! [editors [editor-id editor-def]]
-  (let [editors (if (map? editors) editors {})
-        editor (editor/make editor-id editor-def)]
+(defn add-editor! [editors [editor-id editor-uri]]
+  (let [editor (-> (editor/make editor-id)
+                 (editor/set-uri editor-uri))]
     (booking/register-item! book editor-id {})
-    (worker-dispatch :add-editor editor-id editor-def)
+    (worker-dispatch :add-editor editor-id editor-uri)
     (dispatch :wire-editor editor-id)
     (assoc editors editor-id editor)))
 
@@ -64,8 +46,6 @@
 (defn wire-editor! [editors [selector]]
   (editor/apply-to-editors editors selector
     (fn [editor]
-      (watch-to-fetch-text! editor)
-      (watch-to-update-highlight! editor)
       (watch-to-update-inline-editor! editor)
       editor)))
 

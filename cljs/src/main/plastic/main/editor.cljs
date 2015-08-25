@@ -10,6 +10,5 @@
             [plastic.main.editor.render]
             [plastic.main.editor.watcher]
             [plastic.main.editor.selection]
-            [plastic.main.editor.highlight]
             [plastic.main.editor.xform]
             [plastic.main.editor.cursor]))

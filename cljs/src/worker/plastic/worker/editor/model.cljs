@@ -1,5 +1,6 @@
 (ns plastic.worker.editor.model
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
+  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
+                   [plastic.worker :refer [dispatch main-dispatch]])
   (:require [rewrite-clj.zip :as zip]
             [rewrite-clj.zip.findz :as findz]
             [rewrite-clj.node :as node]
@@ -8,15 +9,15 @@
 
 (defprotocol IEditor)
 
-(defrecord Editor [id def]
+(defrecord Editor [id uri]
   IEditor)
 
 (extend-protocol IHash
   Editor
   (-hash [this] (goog/getUid this)))
 
-(defn make [editor-id editor-def]
-  (Editor. editor-id editor-def))
+(defn make [editor-id editor-uri]
+  (Editor. editor-id editor-uri))
 
 (defn valid-editor? [editor]
   (satisfies? IEditor editor))
@@ -34,20 +35,38 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
+(defn get-text [editor]
+  {:pre  [(valid-editor? editor)]
+   :post [(string? %)]}
+  (or (get editor :text) ""))
+
+(defn set-text [editor text]
+  {:pre [(valid-editor? editor)
+         (string? text)]}
+  (or
+    (when-not (= (get-text editor) text)
+      (dispatch :editor-parse-source (get-id editor))
+      (assoc editor :text text))
+    editor))
+
+; -------------------------------------------------------------------------------------------------------------------
+
 (defn get-parse-tree [editor]
   {:pre [(valid-editor? editor)]}
-  (let [parse-tree (get editor :parse-tree)]
-    (assert parse-tree)
-    parse-tree))
+  (get editor :parse-tree))
 
 (defn set-parse-tree [editor parse-tree]
   {:pre [(valid-editor? editor)
          (= (node/tag parse-tree) :forms)]}
-  (assoc editor :parse-tree parse-tree))
+  (or
+    (when-not (identical? (get-parse-tree editor) parse-tree)
+      (dispatch :editor-update-layout (get-id editor))
+      (assoc editor :parse-tree parse-tree))
+    editor))
 
 (defn parsed? [editor]
   {:pre [(valid-editor? editor)]}
-  (contains? editor :parse-tree))
+  (not (nil? (get-parse-tree editor))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 

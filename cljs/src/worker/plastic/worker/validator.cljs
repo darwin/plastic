@@ -24,10 +24,6 @@
 
 (def scope-id s/Int)
 
-(def editor-def
-  {:id  editor-id
-   :uri s/Str})
-
 (def editor-render-state
   (cached {:order [form-id]}))
 
@@ -36,7 +32,7 @@
 
 (def editor-members
   {:id                                         editor-id
-   :def                                        editor-def
+   :uri                                        s/Str
    (s/optional-key :text)                      s/Str
    (s/optional-key :parse-tree)                s/Any
    (s/optional-key :render-state)              editor-render-state

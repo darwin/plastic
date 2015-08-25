@@ -25,10 +25,6 @@
 
 (def scope-id s/Int)
 
-(def editor-def
-  {:id  editor-id
-   :uri s/Str})
-
 (def children-table-row
   [(s/one {s/Keyword TODO} "row options")
    node-id])
@@ -110,7 +106,7 @@
 
 (def editor-members
   {:id                               editor-id
-   :def                              editor-def
+   :uri                              s/Str
    (s/optional-key :render-state)    editor-render-state
    (s/optional-key :layout)          editor-layout
    (s/optional-key :selectables)     editor-selectables

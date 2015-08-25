@@ -19,4 +19,6 @@
   (if (or plastic.env.validate-dbs plastic.env.validate-main-db)
     (validator/create)))
 
-(def db (reagent/atom defaults :validator (provide-validator)))
+(def valid-db? (or (provide-validator) (fn [] true)))
+
+(def db (reagent/atom defaults :validator valid-db?))

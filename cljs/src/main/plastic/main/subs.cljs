@@ -53,7 +53,7 @@
 (register-sub :editors (path-query-factory paths/editors))
 
 (register-sub :editor-render-state (path-query-factory (editor-selector [:render-state])))
-(register-sub :editor-uri (path-query-factory (editor-selector [:def :uri])))
+(register-sub :editor-uri (path-query-factory (editor-selector [:uri])))
 (register-sub :editor-selection (path-query-factory (editor-selector [:selection])))
 (register-sub :editor-selection-node (path-query-factory (selection-selector)))
 (register-sub :editor-highlight (path-query-factory (editor-selector [:highlight])))

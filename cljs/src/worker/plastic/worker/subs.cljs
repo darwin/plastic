@@ -13,7 +13,7 @@
 (register-sub :editors (path-query-factory paths/editors))
 
 (register-sub :editor-render-state (path-query-factory (editor-selector [:render-state])))
-(register-sub :editor-uri (path-query-factory (editor-selector [:def :uri])))
+(register-sub :editor-uri (path-query-factory (editor-selector [:uri])))
 (register-sub :editor-text (path-query-factory (editor-selector [:text])))
 (register-sub :editor-parse-tree (path-query-factory (editor-selector [:parse-tree])))
 (register-sub :editor-xform-report (path-query-factory (editor-selector [:xform-report])))

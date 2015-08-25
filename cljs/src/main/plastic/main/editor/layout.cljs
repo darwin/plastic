@@ -5,8 +5,8 @@
             [plastic.main.paths :as paths]))
 
 (defn commit-layout [editors [editor-id form-id layout selectables spatial-web structural-web]]
-  (let [editor (get editors editor-id)
-        new-editor (-> editor
+  (let [old-editor (get editors editor-id)
+        new-editor (-> old-editor
                      (editor/set-layout-for-form form-id layout)
                      (editor/set-selectables-for-form form-id selectables)
                      (editor/set-spatial-web-for-form form-id spatial-web)
@@ -16,8 +16,8 @@
     (assoc editors editor-id new-editor)))
 
 (defn update-render-state [editors [editor-id render-state]]
-  (let [editor (get editors editor-id)
-        new-editor (editor/set-render-state editor render-state)]
+  (let [old-editor (get editors editor-id)
+        new-editor (editor/set-render-state old-editor render-state)]
     (assoc editors editor-id new-editor)))
 
 ; -------------------------------------------------------------------------------------------------------------------

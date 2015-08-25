@@ -27,10 +27,9 @@
 
 (defn register-editor [atom-view]
   (let [editor-id (.-id atom-view)
-        editor-def {:id  editor-id
-                    :uri (.-uri atom-view)}]
+        editor-uri (.-uri atom-view)]
     (register-view editor-id atom-view)
-    (dispatch :add-editor editor-id editor-def)
+    (dispatch :add-editor editor-id editor-uri)
     (dispatch :mount-editor editor-id (find-mount-point (.-element atom-view)))))
 
 (defn unregister-editor [atom-view]

@@ -2,13 +2,15 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
                    [plastic.main :refer [worker-dispatch worker-dispatch-args]])
   (:require [plastic.main.frame :refer [register-handler]]
-            [plastic.undo :as undo]))
+            [plastic.undo :as undo]
+            [plastic.main.db :refer [valid-db?]]))
 
 (defn undo [db [editor-id]]
   (or
     (if (undo/can-undo? db editor-id)
       (worker-dispatch-args [:undo editor-id]
         (fn [db-after-worker-undo]
+          (assert (valid-db? db-after-worker-undo))
           (undo/do-undo db-after-worker-undo [editor-id]))))
     db))
 
@@ -17,6 +19,7 @@
     (if (undo/can-redo? db editor-id)
       (worker-dispatch-args [:redo editor-id]
         (fn [db-after-worker-redo]
+          (assert (valid-db? db-after-worker-redo))
           (undo/do-redo db-after-worker-redo [editor-id]))))
     db))
 

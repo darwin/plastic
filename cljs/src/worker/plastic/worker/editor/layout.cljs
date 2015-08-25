@@ -42,16 +42,15 @@
 (defn update-layout [editors [selector]]
   (editor/apply-to-editors editors selector
     (fn [editor]
-      (if-not (editor/parsed? editor)
-        editor
-        (let [independent-top-level-locs (map zip/down (map zip-utils/independent-zipper (editor/get-top-level-locs editor)))
-              old-render-state (editor/get-render-state editor)
-              new-render-state {:order (map #(zip-utils/loc-id %) independent-top-level-locs)}]
-          (if (not= old-render-state new-render-state)
-            (main-dispatch :editor-update-render-state (:id editor) new-render-state))
-          (-> editor
-            (editor/set-render-state new-render-state)
-            (update-forms-layout-if-needed independent-top-level-locs)))))))
+      {:pre [(editor/parsed? editor)]}
+      (let [independent-top-level-locs (map zip/down (map zip-utils/independent-zipper (editor/get-top-level-locs editor)))
+            old-render-state (editor/get-render-state editor)
+            new-render-state {:order (map #(zip-utils/loc-id %) independent-top-level-locs)}]
+        (if (not= old-render-state new-render-state)
+          (main-dispatch :editor-update-render-state (:id editor) new-render-state))
+        (-> editor
+          (editor/set-render-state new-render-state)
+          (update-forms-layout-if-needed independent-top-level-locs))))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; register handlers
