@@ -5,12 +5,14 @@
             [plastic.worker.frame :refer [subscribe register-handler]]
             [plastic.worker.frame.undo :refer [set-undo-report!]]
             [plastic.worker.paths :as paths]
+            [plastic.worker.editor.watcher :as watcher]
             [plastic.worker.editor.model :as editor]
             [plastic.undo :as undo]))
 
 (defn add-editor! [editors [editor-id editor-uri]]
   (let [editors (if (map? editors) editors {})
         editor (editor/make editor-id editor-uri)]
+    (watcher/init-editor editor-id)
     (assoc editors editor-id editor)))
 
 (defn remove-editor! [db [editor-id]]

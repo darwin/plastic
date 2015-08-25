@@ -7,9 +7,11 @@
             [plastic.worker.editor]
             [plastic.worker.db]
             [plastic.worker.undo]
-            [plastic.worker.frame :refer [register-handler]]))
+            [plastic.worker.frame :refer [register-handler]]
+            [plastic.worker.editor.watcher :as watcher]))
 
 (defn init [db [_state]]
+  (watcher/init)
   db)
 
 ; -------------------------------------------------------------------------------------------------------------------

@@ -6,6 +6,7 @@
 
 (defonce ^:dynamic prev nil)
 
+; note: reactions here are allowed to leak, used only for development
 
 (defn init []
   ; for debugging only - this may be slow

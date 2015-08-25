@@ -120,8 +120,12 @@
   (= (loc-id loc) id))
 
 (defn loc-desc [loc]
-  (let [sexpr (node/sexpr (z/node loc))]
-    (if (seq? sexpr)
-      (pr-str (first sexpr))
-      (pr-str sexpr))))
-
+  (if-not (valid-loc? loc)
+    "nil"
+    (let [node (z/node loc)]
+      (if (node/printable-only? node)
+        (name (node/tag node))
+        (let [sexpr (node/sexpr node)]
+          (if (seq? sexpr)
+            (pr-str (first sexpr))
+            (pr-str sexpr)))))))

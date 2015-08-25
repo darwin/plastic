@@ -2,7 +2,7 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]]
                    [plastic.worker :refer [main-dispatch main-dispatch-args dispatch-args]]
                    [cljs.core.async.macros :refer [go-loop go]])
-  (:require [plastic.worker.frame.counters :as counters]
+  (:require [plastic.worker.frame.jobs :as jobs]
             [cljs.core.async :refer [chan put! <!]]
             [plastic.worker.db :refer [db]]
             [re-frame.middleware :as middleware]
@@ -45,22 +45,23 @@
   (binding [plastic.env/*current-thread* "WORK"
             plastic.env/*current-worker-job-id* job-id
             plastic.env/*current-worker-event* event]
-    (let [old-db @db-atom]
-      (try
-        (frame/process-event-on-atom! @frame-atom db-atom event)
-        (catch :default e
-          (error e (.-stack e))))
-      (if-not (zero? job-id)                                                                                          ; jobs with id 0 are without continuation
-        (if (counters/update-counter-for-job job-id)
-          (let [undo-summary (undo/vacuum-undo-summary)]
-            (main-dispatch-args 0 [:worker-job-done job-id undo-summary])
-            (doseq [{:keys [editor-id description]} undo-summary]
-              (let [old-editor (get-in old-db [:editors editor-id])]
-                (dispatch-args 0 [:store-editor-undo-snapshot editor-id description old-editor])))))))))
+    (if-not (zero? job-id)                                                                                            ; jobs with id 0 are without continuation
+      (jobs/set-initial-db-for-job! job-id @db-atom))                                                                 ; if first event of job, store current db as initial-db for job
+    (try
+      (frame/process-event-on-atom! @frame-atom db-atom event)
+      (catch :default e
+        (error e (.-stack e))))
+    (if-not (zero? job-id)                                                                                            ; jobs with id 0 are without continuation
+      (if-let [initial-db (jobs/update-counter-for-job-and-pop-initial-db-if-finished! job-id)]
+        (let [undo-summary (undo/vacuum-undo-summary)]
+          (main-dispatch-args 0 [:worker-job-done job-id undo-summary])
+          (doseq [{:keys [editor-id description]} undo-summary]
+            (let [old-editor (get-in initial-db [:editors editor-id])]
+              (dispatch-args 0 [:store-editor-undo-snapshot editor-id description old-editor]))))))))
 
 (defn ^:export dispatch [job-id event]
   (if-not (zero? job-id)                                                                                              ; jobs with id 0 are without continuation
-    (counters/inc-counter-for-job job-id))
+    (jobs/inc-counter-for-job! job-id))
   (put! event-chan [job-id event])
   nil)
 

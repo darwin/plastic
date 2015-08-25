@@ -1,11 +1,12 @@
 (ns plastic.worker.editor.model
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
+  (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]]
                    [plastic.worker :refer [dispatch main-dispatch]])
   (:require [rewrite-clj.zip :as zip]
             [rewrite-clj.zip.findz :as findz]
             [rewrite-clj.node :as node]
             [plastic.util.helpers :as helpers]
-            [plastic.util.zip :as zip-utils]))
+            [plastic.util.zip :as zip-utils]
+            [plastic.worker.editor.toolkit.id :as id]))
 
 (defprotocol IEditor)
 
@@ -26,6 +27,12 @@
   (pos? editor-id))
 
 (def valid-loc? zip-utils/valid-loc?)
+
+(declare find-node-loc)
+
+(defn valid-edit-point? [editor edit-point]
+  (let [id (id/id-part edit-point)]
+    (not (nil? (find-node-loc editor id)))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
