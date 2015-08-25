@@ -50,7 +50,7 @@
     (try
       (frame/process-event-on-atom! @frame-atom db-atom event)
       (catch :default e
-        (error e (.-stack e))))
+        (error (.-stack e))))
     (if-not (zero? job-id)                                                                                            ; jobs with id 0 are without continuation
       (if-let [initial-db (jobs/update-counter-for-job-and-pop-initial-db-if-finished! job-id)]
         (let [undo-summary (undo/vacuum-undo-summary)]

@@ -50,7 +50,7 @@
   (try
     (frame/process-event-on-atom! @frame-atom db event)
     (catch :default e
-      (error e (.-stack e)))))
+      (error (.-stack e)))))
 
 (defn job-done [db [job-id undo-summary]]
   (let [job (jobs/get-job job-id)
