@@ -20,7 +20,7 @@
    [cljsjs/react "0.13.3-1"]]
 
   :plugins
-  [[lein-cljsbuild "1.0.6"]
+  [[lein-cljsbuild "1.1.0"]
    [lein-figwheel "0.3.3"]]
 
   :source-paths
