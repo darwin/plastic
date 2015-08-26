@@ -62,7 +62,8 @@
                     :figwheel              true
                     :source-map            true}}
     :main
-    {:source-paths ["checkouts/re-frame/src"
+    {:source-paths ["checkouts/cljs-devtools/src"
+                    "checkouts/re-frame/src"
                     "checkouts/reagent/src"
                     "src/macros"
                     "src/env"
