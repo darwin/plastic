@@ -13,20 +13,20 @@
   "A reagent component responsible for rendering a singe code token.
 
 The component subscribes to relevant data which affects its visual appearance.
-The component can present inline-editor in its place if entered editing mode.
+The component can present inline-editor in its place if in editing mode.
 
-A hint: set plastic.env.log-rendering to log render calls into devtools console."
+A hint: set `plastic.env.log-rendering` to log render calls into devtools console."
   [editor-id form-id node-id]
   (let [selected? (subscribe [:editor-selection-node editor-id node-id])
         editing? (subscribe [:editor-editing-node editor-id node-id])
         cursor? (subscribe [:editor-cursor-node editor-id node-id])
         highlight? (subscribe [:editor-highlight-node editor-id node-id])
-        layout-subscription (subscribe [:editor-layout-form-node editor-id form-id node-id])
-        analysis-subscription (subscribe [:editor-analysis-form-node editor-id form-id node-id])]
+        layout (subscribe [:editor-layout-form-node editor-id form-id node-id])
+        analysis (subscribe [:editor-analysis-form-node editor-id form-id node-id])]
     (fn [_editor-id _form-id node-id]
-      (log-render "code-token" [node-id (subs (:text @layout-subscription) 0 10)]
-        (let [{:keys [selectable? type text id]} @layout-subscription
-              {:keys [decl-scope call? def-name?]} @analysis-subscription
+      (log-render "code-token" [node-id (subs (:text @layout) 0 10)]
+        (let [{:keys [selectable? type text id]} @layout
+              {:keys [decl-scope call? def-name?]} @analysis
               selected? @selected?
               editing? @editing?
               cursor? @cursor?
