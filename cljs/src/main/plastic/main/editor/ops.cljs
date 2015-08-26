@@ -28,11 +28,23 @@
 (defn structural-up [editor]
   (-> editor editing/stop-editing cursor/structural-up))
 
+(defn can-edit? [editor]
+  (let [new-editor (cursor/structural-down editor)]
+    (identical? new-editor editor)))                                                                                  ; we are at bottom "token level"
+
 (defn structural-down [editor]
   (let [new-editor (cursor/structural-down editor)]
     (if (identical? new-editor editor)
       (dispatch :editor-op (editor/get-id editor) :toggle-editing))
     new-editor))
+
+(defn start-editing [editor]
+  (if (and (not (editor/editing? editor)) (can-edit? editor))
+    (editing/start-editing editor)))
+
+(defn stop-editing [editor]
+  (if (editor/editing? editor)
+    (editing/stop-editing editor)))
 
 (defn toggle-editing [editor]
   (if (editor/editing? editor)
@@ -78,8 +90,8 @@
    :structural-down    structural-down
    :next-token         editing/next-token
    :prev-token         editing/prev-token
-   :start-editing      editing/start-editing
-   :stop-editing       editing/stop-editing
+   :start-editing      start-editing
+   :stop-editing       stop-editing
    :toggle-editing     toggle-editing
    :enter              enter
    :alt-enter          alt-enter
