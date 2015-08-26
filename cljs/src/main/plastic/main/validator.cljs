@@ -164,7 +164,9 @@
    (s/one editor "editor snapshot")])
 
 (def undo-redo-queue
-  [undo-redo-item])
+  (s/both
+    (s/pred vector?)
+    [undo-redo-item]))
 
 (def editor-undo-redo
   (cached {(s/optional-key :undos) undo-redo-queue

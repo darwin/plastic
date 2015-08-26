@@ -20,7 +20,7 @@
   (peek (get-in db [:undo-redo editor-id key])))
 
 (defn push-queue [db editor-id key limit description data]
-  (let [updater (fn [items] (take-last limit (conj (or items []) [description data])))
+  (let [updater (fn [items] (vec (take-last limit (conj (or items []) [description data]))))
         res (update-in db [:undo-redo editor-id key] updater)]
     (if plastic.env.log-undo-redo
       (fancy-log "UNDO-REDO"
