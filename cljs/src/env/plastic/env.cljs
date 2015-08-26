@@ -16,8 +16,7 @@
 
 (goog-define run-worker-on-main-thread false)
 
-(goog-define max-undos 20)
-(goog-define max-redos 20)
+(goog-define limit-undo-redo-queue 20)
 
 (goog-define validate-dbs false)
 (goog-define validate-main-db false)

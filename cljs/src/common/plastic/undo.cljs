@@ -14,13 +14,18 @@
       (count undos) " undos=[" (debug-print-queue undos) "] "
       (count redos) " redos=[" (debug-print-queue redos) "]")))
 
+(defn- limit-queue [q]
+  (if plastic.env.limit-undo-redo-queue
+    (vec (take-last plastic.env.limit-undo-redo-queue q))
+    q))
+
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn peek-queue [db editor-id key]
   (peek (get-in db [:undo-redo editor-id key])))
 
-(defn push-queue [db editor-id key limit description data]
-  (let [updater (fn [items] (vec (take-last limit (conj (or items []) [description data]))))
+(defn push-queue [db editor-id key description data]
+  (let [updater (fn [items] (limit-queue (conj (or items []) [description data])))
         res (update-in db [:undo-redo editor-id key] updater)]
     (if plastic.env.log-undo-redo
       (fancy-log "UNDO-REDO"
@@ -48,7 +53,7 @@
   (not (nil? (peek-undo db editor-id))))
 
 (defn push-undo [db [editor-id description data]]
-  (push-queue db editor-id :undos plastic.env.max-undos description data))
+  (push-queue db editor-id :undos description data))
 
 (defn pop-undo [db editor-id]
   (pop-queue db editor-id :undos))
@@ -73,7 +78,7 @@
   (not (nil? (peek-redo db editor-id))))
 
 (defn push-redo [db [editor-id description data]]
-  (push-queue db editor-id :redos plastic.env.max-redos description data))
+  (push-queue db editor-id :redos description data))
 
 (defn pop-redo [db editor-id]
   (pop-queue db editor-id :redos))
