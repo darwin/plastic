@@ -16,6 +16,9 @@
 
 (goog-define run-worker-on-main-thread false)
 
+(goog-define max-undos 20)
+(goog-define max-redos 20)
+
 (goog-define validate-dbs false)
 (goog-define validate-main-db false)
 (goog-define validate-worker-db false)
@@ -42,5 +45,5 @@
 (goog-define log-inline-editor false)
 (goog-define log-zip-ops true)
 (goog-define log-threaded-zip-ops false)
-(goog-define log-undo-redo false)
+(goog-define log-undo-redo true)
 (goog-define log-parse-tree false)
