@@ -3,11 +3,22 @@
 .plastic-editor-view {
 
   .code-box {
-    padding: 4px;
-    margin-left: @doc-indent;
+    margin-left: @form-inner-indent;
+    display: inline-block;
+    padding-right: 1em;
   }
-
-  .code-box.sexpr-ns {
+  
+  .code-box.form-kind-ns {
+    margin-left: 0;
+    background-color: @ns-background-color;
+    padding: 6px 6px;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    margin-left: -6px;
+    border-bottom: 4px solid lighten(@ns-background-color, 10%);
+  }
+  
+  .code-box.form-kind-declare {
     margin-left: 0;
   }
 
@@ -15,8 +26,9 @@
     display: inline-block;
     white-space: nowrap;
     vertical-align: top;
-    border-radius: 2px;
-    margin-bottom: @cursor-border-width; // to prevent cursor border z-indexing issue
+    border-radius: 4px;
+    margin-bottom: 0px;
+//    margin-bottom: @cursor-border-width; // to prevent cursor border z-indexing issue
   }
   
   table.elements,
@@ -86,7 +98,7 @@
     display: inline-block;
     
     padding: 0px 0px;
-    opacity: 0.4;
+    opacity: 0.2;
     font-weight: bold;
   }
 
@@ -99,12 +111,13 @@
   }
   
   .newline {
-    opacity: 0.2;
+    opacity: 0.1;
     vertical-align: bottom !important;
     margin-right: -3px - 8px; // width of newline character + padding
     position: relative;
     top: -1px;
     padding-left: 3px;
+    padding-right: 6px;
   }
 
 } // .plastic-editor-view

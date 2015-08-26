@@ -80,5 +80,5 @@
     (-> {}
       (build-structural-web-for-code code-locs)
       (link-selectable-docs docs-locs)
-      (link-top-selectable root-id form-id)
-      (link-forests-to-top root-id))))
+      #_(link-top-selectable root-id form-id)
+      #_(link-forests-to-top root-id))))

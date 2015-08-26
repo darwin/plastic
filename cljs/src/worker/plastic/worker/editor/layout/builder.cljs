@@ -128,6 +128,9 @@
       layout-item
       detect-new-lines)))
 
+(defn get-first-leaf-expr [loc]
+  (node/string (z/node (last (take-while zip-utils/valid-loc? (iterate zip-down loc))))))
+
 (defn build-layout [form-loc]
   (let [form-id (zip-utils/loc-id form-loc)
         root-id (id/make form-id :root)
@@ -138,12 +141,12 @@
         initial {:data {} :docs [] :headers [] :line 0}
         {:keys [data docs headers line]} (reduce build-node-layout initial locs)]
     (-> data
-      (assoc root-id {:tag         :tree
-                      :id          root-id
-                      :selectable? true
-                      :children    [headers-id docs-id code-id]})
+      (assoc root-id {:tag       :tree
+                      :id        root-id
+                      :children  [headers-id docs-id code-id]})
       (assoc code-id {:tag      :code
                       :id       code-id
+                      :form-kind (get-first-leaf-expr form-loc)
                       :children [(zip-utils/loc-id form-loc)]})
       (assoc docs-id {:tag      :docs
                       :id       docs-id

@@ -9,13 +9,20 @@
 
 (declare code-block-component)
 
-(defn code-token-component [editor-id form-id node-id]
+(defn code-token-component
+  "A reagent component responsible for rendering a singe code token.
+
+The component subscribes to relevant data which affects its visual appearance.
+The component can present inline-editor in its place if entered editing mode.
+
+A hint: set plastic.env.log-rendering to log render calls into devtools console."
+  [editor-id form-id node-id]
   (let [selected? (subscribe [:editor-selection-node editor-id node-id])
         editing? (subscribe [:editor-editing-node editor-id node-id])
         cursor? (subscribe [:editor-cursor-node editor-id node-id])
         highlight? (subscribe [:editor-highlight-node editor-id node-id])
-        analysis-subscription (subscribe [:editor-analysis-form-node editor-id form-id node-id])
-        layout-subscription (subscribe [:editor-layout-form-node editor-id form-id node-id])]
+        layout-subscription (subscribe [:editor-layout-form-node editor-id form-id node-id])
+        analysis-subscription (subscribe [:editor-analysis-form-node editor-id form-id node-id])]
     (fn [_editor-id _form-id node-id]
       (log-render "code-token" [node-id (subs (:text @layout-subscription) 0 10)]
         (let [{:keys [selectable? type text id]} @layout-subscription
@@ -144,8 +151,9 @@
   (let [layout (subscribe [:editor-layout-form-node editor-id form-id node-id])
         code-visible (subscribe [:settings :code-visible])]
     (fn [editor-id form-id node-id]
-      (log-render "code-box" node-id
-        [:div.code-box
-         (if @code-visible
-           (let [child-id (first (:children @layout))]
-             [code-block-component editor-id form-id child-id]))]))))
+      (let [{:keys [children form-kind]} @layout]
+        (log-render "code-box" node-id
+          [:div.code-box {:class (classv (if form-kind (str "form-kind-" form-kind)))}
+           (if @code-visible
+             (let [child-id (first children)]
+               [code-block-component editor-id form-id child-id]))])))))

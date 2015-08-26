@@ -8,6 +8,7 @@
     // transform: translateZ(0); // create a GPU layer
     vertical-align: top;
     white-space: pre;
+    font-style: italic;
   }
   
   .token .raw {
@@ -15,23 +16,18 @@
   }
 
   .token.call {
-    font-style: italic;
+    font-style: normal;
+    font-weight: bold;
   }
 
   .token.string {
-    color: hsl(130, 100%, 80%);
-    background-color: hsl(130, 100%, 20%);
-    padding: 1px 4px;
-    border-radius: 2px;
-    line-height: 1em;
+    .boxy-token(130);
+    font-style: normal;
   }
   
   .token.keyword {
-    color: hsl(280, 100%, 80%);
-    background-color: hsl(280, 40%, 40%);
-    padding: 1px 4px;
-    border-radius: 2px;
-    line-height: 1em;
+    .boxy-token(280);
+    font-style: normal;
   }
 
   .token.string i {
@@ -45,11 +41,13 @@
   }
 
   .token.decl {
-   font-weight: bold;
+   font-style: normal;
   }
 
   .token.def-name {
     font-weight: bold;
+    font-style: normal;
+
     .raw {
       text-decoration: underline;
     }

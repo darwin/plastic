@@ -5,12 +5,13 @@
 .plastic-editor-view {
   
   .scope {
-    margin-bottom: 2px;
+    margin-bottom: 4px;
+    padding: 4px 4px;
   }
   
   .makeScope(@scope, @color) {
       .scope-@{scope} {
-          border-color: darken(@color, 10);
+          border-color: desaturate(darken(@color, 30), 60%);
       }
       
       .scope-@{scope} > .punctuation {
@@ -50,14 +51,14 @@
 
 } // .plastic-editor-view
 
-@depth-base1: hsl(0,  0%,   5%);
-@depth-base2: hsl(0,  0%,  40%);
+@depth-base1: darken(#21252b, 10%); //hsl(0,  0%,   0%);
+@depth-base2: hsl(0,  0%,  30%);
 @depth-base3: hsl(200, 50%, 5%);
 @depth-base4: hsl(200, 50%, 30%);
 @depth-base5: hsl(0, 50%,  5%);
 @depth-base6: hsl(0, 50%, 30%);
 
-@depth-steps: 10;
+@depth-steps: 12;
 @depth-increment: (100 / @depth-steps);
 
 .plastic-editor-view {
@@ -68,7 +69,7 @@
       .scope-depth-@{depth} {
         background-color: mix(@start, @end, (@depth-steps - @i)*@depth-increment);
       }
-
+      
       .makeDepths(@start, @end, @base-index, (@i - 1));
   }
 
