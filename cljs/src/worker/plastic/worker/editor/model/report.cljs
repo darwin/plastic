@@ -29,6 +29,18 @@
 (defn make-moved [node-id]
   (make [] [] [] [node-id]))
 
+(defn make-modified-list [ids]
+  (make (vec ids) [] [] []))
+
+(defn make-added-list [ids]
+  (make [] (vec ids) [] []))
+
+(defn make-removed-list [ids]
+  (make [] [] (vec ids) []))
+
+(defn make-moved-list [ids]
+  (make [] [] [] (vec ids)))
+
 (defn merge [report new-report]
   (make
     (vec (concat (:modified report) (:modified new-report)))

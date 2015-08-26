@@ -4,6 +4,7 @@
                    [plastic.worker :refer [thread-zip-ops]])
   (:require [rewrite-clj.zip :as zip]
             [rewrite-clj.zip.findz :as findz]
+            [rewrite-clj.zip.editz :as editz]
             [rewrite-clj.node :as node]
             [plastic.util.zip :as zip-utils :refer [loc-id loc-id? valid-loc?]]
             [clojure.zip :as z]
@@ -37,17 +38,29 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn report-modified [report loc]
-  (report/merge report (report/make-modified (loc-id loc))))
+(defn report* [f report loc]
+  (report/merge report (f (loc-id loc))))
 
-(defn report-added [report loc]
-  (report/merge report (report/make-added (loc-id loc))))
+(def report-modified (partial report* report/make-modified))
+(def report-added (partial report* report/make-added))
+(def report-removed (partial report* report/make-removed))
+(def report-moved (partial report* report/make-moved))
 
-(defn report-removed [report loc]
-  (report/merge report (report/make-removed (loc-id loc))))
+(defn report*list [f report locs]
+  (report/merge report (f (map loc-id locs))))
 
-(defn report-moved [report loc]
-  (report/merge report (report/make-moved (loc-id loc))))
+(def report-modified-list (partial report*list report/make-modified-list))
+(def report-added-list (partial report*list report/make-added-list))
+(def report-removed-list (partial report*list report/make-removed-list))
+(def report-moved-list (partial report*list report/make-moved-list))
+
+(defn report*nodes [f report nodes]
+  (report/merge report (f (map :id nodes))))
+
+(def report-modified-nodes (partial report*nodes report/make-modified-list))
+(def report-added-nodes (partial report*nodes report/make-added-list))
+(def report-removed-nodes (partial report*nodes report/make-removed-list))
+(def report-moved-nodes (partial report*nodes report/make-moved-list))
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; zip ops
@@ -144,6 +157,10 @@
       (remove [ln-loc report])
       [loc report])))
 
+(defn splice [[loc report]]
+  (let [children (z/children loc)]
+    [(editz/splice loc) (report-moved-nodes report children)]))
+
 ; -------------------------------------------------------------------------------------------------------------------
 ; composed ops
 
@@ -218,3 +235,8 @@
     [lookup node-id]
     [step-down]
     [remove]))
+
+(defn splice-node [node-id [loc report]]
+  (thread-zip-ops [loc report]
+    [lookup node-id]
+    [splice]))

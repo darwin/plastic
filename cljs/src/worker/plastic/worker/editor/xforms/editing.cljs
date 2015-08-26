@@ -49,7 +49,7 @@
   {:pre [(valid-edit-point? editor edit-point)]}
   (if-not (id/spot? edit-point)
     (apply-op editor ops/delete-node (get-node-id edit-point))
-    editor))
+    (apply-op editor ops/splice-node (get-node-id edit-point))))
 
 (defn delete [editor edit-point]
   {:pre [(valid-edit-point? editor edit-point)]}
