@@ -110,4 +110,6 @@
   (single-result? (.children ($ dom-node) "atom-text-editor")))
 
 (defn build-nodes-selector [node-ids]
-  (string/join "," (map (fn [id] (str "[data-qnid=" id "]")) node-ids)))
+  (if-let [node-ids-seq (seq node-ids)]
+    (string/join "," (map (fn [id] (str "[data-qnid=" id "]")) node-ids-seq))
+    "[data-qnid=NONE]"))

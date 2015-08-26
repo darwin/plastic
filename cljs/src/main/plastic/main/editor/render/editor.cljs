@@ -50,7 +50,7 @@
 (defn handle-form-click [_form-id event]
   (let [target-dom-node (.-target event)
         _ (assert target-dom-node)
-        selectable-dom-node (dom/find-closest target-dom-node ".selectable")]
+        selectable-dom-node (dom/try-find-closest target-dom-node ".selectable")]
     (if selectable-dom-node
       (let [selected-node-id (dom/read-node-id selectable-dom-node)
             _ (assert selected-node-id)
