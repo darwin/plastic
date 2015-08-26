@@ -7,9 +7,6 @@
   {:toggle-headers           settings/toggle-headers
    :toggle-code              settings/toggle-code
    :toggle-docs              settings/toggle-docs
-   :toggle-parser-debug      settings/toggle-parser-debug
-   :toggle-text-input-debug  settings/toggle-text-input-debug
-   :toggle-text-output-debug settings/toggle-text-output-debug
    :toggle-selections-debug  settings/toggle-selections-debug})
 
 (defn dispatch-command [db [command & args]]

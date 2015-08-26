@@ -6,7 +6,7 @@
             [plastic.main.editor.render.headers :refer [headers-group-component]]
             [plastic.main.editor.render.docs :refer [docs-group-component]]
             [plastic.main.editor.render.code :refer [code-box-component]]
-            [plastic.main.editor.render.debug :refer [parser-debug-component text-input-debug-component text-output-debug-component render-tree-debug-component selections-debug-overlay-component]]
+            [plastic.main.editor.render.debug :refer [selections-debug-overlay-component]]
             [plastic.main.editor.render.utils :refer [dangerously-set-html classv]]
             [plastic.main.editor.toolkit.id :as id]))
 
@@ -90,19 +90,12 @@
 
 (defn editor-root-component [editor-id]
   (let [state (subscribe [:editor-render-state editor-id])
-        parser-debug-visible (subscribe [:settings :parser-debug-visible])
-        text-input-debug-visible (subscribe [:settings :text-input-debug-visible])
-        text-output-debug-visible (subscribe [:settings :text-output-debug-visible])
         selections-debug-visible (subscribe [:settings :selections-debug-visible])]
     (fn [editor-id]
       (log-render "editor-root" editor-id
-        (let [{:keys [order]} @state
-              {:keys [debug-parse-tree debug-text-input debug-text-output]} @state]
+        (let [{:keys [order]} @state]
           [:div.plastic-editor                                                                                        ; .editor class is taken by Atom
            {:data-qeid editor-id
             :class     (classv (if @selections-debug-visible "debug-selections"))
             :on-click  (partial handle-editor-click editor-id)}
-           (if @text-input-debug-visible [text-input-debug-component debug-text-input])
-           [forms-component editor-id order]
-           (if @parser-debug-visible [parser-debug-component debug-parse-tree])
-           (if @text-output-debug-visible [text-output-debug-component debug-text-output])])))))
+           [forms-component editor-id order]])))))

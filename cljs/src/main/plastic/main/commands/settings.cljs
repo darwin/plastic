@@ -11,14 +11,5 @@
 (defn toggle-docs [db]
   (toggle-setting db :docs-visible))
 
-(defn toggle-parser-debug [db]
-  (toggle-setting db :parser-debug-visible))
-
-(defn toggle-text-input-debug [db]
-  (toggle-setting db :text-input-debug-visible))
-
-(defn toggle-text-output-debug [db]
-  (toggle-setting db :text-output-debug-visible))
-
 (defn toggle-selections-debug [db]
   (toggle-setting db :selections-debug-visible))
