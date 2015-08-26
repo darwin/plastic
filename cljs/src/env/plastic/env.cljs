@@ -44,5 +44,5 @@
 (goog-define log-inline-editor false)
 (goog-define log-zip-ops true)
 (goog-define log-threaded-zip-ops false)
-(goog-define log-undo-redo true)
+(goog-define log-undo-redo false)
 (goog-define log-parse-tree false)

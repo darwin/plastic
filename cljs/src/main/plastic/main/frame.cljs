@@ -42,10 +42,6 @@
 (defn subscribe [subscription-spec]
   (scaffold/legacy-subscribe frame db subscription-spec))
 
-(defn ^:export dispatch [job-id event]
-  (put! event-chan [job-id event])
-  nil)
-
 (defn handle-event-and-report-exceptions [frame-atom db event]
   (try
     (frame/process-event-on-atom! @frame-atom db event)
@@ -82,3 +78,13 @@
     (let [[job-id event] (<! event-chan)]
       (handle-event frame db job-id event))
     (recur)))
+
+(defn ^:export dispatch [job-id event]
+  (put! event-chan [job-id event])
+  nil)
+
+(defn ^:export dispatch-sync [job-id event]
+  (assert (nil? plastic.env/*current-main-event*) "cannot call dispatch-sync during processing another dispatch")
+  (handle-event frame db job-id event)
+  nil)
+

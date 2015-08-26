@@ -11,7 +11,7 @@
 
 (defn code-token-component [editor-id form-id node-id]
   (let [selected? (subscribe [:editor-selection-node editor-id node-id])
-        edited? (subscribe [:editor-editing-node editor-id node-id])
+        editing? (subscribe [:editor-editing-node editor-id node-id])
         cursor? (subscribe [:editor-cursor-node editor-id node-id])
         highlight? (subscribe [:editor-highlight-node editor-id node-id])
         analysis-subscription (subscribe [:editor-analysis-form-node editor-id form-id node-id])
@@ -21,18 +21,18 @@
         (let [{:keys [selectable? type text id]} @layout-subscription
               {:keys [decl-scope call? def-name?]} @analysis-subscription
               selected? @selected?
-              edited? @edited?
+              editing? @editing?
               cursor? @cursor?
               highlight? @highlight?
               props (merge
                       {:data-qnid id
                        :class     (classv
                                     (if type (name type))
-                                    (if (and selectable? (not edited?)) "selectable")
-                                    (if (and selectable? (not edited?) selected?) "selected")
+                                    (if (and selectable? (not editing?)) "selectable")
+                                    (if (and selectable? (not editing?) selected?) "selected")
                                     (if cursor? "cursor")
                                     (if highlight? "highlighted")
-                                    (if edited? "editing")
+                                    (if editing? "editing")
                                     (if call? "call")
                                     (if decl-scope
                                       (str
@@ -41,8 +41,8 @@
                                         (:id decl-scope)))
                                     (if def-name? "def-name"))})
               emit-token (fn [html] [:div.token props
-                                     (if edited?
-                                       [inline-editor-component id text (or type :symbol)]
+                                     (if editing?
+                                       [inline-editor-component id]
                                        [raw-html-component html])])]
           (condp = type
             :string (emit-token (-> text (wrap-specials)))

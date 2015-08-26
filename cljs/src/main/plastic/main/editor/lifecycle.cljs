@@ -17,7 +17,14 @@
 
 (defn watch-to-update-inline-editor! [editor]
   (let [editor-id (editor/get-id editor)
+        editing (subscribe [:editor-editing editor-id])
         inline-editor (subscribe [:editor-inline-editor editor-id])]
+    (booking/update-item! book editor-id register-reaction
+      (react!
+        (let [editing @editing]
+          (if (empty? editing)
+            (inline-editor/deactivate-inline-editor! editor-id)
+            (inline-editor/activate-inline-editor! editor-id)))))
     (booking/update-item! book editor-id register-reaction
       (react!
         (let [_ @inline-editor]

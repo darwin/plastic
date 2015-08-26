@@ -1,12 +1,14 @@
 (ns plastic.onion.atom.inline-editor
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
+  (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]]
                    [plastic.onion :refer [update-inline-editor-synchronously]]
-                   [plastic.main :refer [dispatch react!]])
+                   [plastic.main :refer [dispatch dispatch-sync]])
   (:require [plastic.onion.api :refer [$ atom-api]]
             [plastic.main.db :refer [db]]
             [plastic.main.editor.model :as editor]
             [plastic.util.dom :as dom]
             [plastic.onion.atom :refer [get-plastic-editor-view]]))
+
+(def log-label "INLINE EDITOR")
 
 (defonce book-keeping (atom {}))
 
@@ -110,6 +112,8 @@
         initial-value (get-in @book-keeping [editor-id :initial-value])
         effective-text (if effective? (editor/get-inline-editor-text editor) (:text initial-value))
         effective-mode (if effective? mode (:mode initial-value))]
+    (if plastic.env.log-inline-editor
+      (fancy-log log-label "updating puppets" effective-mode effective-text $puppets))
     (sync-token-type-with-editor-mode $puppets effective-mode)
     (set-token-raw-text $puppets effective-text)))
 
@@ -157,7 +161,30 @@
                                          (assoc :active false)
                                          (assoc :initial-value nil))))
 
-(defn deactivate-inline-editor [editor-id]
-  (teardown-inline-editor-editing! editor-id)
-  (dispatch :editor-update-inline-editor editor-id nil))
+(defn activate-inline-editor! [editor-id]
+  (if plastic.env.log-inline-editor
+    (fancy-log log-label "activate inline editor request"))
+  (let [$root-view ($ (dom/find-plastic-editor-view editor-id))]
+    (when-not (dom/has-class? $root-view "inline-editor-active")
+      (if plastic.env.log-inline-editor
+        (fancy-log log-label "setup, append, focus and add \"inline-editor-active\" class to the root-view"))
+      (.addClass $root-view "inline-editor-active")
+      (let [editor (get-in @db [:editors editor-id])
+            [text mode] (editor/get-editing-text-and-mode editor)]
+        (setup-inline-editor-for-editing editor-id text mode)
+        (append-inline-editor editor-id $root-view)                                                                   ; temporary, react renderer will relocate it to proper place, see activate-transplantation
+        (focus-inline-editor editor-id)))))                                                                           ; it is important to focus inline editor ASAP, so we don't lose keystrokes
 
+(defn deactivate-inline-editor! [editor-id]
+  (if plastic.env.log-inline-editor
+    (fancy-log log-label "deactivate inline editor request"))
+  (let [$root-view ($ (dom/find-plastic-editor-view editor-id))]
+    (when (dom/has-class? $root-view "inline-editor-active")
+      (if plastic.env.log-inline-editor
+        (fancy-log log-label "removing \"inline-editor-active\" class from the root-view"))
+      (.removeClass $root-view "inline-editor-active")
+      (if plastic.env.log-inline-editor
+        (fancy-log log-label "returning focus back to root-view"))
+      (.focus $root-view)
+      (teardown-inline-editor-editing! editor-id)
+      (dispatch :editor-update-inline-editor editor-id nil))))

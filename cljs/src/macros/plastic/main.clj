@@ -14,6 +14,16 @@
 (defmacro dispatch [& event+args]
   `(dispatch-args 0 [~@event+args]))
 
+(defmacro dispatch-sync-args [id event+args]
+  `(let [event+args# ~event+args
+         id# ~id]
+     (if (or plastic.env.log-all-dispatches plastic.env.log-main-dispatches)
+       (fancy-log* "" "MAIN" "SYNC DISPATCH" event+args# (plastic.main.frame.current-job-desc id#)))
+     (plastic.main.frame.dispatch-sync id# event+args#)))
+
+(defmacro dispatch-sync [& event+args]
+  `(dispatch-sync-args 0 [~@event+args]))
+
 (defmacro worker-dispatch-args [event+args after-effect]
   `(let [event+args# ~event+args]
      (plastic.main.servant.dispatch-on-worker event+args# ~after-effect)))

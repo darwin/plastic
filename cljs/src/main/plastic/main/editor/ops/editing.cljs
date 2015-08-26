@@ -67,7 +67,7 @@
               select-edit (partial select-neighbour-and-start-editing focused-form-id edit-point [:up :down])
               continuation (make-continuation cb select-edit)
               select (fn [db] (editor/update-in-db db editor-id continuation))]
-          (xform-on-worker editor [:insert-placeholder-as-first-child edit-point] select))
+          (xform-on-worker (switch-to-editing editor cursor-id) [:insert-placeholder-as-first-child edit-point] select))
         (call-continuation cb (switch-to-editing editor cursor-id))))))
 
 (defn sanitize-cursor [editor moved-cursor]

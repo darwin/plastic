@@ -24,6 +24,7 @@
   (pos? editor-id))
 
 (declare update-highlight-and-puppets)
+(declare get-form-id-for-node-id)
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -73,6 +74,16 @@
   (let [old-layout (get-layout-for-form editor form-id)
         updated-layout (helpers/overwrite-map old-layout new-layout)]
     (assoc-in editor [:layout form-id] updated-layout)))
+
+; -------------------------------------------------------------------------------------------------------------------
+
+(defn get-layout-info-for-node [editor node-id]
+  {:pre [(valid-editor? editor)]}
+  (let [form-id (get-form-id-for-node-id editor node-id)
+        _ (assert form-id)
+        form-layout (get-layout-for-form editor form-id)]
+    (assert form-layout)
+    (get form-layout node-id)))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -220,13 +231,27 @@
 (defn set-editing [editor node-id]
   {:pre [(valid-editor? editor)]}
   (if node-id
-    (assoc editor :editing #{node-id})
-    (assoc editor :editing #{})))
+    (if-not (= (get-editing editor) #{node-id})
+      (assoc editor :editing #{node-id}))
+    (if-not (= (get-editing editor) #{})
+      (assoc editor :editing #{}))))
 
 (defn editing? [editor]
   {:pre [(valid-editor? editor)]}
   (let [editing (:editing editor)]
     (and editing (not (empty? editing)))))
+
+(defn layout-info-type->editor-mode [type]
+  (condp = type
+    :doc :string                                                                                                      ; doc nodes should be edited as strings for now
+    (or type :symbol)))
+
+(defn get-editing-text-and-mode [editor]
+  {:pre [(valid-editor? editor)]}
+  (let [editing (get-editing editor)
+        _ (assert editing)
+        layout-info (get-layout-info-for-node editor editing)]
+    [(:text layout-info) (layout-info-type->editor-mode (:type layout-info))]))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
