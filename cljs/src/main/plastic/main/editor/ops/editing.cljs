@@ -70,10 +70,13 @@
           (xform-on-worker editor [:insert-placeholder-as-first-child edit-point] select))
         (call-continuation cb (switch-to-editing editor cursor-id))))))
 
-(defn reset-editing [editor moved-cursor]
+(defn sanitize-cursor [editor moved-cursor]
   (-> editor
-    (editor/set-editing nil)
     (editor/replace-cursor-if-not-valid moved-cursor)))
+
+(defn reset-editing [editor]
+  (-> editor
+    (editor/set-editing nil)))
 
 (defn stop-editing [editor & [cb]]
   (or
@@ -88,9 +91,9 @@
                 effective? (editor/get-inline-editor-puppets-effective? editor)
                 puppets (if effective? (editor/get-puppets editor) #{})
                 effect (fn [db]
-                         (editor/update-in-db db editor-id (make-continuation cb reset-editing) moved-cursor))]
-            (xform-on-worker editor [:edit edited-node-id puppets value] effect)))))
-    (call-continuation cb editor)))
+                         (editor/update-in-db db editor-id (make-continuation cb sanitize-cursor) moved-cursor))]
+            (xform-on-worker (reset-editing editor) [:edit edited-node-id puppets value] effect)))))
+    (call-continuation cb (reset-editing editor))))
 
 (defn apply-operation-but-preserve-editing-mode [editor op]
   (if (editor/editing? editor)
@@ -119,7 +122,7 @@
         editor-with-moved-cursor (move-cursor-for-case-of-selected-node-removal editor)
         moved-cursor (editor/get-cursor editor-with-moved-cursor)
         move-cursor (fn [db]
-                      (editor/update-in-db db editor-id (make-continuation cb reset-editing) moved-cursor))]
+                      (editor/update-in-db db editor-id (make-continuation cb sanitize-cursor) moved-cursor))]
     (xform-on-worker editor [:backspace edit-point] move-cursor)))
 
 (defn delete-linebreak-or-token-after-cursor [editor]
