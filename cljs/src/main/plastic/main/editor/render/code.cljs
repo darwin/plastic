@@ -23,15 +23,16 @@ A hint: set `plastic.env.log-rendering` to log render calls into devtools consol
         highlight? (subscribe [:editor-highlight-node editor-id node-id])
         layout (subscribe [:editor-layout-form-node editor-id form-id node-id])
         analysis (subscribe [:editor-analysis-form-node editor-id form-id node-id])]
-    (fn [_editor-id _form-id node-id]
-      (log-render "code-token" [node-id (subs (:text @layout) 0 10)]
+    (fn [_editor-id _form-id _node-id]
+      (log-render "code-token" [@layout @analysis]
         (let [{:keys [selectable? type text id]} @layout
               {:keys [decl-scope call? def-name?]} @analysis
               selected? @selected?
               editing? @editing?
               cursor? @cursor?
               highlight? @highlight?
-              decl-classes (str (if (:decl? decl-scope) "decl ") "decl-scope decl-scope-" (:id decl-scope))
+              decl-classes (if decl-scope
+                             (str (if (:decl? decl-scope) "decl ") "decl-scope decl-scope-" (:id decl-scope)))
               props {:data-qnid id
                      :class     (classv
                                   (if type (name type))
@@ -42,7 +43,11 @@ A hint: set `plastic.env.log-rendering` to log render calls into devtools consol
                                   (if highlight? "highlighted")
                                   (if call? "call")
                                   (if decl-scope decl-classes)
-                                  (if def-name? "def-name"))}
+                                  (if def-name? "def-name")
+                                  (if (not type)
+                                    (if (= "&" text)
+                                      "ampersand"
+                                      (if (= "_" (first text)) "silenced"))))}
               gen-html #(if (= type :string)
                          (wrap-specials text)
                          (apply-shadowing-subscripts text (:shadows decl-scope)))]

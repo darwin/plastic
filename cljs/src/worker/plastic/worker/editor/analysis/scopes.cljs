@@ -39,7 +39,7 @@
 (defn filter-non-args [arg-nodes]
   (let [arg? (fn [[node _]]
                (let [s (node/string node)]
-                 (not (or (= s "&") (= (first s) "_")))))]
+                 (not (or (= s "&") (= s "_")))))]
     (filter arg? arg-nodes)))
 
 (defn collect-node-params [loc max-path]

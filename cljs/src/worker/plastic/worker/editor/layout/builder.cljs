@@ -3,7 +3,6 @@
   (:require [rewrite-clj.zip :as zip]
             [rewrite-clj.node :as node]
             [clojure.zip :as z]
-            [plastic.worker.editor.layout.utils :as layout-utils]
             [plastic.util.zip :as zip-utils :refer [valid-loc?]]
             [plastic.util.helpers :as helpers]
             [plastic.worker.editor.layout.utils :as utils]
@@ -27,8 +26,8 @@
 
 (defn prepare-node-text [node]
   (cond
-    (layout-utils/string-node? node) (layout-utils/prepare-string-for-display (node/string node))
-    (layout-utils/keyword-node? node) (helpers/strip-colon (node/string node))
+    (utils/string-node? node) (utils/prepare-string-for-display (node/string node))
+    (utils/keyword-node? node) (helpers/strip-colon (node/string node))
     :else (node/string node)))
 
 (defn is-newline? [loc]
@@ -96,9 +95,9 @@
         inner? (assoc :children (process-children loc))
         after-nl? (assoc :after-nl true)
         (not inner?) (assoc :text (prepare-node-text node))
-        (layout-utils/is-selectable? (node/tag node)) (assoc :selectable? true)
-        (layout-utils/string-node? node) (assoc :type :string)
-        (layout-utils/keyword-node? node) (assoc :type :keyword)))))
+        (utils/is-selectable? (node/tag node)) (assoc :selectable? true)
+        (utils/string-node? node) (assoc :type :string)
+        (utils/keyword-node? node) (assoc :type :keyword)))))
 
 (defn add-doc-item [accum loc]
   (let [node (z/node loc)
@@ -110,7 +109,7 @@
        :type        :doc
        :selectable? true
        :line        -1
-       :text        (layout-utils/prepare-string-for-display text)})))
+       :text        (utils/prepare-string-for-display text)})))
 
 (defn add-spot-item [accum loc]
   (let [node (zip/node loc)

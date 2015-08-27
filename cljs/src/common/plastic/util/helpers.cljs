@@ -86,7 +86,9 @@
   (last (take-while #(not (f %)) coll)))
 
 (defn strip-colon [text]
-  (str/ltrim text ":"))                                                                                               ; TODO: this must be more robust
+  (if (= (first text) ":")
+    (.substring text 1)
+    text))
 
 (defn selector-matches? [selector id]
   (cond
