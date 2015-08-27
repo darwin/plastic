@@ -7,8 +7,6 @@
             [plastic.util.helpers :as helpers]
             [plastic.main.editor.toolkit.id :as id]))
 
-(declare code-block-component)
-
 (defn code-token-component
   "A reagent component responsible for rendering a singe code token.
 
@@ -56,20 +54,22 @@ A hint: set `plastic.env.log-rendering` to log render calls into devtools consol
              [inline-editor-component id]
              [raw-html-component (gen-html)])])))))
 
+(declare code-block-component)
+
 (defn emit-code-block [editor-id form-id node-id]
   ^{:key node-id} [code-block-component editor-id form-id node-id])
 
-(defn code-elements-row [emit hints items]
-  (let [row (map emit items)]
+(defn code-elements-row [emitter hints items]
+  (let [row (map emitter items)]
     (if (:indent? hints)
       (cons [:div.indent] row)
       row)))
 
-(defn code-elements-layout [emit [desc & lines]]
+(defn code-elements-layout [emitter [desc & lines]]
   (if (:oneliner? desc)
     [:div.elements
      (let [[hints & line-items] (first lines)]
-       (code-elements-row emit hints line-items))]
+       (code-elements-row emitter hints line-items))]
     [:table.elements
      [:tbody
       (for [[index [hints & line-items]] (helpers/indexed-iteration lines)]
@@ -78,10 +78,10 @@ A hint: set `plastic.env.log-rendering` to log render calls into devtools consol
                                            [[(first line-items) (second line-items)] (drop 2 line-items)]
                                            [[(first line-items)] (rest line-items)])]
             ^{:key index} [:tr
-                           [:td (code-elements-row emit hints left-items)]
-                           [:td (code-elements-row emit {} right-items)]])
+                           [:td (code-elements-row emitter hints left-items)]
+                           [:td (code-elements-row emitter {} right-items)]])
           ^{:key index} [:tr
-                         [:td {:col-span 2} (code-elements-row emit hints line-items)]]))]]))
+                         [:td {:col-span 2} (code-elements-row emitter hints line-items)]]))]]))
 
 (defn code-element-component [_editor-id _form-id _node-id _layout]
   (fn [editor-id form-id node-id layout]
