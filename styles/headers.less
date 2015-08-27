@@ -4,10 +4,12 @@
   
   .header {
     margin-top: 4px;
-    margin-bottom: 1em;
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #333;
   }
-
-  .header .name div {
+  
+  .header .name {
     display: inline-block;
     color: #fff;
     font-weight: bold;
@@ -19,5 +21,18 @@
   .focused .header .name div {
     color: #ff8;
   }
+  
+  .header .arities {
+    margin-top: 4px;
+    margin-left: @form-inner-indent;
+    color: #ccc;
+  }
+  
+  .header .arities.arity-1 {
+    margin-left: 6px;
+    display: inline-block;
+  }
+  
+  
 
 } // .plastic-editor-view

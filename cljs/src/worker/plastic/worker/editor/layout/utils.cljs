@@ -7,7 +7,7 @@
             [rewrite-clj.node.keyword :refer [KeywordNode]]
             [rewrite-clj.zip :as zip]
             [clojure.zip :as z]
-            [plastic.util.zip :as zip-utils]
+            [plastic.util.zip :as zip-utils :refer [valid-loc?]]
             [plastic.worker.editor.toolkit.id :as id]))
 
 (defn unwrap-metas [nodes]
@@ -65,6 +65,9 @@
 (defn symbol-loc? [loc]
   (symbol-node? (z/node loc)))
 
+(defn tag? [key loc]
+  (= key (zip/tag loc)))
+
 (defn first-child-sexpr [loc]
   (first (node/child-sexprs (zip/node loc))))
 
@@ -94,3 +97,11 @@
 
 (defn extract-all-selectables [render-data]
   (into {} (filter #(:selectable? (second %)) render-data)))
+
+(defn lookup-arities [loc]
+  (let [first-vec (first (filter (partial tag? :vector) (take-while valid-loc? (iterate z/right loc))))]
+    (if (valid-loc? first-vec)
+      [(node/string (z/node first-vec))]
+      (let [lists (filter (partial tag? :list) (take-while valid-loc? (iterate z/right loc)))]
+        (if (seq lists)
+          (vec (map #(node/string (z/node (z/down %))) lists)))))))

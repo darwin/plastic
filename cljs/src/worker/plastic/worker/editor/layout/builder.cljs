@@ -115,6 +115,13 @@
                                      :selectable? true
                                      :text        ""})))
 
+(defn lookup-def-arities [accum loc]
+  (let [node (zip/node loc)
+        node-id (:id node)]
+    (if-let [arities (utils/lookup-arities loc)]
+      (assoc-in accum [:data node-id :arities] arities)
+      accum)))
+
 (defn ignored-newline? [loc]
   (nl-near-doc? loc))
 
@@ -128,6 +135,7 @@
                                                         (update :docs #(conj % node-id)))
                                   (utils/is-def-name? loc) (-> accum
                                                              (add-code-item loc)
+                                                             (lookup-def-arities loc)
                                                              (update :headers #(conj % node-id)))
                                   :else (cond-> accum
                                           (node/inner? node) (add-spot-item loc)

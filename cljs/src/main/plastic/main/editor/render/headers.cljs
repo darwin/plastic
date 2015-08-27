@@ -7,10 +7,13 @@
   (let [layout (subscribe [:editor-layout-form-node editor-id form-id node-id])]
     (fn [_editor-id _form-id node-id]
       (log-render "header" node-id
-        (let [{:keys [text id]} @layout]
+        (let [{:keys [text arities id]} @layout]
           ^{:key id}
           [:div.header
-           [:div.name [:div text]]])))))
+           [:div.name [:div text]]
+           [:div.arities {:class (str "arity-" (count arities))}
+            (for [args arities]
+              [:div.args args])]])))))
 
 (defn headers-group-component [editor-id form-id node-id]
   (let [layout (subscribe [:editor-layout-form-node editor-id form-id node-id])
