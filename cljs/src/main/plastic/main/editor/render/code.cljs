@@ -31,29 +31,25 @@ A hint: set `plastic.env.log-rendering` to log render calls into devtools consol
               editing? @editing?
               cursor? @cursor?
               highlight? @highlight?
-              props (merge
-                      {:data-qnid id
-                       :class     (classv
-                                    (if type (name type))
-                                    (if (and selectable? (not editing?)) "selectable")
-                                    (if (and selectable? (not editing?) selected?) "selected")
-                                    (if cursor? "cursor")
-                                    (if highlight? "highlighted")
-                                    (if editing? "editing")
-                                    (if call? "call")
-                                    (if decl-scope
-                                      (str
-                                        (if (:decl? decl-scope) "decl ")
-                                        "decl-scope decl-scope-"
-                                        (:id decl-scope)))
-                                    (if def-name? "def-name"))})
-              emit-token (fn [html] [:div.token props
-                                     (if editing?
-                                       [inline-editor-component id]
-                                       [raw-html-component html])])]
-          (condp = type
-            :string (emit-token (-> text (wrap-specials)))
-            (emit-token (-> text (apply-shadowing-subscripts (:shadows decl-scope))))))))))
+              decl-classes (str (if (:decl? decl-scope) "decl ") "decl-scope decl-scope-" (:id decl-scope))
+              props {:data-qnid id
+                     :class     (classv
+                                  (if type (name type))
+                                  (if (and selectable? (not editing?)) "selectable")
+                                  (if (and selectable? (not editing?) selected?) "selected")
+                                  (if editing? "editing")
+                                  (if cursor? "cursor")
+                                  (if highlight? "highlighted")
+                                  (if call? "call")
+                                  (if decl-scope decl-classes)
+                                  (if def-name? "def-name"))}
+              html #(if (= type :string)
+                     (wrap-specials text)
+                     (apply-shadowing-subscripts text (:shadows decl-scope)))]
+          [:div.token props
+           (if editing?
+             [inline-editor-component id]
+             [raw-html-component (html)])])))))
 
 (defn emit-code-block [editor-id form-id node-id]
   ^{:key node-id} [code-block-component editor-id form-id node-id])
