@@ -15,6 +15,7 @@
 
 (def zip-down (partial zip-utils/zip-down strip-whitespaces-but-keep-linebreaks-policy))
 (def zip-right (partial zip-utils/zip-right strip-whitespaces-but-keep-linebreaks-policy))
+(def zip-left (partial zip-utils/zip-left strip-whitespaces-but-keep-linebreaks-policy))
 (def zip-next (partial zip-utils/zip-next strip-whitespaces-but-keep-linebreaks-policy))
 
 (defn collect-all-right [loc]
@@ -52,8 +53,13 @@
         [hints & line] (first lines)]
     (cons opts (cons (cons hints (cons spot-id line)) (rest lines)))))
 
+(defn nl-near-doc? [loc]
+  (or
+    (utils/is-nl-near-doc? loc zip-left)
+    (utils/is-nl-near-doc? loc zip-right)))
+
 (defn prepare-children-table [locs]
-  (let [locs-without-docs (remove utils/is-doc? (remove utils/is-whitespace-or-nl-after-doc? locs))
+  (let [locs-without-docs (remove utils/is-doc? (remove nl-near-doc? locs))
         lines (reduce break-locs-into-lines [[]] locs-without-docs)]
     (if (<= (count lines) 1)
       [{:oneliner? true} (cons {} (map zip-utils/loc-id (first lines)))]
@@ -109,21 +115,27 @@
                                      :selectable? true
                                      :text        ""})))
 
+(defn ignored-newline? [loc]
+  (nl-near-doc? loc))
+
 (defn build-node-layout [accum loc]
   (let [node (zip/node loc)
         node-id (:id node)
         layout-item (fn [accum] (cond
-                                  (utils/is-whitespace-or-nl-after-doc? loc) accum
+                                  (nl-near-doc? loc) accum
                                   (utils/is-doc? loc) (-> accum
                                                         (add-doc-item loc)
-                                                        (update-in [:docs] #(conj % node-id)))
+                                                        (update :docs #(conj % node-id)))
                                   (utils/is-def-name? loc) (-> accum
                                                              (add-code-item loc)
-                                                             (update-in [:headers] #(conj % node-id)))
+                                                             (update :headers #(conj % node-id)))
                                   :else (cond-> accum
                                           (node/inner? node) (add-spot-item loc)
                                           true (add-code-item loc))))
-        detect-new-lines (fn [accum] (if (is-newline? loc) (update accum :line inc) accum))]
+        detect-new-lines (fn [accum] (if (and
+                                           (is-newline? loc)
+                                           (not (ignored-newline? loc)))
+                                       (update accum :line inc) accum))]
     (-> accum
       layout-item
       detect-new-lines)))
@@ -141,13 +153,13 @@
         initial {:data {} :docs [] :headers [] :line 0}
         {:keys [data docs headers line]} (reduce build-node-layout initial locs)]
     (-> data
-      (assoc root-id {:tag       :tree
-                      :id        root-id
-                      :children  [headers-id docs-id code-id]})
-      (assoc code-id {:tag      :code
-                      :id       code-id
+      (assoc root-id {:tag      :tree
+                      :id       root-id
+                      :children [headers-id docs-id code-id]})
+      (assoc code-id {:tag       :code
+                      :id        code-id
                       :form-kind (get-first-leaf-expr form-loc)
-                      :children [(zip-utils/loc-id form-loc)]})
+                      :children  [(zip-utils/loc-id form-loc)]})
       (assoc docs-id {:tag      :docs
                       :id       docs-id
                       :children docs})

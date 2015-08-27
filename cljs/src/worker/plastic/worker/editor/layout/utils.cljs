@@ -86,11 +86,11 @@
         (let [left-symbols (filter symbol-node? (z/lefts loc))]
           (= 1 (count left-symbols)))))))
 
-(defn is-whitespace-or-nl-after-doc? [loc]
+(defn is-nl-near-doc? [loc dir]
   (if (node/whitespace? (zip/node loc))
-    (let [left-loc (zip/left loc)]
-      (if (zip-utils/valid-loc? left-loc)
-        (is-doc? left-loc)))))
+    (let [test-loc (dir loc)]
+      (if (zip-utils/valid-loc? test-loc)
+        (is-doc? test-loc)))))
 
 (defn extract-all-selectables [render-data]
   (into {} (filter #(:selectable? (second %)) render-data)))
