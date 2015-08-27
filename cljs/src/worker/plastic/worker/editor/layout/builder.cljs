@@ -4,7 +4,7 @@
             [rewrite-clj.node :as node]
             [clojure.zip :as z]
             [plastic.worker.editor.layout.utils :as layout-utils]
-            [plastic.util.zip :as zip-utils]
+            [plastic.util.zip :as zip-utils :refer [valid-loc?]]
             [plastic.util.helpers :as helpers]
             [plastic.worker.editor.layout.utils :as utils]
             [plastic.worker.editor.toolkit.id :as id]))
@@ -17,9 +17,10 @@
 (def zip-right (partial zip-utils/zip-right strip-whitespaces-but-keep-linebreaks-policy))
 (def zip-left (partial zip-utils/zip-left strip-whitespaces-but-keep-linebreaks-policy))
 (def zip-next (partial zip-utils/zip-next strip-whitespaces-but-keep-linebreaks-policy))
+(def zip-prev (partial zip-utils/zip-prev strip-whitespaces-but-keep-linebreaks-policy))
 
 (defn collect-all-right [loc]
-  (take-while zip-utils/valid-loc? (iterate zip-right loc)))
+  (take-while valid-loc? (iterate zip-right loc)))
 
 (defn child-locs [loc]
   (collect-all-right (zip-down loc)))
@@ -72,6 +73,9 @@
               (let [indent? (not= line (first lines))]
                 (cons {:indent indent?} (map zip-utils/loc-id line))))))))))
 
+(defn ignored-newline? [loc]
+  (nl-near-doc? loc))
+
 (defn process-children [loc]
   (-> loc
     (child-locs)
@@ -80,14 +84,18 @@
 
 (defn add-code-item [accum loc]
   (let [node (zip/node loc)
-        node-id (:id node)]
+        node-id (:id node)
+        inner? (node/inner? node)
+        prev-loc (zip-prev loc)
+        after-nl? (and (is-newline? prev-loc) (not (ignored-newline? prev-loc)))]
     (assoc-in accum [:data node-id]
       (cond-> {:id   node-id
                :line (:line accum)
                :tag  (node/tag node)}
         (is-newline? loc) (assoc :tag :newline)
-        (node/inner? node) (assoc :children (process-children loc))
-        (not (node/inner? node)) (assoc :text (prepare-node-text node))
+        inner? (assoc :children (process-children loc))
+        after-nl? (assoc :after-nl true)
+        (not inner?) (assoc :text (prepare-node-text node))
         (layout-utils/is-selectable? (node/tag node)) (assoc :selectable? true)
         (layout-utils/string-node? node) (assoc :type :string)
         (layout-utils/keyword-node? node) (assoc :type :keyword)))))
@@ -122,9 +130,6 @@
       (assoc-in accum [:data node-id :arities] arities)
       accum)))
 
-(defn ignored-newline? [loc]
-  (nl-near-doc? loc))
-
 (defn build-node-layout [accum loc]
   (let [node (zip/node loc)
         node-id (:id node)
@@ -140,16 +145,16 @@
                                   :else (cond-> accum
                                           (node/inner? node) (add-spot-item loc)
                                           true (add-code-item loc))))
-        detect-new-lines (fn [accum] (if (and
-                                           (is-newline? loc)
-                                           (not (ignored-newline? loc)))
+        detect-new-lines (fn [accum] (if (and (is-newline? loc) (not (ignored-newline? loc)))
                                        (update accum :line inc) accum))]
     (-> accum
       layout-item
       detect-new-lines)))
 
 (defn get-first-leaf-expr [loc]
-  (node/string (z/node (last (take-while zip-utils/valid-loc? (iterate zip-down loc))))))
+  (let [bottom-loc (last (take-while valid-loc? (iterate zip-down loc)))]
+    (if (valid-loc? bottom-loc)
+      (node/string (z/node bottom-loc)))))
 
 (defn build-layout [form-loc]
   (let [form-id (zip-utils/loc-id form-loc)
@@ -157,9 +162,9 @@
         code-id (id/make form-id :code)
         docs-id (id/make form-id :docs)
         headers-id (id/make form-id :headers)
-        locs (take-while zip-utils/valid-loc? (iterate zip-next form-loc))
+        locs (take-while valid-loc? (iterate zip-next form-loc))
         initial {:data {} :docs [] :headers [] :line 0}
-        {:keys [data docs headers line]} (reduce build-node-layout initial locs)]
+        {:keys [data docs headers _line]} (reduce build-node-layout initial locs)]
     (-> data
       (assoc root-id {:tag      :tree
                       :id       root-id

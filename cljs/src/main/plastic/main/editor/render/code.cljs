@@ -43,13 +43,13 @@ A hint: set `plastic.env.log-rendering` to log render calls into devtools consol
                                   (if call? "call")
                                   (if decl-scope decl-classes)
                                   (if def-name? "def-name"))}
-              html #(if (= type :string)
-                     (wrap-specials text)
-                     (apply-shadowing-subscripts text (:shadows decl-scope)))]
+              gen-html #(if (= type :string)
+                         (wrap-specials text)
+                         (apply-shadowing-subscripts text (:shadows decl-scope)))]
           [:div.token props
            (if editing?
              [inline-editor-component id]
-             [raw-html-component (html)])])))))
+             [raw-html-component (gen-html)])])))))
 
 (defn emit-code-block [editor-id form-id node-id]
   ^{:key node-id} [code-block-component editor-id form-id node-id])
@@ -97,13 +97,14 @@ A hint: set `plastic.env.log-rendering` to log render calls into devtools consol
     (fn [editor-id form-id node-id layout opener closer]
       {:pre [(or opener closer)]}
       (log-render "wrapper-code-block" node-id
-        (let [{:keys [id selectable? depth tag]} layout
+        (let [{:keys [id selectable? depth tag after-nl]} layout
               analysis @analysis-subscription
-              {:keys [new-scope?]} analysis
+              {:keys [new-scope? scope]} analysis
               tag-name (name tag)
               cursor? @cursor?
               highlight-opener? @highlight-opener?
-              highlight-closer? @highlight-closer?]
+              highlight-closer? @highlight-closer?
+              scope-classes (str "scope scope-" (:id scope) " scope-depth-" (:depth scope))]
           [:div.block {:data-qnid id
                        :class     (classv
                                     tag-name
@@ -111,9 +112,8 @@ A hint: set `plastic.env.log-rendering` to log render calls into devtools consol
                                     (if (and selectable? @selected?) "selected")
                                     (if cursor? "cursor")
                                     (if depth (str "depth-" depth))
-                                    (if new-scope?
-                                      (let [scope (get analysis :scope)]
-                                        (str "scope scope-" (:id scope) " scope-depth-" (:depth scope)))))}
+                                    (if new-scope? scope-classes)
+                                    (if after-nl "after-nl"))}
            (if opener
              [:div.punctuation.opener {:class (classv (if highlight-opener? "highlighted"))}
               opener])

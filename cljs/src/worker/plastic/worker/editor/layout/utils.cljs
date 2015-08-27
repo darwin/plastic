@@ -90,7 +90,7 @@
           (= 1 (count left-symbols)))))))
 
 (defn is-nl-near-doc? [loc dir]
-  (if (node/whitespace? (zip/node loc))
+  (if (node/linebreak? (zip/node loc))
     (let [test-loc (dir loc)]
       (if (zip-utils/valid-loc? test-loc)
         (is-doc? test-loc)))))
