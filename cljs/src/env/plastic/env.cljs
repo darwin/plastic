@@ -34,6 +34,9 @@
 (goog-define bench-db-validation false)
 (goog-define bench-main-db-validation false)
 (goog-define bench-worker-db-validation false)
+(goog-define bench-transmit false)
+(goog-define bench-worker-transmit false)
+(goog-define bench-main-transmit false)
 
 (goog-define log-all-dispatches false)
 (goog-define log-main-dispatches false)
