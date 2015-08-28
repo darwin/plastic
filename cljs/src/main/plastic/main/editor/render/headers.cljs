@@ -13,7 +13,7 @@
            [:div.name [:div text]]
            [:div.arities {:class (str "arity-" (count arities))}
             (for [args arities]
-              [:div.args args])]])))))
+              ^{:key (goog/getUid args)} [:div.args args])]])))))
 
 (defn headers-group-component [editor-id form-id node-id]
   (let [layout (subscribe [:editor-layout-form-node editor-id form-id node-id])
