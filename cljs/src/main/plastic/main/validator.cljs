@@ -34,48 +34,52 @@
    children-table-row])
 
 (def layout-info
-  {:id                        node-id
-   :tag                       s/Keyword
-   (s/optional-key :line)     line-number
-   (s/optional-key :text)     s/Str
-   (s/optional-key :type)     s/Keyword
-   (s/optional-key :children) (s/either children-table node-id-list)
-   s/Keyword                  TODO})
+  (cached
+    {:id                        node-id
+     :tag                       s/Keyword
+     (s/optional-key :line)     line-number
+     (s/optional-key :text)     s/Str
+     (s/optional-key :type)     s/Keyword
+     (s/optional-key :children) (s/either children-table node-id-list)
+     s/Keyword                  TODO}))
 
 (def editor-layout
   (cached {form-id {node-id layout-info}}))
 
 (def selectable-info
-  {:id                        node-id
-   :tag                       s/Keyword
-   (s/optional-key :line)     line-number
-   (s/optional-key :text)     s/Str
-   (s/optional-key :type)     s/Keyword
-   (s/optional-key :children) (s/either children-table node-id-list)
-   s/Keyword                  TODO})
+  (cached
+    {:id                        node-id
+     :tag                       s/Keyword
+     (s/optional-key :line)     line-number
+     (s/optional-key :text)     s/Str
+     (s/optional-key :type)     s/Keyword
+     (s/optional-key :children) (s/either children-table node-id-list)
+     s/Keyword                  TODO}))
 
 (def editor-selectables
   (cached {form-id {node-id selectable-info}}))
 
 (def spatial-item
-  {:id                    node-id
-   :tag                   s/Keyword
-   (s/optional-key :line) line-number
-   (s/optional-key :text) s/Str
-   (s/optional-key :type) s/Keyword
-   s/Keyword              TODO})
+  (cached
+    {:id                    node-id
+     :tag                   s/Keyword
+     (s/optional-key :line) line-number
+     (s/optional-key :text) s/Str
+     (s/optional-key :type) s/Keyword
+     s/Keyword              TODO}))
 
 (def spatial-info
-  {line-number [spatial-item]})
+  (cached {line-number [spatial-item]}))
 
 (def editor-spatial-web
   (cached {form-id spatial-info}))
 
 (def structural-item
-  {:left  maybe-node-id
-   :right maybe-node-id
-   :up    maybe-node-id
-   :down  maybe-node-id})
+  (cached
+    {:left  maybe-node-id
+     :right maybe-node-id
+     :up    maybe-node-id
+     :down  maybe-node-id}))
 
 (def structural-info
   {node-id structural-item})
@@ -89,11 +93,12 @@
    s/Keyword TODO})
 
 (def analysis-item
-  {(s/optional-key :scope)        analysis-scope
-   (s/optional-key :parent-scope) TODO
-   (s/optional-key :decl-scope)   analysis-scope
-   (s/optional-key :related)      node-id-set
-   s/Keyword                      TODO})
+  (cached
+    {(s/optional-key :scope)        analysis-scope
+     (s/optional-key :parent-scope) TODO
+     (s/optional-key :decl-scope)   analysis-scope
+     (s/optional-key :related)      node-id-set
+     s/Keyword                      TODO}))
 
 (def analysis-info
   {node-id analysis-item})
