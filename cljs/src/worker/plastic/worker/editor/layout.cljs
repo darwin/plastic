@@ -12,19 +12,30 @@
             [plastic.worker.editor.layout.spatial :refer [build-spatial-web]]
             [plastic.util.zip :as zip-utils]
             [plastic.worker.editor.layout.utils :as utils]
-            [plastic.worker.paths :as paths]))
+            [plastic.worker.paths :as paths]
+            [plastic.util.helpers :as helpers]))
 
-(defn update-form-layout [editor-id form-loc]
+(defn update-form-layout [editor form-loc]
   {:pre [(zip/node form-loc)
          (= (zip/tag (zip/up form-loc)) :forms)                                                                       ; parent has to be :forms
          (= 1 (count (node/children (zip/node (zip/up form-loc)))))]}                                                 ; root-loc is the only child
-  (let [form-id (zip-utils/loc-id form-loc)
+  (let [editor-id (editor/get-id editor)
+        form-id (zip-utils/loc-id form-loc)
         layout (build-layout form-loc)
+        layout-patch (helpers/prepare-map-patch (editor/get-layout-for-form editor form-id) layout)
         selectables (utils/extract-all-selectables layout)
+        selectables-patch (helpers/prepare-map-patch (editor/get-selectables-for-form editor form-id) selectables)
         spatial-web (build-spatial-web form-loc selectables)
-        structural-web (build-structural-web form-loc)]
+        spatial-web-patch (helpers/prepare-map-patch (editor/get-spatial-web-for-form editor form-id) spatial-web)
+        structural-web (build-structural-web form-loc)
+        structural-web-patch (helpers/prepare-map-patch (editor/get-structural-web-for-form editor form-id) structural-web)]
     (dispatch-args 0 [:editor-run-analysis editor-id form-id])
-    (main-dispatch :editor-commit-layout editor-id form-id layout selectables spatial-web structural-web)))
+    (main-dispatch :editor-commit-layout-patch editor-id form-id layout-patch selectables-patch spatial-web-patch structural-web-patch)
+    (-> editor
+      (editor/set-layout-for-form form-id layout)
+      (editor/set-selectables-for-form form-id selectables)
+      (editor/set-spatial-web-for-form form-id spatial-web)
+      (editor/set-structural-web-for-form form-id structural-web))))
 
 (defn update-forms-layout-if-needed [editor form-locs]
   (let [reducer (fn [editor form-loc]
@@ -32,11 +43,10 @@
                         previously-layouted-node (editor/get-previously-layouted-form-node editor (:id form-node))]
                     (if (= previously-layouted-node form-node)
                       editor
-                      (do
-                        (update-form-layout (:id editor) form-loc)
-                        (-> editor
-                          (editor/prune-cache-of-previously-layouted-forms (map zip-utils/loc-id form-locs))
-                          (editor/remember-previously-layouted-form-node form-node))))))]
+                      (-> editor
+                        (update-form-layout form-loc)
+                        (editor/prune-cache-of-previously-layouted-forms (map zip-utils/loc-id form-locs))
+                        (editor/remember-previously-layouted-form-node form-node)))))]
     (reduce reducer editor form-locs)))
 
 (defn update-layout [editors [selector]]

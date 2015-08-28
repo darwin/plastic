@@ -3,7 +3,8 @@
   (:require [schema.core :as s :include-macros true]
             [goog.object :as gobj]))
 
-; shared validation utils
+; -------------------------------------------------------------------------------------------------------------------
+; validation utils
 
 (assert js/WeakSet)                                                                                                   ; see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet
 (assert js/WeakMap)                                                                                                   ; see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap
@@ -42,3 +43,120 @@
     (if-let [e (measure-time benchmark? "VALIDATE" [db-name] (check-fn db))]
       (error (str db-name ": failed validation") e "after reset!" (event-name-fn) "invalid db:" db)
       true)))
+
+; -------------------------------------------------------------------------------------------------------------------
+; shared validation helpers
+
+(def key? s/optional-key)
+
+(def anything s/Any)
+
+(def string! s/Str)
+
+(def integer! s/Int)
+
+(def bool! s/Bool)
+
+(def keyword! s/Keyword)
+
+(def TODO! anything)
+
+(def editor-id! integer!)
+
+(def node-id! (s/either integer! string!))
+
+(def node-id? (s/maybe node-id!))
+
+(def node-id-list! [node-id!])
+
+(def node-id-set! #{node-id!})
+
+(def line-number! integer!)
+
+(def form-id! integer!)
+
+(def scope-id! integer!)
+
+(def children-table-row!
+  [(s/one {keyword! TODO!} "row options")
+   node-id!])
+
+(def children-table!
+  [(s/one {keyword! TODO!} "table options")
+   children-table-row!])
+
+(def layout-info!
+  (cached
+    {:id              node-id!
+     :tag             keyword!
+     (key? :line)     line-number!
+     (key? :text)     string!
+     (key? :type)     keyword!
+     (key? :children) (s/either children-table! node-id-list!)
+     keyword!         TODO!}))
+
+(def editor-layout!
+  (cached {form-id! {node-id! layout-info!}}))
+
+(def selectable-info!
+  (cached
+    {:id              node-id!
+     :tag             keyword!
+     (key? :line)     line-number!
+     (key? :text)     string!
+     (key? :type)     keyword!
+     (key? :children) (s/either children-table! node-id-list!)
+     keyword!         TODO!}))
+
+(def editor-selectables!
+  (cached {form-id! {node-id! selectable-info!}}))
+
+(def spatial-item!
+  (cached
+    {:id          node-id!
+     :tag         keyword!
+     (key? :line) line-number!
+     (key? :text) string!
+     (key? :type) keyword!
+     s/Keyword    TODO!}))
+
+(def spatial-info!
+  (cached {line-number! [spatial-item!]}))
+
+(def editor-spatial-web!
+  (cached {form-id! spatial-info!}))
+
+(def structural-item!
+  (cached
+    {:left  node-id?
+     :right node-id?
+     :up    node-id?
+     :down  node-id?}))
+
+(def structural-info!
+  {node-id! structural-item!})
+
+(def editor-structural-web!
+  (cached {form-id! structural-info!}))
+
+(def analysis-scope!
+  {:id      scope-id!
+   :depth   integer!
+   keyword! TODO!})
+
+(def analysis-item!
+  (cached
+    {(key? :scope)        analysis-scope!
+     (key? :parent-scope) TODO!
+     (key? :decl-scope)   analysis-scope!
+     (key? :related)      node-id-set!
+     keyword!             TODO!}))
+
+(def analysis-info!
+  {node-id! analysis-item!})
+
+(def editor-analysis!
+  (cached {form-id! analysis-info!}))
+
+(def editor-render-state!
+  (cached {:order [form-id!]}))

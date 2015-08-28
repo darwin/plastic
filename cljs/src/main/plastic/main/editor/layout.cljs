@@ -4,24 +4,24 @@
             [plastic.main.editor.model :as editor]
             [plastic.main.paths :as paths]))
 
-(defn commit-layout [editors [editor-id form-id layout selectables spatial-web structural-web]]
-  (let [old-editor (get editors editor-id)
-        new-editor (-> old-editor
-                     (editor/set-layout-for-form form-id layout)
-                     (editor/set-selectables-for-form form-id selectables)
-                     (editor/set-spatial-web-for-form form-id spatial-web)
-                     (editor/set-structural-web-for-form form-id structural-web)
-                     (editor/set-puppets #{})
-                     (editor/set-highlight #{}))]
-    (assoc editors editor-id new-editor)))
+(defn commit-layout-patch [editors [editor-selector form-id layout selectables spatial-web structural-web]]
+  (editor/apply-to-editors editors editor-selector
+    (fn [editor]
+      (-> editor
+        (editor/set-layout-patch-for-form form-id layout)
+        (editor/set-selectables-patch-for-form form-id selectables)
+        (editor/set-spatial-web-patch-for-form form-id spatial-web)
+        (editor/set-structural-web-patch-for-form form-id structural-web)
+        (editor/set-puppets #{})
+        (editor/set-highlight #{})))))
 
-(defn update-render-state [editors [editor-id render-state]]
-  (let [old-editor (get editors editor-id)
-        new-editor (editor/set-render-state old-editor render-state)]
-    (assoc editors editor-id new-editor)))
+(defn update-render-state [editors [editor-selector render-state]]
+  (editor/apply-to-editors editors editor-selector
+    (fn [editor]
+      (editor/set-render-state editor render-state))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; register handlers
 
-(register-handler :editor-commit-layout paths/editors-path commit-layout)
+(register-handler :editor-commit-layout-patch paths/editors-path commit-layout-patch)
 (register-handler :editor-update-render-state paths/editors-path update-render-state)

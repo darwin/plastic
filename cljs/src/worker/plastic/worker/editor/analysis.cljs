@@ -31,8 +31,11 @@
           (fn [editor form-loc]
             (let [editor-id (editor/get-id editor)
                   form-id (zip-utils/loc-id form-loc)
-                  analysis (prepare-form-analysis form-loc)]
-              (main-dispatch :editor-commit-analysis editor-id form-id analysis))))))))
+                  old-analysis (editor/get-analysis-for-form editor form-id)
+                  new-analysis (prepare-form-analysis form-loc)
+                  patch (helpers/prepare-map-patch old-analysis new-analysis)]
+              (main-dispatch :editor-commit-analysis-patch editor-id form-id patch)
+              (editor/set-analysis-for-form editor form-id new-analysis))))))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; register handlers

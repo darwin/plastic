@@ -133,13 +133,43 @@
            careful-updater (fn [accum k]
                              (update accum k (fn [old-val]
                                                (let [new-val (get new-map k)]
-                                                 (if (= old-val new-val)
+                                                 (if (= old-val new-val)                                              ; deep equality test
                                                    old-val
                                                    new-val)))))
            simple-adder (fn [accum k] (assoc accum k (get new-map k)))
            old-map-after-removal (apply dissoc old-map keys-to-be-removed)
            old-map-after-removal-and-update (reduce careful-updater old-map-after-removal keys-to-be-updated)]
        (reduce simple-adder old-map-after-removal-and-update keys-to-be-added)))))
+
+; we can also do overwrite-map in two steps:
+; prepare map patch with prepare-map-patch
+; and apply the patch later with patch-map call
+; this is usefull for transmitting only patches over some wire
+(defn prepare-map-patch
+  ([old-map new-map]
+   {:pre [(or (nil? old-map) (map? old-map))
+          (map? new-map)]}
+   (let [new-keys (set (keys new-map))
+         old-keys (set (keys old-map))
+         keys-to-be-removed (set/difference old-keys new-keys)
+         keys-to-be-added (set/difference new-keys old-keys)
+         keys-to-be-updated (set/intersection old-keys new-keys)
+         collect-modified (fn [accum k]
+                            (let [old-val (get old-map k)
+                                  new-val (get new-map k)]
+                              (if-not (= old-val new-val)                                                             ; deep equality test
+                                (conj accum [k new-val])
+                                accum)))
+         modified (reduce collect-modified [] keys-to-be-updated)
+         added (map (fn [k] [k (get new-map k)]) keys-to-be-added)]
+     [keys-to-be-removed (concat modified added)])))
+
+(defn patch-map
+  ([old-map map-patch] (patch-map old-map map-patch hash-map))
+  ([old-map [keys-for-removal modifications] construct]
+   {:pre [(or (nil? old-map) (map? old-map))]}
+   (let [map-after-removal (apply dissoc (or old-map (construct)) keys-for-removal)]
+     (into map-after-removal modifications))))
 
 (defn indexed-iteration [coll]
   {:pre [(coll? coll)]}

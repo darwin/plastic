@@ -63,6 +63,14 @@
       (assoc-in [:analysis form-id] updated-analysis)
       (update-highlight-and-puppets))))
 
+(defn set-analysis-patch-for-form [editor form-id patch]
+  {:pre [(valid-editor? editor)]}
+  (let [old-analysis (get-analysis-for-form editor form-id)
+        patched-analysis (helpers/patch-map old-analysis patch)]
+    (-> editor
+      (assoc-in [:analysis form-id] patched-analysis)
+      (update-highlight-and-puppets))))
+
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn get-layout-for-form [editor form-id]
@@ -73,6 +81,12 @@
   {:pre [(valid-editor? editor)]}
   (let [old-layout (get-layout-for-form editor form-id)
         updated-layout (helpers/overwrite-map old-layout new-layout)]
+    (assoc-in editor [:layout form-id] updated-layout)))
+
+(defn set-layout-patch-for-form [editor form-id patch]
+  {:pre [(valid-editor? editor)]}
+  (let [old-layout (get-layout-for-form editor form-id)
+        updated-layout (helpers/patch-map old-layout patch)]
     (assoc-in editor [:layout form-id] updated-layout)))
 
 ; -------------------------------------------------------------------------------------------------------------------
@@ -97,6 +111,12 @@
         updated-selectables (helpers/overwrite-map old-selectables new-selectables)]
     (assoc-in editor [:selectables form-id] updated-selectables)))
 
+(defn set-selectables-patch-for-form [editor form-id patch]
+  {:pre [(valid-editor? editor)]}
+  (let [old-selectables (get-selectables-for-form editor form-id)
+        updated-selectables (helpers/patch-map old-selectables patch)]
+    (assoc-in editor [:selectables form-id] updated-selectables)))
+
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn get-spatial-web-for-form [editor form-id]
@@ -110,6 +130,12 @@
         updated-spatial-web (helpers/overwrite-map old-spatial-web new-spatial-web sorted-map)]
     (assoc-in editor [:spatial-web form-id] updated-spatial-web)))
 
+(defn set-spatial-web-patch-for-form [editor form-id patch]
+  {:pre [(valid-editor? editor)]}
+  (let [old-spatial-web (get-spatial-web-for-form editor form-id)
+        updated-spatial-web (helpers/patch-map old-spatial-web patch sorted-map)]
+    (assoc-in editor [:spatial-web form-id] updated-spatial-web)))
+
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn get-structural-web-for-form [editor form-id]
@@ -120,6 +146,12 @@
   {:pre [(valid-editor? editor)]}
   (let [old-structural-web (get-structural-web-for-form editor form-id)
         updated-structural-web (helpers/overwrite-map old-structural-web new-structural-web)]
+    (assoc-in editor [:structural-web form-id] updated-structural-web)))
+
+(defn set-structural-web-patch-for-form [editor form-id patch]
+  {:pre [(valid-editor? editor)]}
+  (let [old-structural-web (get-structural-web-for-form editor form-id)
+        updated-structural-web (helpers/patch-map old-structural-web patch)]
     (assoc-in editor [:structural-web form-id] updated-structural-web)))
 
 ; -------------------------------------------------------------------------------------------------------------------

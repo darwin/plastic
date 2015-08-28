@@ -6,12 +6,12 @@
             [plastic.main.editor.model :as editor]
             [plastic.main.editor.model :as editor]))
 
-(defn commit-analysis [editors [editor-id form-id analysis]]
-  (let [editor (get editors editor-id)
-        new-editor (editor/set-analysis-for-form editor form-id analysis)]
-    (assoc editors editor-id new-editor)))
+(defn commit-analysis-patch [editors [editor-selector form-id analysis-patch]]
+  (editor/apply-to-editors editors editor-selector
+    (fn [editor]
+      (editor/set-analysis-patch-for-form editor form-id analysis-patch))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; register handlers
 
-(register-handler :editor-commit-analysis paths/editors-path commit-analysis)
+(register-handler :editor-commit-analysis-patch paths/editors-path commit-analysis-patch)

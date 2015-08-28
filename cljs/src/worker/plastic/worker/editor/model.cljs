@@ -77,6 +77,57 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
+(defn get-analysis-for-form [editor form-id]
+  {:pre [(valid-editor? editor)]}
+  (get-in editor [:analysis form-id]))
+
+(defn set-analysis-for-form [editor form-id new-analysis]
+  {:pre [(valid-editor? editor)]}
+  (assoc-in editor [:analysis form-id] new-analysis))
+
+; -------------------------------------------------------------------------------------------------------------------
+
+(defn get-layout-for-form [editor form-id]
+  {:pre [(valid-editor? editor)]}
+  (get-in editor [:layout form-id]))
+
+(defn set-layout-for-form [editor form-id new-layout]
+  {:pre [(valid-editor? editor)]}
+  (assoc-in editor [:layout form-id] new-layout))
+
+; -------------------------------------------------------------------------------------------------------------------
+
+(defn get-selectables-for-form [editor form-id]
+  {:pre [(valid-editor? editor)]}
+  (get-in editor [:selectables form-id]))
+
+(defn set-selectables-for-form [editor form-id new-selectables]
+  {:pre [(valid-editor? editor)]}
+  (assoc-in editor [:selectables form-id] new-selectables))
+
+; -------------------------------------------------------------------------------------------------------------------
+
+(defn get-spatial-web-for-form [editor form-id]
+  {:pre  [(valid-editor? editor)]
+   :post [(or (nil? %) (instance? PersistentTreeMap %))]}                                                             ; spatial-web must be sorted by line numbers
+  (get-in editor [:spatial-web form-id]))
+
+(defn set-spatial-web-for-form [editor form-id new-spatial-web]
+  {:pre [(valid-editor? editor)]}
+  (assoc-in editor [:spatial-web form-id] new-spatial-web))
+
+; -------------------------------------------------------------------------------------------------------------------
+
+(defn get-structural-web-for-form [editor form-id]
+  {:pre [(valid-editor? editor)]}
+  (get-in editor [:structural-web form-id]))
+
+(defn set-structural-web-for-form [editor form-id new-structural-web]
+  {:pre [(valid-editor? editor)]}
+  (assoc-in editor [:structural-web form-id] new-structural-web))
+
+; -------------------------------------------------------------------------------------------------------------------
+
 (defn get-xform-report [editor]
   {:pre [(valid-editor? editor)]}
   (let [report (get editor :xform-report)]
