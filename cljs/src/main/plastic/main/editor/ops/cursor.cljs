@@ -7,31 +7,47 @@
 
 (defn get-left-score-fn [node-geometry]
   (let [node-point (geometry/left-point (second node-geometry))]
-    (fn [geometry] (- node-point (geometry/right-point geometry)))))
+    (fn [geometry]
+      (let [score (- node-point (geometry/right-point geometry))]
+        (if-not (neg? score)
+          (- score))))))
 
 (defn get-right-score-fn [node-geometry]
   (let [node-point (geometry/right-point (second node-geometry))]
-    (fn [geometry] (- (geometry/left-point geometry) node-point))))
+    (fn [geometry]
+      (let [score (- (geometry/left-point geometry) node-point)]
+        (if-not (neg? score)
+          (- score))))))
 
 (defn get-mid-score-fn [node-geometry]
   (let [node-dim (second node-geometry)
         node-range [(geometry/left-point node-dim) (geometry/right-point node-dim)]]
-    (fn [geometry] (geometry/overlap node-range [(geometry/left-point geometry) (geometry/right-point geometry)]))))
+    (fn [geometry] (geometry/overlap-score node-range [(geometry/left-point geometry)
+                                                       (geometry/right-point geometry)]))))
+
+(defn find-best [scores]
+  (let [winner (fn [accum item]
+                 (if (or
+                       (nil? (:score accum))
+                       (> (:score item) (:score accum)))
+                   item
+                   accum))]
+    (reduce winner nil scores)))
 
 (defn find-best-spatial-match [node-geometry candidates-geometries kind]
   (let [score-fn (case kind
                    :left (get-left-score-fn node-geometry)
                    :right (get-right-score-fn node-geometry)
                    :mid (get-mid-score-fn node-geometry))
-        best (if (= kind :mid) last first)
-        scores (map (fn [[id geometry]] {:score (score-fn geometry) :id id}) candidates-geometries)
-        best-match (best (sort-by :score (remove #(neg? (:score %)) scores)))]
+        scores (map (fn [geometry] {:score (score-fn geometry) :id (:id geometry)}) candidates-geometries)
+        best-match (find-best (remove #(nil? (:score %)) scores))]
     (:id best-match)))
 
 (defn resolve-best-spatial-match [editor-id form-id node-id candidate-ids direction]
   (let [node-geometry (first (geometry/retrieve-form-nodes-geometries editor-id form-id [node-id]))
-        candidates-without-node-id (disj candidate-ids node-id)
-        candidates-geometries (geometry/retrieve-form-nodes-geometries editor-id form-id candidates-without-node-id)]
+        candidates-without-node-id (remove #(= % node-id) candidate-ids)
+        unsorted-geometries (geometry/retrieve-form-nodes-geometries editor-id form-id candidates-without-node-id)
+        candidates-geometries (map #(assoc (get unsorted-geometries %) :id %) candidates-without-node-id)]
     (find-best-spatial-match node-geometry candidates-geometries direction)))
 
 (defn structural-movemement [editor op]
@@ -51,7 +67,7 @@
           spatial-web (editor/get-spatial-web-for-form editor form-id)
           sel-node (get selectables cursor-id)
           line-selectables (find-first-non-empty-line-in-given-direction spatial-web (:line sel-node) direction-fn)
-          line-ids (set (map :id line-selectables))]
+          line-ids (map :id line-selectables)]
       (if-let [result (resolve-best-spatial-match (editor/get-id editor) form-id (:id sel-node) line-ids :mid)]
         (editor/set-cursor editor result)))
     (let [form-id (or (editor/get-focused-form-id editor) (editor/get-first-form-id editor))
@@ -66,7 +82,7 @@
         spatial-web (editor/get-spatial-web-for-form editor form-id)
         sel-node (get selectables cursor-id)
         line-selectables (get spatial-web (:line sel-node))
-        line-ids (set (map :id line-selectables))]
+        line-ids (map :id line-selectables)]
     (if-let [result (resolve-best-spatial-match editor-id form-id cursor-id line-ids direction)]
       (editor/set-cursor editor result))))
 

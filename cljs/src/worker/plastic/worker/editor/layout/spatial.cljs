@@ -5,7 +5,8 @@
             [plastic.worker.editor.toolkit.id :as id]))
 
 (defn token? [selectable]
-  (= (:tag selectable) :token))
+  (let [tag (:tag selectable)]
+    (#{:token :linebreak} tag)))
 
 (defn add-empty-lines [selectables]
   (let [line-numbers (keys selectables)
@@ -15,12 +16,12 @@
 
 (defn build-spatial-web [root-loc selectables]
   (let [all-locs (zip-utils/zip-seq root-loc)
-        loc-tokens (fn [loc]
-                     (let [id (zip-utils/loc-id loc)
-                           spot-id (id/make-spot id)]
-                       [(get selectables id) (get selectables spot-id)]))
-        selectable-tokens (filter token? (remove nil? (mapcat loc-tokens all-locs)))]
-    (->> selectable-tokens
+        fetch-selectables (fn [loc]
+                            (let [id (zip-utils/loc-id loc)
+                                  spot-id (id/make-spot id)]
+                              [(get selectables id) (get selectables spot-id)]))
+        selectables (filter token? (remove nil? (mapcat fetch-selectables all-locs)))]
+    (->> selectables
       (group-by :line)                                                                                                ; guaranteed to be in left-to-right order because all-locs are left-to-right
       (into (sorted-map))
       (add-empty-lines))))

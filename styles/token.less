@@ -68,4 +68,18 @@
     color: #fff;
   }
   
+  .token.linebreak {
+    position: relative;
+    left: @linebreak-left-correction;
+    top: @linebreak-top-correction;
+    width: 0px;
+    font-style: normal;
+    
+  }
+
+  .token.linebreak > .raw {
+    opacity: 0.1;
+  }
+  
+  
 } // .plastic-editor-view

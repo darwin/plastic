@@ -14,7 +14,7 @@
 (defn prepare-placeholder-node []
   (parser/assoc-node-id (token-node "" "")))
 
-(defn prepare-newline-node []
+(defn prepare-linebreak-node []
   (parser/assoc-node-id (newline-node "\n")))
 
 (defn prepare-keyword-node [k]

@@ -44,12 +44,13 @@
 (defn should-commit? [editor]
   (or (editor/is-inline-editor-empty? editor) (editor/is-inline-editor-modified? editor)))                            ; empty inline editor is a placeholder and must be comitted regardless
 
-(defn select-neighbour-and-start-editing [form-id edit-point path editor]
+(defn select-neighbour [form-id edit-point path editor]
   (let [structural-web (editor/get-structural-web-for-form editor form-id)
         target-node-id (walk-structural-web structural-web edit-point path)]
-    (-> editor
-      (editor/set-cursor target-node-id)
-      (start-editing))))
+    (editor/set-cursor editor target-node-id)))
+
+(defn select-neighbour-and-start-editing [form-id edit-point path editor]
+  (start-editing (select-neighbour form-id edit-point path editor)))
 
 (defn switch-to-editing [editor cursor-id]
   (-> editor
@@ -67,7 +68,8 @@
               select-edit (partial select-neighbour-and-start-editing focused-form-id edit-point [:up :down])
               continuation (make-continuation cb select-edit)
               select (fn [db] (editor/update-in-db db editor-id continuation))]
-          (xform-on-worker (switch-to-editing editor cursor-id) [:insert-placeholder-as-first-child edit-point] select))
+          (xform-on-worker
+            (switch-to-editing editor cursor-id) [:insert-placeholder-as-first-child edit-point] select))
         (call-continuation cb (switch-to-editing editor cursor-id))))))
 
 (defn sanitize-cursor [editor moved-cursor]
@@ -100,10 +102,18 @@
     (stop-editing editor (comp start-editing op))
     (op editor)))
 
-(defn perform-enter [editor]
-  (let [continuation (fn [editor]
-                       (let [edit-point (get-edit-point editor)]
-                         (xform-on-worker editor [:enter edit-point])))]
+(defn perform-enter [editor & [cb]]
+  (let [was-editing? (editor/editing? editor)
+        continuation (fn [editor]
+                       (let [edit-point (get-edit-point editor)
+                             editor-id (editor/get-id editor)
+                             focused-form-id (editor/get-focused-form-id editor)
+                             select (partial select-neighbour focused-form-id edit-point [:right])
+                             start-editing-again? (fn [editor] (if was-editing? (start-editing editor) editor))
+                             continuation (make-continuation cb (comp start-editing-again? select))
+                             effect (fn [db]
+                                      (editor/update-in-db db editor-id continuation))]
+                         (xform-on-worker editor [:enter edit-point] effect)))]
     (stop-editing editor continuation)))
 
 (defn perform-alt-enter [editor]

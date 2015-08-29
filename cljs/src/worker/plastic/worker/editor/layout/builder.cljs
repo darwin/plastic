@@ -3,7 +3,7 @@
   (:require [rewrite-clj.zip :as zip]
             [rewrite-clj.node :as node]
             [clojure.zip :as z]
-            [plastic.util.zip :as zip-utils :refer [valid-loc?]]
+            [plastic.util.zip :as zip-utils :refer [valid-loc? loc-id]]
             [plastic.util.helpers :as helpers]
             [plastic.worker.editor.layout.utils :as utils]
             [plastic.worker.editor.toolkit.id :as id]))
@@ -33,19 +33,41 @@
 (defn is-newline? [loc]
   (or (nil? loc) (node/linebreak? (z/node loc))))
 
-(defn break-locs-into-lines [accum loc]
-  (let [new-accum (assoc accum (dec (count accum)) (conj (last accum) loc))]
-    (if (is-newline? loc)
-      (conj new-accum [])
-      new-accum)))
-
 (defn is-simple? [loc]
   (if (nil? loc)
     true
     (not (node/inner? (z/node loc)))))
 
 (defn is-double-column-line? [line]
-  (and (is-simple? (first line)) (not (is-newline? (second line))) (is-newline? (nth line 2 nil))))
+  (let [items (if (is-newline? (first line)) (rest line) line)]
+    (if (= (count items) 2)
+      (is-simple? (first items)))))
+
+(defn nl-near-doc? [loc]
+  (or
+    (utils/is-nl-near-doc? loc zip-left)
+    (utils/is-nl-near-doc? loc zip-right)))
+
+(defn ignored-newline? [loc]
+  (nl-near-doc? loc))
+
+(defn break-locs-into-lines [accum loc]
+  (let [accum (if (is-newline? loc) (conj accum []) accum)]
+    (assoc accum (dec (count accum)) (conj (last accum) loc))))
+
+(defn prepare-children-table [locs]
+  (let [relevant-locs (remove #(or (utils/is-doc? %) (nl-near-doc? %)) locs)
+        lines (reduce break-locs-into-lines [[]] relevant-locs)]
+    (if (<= (count lines) 1)
+      [{:oneliner? true} (cons {} (map loc-id (first lines)))]
+      (let [first-line-is-double-column? (is-double-column-line? (first lines))]
+        (cons {:multiline? true}
+          (for [line lines]
+            (if (is-double-column-line? line)
+              (let [indent? (and (not first-line-is-double-column?) (not= line (first lines)))]
+                (cons {:double-column? true :indent indent?} (map loc-id line)))
+              (let [indent? (not= line (first lines))]
+                (cons {:indent indent?} (map loc-id line))))))))))
 
 (defn prepend-spot [table node-id]
   (let [spot-id (id/make-spot node-id)
@@ -53,49 +75,29 @@
         [hints & line] (first lines)]
     (cons opts (cons (cons hints (cons spot-id line)) (rest lines)))))
 
-(defn nl-near-doc? [loc]
-  (or
-    (utils/is-nl-near-doc? loc zip-left)
-    (utils/is-nl-near-doc? loc zip-right)))
-
-(defn prepare-children-table [locs]
-  (let [locs-without-docs (remove utils/is-doc? (remove nl-near-doc? locs))
-        lines (reduce break-locs-into-lines [[]] locs-without-docs)]
-    (if (<= (count lines) 1)
-      [{:oneliner? true} (cons {} (map zip-utils/loc-id (first lines)))]
-      (let [first-line-is-double-column? (is-double-column-line? (first lines))]
-        (cons {:multiline? true}
-          (for [line lines]
-            (if (is-double-column-line? line)
-              (let [indent? (and (not first-line-is-double-column?) (not= line (first lines)))]
-                (cons {:double-column? true :indent indent?} (map zip-utils/loc-id line)))
-              (let [indent? (not= line (first lines))]
-                (cons {:indent indent?} (map zip-utils/loc-id line))))))))))
-
-(defn ignored-newline? [loc]
-  (nl-near-doc? loc))
-
 (defn process-children [loc]
   (-> loc
     (child-locs)
     (prepare-children-table)
-    (prepend-spot (zip-utils/loc-id loc))))
+    (prepend-spot (loc-id loc))))
 
 (defn add-code-item [accum loc]
   (let [node (zip/node loc)
         node-id (:id node)
         inner? (node/inner? node)
+        linebreak? (is-newline? loc)
         prev-loc (zip-prev loc)
         after-nl? (and (is-newline? prev-loc) (not (ignored-newline? prev-loc)))]
     (assoc-in accum [:data node-id]
       (cond-> {:id   node-id
                :line (:line accum)
                :tag  (node/tag node)}
-        (is-newline? loc) (assoc :tag :newline)
         inner? (assoc :children (process-children loc))
         after-nl? (assoc :after-nl true)
         (not inner?) (assoc :text (prepare-node-text node))
         (utils/is-selectable? (node/tag node)) (assoc :selectable? true)
+        linebreak? (assoc :type :linebreak)
+        linebreak? (assoc :tag :token)
         (utils/string-node? node) (assoc :type :string)
         (utils/keyword-node? node) (assoc :type :keyword)))))
 
@@ -147,8 +149,8 @@
         detect-new-lines (fn [accum] (if (and (is-newline? loc) (not (ignored-newline? loc)))
                                        (update accum :line inc) accum))]
     (-> accum
-      layout-item
-      detect-new-lines)))
+      detect-new-lines
+      layout-item)))
 
 (defn get-first-leaf-expr [loc]
   (let [bottom-loc (last (take-while valid-loc? (iterate zip-down loc)))]
@@ -156,7 +158,7 @@
       (node/string (z/node bottom-loc)))))
 
 (defn build-layout [form-loc]
-  (let [form-id (zip-utils/loc-id form-loc)
+  (let [form-id (loc-id form-loc)
         root-id (id/make form-id :root)
         code-id (id/make form-id :code)
         docs-id (id/make form-id :docs)
@@ -171,7 +173,7 @@
       (assoc code-id {:tag       :code
                       :id        code-id
                       :form-kind (get-first-leaf-expr form-loc)
-                      :children  [(zip-utils/loc-id form-loc)]})
+                      :children  [(loc-id form-loc)]})
       (assoc docs-id {:tag      :docs
                       :id       docs-id
                       :children docs})

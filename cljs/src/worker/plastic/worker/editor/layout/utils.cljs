@@ -48,7 +48,7 @@
     replace-unescape-double-quotes))
 
 (defn is-selectable? [tag]
-  (#{:token :fn :list :map :vector :set :meta :deref :quote :syntax-quote :unquote :unquote-splicing} tag))
+  (#{:token :fn :list :map :vector :set :meta :deref :quote :syntax-quote :unquote :unquote-splicing :newline} tag))
 
 (defn string-node? [node]
   (instance? StringNode node))

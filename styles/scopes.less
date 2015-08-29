@@ -5,16 +5,9 @@
 .plastic-editor-view {
   
   .scope {
-    margin-bottom: 2px;
-    padding: 4px;
-    padding-top: 0px; 
+    margin-bottom: 4px;
   }
 
-  .scope.after-nl, .scope-1 {
-    margin-top: 2px;
-    padding-top: 2px;
-  }
-  
   .makeScope(@scope, @color) {
       .scope-@{scope} {
           border-color: desaturate(darken(@color, 30), 60%);

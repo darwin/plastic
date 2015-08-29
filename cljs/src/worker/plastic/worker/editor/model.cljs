@@ -6,7 +6,8 @@
             [rewrite-clj.node :as node]
             [plastic.util.helpers :as helpers]
             [plastic.util.zip :as zip-utils]
-            [plastic.worker.editor.toolkit.id :as id]))
+            [plastic.worker.editor.toolkit.id :as id]
+            [clojure.zip :as z]))
 
 (defprotocol IEditor)
 
@@ -180,7 +181,8 @@
 
 (defn find-node-loc [editor node-id]
   {:pre [(valid-editor? editor)]}
-  (findz/find-depth-first (get-parse-tree-zipper editor) (partial zip-utils/loc-id? node-id)))
+  (let [root-loc (get-parse-tree-zipper editor)]
+    (zip-utils/find #(if (zip-utils/loc-id? node-id %) %) root-loc)))
 
 (defn find-node [editor node-id]
   {:pre [(valid-editor? editor)]}

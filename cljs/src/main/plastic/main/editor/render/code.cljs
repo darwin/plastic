@@ -43,11 +43,12 @@ A hint: set `plastic.env.log-rendering` to log render calls into devtools consol
                                   (if decl-scope decl-classes)
                                   (if def-name? "def-name")
                                   (if (not type)
-                                    (if (= "&" text)
+                                    (if (= text "&")
                                       "ampersand"
                                       (if (= "_" (first text)) "silenced"))))}
-              gen-html #(if (= type :string)
-                         (wrap-specials text)
+              gen-html #(condp = type
+                         :string (wrap-specials text)
+                         :linebreak "⌞"
                          (apply-shadowing-subscripts text (:shadows decl-scope)))]
           [:div.token props
            (if editing?
@@ -65,6 +66,15 @@ A hint: set `plastic.env.log-rendering` to log render calls into devtools consol
       (cons [:div.indent] row)
       row)))
 
+(defn split-line-items-into-two-columns [items]
+  (let [linebreak-item (first items)                                                                                  ; double columns always have new-line as first id
+        items-without-newline (rest items)
+        spot-items (take-while id/spot? items-without-newline)
+        rest-items (drop-while id/spot? items-without-newline)
+        left-column-items (concat [linebreak-item] spot-items [(first rest-items)])
+        right-column-items (rest rest-items)]
+    [left-column-items right-column-items]))
+
 (defn code-elements-layout [emitter [desc & lines]]
   (if (:oneliner? desc)
     [:div.elements
@@ -74,9 +84,7 @@ A hint: set `plastic.env.log-rendering` to log render calls into devtools consol
      [:tbody
       (for [[index [hints & line-items]] (helpers/indexed-iteration lines)]
         (if (:double-column? hints)
-          (let [[left-items right-items] (if (= (id/key-part (first line-items)) :spot)
-                                           [[(first line-items) (second line-items)] (drop 2 line-items)]
-                                           [[(first line-items)] (rest line-items)])]
+          (let [[left-items right-items] (split-line-items-into-two-columns line-items)]
             ^{:key index} [:tr
                            [:td (code-elements-row emitter hints left-items)]
                            [:td (code-elements-row emitter {} right-items)]])
@@ -85,12 +93,12 @@ A hint: set `plastic.env.log-rendering` to log render calls into devtools consol
 
 (defn code-element-component [_editor-id _form-id _node-id _layout]
   (fn [editor-id form-id node-id layout]
-    (let [{:keys [tag children]} layout]
+    (let [{:keys [tag children]} layout
+          emitter (partial emit-code-block editor-id form-id)]
       (condp = tag
-        :newline [:span.newline "↵"]
         :token [code-token-component editor-id form-id node-id]
         (if children
-          (code-elements-layout (partial emit-code-block editor-id form-id) children)
+          (code-elements-layout emitter children)
           [:span])))))
 
 (defn wrapped-code-element-component [editor-id form-id node-id _layout _opener _closer]

@@ -1,4 +1,5 @@
 (ns plastic.util.zip
+  (:refer-clojure :exclude [find])
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [reagent.ratom]
             [clojure.zip :as z]
@@ -96,7 +97,7 @@
     (or (zero? res) (neg? res))))
 
 (defn collect-all-right [loc]
-  (take-while valid-loc? (iterate zip/right loc)))
+  (take-while valid-loc? (iterate z/right loc)))
 
 (defn collect-all-parents [loc]
   (take-while valid-loc? (iterate z/up loc)))
@@ -129,3 +130,20 @@
           (if (seq? sexpr)
             (pr-str (first sexpr))
             (pr-str sexpr)))))))
+
+(defn dump-loc-tree* [loc indent]
+  (let [node (zip/node loc)
+        node-id (:id node)]
+    (log (apply str (repeat indent "-")) node-id (or (:value node) (:tag node) (pr-str node)))
+    (if (node/inner? node)
+      (doseq [child-loc (collect-all-children loc)]
+        (dump-loc-tree* child-loc (inc indent))))))
+
+(defn dump-loc-tree [loc]
+  (dump-loc-tree* loc 0))
+
+(defn find [pred loc]
+  (some pred (take-while valid-loc? (iterate z/next loc))))
+
+(defn find-by-id [id loc]
+  (find #(if (loc-id? id %) %) loc))

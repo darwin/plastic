@@ -65,7 +65,7 @@
 ; -------------------------------------------------------------------------------------------------------------------
 ; zip ops
 ;
-; each zip-op receives context [loc report], where
+; each zip-op receives (optional) parameters and context [loc report], where
 ;   loc is a zipper before operation, pointing to operation target
 ;   report is existing report to be updated
 ;
@@ -73,7 +73,7 @@
 ;   loc is a zipper with effective changes after operation
 ;   report updated with description of new changes
 ;
-; zip ops can be composed, see xforming.cljs
+; zip ops can be composed
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; movement ops
@@ -110,7 +110,7 @@
         [loc report]))))
 
 (defn find [node-id [loc report]]
-  (let [found-loc (findz/find-depth-first loc (partial loc-id? node-id))]
+  (let [found-loc (zip-utils/find-by-id node-id loc)]
     (if (valid-loc? found-loc)
       [found-loc report])))
 

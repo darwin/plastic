@@ -13,7 +13,7 @@
 
 (def get-node-id id/id-part)
 
-(defn insert-and-start-editing [editor edit-point & values]
+(defn insert [editor edit-point & values]
   (if-not (id/spot? edit-point)
     (apply-op editor ops/insert-values-after-node values (get-node-id edit-point))
     (apply-op editor ops/insert-values-before-first-child-of-node values (get-node-id edit-point))))
@@ -33,8 +33,8 @@
 
 (defn enter [editor edit-point]
   {:pre [(valid-edit-point? editor edit-point)]}
-  (let [placeholder-node (nodes/prepare-placeholder-node)]
-    (insert-and-start-editing editor edit-point (nodes/prepare-newline-node) placeholder-node)))
+  (let [linebreak-node (nodes/prepare-linebreak-node)]
+    (insert editor edit-point linebreak-node)))
 
 (defn alt-enter [editor edit-point]
   {:pre [(valid-edit-point? editor edit-point)]}
@@ -43,7 +43,7 @@
 (defn space [editor edit-point]
   {:pre [(valid-edit-point? editor edit-point)]}
   (let [placeholder-node (nodes/prepare-placeholder-node)]
-    (insert-and-start-editing editor edit-point placeholder-node)))
+    (insert editor edit-point placeholder-node)))
 
 (defn backspace [editor edit-point]
   {:pre [(valid-edit-point? editor edit-point)]}
@@ -65,7 +65,7 @@
   {:pre [(valid-edit-point? editor edit-point)]}
   (let [placeholder-node (nodes/prepare-placeholder-node)
         compound-node (node-prepare-fn [placeholder-node])]
-    (insert-and-start-editing editor edit-point compound-node)))
+    (insert editor edit-point compound-node)))
 
 (defn open-list [editor edit-point]
   (open-compound editor edit-point nodes/prepare-list-node))
@@ -87,7 +87,7 @@
   (let [placeholder-node (nodes/prepare-placeholder-node)
         temporary-meta-data (nodes/prepare-keyword-node :meta)
         compound-node (nodes/prepare-meta-node [temporary-meta-data placeholder-node])]
-    (insert-and-start-editing editor edit-point compound-node)))
+    (insert editor edit-point compound-node)))
 
 (defn open-quote [editor edit-point]
   (open-compound editor edit-point nodes/prepare-quote-node))

@@ -32,8 +32,22 @@
 (defn right-point [geometry]
   (+ (:left geometry) (:width geometry)))
 
-(defn overlap [[l1 r1] [l2 r2]]
-  (let [intersection [(max l1 l2) (min r1 r2)]
-        width (- (second intersection) (first intersection))]
-    (if (pos? width) width 0)))
+(defn overlap-score* [[l1 r1] [l2 r2]]
+  {:pre [(<= l1 l2)]}
+  (if (< r1 r2)
+    (- r1 l2)
+    (- r2 l2)))
 
+(defn sanitize-range [[l r]]
+  (if (<= (- r l) 0)
+    [l (inc l)]
+    [l r]))
+
+(defn overlap-score [range1 range2]
+  (if (= range1 range2)
+    1000000                                                                                                           ; perfect match, regardless of width
+    (let [sr1 (sanitize-range range1)
+          sr2 (sanitize-range range2)]
+      (if (<= (first sr1) (first sr2))
+        (overlap-score* sr1 sr2)
+        (overlap-score* sr2 sr1)))))
