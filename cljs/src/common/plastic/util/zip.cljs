@@ -114,6 +114,9 @@
 (defn zip-node-seq [loc]
   (map z/node (zip-seq loc)))
 
+(defn whitespace? [loc]
+  (node/whitespace? (z/node loc)))
+
 (defn loc-id [loc]
   (:id (z/node loc)))
 

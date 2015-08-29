@@ -177,7 +177,10 @@
 
 (defn get-top-level-locs [editor]
   (let [first-top-level-form-loc (zip/down (get-parse-tree-zipper editor))]
-    (zip-utils/collect-all-right first-top-level-form-loc)))                                                          ; TODO: here we should use explicit zipping policy
+    (zip-utils/collect-all-right first-top-level-form-loc)))
+
+(defn get-top-level-form-locs [editor]
+  (remove zip-utils/whitespace? (get-top-level-locs editor)))
 
 (defn find-node-loc [editor node-id]
   {:pre [(valid-editor? editor)]}
@@ -214,7 +217,7 @@
                   (if (helpers/selector-matches? selector (zip-utils/loc-id form-loc))
                     (or (f editor form-loc) editor)
                     editor))]
-    (reduce reducer editor (get-top-level-locs editor))))
+    (reduce reducer editor (get-top-level-form-locs editor))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 

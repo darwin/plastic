@@ -13,7 +13,7 @@
             [plastic.util.zip :as zip-utils]
             [plastic.worker.editor.layout.utils :as utils]
             [plastic.worker.paths :as paths]
-            [plastic.util.helpers :as helpers]))
+            [plastic.util.helpers :refer [prepare-map-patch]]))
 
 (defn update-form-layout [editor form-loc]
   {:pre [(zip/node form-loc)
@@ -22,15 +22,16 @@
   (let [editor-id (editor/get-id editor)
         form-id (zip-utils/loc-id form-loc)
         layout (build-layout form-loc)
-        layout-patch (helpers/prepare-map-patch (editor/get-layout-for-form editor form-id) layout)
+        layout-patch (prepare-map-patch (editor/get-layout-for-form editor form-id) layout)
         selectables (utils/extract-all-selectables layout)
-        selectables-patch (helpers/prepare-map-patch (editor/get-selectables-for-form editor form-id) selectables)
+        selectables-patch (prepare-map-patch (editor/get-selectables-for-form editor form-id) selectables)
         spatial-web (build-spatial-web form-loc selectables)
-        spatial-web-patch (helpers/prepare-map-patch (editor/get-spatial-web-for-form editor form-id) spatial-web)
+        spatial-web-patch (prepare-map-patch (editor/get-spatial-web-for-form editor form-id) spatial-web)
         structural-web (build-structural-web form-loc)
-        structural-web-patch (helpers/prepare-map-patch (editor/get-structural-web-for-form editor form-id) structural-web)]
+        structural-web-patch (prepare-map-patch (editor/get-structural-web-for-form editor form-id) structural-web)]
     (dispatch-args 0 [:editor-run-analysis editor-id form-id])
-    (main-dispatch :editor-commit-layout-patch editor-id form-id layout-patch selectables-patch spatial-web-patch structural-web-patch)
+    (main-dispatch :editor-commit-layout-patch editor-id form-id
+      layout-patch selectables-patch spatial-web-patch structural-web-patch)
     (-> editor
       (editor/set-layout-for-form form-id layout)
       (editor/set-selectables-for-form form-id selectables)
@@ -53,7 +54,8 @@
   (editor/apply-to-editors editors selector
     (fn [editor]
       {:pre [(editor/parsed? editor)]}
-      (let [independent-top-level-locs (map zip/down (map zip-utils/independent-zipper (editor/get-top-level-locs editor)))
+      (let [independent-top-level-locs (map zip/down
+                                         (map zip-utils/independent-zipper (editor/get-top-level-form-locs editor)))
             old-render-state (editor/get-render-state editor)
             new-render-state {:order (map #(zip-utils/loc-id %) independent-top-level-locs)}]
         (if (not= old-render-state new-render-state)
