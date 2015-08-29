@@ -45,23 +45,20 @@
   (binding [plastic.env/*current-thread* "WORK"
             plastic.env/*current-worker-job-id* job-id
             plastic.env/*current-worker-event* event]
-    (if-not (zero? job-id)                                                                                            ; jobs with id 0 are without continuation
-      (jobs/set-initial-db-for-job! job-id @db-atom))                                                                 ; if first event of job, store current db as initial-db for job
+    (jobs/set-initial-db-for-job! job-id @db-atom)                                                                    ; if first event of job, store current db as initial-db for job
     (try
       (frame/process-event-on-atom! @frame-atom db-atom event)
       (catch :default e
         (error (.-stack e))))
-    (if-not (zero? job-id)                                                                                            ; jobs with id 0 are without continuation
-      (if-let [initial-db (jobs/update-counter-for-job-and-pop-initial-db-if-finished! job-id)]
-        (let [undo-summary (undo/vacuum-undo-summary)]
-          (main-dispatch-args 0 [:worker-job-done job-id undo-summary])
-          (doseq [{:keys [editor-id description]} undo-summary]
-            (let [old-editor (get-in initial-db [:editors editor-id])]
-              (dispatch-args 0 [:store-editor-undo-snapshot editor-id description old-editor]))))))))
+    (if-let [initial-db (jobs/update-counter-for-job-and-pop-initial-db-if-finished! job-id)]
+      (let [undo-summary (undo/vacuum-undo-summary)]
+        (main-dispatch-args 0 [:worker-job-done job-id undo-summary])
+        (doseq [{:keys [editor-id description]} undo-summary]
+          (let [old-editor (get-in initial-db [:editors editor-id])]
+            (dispatch-args 0 [:store-editor-undo-snapshot editor-id description old-editor])))))))
 
 (defn ^:export dispatch [job-id event]
-  (if-not (zero? job-id)                                                                                              ; jobs with id 0 are without continuation
-    (jobs/inc-counter-for-job! job-id))
+  (jobs/inc-counter-for-job! job-id)
   (put! event-chan [job-id event])
   nil)
 

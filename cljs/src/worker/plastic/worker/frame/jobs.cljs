@@ -8,11 +8,13 @@
   (get *pending-jobs-initial-dbs* job-id))
 
 (defn set-initial-db-for-job! [job-id db]
-  (if-not (get-initial-db-for-job job-id)
-    (set! *pending-jobs-initial-dbs* (assoc *pending-jobs-initial-dbs* job-id db))))
+  (if-not (zero? job-id)
+    (if-not (get-initial-db-for-job job-id)
+      (set! *pending-jobs-initial-dbs* (assoc *pending-jobs-initial-dbs* job-id db)))))
 
 (defn inc-counter-for-job! [job-id]
-  (set! *pending-jobs-counters* (update *pending-jobs-counters* job-id inc)))
+  (if-not (zero? job-id)
+    (set! *pending-jobs-counters* (update *pending-jobs-counters* job-id inc))))
 
 (defn dec-counter-for-job! [job-id]
   (set! *pending-jobs-counters* (update *pending-jobs-counters* job-id dec))
@@ -28,6 +30,7 @@
     initial-db))
 
 (defn update-counter-for-job-and-pop-initial-db-if-finished! [job-id]
-  (when (zero? (dec-counter-for-job! job-id))
-    (remove-counter-for-job! job-id)
-    (pop-initial-db-for-job! job-id)))
+  (if-not (zero? job-id)
+    (when (zero? (dec-counter-for-job! job-id))
+      (remove-counter-for-job! job-id)
+      (pop-initial-db-for-job! job-id))))
