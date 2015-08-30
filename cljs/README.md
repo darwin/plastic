@@ -1,9 +1,3 @@
 ## Setup
 
-Subsequent dev builds can use:
-
-    lein figwheel
-
-Clean project specific out:
-
-    lein clean
+See [https://github.com/darwin/plastic/blob/master/docs/build.md](https://github.com/darwin/plastic/blob/master/docs/build.md).
