@@ -50,7 +50,7 @@ Quit Atom and install plastic package into Atom.
     cd ../../.atom
     mkdir packages
     cd packages
-    ln -s ../../plastic plastic
+    ln -s ../../plastic plastic-clojurescript
 
 `plastic` symlink should point to $workspace/plastic
 
