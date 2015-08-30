@@ -39,12 +39,12 @@
     (vec (map #(aget $o %) (range len)))))
 
 (defn read-node-id [dom-node]
-  (let [id (.data ($ dom-node) "qnid")]
+  (let [id (.data ($ dom-node) "pnid")]
     (assert (id/valid? id))
     id))
 
 (defn read-editor-id [dom-node]
-  (let [id (.data ($ dom-node) "qeid")]
+  (let [id (.data ($ dom-node) "peid")]
     (assert (number? id))
     id))
 
@@ -101,7 +101,7 @@
 
 (defn find-plastic-editor-form [editor-id form-id]
   (let [$editor ($ (find-plastic-editor editor-id))]
-    (find $editor (str ".form[data-qnid=" form-id "]"))))
+    (find $editor (str ".form[data-pnid=" form-id "]"))))
 
 (defn skelet-node? [dom-node]
   (boolean (try-find-closest dom-node ".form-skelet")))
@@ -111,5 +111,5 @@
 
 (defn build-nodes-selector [node-ids]
   (if-let [node-ids-seq (seq node-ids)]
-    (string/join "," (map (fn [id] (str "[data-qnid=" id "]")) node-ids-seq))
-    "[data-qnid=NONE]"))
+    (string/join "," (map (fn [id] (str "[data-pnid=" id "]")) node-ids-seq))
+    "[data-pnid=NONE]"))

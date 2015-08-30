@@ -60,4 +60,4 @@
   (inline-editor-scaffold
     (fn [node-id]
       [:div.inline-editor
-       {:data-qnid node-id}])))
+       {:data-pnid node-id}])))

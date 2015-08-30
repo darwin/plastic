@@ -18,7 +18,7 @@
     (fn [editor-id form-id node-id]
       (log-render "render-tree" node-id
         (let [{:keys [id tag children selectable?]} @layout]
-          [:div {:data-qnid id
+          [:div {:data-pnid id
                  :class     (classv
                               (name tag)
                               (if selectable? "selectable")
@@ -32,7 +32,7 @@
       (let [{:keys [id tag]} @layout]
         (log-render "unified-rendering" node-id
           (if id
-            [:div.unified {:data-qnid id}
+            [:div.unified {:data-pnid id}
              (condp = tag
                :tree [render-tree-component editor-id form-id id node-id]
                :code [code-box-component editor-id form-id node-id]
@@ -68,7 +68,7 @@
         [:tr
          [:td
           [:div.form
-           {:data-qnid form-id
+           {:data-pnid form-id
             :class     (classv
                          (if @cursor? "cursor")
                          (if @focused-form? "focused"))
@@ -95,7 +95,7 @@
       (log-render "editor-root" editor-id
         (let [{:keys [order]} @state]
           [:div.plastic-editor                                                                                        ; .editor class is taken by Atom
-           {:data-qeid editor-id
+           {:data-peid editor-id
             :class     (classv (if @selections-debug-visible "debug-selections"))
             :on-click  (partial handle-editor-click editor-id)}
            [forms-component editor-id order]])))))

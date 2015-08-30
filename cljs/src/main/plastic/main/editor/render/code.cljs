@@ -31,7 +31,7 @@ A hint: set `plastic.env.log-rendering` to log render calls into devtools consol
               highlight? @highlight?
               decl-classes (if decl-scope
                              (str (if (:decl? decl-scope) "decl ") "decl-scope decl-scope-" (:id decl-scope)))
-              props {:data-qnid id
+              props {:data-pnid id
                      :class     (classv
                                   (name type)
                                   (if (and selectable? (not editing?)) "selectable")
@@ -118,7 +118,7 @@ A hint: set `plastic.env.log-rendering` to log render calls into devtools consol
               highlight-opener? @highlight-opener?
               highlight-closer? @highlight-closer?
               scope-classes (str "scope scope-" (:id scope) " scope-depth-" (:depth scope))]
-          [:div.block {:data-qnid id
+          [:div.block {:data-pnid id
                        :class     (classv
                                     tag-name
                                     (if selectable? "selectable")

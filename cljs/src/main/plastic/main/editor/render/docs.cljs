@@ -19,7 +19,7 @@
           ^{:key id}
           [:div.doc
            [:div.docstring.token
-            {:data-qnid id
+            {:data-pnid id
              :class     (classv
                           (if (and (not editing?) selectable?) "selectable")
                           (if (and (not editing?) selectable? selected?) "selected")

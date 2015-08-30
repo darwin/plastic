@@ -3,7 +3,7 @@
 (defn render-tree-component []
   (fn [render-tree]
     (let [{:keys [id tag children selectable?]} render-tree]
-      [:div {:data-qnid id
+      [:div {:data-pnid id
              :class     (classv
                           (name tag)
                           (if selectable? "selectable"))}
