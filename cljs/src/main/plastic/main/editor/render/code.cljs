@@ -67,12 +67,12 @@ A hint: set `plastic.env.log-rendering` to log render calls into devtools consol
       row)))
 
 (defn split-line-items-into-two-columns [items]
-  (let [linebreak-item (first items)                                                                                  ; double columns always have new-line as first id
-        items-without-newline (rest items)
-        spot-items (take-while id/spot? items-without-newline)
-        rest-items (drop-while id/spot? items-without-newline)
-        left-column-items (concat [linebreak-item] spot-items [(first rest-items)])
-        right-column-items (rest rest-items)]
+  (let [linebreak-item (first items)                                                                                  ; double columns always have a linebreak as first id
+        items-after-linebreak (rest items)
+        spot-items (take-while id/spot? items-after-linebreak)
+        items-after-spots (drop-while id/spot? items-after-linebreak)
+        left-column-items (concat [linebreak-item] spot-items [(first items-after-spots)])
+        right-column-items (rest items-after-spots)]
     [left-column-items right-column-items]))
 
 (defn code-elements-layout [emitter [desc & lines]]
