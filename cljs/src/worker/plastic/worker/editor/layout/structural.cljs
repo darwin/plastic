@@ -49,36 +49,22 @@
 (defn build-structural-web-for-code [web code-locs]
   (reduce structural-web-for-item web code-locs))
 
-(defn structural-web-for-doc [accum loc]
+(defn structural-web-for-doc [form-id accum loc]
   (let [id (zip-utils/loc-id loc)
         record {:left  nil
                 :right nil
-                :up    nil
+                :up    form-id
                 :down  nil}]
     (assoc accum id record)))
 
-(defn link-selectable-docs [web docs-locs]
-  (reduce structural-web-for-doc web docs-locs))
-
-(defn link-forests-to-top [web root-id]
-  (merge web (map (fn [[id record]] (if (or (:up record) (= id root-id))
-                                      [id record]
-                                      [id (assoc record :up root-id)])) web)))
-
-(defn link-top-selectable [web root-id form-id]
-  (assoc web root-id {:left  nil
-                      :right nil
-                      :up    nil
-                      :down  form-id}))
+(defn link-selectable-docs [web docs-locs form-id]
+  (reduce (partial structural-web-for-doc form-id) web docs-locs))
 
 (defn build-structural-web [form-loc]
   (let [form-id (zip-utils/loc-id form-loc)
-        root-id (id/make form-id :root)
         all-locs (zip-utils/zip-seq form-loc)
         docs-locs (filter utils/is-doc? all-locs)
         code-locs (remove utils/is-doc? all-locs)]
     (-> {}
       (build-structural-web-for-code code-locs)
-      (link-selectable-docs docs-locs)
-      #_(link-top-selectable root-id form-id)
-      #_(link-forests-to-top root-id))))
+      (link-selectable-docs docs-locs form-id))))
