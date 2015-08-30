@@ -97,8 +97,8 @@
    :alt-enter          alt-enter
    :space              space
    :backspace          backspace
-   :delete             editing/delete-linebreak-or-token-after-cursor
-   :alt-delete         editing/delete-linebreak-or-token-before-cursor
+   :delete             editing/delete-after-cursor
+   :alt-delete         editing/delete-before-cursor
    :activate-puppets   editing/activate-puppets
    :deactivate-puppets editing/deactivate-puppets
    :toggle-puppets     editing/toggle-puppets

@@ -6,20 +6,21 @@
             [plastic.main.editor.ops.cursor :as cursor]
             [plastic.main.editor.toolkit.id :as id]))
 
-(defn xform-on-worker [editor command+args & [callback]]
-  (worker-dispatch-args (vec (concat [:editor-xform (editor/get-id editor)] command+args)) callback)
+(defn xform-event [editor & args]
+  (vec (concat [:editor-xform (editor/get-id editor)] args)))
+
+(defn xform-editor-on-worker [editor args & [callback]]
+  (worker-dispatch-args (apply xform-event editor args)
+    (if callback (editor/db-updater (editor/get-id editor) callback)))
   editor)
 
-(defn make-continuation [cb f]
-  (if cb (comp cb f) f))
-
-(defn call-continuation [cb editor]
-  (if cb (cb editor) editor))
+(defn continue [cb]
+  (if cb cb identity))
 
 (defn move-cursor-for-case-of-selected-node-removal [editor]
   (let [cursor-id (id/id-part (editor/get-cursor editor))
         moves-to-try (if (= cursor-id (editor/get-focused-form-id editor))
-                       [:move-next-form :move-prev-form]                                                              ; case of deleting whole focused form
+                       [:move-next-form :move-prev-form]                                                              ; a case of deleting whole focused form
                        [:structural-left :structural-right :structural-up])]
     (apply cursor/apply-move-cursor editor moves-to-try)))
 
@@ -39,8 +40,6 @@
                    new-pos))]
     (reduce walker start path)))
 
-(declare start-editing)
-
 (defn should-commit? [editor]
   (or (editor/is-inline-editor-empty? editor) (editor/is-inline-editor-modified? editor)))                            ; empty inline editor is a placeholder and must be comitted regardless
 
@@ -49,142 +48,137 @@
         target-node-id (walk-structural-web structural-web edit-point path)]
     (editor/set-cursor editor target-node-id)))
 
-(defn select-neighbour-and-start-editing [form-id edit-point path editor]
-  (start-editing (select-neighbour form-id edit-point path editor)))
-
-(defn switch-to-editing [editor cursor-id]
+(defn enable-editing-mode [editor]
   (-> editor
-    (editor/set-editing cursor-id)
+    (editor/set-editing (editor/get-cursor editor))
     (editor/set-inline-editor-puppets-state true)))                                                                   ; puppets should get enabled for each new editing session
 
-(defn start-editing [editor & [cb]]
-  (if (editor/editing? editor)
-    (call-continuation cb editor)
-    (let [cursor-id (editor/get-cursor editor)
-          editor-id (editor/get-id editor)]
-      (if (id/spot? cursor-id)
-        (let [edit-point (get-edit-point editor)
-              focused-form-id (editor/get-focused-form-id editor)
-              select-edit (partial select-neighbour-and-start-editing focused-form-id edit-point [:up :down])
-              continuation (make-continuation cb select-edit)
-              select (fn [db] (editor/update-in-db db editor-id continuation))]
-          (xform-on-worker
-            (switch-to-editing editor cursor-id) [:insert-placeholder-as-first-child edit-point] select))
-        (call-continuation cb (switch-to-editing editor cursor-id))))))
-
-(defn sanitize-cursor [editor moved-cursor]
-  (-> editor
-    (editor/replace-cursor-if-not-valid moved-cursor)))
-
-(defn reset-editing [editor]
+(defn disable-editing-mode [editor]
   (-> editor
     (editor/set-editing nil)))
 
-(defn stop-editing [editor & [cb]]
-  (or
-    (let [editor-id (editor/get-id editor)]
-      (if (editor/editing? editor)
-        (if-not (should-commit? editor)
-          (call-continuation cb (editor/set-editing editor nil))
-          (let [edited-node-id (editor/get-editing editor)
-                value (editor/get-inline-editor-value editor)
-                editor-with-moved-cursor (move-cursor-for-case-of-selected-node-removal editor)
-                moved-cursor (editor/get-cursor editor-with-moved-cursor)
-                effective? (editor/get-inline-editor-puppets-effective? editor)
-                puppets (if effective? (editor/get-puppets editor) #{})
-                effect (fn [db]
-                         (editor/update-in-db db editor-id (make-continuation cb sanitize-cursor) moved-cursor))]
-            (xform-on-worker (reset-editing editor) [:edit edited-node-id puppets value] effect)))))
-    (call-continuation cb (reset-editing editor))))
+(defn sanitize-cursor [editor alt-cursor]
+  (-> editor
+    (editor/replace-cursor-if-not-valid alt-cursor)))
 
-(defn apply-operation-but-preserve-editing-mode [editor op]
+; -------------------------------------------------------------------------------------------------------------------
+
+(declare perform-space)
+
+(defn start-editing [editor & [cb]]
   (if (editor/editing? editor)
-    (stop-editing editor (comp start-editing op))
-    (op editor)))
+    ((continue cb) editor)
+    (if (id/spot? (editor/get-cursor editor))
+      (perform-space editor cb)                                                                                       ; enter edit mode by emulating hitting space
+      ((continue cb) (enable-editing-mode editor)))))
+
+(defn stop-editing [editor & [cb]]
+  (if-not (editor/editing? editor)
+    ((continue cb) editor)
+    (if-not (should-commit? editor)
+      ((continue cb) (disable-editing-mode editor))
+      (let [edited-node-id (editor/get-editing editor)
+            value (editor/get-inline-editor-value editor)
+            moved-cursor (editor/get-cursor (move-cursor-for-case-of-selected-node-removal editor))
+            effective? (editor/get-inline-editor-puppets-effective? editor)
+            puppets (if effective? (editor/get-puppets editor) #{})]
+        (xform-editor-on-worker (disable-editing-mode editor) [:edit edited-node-id puppets value]
+          (fn [editor]
+            ((continue cb) (sanitize-cursor editor moved-cursor))))))))
+
+(defn apply-change-but-preserve-editing-mode [editor op & [cb]]
+  (if (editor/editing? editor)
+    (stop-editing editor (comp (continue cb) start-editing op))
+    ((continue cb) (op editor))))
 
 (defn perform-enter [editor & [cb]]
-  (let [was-editing? (editor/editing? editor)
-        continuation (fn [editor]
-                       (let [edit-point (get-edit-point editor)
-                             editor-id (editor/get-id editor)
-                             focused-form-id (editor/get-focused-form-id editor)
-                             select (partial select-neighbour focused-form-id edit-point [:right])
-                             start-editing-again? (fn [editor] (if was-editing? (start-editing editor) editor))
-                             continuation (make-continuation cb (comp start-editing-again? select))
-                             effect (fn [db]
-                                      (editor/update-in-db db editor-id continuation))]
-                         (xform-on-worker editor [:enter edit-point] effect)))]
-    (stop-editing editor continuation)))
+  (let [was-editing? (editor/editing? editor)]
+    (stop-editing editor
+      (fn [editor]
+        (let [edit-point (get-edit-point editor)]
+          (xform-editor-on-worker editor [:enter edit-point]
+            (fn [editor report]
+              (let [linebreak-node-id (first (:added report))]
+                (assert linebreak-node-id "report didn't contain added linebreak node")
+                (let [editor-with-cursor (editor/set-cursor editor linebreak-node-id)]
+                  (if was-editing?
+                    (perform-space editor-with-cursor cb)                                                             ; enter edit mode by emulating hitting space
+                    ((continue cb) editor-with-cursor)))))))))))
 
-(defn perform-alt-enter [editor]
-  (let [continuation (fn [editor]
-                       (let [edit-point (get-edit-point editor)]
-                         (xform-on-worker editor [:alt-enter edit-point])))]
-    (stop-editing editor continuation)))
+(defn perform-alt-enter [editor & [cb]]
+  (stop-editing editor
+    (fn [editor]
+      (let [edit-point (get-edit-point editor)]
+        (xform-editor-on-worker editor [:alt-enter edit-point] cb)))))
 
-(defn perform-backspace-in-empty-cell [editor]
-  {:pre [(editor/is-inline-editor-empty? editor)]}
-  (stop-editing editor))
+(defn perform-backspace-in-empty-cell [editor & [cb]]
+  {:pre [(editor/editing? editor)
+         (editor/is-inline-editor-empty? editor)]}
+  (apply-change-but-preserve-editing-mode editor identity cb))                                                        ; empty placeholder was removed, cursor moved left
 
 (defn perform-backspace [editor & [cb]]
-  (let [editor-id (editor/get-id editor)
-        edit-point (get-edit-point editor)
+  (let [edit-point (get-edit-point editor)
         editor-with-moved-cursor (move-cursor-for-case-of-selected-node-removal editor)
-        moved-cursor (editor/get-cursor editor-with-moved-cursor)
-        move-cursor (fn [db]
-                      (editor/update-in-db db editor-id (make-continuation cb sanitize-cursor) moved-cursor))]
-    (xform-on-worker editor [:backspace edit-point] move-cursor)))
+        moved-cursor (editor/get-cursor editor-with-moved-cursor)]
+    (xform-editor-on-worker editor [:backspace edit-point]
+      (fn [editor]
+        ((continue cb) (sanitize-cursor editor moved-cursor))))))
 
-(defn delete-linebreak-or-token-after-cursor [editor]
+(defn delete-after-cursor [editor & [cb]]
   (let [edit-point (get-edit-point editor)]
-    (xform-on-worker editor [:delete edit-point])))
+    (xform-editor-on-worker editor [:delete edit-point] cb)))
 
-(defn delete-linebreak-or-token-before-cursor [editor]
+(defn delete-before-cursor [editor & [cb]]
   (let [edit-point (get-edit-point editor)]
-    (xform-on-worker editor [:alt-delete edit-point])))
+    (xform-editor-on-worker editor [:alt-delete edit-point] cb)))
 
-(defn open [editor op path]
-  (let [editor-id (editor/get-id editor)
-        continuation (fn [editor]
-                       (let [edit-point (get-edit-point editor)
-                             focused-form-id (editor/get-focused-form-id editor)
-                             select-edit (partial select-neighbour-and-start-editing focused-form-id edit-point path)
-                             select-placeholder (fn [db] (editor/update-in-db db editor-id select-edit))]
-                         (xform-on-worker editor [op edit-point] select-placeholder)))]
-    (stop-editing editor continuation)))
+; -------------------------------------------------------------------------------------------------------------------
 
-(defn perform-space [editor]
-  (open editor :space [:right]))
+(defn open [editor op path & [cb]]
+  (stop-editing editor
+    (fn [editor]
+      (let [edit-point (get-edit-point editor)
+            focused-form-id (editor/get-focused-form-id editor)]
+        (xform-editor-on-worker editor [op edit-point]
+          (fn [editor]
+            (start-editing (select-neighbour focused-form-id edit-point path editor) cb)))))))
 
-(defn open-list [editor]
-  (open editor :open-list [:right :down]))
+(defn perform-space [editor & [cb]]
+  (open editor :space [:right] cb))
 
-(defn open-vector [editor]
-  (open editor :open-vector [:right :down]))
+(defn open-list [editor & [cb]]
+  (open editor :open-list [:right :down] cb))
 
-(defn open-map [editor]
-  (open editor :open-map [:right :down]))
+(defn open-vector [editor & [cb]]
+  (open editor :open-vector [:right :down] cb))
 
-(defn open-set [editor]
-  (open editor :open-set [:right :down]))
+(defn open-map [editor & [cb]]
+  (open editor :open-map [:right :down] cb))
 
-(defn open-fn [editor]
-  (open editor :open-fn [:right :down]))
+(defn open-set [editor & [cb]]
+  (open editor :open-set [:right :down] cb))
 
-(defn open-meta [editor]
-  (open editor :open-meta [:right :down]))
+(defn open-fn [editor & [cb]]
+  (open editor :open-fn [:right :down] cb))
 
-(defn open-quote [editor]
-  (open editor :open-quote [:right :down]))
+(defn open-meta [editor & [cb]]
+  (open editor :open-meta [:right :down] cb))
 
-(defn open-deref [editor]
-  (open editor :open-deref [:right :down]))
+(defn open-quote [editor & [cb]]
+  (open editor :open-quote [:right :down] cb))
 
-(defn next-token [editor]
-  (apply-operation-but-preserve-editing-mode editor cursor/next-token))
+(defn open-deref [editor & [cb]]
+  (open editor :open-deref [:right :down] cb))
 
-(defn prev-token [editor]
-  (apply-operation-but-preserve-editing-mode editor cursor/prev-token))
+; -------------------------------------------------------------------------------------------------------------------
+
+(defn next-token [editor & [cb]]
+  (apply-change-but-preserve-editing-mode editor cursor/next-token cb))
+
+(defn prev-token [editor & [cb]]
+  (apply-change-but-preserve-editing-mode editor cursor/prev-token cb))
+
+; -------------------------------------------------------------------------------------------------------------------
 
 (defn activate-puppets [editor]
   (editor/set-inline-editor-puppets-state editor true))

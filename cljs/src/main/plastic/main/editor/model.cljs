@@ -325,6 +325,14 @@
         new-editor (apply updater old-editor args)]
     (assoc-in db [:editors editor-id] new-editor)))
 
+(defn db-updater [editor-id f & args]
+  (fn [db undo-summary]
+    (update-in-db db editor-id
+      (fn [editor]
+        (let [report (some #(if (= (:editor-id %) editor-id) (:xform-report %)) undo-summary)]
+          (assert report (str "unable to lookup report for editor #" editor-id ": " (pr-str undo-summary)))
+          (apply f editor report args))))))
+
 (defn is-node-selectable? [editor form-id node-id]
   {:pre [(valid-editor? editor)]}
   (let [selectables (get-selectables-for-form editor form-id)]
@@ -351,8 +359,7 @@
 
 (defn set-cursor [editor cursor]
   {:pre [(valid-editor? editor)]}
-  (let [editor-id (get-id editor)
-        new-cursor (if cursor #{cursor} #{})
+  (let [new-cursor (if cursor #{cursor} #{})
         new-cursor-form-id (if cursor (get-form-id-for-node-id editor cursor))]
     (-> editor
       (assoc :cursor new-cursor)

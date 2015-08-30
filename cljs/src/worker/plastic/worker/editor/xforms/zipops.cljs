@@ -141,13 +141,13 @@
 (defn insert-after [values [initial-loc initial-report]]
   (let [inserter (fn [[loc report] val]
                    (let [inserted-loc (z/insert-right loc val)]
-                     [inserted-loc (report-added report inserted-loc)]))]
+                     [inserted-loc (report-added-nodes report values)]))]
     (reduce inserter [initial-loc initial-report] (reverse values))))
 
 (defn insert-before [values [initial-loc initial-report]]
   (let [inserter (fn [[loc report] val]
                    (let [inserted-loc (z/insert-left loc val)]
-                     [inserted-loc (report-added report inserted-loc)]))]
+                     [inserted-loc (report-added-nodes report values)]))]
     (reduce inserter [initial-loc initial-report] values)))
 
 (defn remove-linebreak-before [[loc report]]

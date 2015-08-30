@@ -1,6 +1,6 @@
 (ns plastic.main.frame
   (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]]
-                   [plastic.main :refer [dispatch-args]]
+                   [plastic.main :refer [dispatch-args worker-dispatch-args]]
                    [cljs.core.async.macros :refer [go-loop go]])
   (:require [cljs.core.async :refer [chan put! <!]]
             [reagent.core :as reagent]
@@ -55,7 +55,7 @@
       (handle-event-and-report-exceptions frame coallesced-db event))
     (jobs/unregister-job job-id)
     (or
-      (when-let [result-db ((jobs/continuation job) @coallesced-db)]
+      (when-let [result-db ((jobs/continuation job) @coallesced-db undo-summary)]
         (if-not (identical? db result-db)
           (doseq [{:keys [editor-id description]} undo-summary]
             (let [old-editor (get-in db [:editors editor-id])]
@@ -88,3 +88,10 @@
   (handle-event frame db job-id event)
   nil)
 
+(defn ^:export go-worker [event]
+  (let [response-chan (chan)
+        callback (fn [db undo-summary]
+                   (put! response-chan undo-summary)
+                   db)]
+    (worker-dispatch-args event callback)
+    response-chan))
