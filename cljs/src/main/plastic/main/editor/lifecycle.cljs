@@ -13,21 +13,33 @@
 
 (defonce book (booking/make-booking))
 
+; how is it possible that react! gets triggered for identical values?
+(defn reacting! [derefable f]
+  (let [previous-value (atom ::not-initialized)]
+    (react!
+      (let [value @derefable]
+        (when-not (identical? @previous-value value)
+          (reset! previous-value value)
+          (f value))))))
+
 ; -------------------------------------------------------------------------------------------------------------------
+
+(defn watch-to-activate-inline-editor! [editor]
+  (let [editor-id (editor/get-id editor)
+        editing (subscribe [:editor-editing editor-id])]
+    (booking/update-item! book editor-id register-reaction
+      (reacting! editing
+        (fn [editing]
+          (inline-editor/deactivate-inline-editor! editor-id)
+          (if-not (empty? editing)
+            (inline-editor/activate-inline-editor! editor-id)))))))
 
 (defn watch-to-update-inline-editor! [editor]
   (let [editor-id (editor/get-id editor)
-        editing (subscribe [:editor-editing editor-id])
         inline-editor (subscribe [:editor-inline-editor editor-id])]
     (booking/update-item! book editor-id register-reaction
-      (react!
-        (let [editing @editing]
-          (if (empty? editing)
-            (inline-editor/deactivate-inline-editor! editor-id)
-            (inline-editor/activate-inline-editor! editor-id)))))
-    (booking/update-item! book editor-id register-reaction
-      (react!
-        (let [_ @inline-editor]
+      (reacting! inline-editor
+        (fn []
           (inline-editor/update-state! editor-id))))))
 
 ; -------------------------------------------------------------------------------------------------------------------
@@ -54,6 +66,7 @@
   (editor/apply-to-editors editors selector
     (fn [editor]
       (watch-to-update-inline-editor! editor)
+      (watch-to-activate-inline-editor! editor)
       editor)))
 
 (defn mount-editor [editors [editor-id dom-node]]
