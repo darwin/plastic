@@ -1,5 +1,6 @@
 (ns plastic.worker.editor.layout.structural
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
+  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
+                   [plastic.common :refer [process]])
   (:require [clojure.zip :as z]
             [plastic.util.zip :as zip-utils]
             [plastic.worker.editor.layout.utils :as utils]
@@ -31,34 +32,32 @@
                           :up    id
                           :down  nil})))
 
-(defn structural-web-for-item [accum loc]
-  (let [node (zip/node loc)
-        id (:id node)
-        up-loc (zip-up loc)
-        down-loc (zip-down loc)
-        left-loc (zip-left loc)
-        right-loc (zip-right loc)
-        record {:left  (or (safe-loc-id left-loc) (safe-make-spot-id (safe-loc-id up-loc)))
-                :right (safe-loc-id right-loc)
-                :up    (safe-loc-id up-loc)
-                :down  (safe-loc-id down-loc)}]
-    (cond-> accum
-      true (assoc id record)
-      (node/inner? node) (structural-web-for-spot-item id down-loc))))
-
 (defn build-structural-web-for-code [web code-locs]
-  (reduce structural-web-for-item web code-locs))
-
-(defn structural-web-for-doc [form-id accum loc]
-  (let [id (zip-utils/loc-id loc)
-        record {:left  nil
-                :right nil
-                :up    form-id
-                :down  nil}]
-    (assoc accum id record)))
+  (process code-locs web
+    (fn [accum loc]
+      (let [node (zip/node loc)
+            id (:id node)
+            up-loc (zip-up loc)
+            down-loc (zip-down loc)
+            left-loc (zip-left loc)
+            right-loc (zip-right loc)
+            record {:left  (or (safe-loc-id left-loc) (safe-make-spot-id (safe-loc-id up-loc)))
+                    :right (safe-loc-id right-loc)
+                    :up    (safe-loc-id up-loc)
+                    :down  (safe-loc-id down-loc)}]
+        (cond-> accum
+          true (assoc id record)
+          (node/inner? node) (structural-web-for-spot-item id down-loc))))))
 
 (defn link-selectable-docs [web docs-locs form-id]
-  (reduce (partial structural-web-for-doc form-id) web docs-locs))
+  (process docs-locs web
+    (fn [accum loc]
+      (let [id (zip-utils/loc-id loc)
+            record {:left  nil
+                    :right nil
+                    :up    form-id
+                    :down  nil}]
+        (assoc accum id record)))))
 
 (defn build-structural-web [form-loc]
   (let [form-id (zip-utils/loc-id form-loc)

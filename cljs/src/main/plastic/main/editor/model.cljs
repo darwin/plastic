@@ -1,6 +1,7 @@
 (ns plastic.main.editor.model
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.main :refer [dispatch worker-dispatch]])
+                   [plastic.main :refer [dispatch worker-dispatch]]
+                   [plastic.common :refer [process]])
   (:require [plastic.util.helpers :as helpers]
             [plastic.main.editor.toolkit.id :as id]
             [clojure.set :as set]))
@@ -190,12 +191,12 @@
 (defn toggle-selection [editor toggle-set]
   {:pre [(valid-editor? editor)
          (set? toggle-set)]}
-  (let [toggler (fn [accum id]
-                  (if (contains? accum id)
-                    (disj accum id)
-                    (conj accum id)))
-        old-selection (get-selection editor)
-        new-selection (reduce toggler old-selection toggle-set)]
+  (let [old-selection (get-selection editor)
+        new-selection (process toggle-set old-selection
+                        (fn [accum id]
+                          (if (contains? accum id)
+                            (disj accum id)
+                            (conj accum id))))]
     (set-selection editor new-selection)))
 
 ; -------------------------------------------------------------------------------------------------------------------
@@ -231,14 +232,14 @@
     (set? selector) (contains? selector editor-id)
     :default (= editor-id selector)))
 
-(defn apply-to-editors [editors selector f]
-  (let [reducer (fn [editors editor-id]
-                  (or
-                    (if (selector-matches-editor? editor-id selector)
-                      (if-let [new-editor (f (get editors editor-id))]
-                        (assoc editors editor-id new-editor)))
-                    editors))]
-    (reduce reducer editors (keys editors))))
+(defn apply-to-editors [editors selector f & args]
+  (process (keys editors) editors
+    (fn [editors editor-id]
+      (or
+        (if (selector-matches-editor? editor-id selector)
+          (if-let [new-editor (apply f (get editors editor-id) args)]
+            (assoc editors editor-id new-editor)))
+        editors))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 

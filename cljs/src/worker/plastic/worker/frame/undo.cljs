@@ -1,6 +1,7 @@
 (ns plastic.worker.frame.undo
   (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]]
-                   [plastic.worker :refer [main-dispatch-args dispatch-args dispatch]])
+                   [plastic.worker :refer [main-dispatch-args dispatch-args dispatch]]
+                   [plastic.common :refer [process]])
   (:require [plastic.util.booking :as booking]))
 
 ; -------------------------------------------------------------------------------------------------------------------
@@ -23,12 +24,12 @@
   (booking/update-item! book editor-id set-undo-report report))
 
 (defn vacuum-undo-summary []
-  (let [reducer (fn [accum [id record]]
-                  (let [state (:undo-state record)]
-                    (if (:xform-report state)
-                      (conj accum (assoc state :editor-id id))
-                      accum)))
-        result (reduce reducer [] @book)]
+  (let [result (process @book []
+                 (fn [accum [id record]]
+                   (let [state (:undo-state record)]
+                     (if (:xform-report state)
+                       (conj accum (assoc state :editor-id id))
+                       accum))))]
     (when-not (empty? result)
       (reset! book {})
       result)))

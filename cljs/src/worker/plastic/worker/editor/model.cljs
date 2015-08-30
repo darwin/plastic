@@ -1,13 +1,12 @@
 (ns plastic.worker.editor.model
   (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]]
-                   [plastic.worker :refer [dispatch main-dispatch]])
+                   [plastic.worker :refer [dispatch main-dispatch]]
+                   [plastic.common :refer [process]])
   (:require [rewrite-clj.zip :as zip]
-            [rewrite-clj.zip.findz :as findz]
             [rewrite-clj.node :as node]
             [plastic.util.helpers :as helpers]
             [plastic.util.zip :as zip-utils]
-            [plastic.worker.editor.toolkit.id :as id]
-            [clojure.zip :as z]))
+            [plastic.worker.editor.toolkit.id :as id]))
 
 (defprotocol IEditor)
 
@@ -203,21 +202,21 @@
     :default (= editor-id selector)))
 
 (defn apply-to-editors [editors selector f]
-  (let [reducer (fn [editors editor-id]
-                  (or
-                    (if (selector-matches-editor? editor-id selector)
-                      (if-let [new-editor (f (get editors editor-id))]
-                        (assoc editors editor-id new-editor)))
-                    editors))]
-    (reduce reducer editors (keys editors))))
+  (process (keys editors) editors
+    (fn [editors editor-id]
+      (or
+        (if (selector-matches-editor? editor-id selector)
+          (if-let [new-editor (f (get editors editor-id))]
+            (assoc editors editor-id new-editor)))
+        editors))))
 
 (defn apply-to-forms [editor selector f]
   {:pre [(valid-editor? editor)]}
-  (let [reducer (fn [editor form-loc]
-                  (if (helpers/selector-matches? selector (zip-utils/loc-id form-loc))
-                    (or (f editor form-loc) editor)
-                    editor))]
-    (reduce reducer editor (get-top-level-form-locs editor))))
+  (process (get-top-level-form-locs editor) editor
+    (fn [editor form-loc]
+      (if (helpers/selector-matches? selector (zip-utils/loc-id form-loc))
+        (or (f editor form-loc) editor)
+        editor))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 

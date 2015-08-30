@@ -1,5 +1,6 @@
 (ns plastic.util.helpers
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
+                   [plastic.common :refer [process]]
                    [cljs.core.async.macros :refer [go]])
   (:require [cljs.pprint :as pprint :refer [pprint]]
             [cljs.core.async :refer [put! <! chan timeout close!]]
@@ -202,8 +203,8 @@
   ([o k1 k2 & ks] (when-let [o (oget o k1 k2)] (apply oget o ks))))                                                   ; Can also lean on optimized 2-case
 
 (defn remove-nil-values [m]
-  (let [reducer (fn [accum key]
-                  (if (nil? (get m key))
-                    (dissoc accum key)
-                    accum))]
-    (reduce reducer m (keys m))))
+  (process (keys m) m
+    (fn [accum key]
+      (if (nil? (get m key))
+        (dissoc accum key)
+        accum))))

@@ -1,6 +1,7 @@
 (ns plastic.main.editor.ops.editing.helpers
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.main :refer [worker-dispatch-args]])
+                   [plastic.main :refer [worker-dispatch-args]]
+                   [plastic.common :refer [process]])
   (:require [plastic.main.editor.model :as editor]
             [plastic.main.editor.ops.cursor :as cursor]
             [plastic.main.editor.toolkit.id :as id]))
@@ -14,7 +15,7 @@
   editor)
 
 (defn continue [cb]
-  (if cb cb identity))
+  (or cb identity))
 
 (defn move-cursor-for-case-of-selected-node-removal [editor]
   (let [cursor-id (id/id-part (editor/get-cursor editor))
@@ -32,12 +33,11 @@
     (editor/get-cursor editor)))
 
 (defn walk-structural-web [web start path]
-  (let [walker (fn [pos dir]
-                 (let [info (get web pos)
-                       _ (assert info)
-                       new-pos (dir info)]
-                   new-pos))]
-    (reduce walker start path)))
+  (process path start
+    (fn [pos dir]
+      (let [info (get web pos)]
+        (assert info (str "broken structural web" pos " web:" (pr-str web)))
+        (dir info)))))
 
 (defn should-commit? [editor]
   (or (editor/is-inline-editor-empty? editor) (editor/is-inline-editor-modified? editor)))                            ; empty inline editor is a placeholder and must be comitted regardless

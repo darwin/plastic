@@ -1,6 +1,7 @@
 (ns plastic.worker.editor.layout
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.worker :refer [react! dispatch main-dispatch dispatch-args]])
+                   [plastic.worker :refer [react! dispatch main-dispatch dispatch-args]]
+                   [plastic.common :refer [process]])
   (:require [rewrite-clj.zip :as zip]
             [rewrite-clj.node :as node]
             [clojure.zip :as z]
@@ -39,16 +40,16 @@
       (editor/set-structural-web-for-form form-id structural-web))))
 
 (defn update-forms-layout-if-needed [editor form-locs]
-  (let [reducer (fn [editor form-loc]
-                  (let [form-node (z/node form-loc)
-                        previously-layouted-node (editor/get-previously-layouted-form-node editor (:id form-node))]
-                    (if (= previously-layouted-node form-node)
-                      editor
-                      (-> editor
-                        (update-form-layout form-loc)
-                        (editor/prune-cache-of-previously-layouted-forms (map zip-utils/loc-id form-locs))
-                        (editor/remember-previously-layouted-form-node form-node)))))]
-    (reduce reducer editor form-locs)))
+  (process form-locs editor
+    (fn [editor form-loc]
+      (let [form-node (z/node form-loc)
+            previously-layouted-node (editor/get-previously-layouted-form-node editor (:id form-node))]
+        (if (= previously-layouted-node form-node)
+          editor
+          (-> editor
+            (update-form-layout form-loc)
+            (editor/prune-cache-of-previously-layouted-forms (map zip-utils/loc-id form-locs))
+            (editor/remember-previously-layouted-form-node form-node)))))))
 
 (defn update-layout [editors [selector]]
   (editor/apply-to-editors editors selector

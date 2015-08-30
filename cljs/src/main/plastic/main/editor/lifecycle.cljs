@@ -1,6 +1,6 @@
 (ns plastic.main.editor.lifecycle
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.main :refer [dispatch react! worker-dispatch]])
+                   [plastic.main :refer [dispatch reacting! worker-dispatch]])
   (:require [plastic.util.booking :as booking]
             [plastic.util.reactions :refer [register-reaction dispose-reactions!]]
             [plastic.main.frame :refer [subscribe register-handler]]
@@ -12,15 +12,6 @@
             [plastic.undo :as undo]))
 
 (defonce book (booking/make-booking))
-
-; how is it possible that react! gets triggered for identical values?
-(defn reacting! [derefable f]
-  (let [previous-value (atom ::not-initialized)]
-    (react!
-      (let [value @derefable]
-        (when-not (identical? @previous-value value)
-          (reset! previous-value value)
-          (f value))))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 

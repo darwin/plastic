@@ -1,6 +1,7 @@
 (ns plastic.main.editor.ops.cursor
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.main :refer [react! dispatch]])
+                   [plastic.main :refer [react! dispatch]]
+                   [plastic.common :refer [process]])
   (:require [plastic.main.editor.model :as editor]
             [plastic.util.helpers :as helpers]
             [plastic.main.editor.render.geometry :as geometry]))
@@ -26,13 +27,11 @@
                                                        (geometry/right-point geometry)]))))
 
 (defn find-best [scores]
-  (let [winner (fn [accum item]
-                 (if (or
-                       (nil? (:score accum))
-                       (> (:score item) (:score accum)))
-                   item
-                   accum))]
-    (reduce winner nil scores)))
+  (process scores nil
+    (fn [accum item]
+      (if (or (nil? (:score accum)) (> (:score item) (:score accum)))
+        item
+        accum))))
 
 (defn find-best-spatial-match [node-geometry candidates-geometries kind]
   (let [score-fn (case kind

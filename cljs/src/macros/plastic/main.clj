@@ -40,3 +40,12 @@
   `(let [co# (reagent.ratom/make-reaction (fn [] ~@body) :auto-run true)]
      (deref co#)
      co#))
+
+; how is it possible that react! gets triggered for identical values?
+(defmacro reacting! [derefable f]
+  `(let [previous-value# (atom ::not-initialized)]
+     (react!
+       (let [value# @~derefable]
+         (when-not (identical? @previous-value# value#)
+           (reset! previous-value# value#)
+           (~f value#))))))

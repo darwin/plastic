@@ -1,9 +1,9 @@
 (ns plastic.worker.editor.xforms.zipops
   (:refer-clojure :exclude [find remove])
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.worker :refer [thread-zip-ops]])
+                   [plastic.worker :refer [thread-zip-ops]]
+                   [plastic.common :refer [process]])
   (:require [rewrite-clj.zip :as zip]
-            [rewrite-clj.zip.findz :as findz]
             [rewrite-clj.zip.editz :as editz]
             [rewrite-clj.node :as node]
             [plastic.util.zip :as zip-utils :refer [loc-id loc-id? valid-loc?]]
@@ -139,16 +139,16 @@
         [loc report]))))
 
 (defn insert-after [values [initial-loc initial-report]]
-  (let [inserter (fn [[loc report] val]
-                   (let [inserted-loc (z/insert-right loc val)]
-                     [inserted-loc (report-added-nodes report values)]))]
-    (reduce inserter [initial-loc initial-report] (reverse values))))
+  (process (reverse values) [initial-loc initial-report]
+    (fn [[loc report] val]
+      (let [inserted-loc (z/insert-right loc val)]
+        [inserted-loc (report-added-nodes report values)]))))
 
 (defn insert-before [values [initial-loc initial-report]]
-  (let [inserter (fn [[loc report] val]
-                   (let [inserted-loc (z/insert-left loc val)]
-                     [inserted-loc (report-added-nodes report values)]))]
-    (reduce inserter [initial-loc initial-report] values)))
+  (process values [initial-loc initial-report]
+    (fn [[loc report] val]
+      (let [inserted-loc (z/insert-left loc val)]
+        [inserted-loc (report-added-nodes report values)]))))
 
 (defn remove-linebreak-before [[loc report]]
   (let [prev-locs (take-while valid-loc? (iterate z/prev loc))
