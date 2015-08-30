@@ -33,7 +33,7 @@ A hint: set `plastic.env.log-rendering` to log render calls into devtools consol
                              (str (if (:decl? decl-scope) "decl ") "decl-scope decl-scope-" (:id decl-scope)))
               props {:data-qnid id
                      :class     (classv
-                                  (if type (name type))
+                                  (name type)
                                   (if (and selectable? (not editing?)) "selectable")
                                   (if (and selectable? (not editing?) selected?) "selected")
                                   (if editing? "editing")
@@ -42,7 +42,7 @@ A hint: set `plastic.env.log-rendering` to log render calls into devtools consol
                                   (if call? "call")
                                   (if decl-scope decl-classes)
                                   (if def-name? "def-name")
-                                  (if (not type)
+                                  (if (= type :symbol)
                                     (if (= text "&")
                                       "ampersand"
                                       (if (= "_" (first text)) "silenced"))))}

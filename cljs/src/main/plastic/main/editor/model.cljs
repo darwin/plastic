@@ -276,12 +276,12 @@
 (defn layout-info-type->editor-mode [type]
   (condp = type
     :doc :string                                                                                                      ; doc nodes should be edited as strings for now
-    (or type :symbol)))
+    type))
 
 (defn get-editing-text-and-mode [editor]
-  {:pre [(valid-editor? editor)]}
+  {:pre [(valid-editor? editor)
+         (editing? editor)]}
   (let [editing (get-editing editor)
-        _ (assert editing)
         layout-info (get-layout-info-for-node editor editing)]
     [(:text layout-info) (layout-info-type->editor-mode (:type layout-info))]))
 

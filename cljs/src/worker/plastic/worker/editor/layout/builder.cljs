@@ -91,7 +91,8 @@
     (assoc-in accum [:data node-id]
       (cond-> {:id   node-id
                :line (:line accum)
-               :tag  (node/tag node)}
+               :tag  (node/tag node)
+               :type :symbol}
         inner? (assoc :children (process-children loc))
         after-nl? (assoc :after-nl true)
         (not inner?) (assoc :text (prepare-node-text node))
