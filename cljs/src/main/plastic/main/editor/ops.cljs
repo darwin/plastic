@@ -4,6 +4,7 @@
   (:require [plastic.main.frame :refer [subscribe register-handler]]
             [plastic.main.paths :as paths]
             [plastic.main.editor.ops.editing :as editing]
+            [plastic.main.editor.ops.editing.helpers :refer [editing-string?]]
             [plastic.main.editor.ops.cursor :as cursor]
             [plastic.main.editor.model :as editor]))
 
@@ -52,15 +53,15 @@
     (editing/start-editing editor)))
 
 (defn enter [editor]
-  {:pre [(not (editing/editing-string? editor))]}
+  {:pre [(not (editing-string? editor))]}
   (editing/perform-enter editor))
 
 (defn alt-enter [editor]
-  {:pre [(not (editing/editing-string? editor))]}
+  {:pre [(not (editing-string? editor))]}
   (editing/perform-alt-enter editor))
 
 (defn space [editor]
-  {:pre [(not (editing/editing-string? editor))]}
+  {:pre [(not (editing-string? editor))]}
   (editing/perform-space editor))
 
 (defn backspace [editor]
@@ -88,8 +89,8 @@
    :structural-right   structural-right
    :structural-up      structural-up
    :structural-down    structural-down
-   :next-token         editing/next-token
-   :prev-token         editing/prev-token
+   :next-interest      editing/next-interest
+   :prev-interest      editing/prev-interest
    :start-editing      start-editing
    :stop-editing       stop-editing
    :toggle-editing     toggle-editing

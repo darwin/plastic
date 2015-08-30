@@ -118,11 +118,11 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn next-token [editor & [cb]]
-  (apply-change-but-preserve-editing-mode editor cursor/next-token cb))
+(defn next-interest [editor & [cb]]
+  (apply-change-but-preserve-editing-mode editor cursor/next-interest cb))
 
-(defn prev-token [editor & [cb]]
-  (apply-change-but-preserve-editing-mode editor cursor/prev-token cb))
+(defn prev-interest [editor & [cb]]
+  (apply-change-but-preserve-editing-mode editor cursor/prev-interest cb))
 
 ; -------------------------------------------------------------------------------------------------------------------
 

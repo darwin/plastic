@@ -94,11 +94,15 @@
       (let [next-selection (next-selection-fn editor next-focused-form-id)]
         (editor/set-cursor editor next-selection)))))
 
-(defn token-movement-prev-next [editor direction-fn]
+(defn is-token-of-interest? [token]
+  (let [type (:type token)]
+    (not (#{:linebreak :spot} type))))
+
+(defn interest-movement-prev-next [editor direction-fn]
   (let [cursor-id (editor/get-cursor editor)
         form-id (editor/get-focused-form-id editor)
         spatial-web (editor/get-spatial-web-for-form editor form-id)
-        all-lines (apply concat (vals spatial-web))]
+        all-lines (filter is-token-of-interest? (apply concat (vals spatial-web)))]
     (if-let [result (direction-fn #(= (:id %) cursor-id) all-lines)]
       (editor/set-cursor editor (:id result)))))
 
@@ -134,11 +138,11 @@
 (defn move-next-form [editor]
   (move-form editor helpers/next-item editor/get-first-selectable-token-id-for-form))
 
-(defn move-next-token [editor]
-  (token-movement-prev-next editor helpers/next-item))
+(defn move-next-interest [editor]
+  (interest-movement-prev-next editor helpers/next-item))
 
-(defn move-prev-token [editor]
-  (token-movement-prev-next editor helpers/prev-item))
+(defn move-prev-interest [editor]
+  (interest-movement-prev-next editor helpers/prev-item))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -153,8 +157,8 @@
    :structural-right move-structural-right
    :prev-form        move-prev-form
    :next-form        move-next-form
-   :prev-token       move-prev-token
-   :next-token       move-next-token})
+   :prev-interest    move-prev-interest
+   :next-interest    move-next-interest})
 
 (defn apply-moves [editor moves-to-try]
   (if-let [movement (first moves-to-try)]
@@ -199,11 +203,11 @@
 
 ; token movement
 
-(defn next-token [editor]
-  (apply-move-cursor editor :next-token))
+(defn next-interest [editor]
+  (apply-move-cursor editor :next-interest))
 
-(defn prev-token [editor]
-  (apply-move-cursor editor :prev-token))
+(defn prev-interest [editor]
+  (apply-move-cursor editor :prev-interest))
 
 ; form movement
 
