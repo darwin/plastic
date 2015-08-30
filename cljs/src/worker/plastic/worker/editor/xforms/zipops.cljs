@@ -194,7 +194,8 @@
   (thread-zip-ops [loc report]
     [lookup node-id]
     [remove-whitespaces-and-newlines-before]
-    [remove]))
+    [remove]
+    [remove-whitespaces-and-newlines-before]))
 
 (defn insert-values-after-node [values node-id [loc report]]
   (thread-zip-ops [loc report]
