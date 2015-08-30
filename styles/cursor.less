@@ -56,12 +56,12 @@
     content: '';
     position: absolute;
     z-index: 100;
-    width: 4 + 2 * @cursor-border-width + 3;
+    width: 4 + 2 * @cursor-border-width + @linebreak-carret-width;
     height: 100%;
 
     border-style: @cursor-border-style;
     border-width: @cursor-border-width;
-    border-right-width: (@cursor-border-width + 3);
+    border-right-width: (@cursor-border-width + @linebreak-carret-width);
     padding: 0px;
     top: -@linebreak-top-correction;
     left: -@cursor-border-width;
