@@ -7,7 +7,7 @@
    [org.clojure/clojurescript "1.7.107"]
    [org.clojure/tools.reader "0.10.0-SNAPSHOT"]
    [org.clojure/core.async "0.1.346.0-17112a-alpha"]
-   [com.cognitect/transit-cljs "0.8.220"]
+   [com.cognitect/transit-cljs "0.8.225"]
    [re-frame "0.4.1"]
    [rewrite-cljs "0.3.1"]
    [binaryage/devtools "0.1.2"]                                                                                       ; Electron 0.28.2 has old Blink, we have to stick with this old version of devtools for now
