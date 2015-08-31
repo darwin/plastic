@@ -18,8 +18,12 @@ module.exports = Plastic =
     initPlastic = ->
       goog.require("plastic.main.loop")
       goog.require("plastic.worker.loop") if plastic.env.run_worker_on_main_thread
-      bridge.send "apis", apis
-      bridge.send "init", state # TODO: unserialize our part and pass rest
+
+      initAPIs = ->
+        bridge.send "apis", apis
+        bridge.send "init", state # TODO: unserialize our part and pass rest
+
+      setTimeout initAPIs, 100
       
     setTimeout initPlastic, 1000 # TODO: this is temporary, give figwheel and cljs-devtools some time to intialize
 
