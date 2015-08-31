@@ -1,7 +1,8 @@
 (ns plastic.main.editor.render.utils
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [clojure.string :as string]
-            [plastic.onion.api :refer [$]]))
+            [plastic.onion.api :refer [$]]
+            [plastic.util.dom :as dom]))
 
 (defn dangerously-set-html [html]
   {:dangerouslySetInnerHTML {:__html html}})
@@ -23,3 +24,8 @@
     (string/replace #"\n" "<i>↵</i>\n")
     (string/replace #" " "<i>.</i>")
     (string/replace #"\t" "<i>»</i>")))
+
+(defn fix-pre [s]
+  (if (= (last s) "\n")
+    (str s "&nbsp;")
+    s))

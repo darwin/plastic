@@ -5,7 +5,8 @@
             [plastic.main.editor.render.reusables :refer [raw-html-component]]
             [plastic.main.frame :refer [subscribe]]
             [plastic.util.helpers :as helpers]
-            [plastic.main.editor.toolkit.id :as id]))
+            [plastic.main.editor.toolkit.id :as id]
+            [plastic.util.dom :as dom]))
 
 (defn code-token-component
   "A reagent component responsible for rendering a singe code token.
@@ -47,9 +48,9 @@ A hint: set `plastic.env.log-rendering` to log render calls into devtools consol
                                       "ampersand"
                                       (if (= "_" (first text)) "silenced"))))}
               gen-html #(condp = type
-                         :string (wrap-specials text)
+                         :string (wrap-specials (dom/escape-html text))
                          :linebreak "⌞"
-                         (apply-shadowing-subscripts text (:shadows decl-scope)))]
+                         (apply-shadowing-subscripts (dom/escape-html text) (:shadows decl-scope)))]
           [:div.token props
            (if editing?
              [inline-editor-component id]

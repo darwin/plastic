@@ -1,5 +1,6 @@
 (ns plastic.worker.editor.layout.utils
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
+  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
+                   [plastic.common :refer [process]])
   (:require [rewrite-clj.node :as node]
             [clojure.string :as string]
             [rewrite-clj.node.stringz :refer [StringNode]]
@@ -8,7 +9,8 @@
             [rewrite-clj.zip :as zip]
             [clojure.zip :as z]
             [plastic.util.zip :as zip-utils :refer [valid-loc?]]
-            [plastic.worker.editor.toolkit.id :as id]))
+            [plastic.worker.editor.toolkit.id :as id]
+            [plastic.util.helpers :as helpers]))
 
 (defn unwrap-metas [nodes]
   (let [unwrap-meta-node (fn [node]
@@ -68,6 +70,9 @@
 (defn tag? [key loc]
   (= key (zip/tag loc)))
 
+(defn inner? [loc]
+  (node/inner? (zip/node loc)))
+
 (defn first-child-sexpr [loc]
   (first (node/child-sexprs (zip/node loc))))
 
@@ -75,10 +80,17 @@
   (if (= (zip/tag loc) :list)
     (re-find #"^def" (str (first-child-sexpr loc)))))
 
+(defn is-defn? [loc]
+  (if (= (zip/tag loc) :list)
+    (re-find #"^defn" (str (first-child-sexpr loc)))))
+
+(defn is-comment? [loc]
+  (node/comment? (z/node loc)))
+
 (defn is-doc? [loc]
   (if (string-loc? loc)
     (if-let [parent-loc (zip/up loc)]
-      (if (is-def? parent-loc)
+      (if (is-defn? parent-loc)
         (let [left-strings (filter string-node? (z/lefts loc))]
           (empty? left-strings))))))
 
@@ -89,11 +101,17 @@
         (let [left-symbols (filter symbol-node? (z/lefts loc))]
           (= 1 (count left-symbols)))))))
 
-(defn is-nl-near-doc? [loc dir]
+(defn is-linebreak-near-doc? [loc dir]
   (if (node/linebreak? (zip/node loc))
     (let [test-loc (dir loc)]
       (if (zip-utils/valid-loc? test-loc)
         (is-doc? test-loc)))))
+
+(defn is-linebreak-near-comment? [loc dir]
+  (if (node/linebreak? (zip/node loc))
+    (let [test-loc (dir loc)]
+      (if (zip-utils/valid-loc? test-loc)
+        (is-comment? test-loc)))))
 
 (defn extract-all-selectables [render-data]
   (into {} (filter #(:selectable? (second %)) render-data)))
@@ -105,3 +123,27 @@
       (let [lists (filter (partial tag? :list) (take-while valid-loc? (iterate z/right loc)))]
         (if (seq lists)
           (vec (map #(node/string (z/node (z/down %))) lists)))))))
+
+(defn strip-whitespaces-and-linebreaks-policy [loc]
+  (let [node (z/node loc)]
+    (not (node/whitespace? node))))
+
+(def zip-right-skipping-whitespace-and-linebreaks (partial zip-utils/zip-right strip-whitespaces-and-linebreaks-policy))
+
+(defn slurp-comments [loc]
+  {:pre [(valid-loc? loc)
+         (is-comment? loc)]}
+  (take-while is-comment? (take-while valid-loc? (iterate zip-right-skipping-whitespace-and-linebreaks loc))))
+
+(defn combine-comments [loc]
+  (let [comment-locs (slurp-comments loc)]
+    (process comment-locs {:lines 0}
+      (fn [accum loc]
+        {:pre [(is-comment? loc)]}
+        (let [node (zip/node loc)
+              text (helpers/strip-semicolor-and-whitespace-left (node/string node))
+              id (:id node)]
+          (cond-> accum
+            (not (:id accum)) (assoc :id id)
+            true (update :lines inc)
+            true (update :text #(if % (str % "\n" text) text))))))))

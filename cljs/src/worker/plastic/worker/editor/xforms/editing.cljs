@@ -7,6 +7,7 @@
             [plastic.worker.editor.model :refer [valid-edit-point?]]
             [plastic.worker.editor.toolkit.id :as id]
             [rewrite-clj.node.keyword :refer [keyword-node]]
+            [rewrite-clj.node.comment :refer [comment-node]]
             [rewrite-clj.node :as node]
             [plastic.worker.editor.parser.utils :as parser]
             [clojure.set :as set]))
@@ -18,16 +19,22 @@
     (apply-op editor ops/insert-values-after-node values (get-node-id edit-point))
     (apply-op editor ops/insert-values-before-first-child-of-node values (get-node-id edit-point))))
 
-(defn build-node [{:keys [text mode]}]
-  (condp = mode
-    :symbol (node/coerce (symbol text))
-    :keyword (keyword-node (keyword text))                                                                            ; TODO: investigate - coerce does not work for keywords?
-    :string (node/coerce text)
-    (throw "unknown editor mode passed to build-node:" mode)))
+(defn build-node [value initial-value]
+  (let [{:keys [text mode]} value
+        {:keys [type]} initial-value]
+    (if (empty? value)
+      nil
+      (case type
+        :comment (comment-node (str " " text))
+        (condp = mode
+          :symbol (node/coerce (symbol text))
+          :keyword (keyword-node (keyword text))                                                                      ; TODO: investigate - coerce does not work for keywords?
+          :string (node/coerce text)
+          (throw "unknown editor mode passed to build-node:" mode))))))
 
-(defn edit [editor edit-point puppets value]
+(defn edit [editor edit-point puppets value initial-value]
   {:pre [(valid-edit-point? editor edit-point)]}
-  (let [new-node (parser/assoc-node-id (build-node value))
+  (let [new-node (parser/assoc-node-id (build-node value initial-value))
         affected-node-ids (set/union #{(get-node-id edit-point)} puppets)]
     (apply-ops editor #(ops/commit-node-value %2 new-node %1) affected-node-ids)))
 

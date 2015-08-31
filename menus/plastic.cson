@@ -14,6 +14,10 @@
       'command': 'plastic:toggle-headers'
     },
     {
+      'label': 'Toggle Comments'
+      'command': 'plastic:toggle-comments'
+    },
+    {
       'label': 'Toggle Selections (debug)'
       'command': 'plastic:toggle-selections-debug'
     }

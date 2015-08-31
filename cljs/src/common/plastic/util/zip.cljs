@@ -9,17 +9,12 @@
 (defn valid-loc? [loc]
   (not (or (nil? loc) (z/end? loc))))
 
-(defn make-zipper* [node]
+(defn make-zipper [node]
   (z/zipper
     node/inner?
     (comp seq node/children)
     node/replace-children
     node))
-
-(defn make-zipper [node]
-  (if (= (node/tag node) :forms)
-    (make-zipper* node)
-    (recur (node/forms-node [node]))))
 
 (defn independent-zipper [loc]
   (make-zipper (z/node loc)))
@@ -116,6 +111,14 @@
 
 (defn whitespace? [loc]
   (node/whitespace? (z/node loc)))
+
+(defn whitespace-or-comment? [loc]
+  (let [node (z/node loc)]
+    (or (node/whitespace? node) (node/comment? node))))
+
+(defn form? [loc]
+  (let [node (z/node loc)]
+    (= (node/tag node) :forms)))
 
 (defn loc-id [loc]
   (:id (z/node loc)))

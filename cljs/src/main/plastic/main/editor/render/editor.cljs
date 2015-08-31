@@ -3,49 +3,62 @@
                    [plastic.main :refer [react! dispatch]])
   (:require [plastic.util.dom :as dom]
             [plastic.main.frame :refer [subscribe]]
-            [plastic.main.editor.render.headers :refer [headers-group-component]]
-            [plastic.main.editor.render.docs :refer [docs-group-component]]
+            [plastic.main.editor.render.headers :refer [headers-section-component]]
+            [plastic.main.editor.render.docs :refer [docs-section-component]]
+            [plastic.main.editor.render.comments :refer [comments-box-component]]
             [plastic.main.editor.render.code :refer [code-box-component]]
             [plastic.main.editor.render.debug :refer [selections-debug-overlay-component]]
             [plastic.main.editor.render.utils :refer [dangerously-set-html classv]]
-            [plastic.main.editor.toolkit.id :as id]))
+            [plastic.main.editor.toolkit.id :as id]
+            [clojure.string :as string]))
 
-(declare unified-rendering-component)
+;(defn unified-rendering-component [editor-id form-id node-id]
+;  (let [layout (subscribe [:editor-layout-form-node editor-id form-id node-id])]
+;    (fn [editor-id form-id node-id]
+;      (let [{:keys [id tag children]} @layout]
+;        (log-render "unified-rendering" node-id
+;          (if id
+;            [:div.unified {:data-pnid id
+;                           :class     (str "unified-" (name tag))}
+;             (condp = tag
+;               :tree (for [child-id children]
+;                       ^{:key child-id} [unified-rendering-component editor-id form-id child-id])
+;               :code [code-box-component editor-id form-id node-id]
+;               :comments [comments-box-component editor-id form-id node-id]
+;               :docs [docs-group-component editor-id form-id node-id]
+;               :headers [headers-group-component editor-id form-id node-id]
+;               (throw (str "don't know how to render tag " tag " (missing render component implementation)")))]
+;            [:div]))))))
 
-(defn render-tree-component [editor-id form-id node-id]
+(defn parts-to-class-names [parts]
+  (string/join " " (remove nil? (map (fn [[k v]]
+                                       {:pre [(keyword? k)]}
+                                       (if v (str "has-" (name k)))) parts))))
+
+(defn form-root-component [editor-id form-id node-id]
   (let [layout (subscribe [:editor-layout-form-node editor-id form-id node-id])
         selection-subscription (subscribe [:editor-selection-node editor-id node-id])]
     (fn [editor-id form-id node-id]
-      (log-render "render-tree" node-id
-        (let [{:keys [id tag children selectable?]} @layout]
-          [:div {:data-pnid id
-                 :class     (classv
-                              (name tag)
-                              (if selectable? "selectable")
-                              (if (and selectable? @selection-subscription) "selected"))}
-           (for [child-id children]
-             ^{:key child-id} [unified-rendering-component editor-id form-id child-id])])))))
-
-(defn unified-rendering-component [editor-id form-id node-id]
-  (let [layout (subscribe [:editor-layout-form-node editor-id form-id node-id])]
-    (fn [editor-id form-id node-id]
-      (let [{:keys [id tag]} @layout]
-        (log-render "unified-rendering" node-id
-          (if id
-            [:div.unified {:data-pnid id}
-             (condp = tag
-               :tree [render-tree-component editor-id form-id id node-id]
-               :code [code-box-component editor-id form-id node-id]
-               :docs [docs-group-component editor-id form-id node-id]
-               :headers [headers-group-component editor-id form-id node-id]
-               (throw (str "don't know how to render tag " tag " (missing render component implementation)")))]
-            [:div]))))))
-
-(defn form-skelet-component [_editor-id _form-id]
-  (fn [editor-id form-id]
-    (log-render "form-skelet" form-id
-      [:div.form-skelet
-       [unified-rendering-component editor-id form-id (id/make form-id :root)]])))
+      (log-render "form-root" node-id
+        (let [{:keys [id tag selectable? sections form-kind]} @layout
+              {:keys [headers docs code comments]} sections]
+          [:div.form-sections {:data-pnid id
+                               :class     (classv
+                                            (name tag)
+                                            (str "form-kind-" (name form-kind))
+                                            (parts-to-class-names sections)
+                                            (if selectable? "selectable")
+                                            (if (and selectable? @selection-subscription) "selected"))}
+           (if headers
+             [headers-section-component editor-id form-id headers])
+           (if docs
+             [docs-section-component editor-id form-id docs])
+           (if (or code comments)
+             [:div.code-section
+              (if code
+                [code-box-component editor-id form-id code])
+              (if comments
+                [comments-box-component editor-id form-id comments])])])))))
 
 (defn handle-form-click [_form-id event]
   (let [target-dom-node (.-target event)
@@ -61,8 +74,7 @@
           (dispatch :editor-toggle-selection editor-id #{selected-node-id}))))))
 
 (defn form-component [editor-id form-id]
-  (let [focused-form? (subscribe [:editor-focused-form-node editor-id form-id])
-        cursor? (subscribe [:editor-cursor-node editor-id (id/make form-id :root)])]
+  (let [focused-form? (subscribe [:editor-focused-form-node editor-id form-id])]
     (fn [editor-id form-id]
       (log-render "form" form-id
         [:tr
@@ -70,10 +82,9 @@
           [:div.form
            {:data-pnid form-id
             :class     (classv
-                         (if @cursor? "cursor")
                          (if @focused-form? "focused"))
             :on-click  (partial handle-form-click form-id)}
-           [form-skelet-component editor-id form-id]]]]))))
+           [form-root-component editor-id form-id (id/make form-id :root)]]]]))))
 
 (defn forms-component [_editor-id _order]
   (fn [editor-id order]

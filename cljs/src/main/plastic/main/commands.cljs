@@ -4,10 +4,11 @@
             [plastic.main.commands.settings :as settings]))
 
 (def handlers
-  {:toggle-headers           settings/toggle-headers
-   :toggle-code              settings/toggle-code
-   :toggle-docs              settings/toggle-docs
-   :toggle-selections-debug  settings/toggle-selections-debug})
+  {:toggle-headers          settings/toggle-headers
+   :toggle-code             settings/toggle-code
+   :toggle-docs             settings/toggle-docs
+   :toggle-comments         settings/toggle-comments
+   :toggle-selections-debug settings/toggle-selections-debug})
 
 (defn dispatch-command [db [command & args]]
   (if-let [handler (command handlers)]

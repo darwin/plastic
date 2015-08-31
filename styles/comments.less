@@ -1,0 +1,36 @@
+@import "./__config";
+
+@natural-padding: 6px;
+
+.plastic-editor-view {
+  
+  .comments-box {
+    margin-left: 6px;
+    padding: @natural-padding;
+    display: inline-block;
+//    padding: @natural-padding;
+  }
+  
+  .form-kind-comment-block .comments-box {
+    padding: 0;
+    margin: 0;
+    margin-top: 2em;
+  }
+  
+  .comment {
+    color: #aaa;
+    display: inline-block;
+    white-space: pre;
+    font-style: normal;
+  }
+
+  .form-kind-comment-block .comment {
+    padding: @natural-padding;
+    margin: -@natural-padding;
+  }
+  
+  .comment i {
+    opacity: 0.1;
+  }
+  
+} // .plastic-editor-view

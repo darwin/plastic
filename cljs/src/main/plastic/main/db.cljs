@@ -4,9 +4,10 @@
             [plastic.main.validator :as validator]))
 
 (def defaults
-  {:settings  {:headers-visible true
-               :code-visible    true
-               :docs-visible    true}
+  {:settings  {:headers-visible  true
+               :docs-visible     true
+               :code-visible     true
+               :comments-visible true}
    :undo-redo {}})
 
 ;; -- Application State  --------------------------------------------------------------------------------------------

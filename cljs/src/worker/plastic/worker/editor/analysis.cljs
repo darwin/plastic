@@ -15,7 +15,7 @@
 ; TODO: implement a cache to prevent recomputing analysis for unchanged forms
 (defn prepare-form-analysis [form-loc]
   {:pre [(zip-utils/valid-loc? form-loc)
-         (= (node/tag (zip/node (zip/up form-loc))) :forms)]}                                                         ; parent has to be :forms
+         (zip-utils/form? form-loc)]}
   (-> {}
     (analyze-calls form-loc)
     (analyze-scopes form-loc)

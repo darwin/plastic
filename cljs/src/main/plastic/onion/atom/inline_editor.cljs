@@ -36,7 +36,7 @@
   (let [inline-editor-view (get-atom-inline-editor-view-instance editor-id)]
     (.focus inline-editor-view)))
 
-(def known-editor-modes #{:switcher :symbol :keyword :doc :string})
+(def known-editor-modes #{:switcher :symbol :keyword :string})
 
 (defn editor-mode-to-class-name [editor-mode]
   {:pre [(contains? known-editor-modes editor-mode)]}
@@ -74,7 +74,7 @@
     ;:keyword (strip-colon text)
     text))
 
-(defn get-inline-editor-mode [editor-id]
+(defn get-inline-editor-mode-from-class [editor-id]
   {:post [(contains? known-editor-modes %)]}
   (let [$inline-editor-view ($ (get-atom-inline-editor-view-instance editor-id))]
     (class-name-to-editor-mode (some #(if (.hasClass $inline-editor-view %) %) known-editor-modes-classes))))
@@ -94,11 +94,12 @@
       (.setText inline-editor ""))))
 
 (defn update-inline-editor-state [editor-id inline-editor]
-  (let [current-value {:text (.getText inline-editor) :mode (get-inline-editor-mode editor-id)}
+  (let [current-value {:text (.getText inline-editor) :mode (get-inline-editor-mode-from-class editor-id)}
         initial-value (get-in @book-keeping [editor-id :initial-value])
-        current-state {:empty?    (.isEmpty inline-editor)
-                       :value     current-value
-                       :modified? (not= current-value initial-value)}]
+        current-state {:empty?        (.isEmpty inline-editor)
+                       :value         current-value
+                       :initial-value initial-value
+                       :modified?     (not= current-value initial-value)}]
     (dispatch :editor-update-inline-editor editor-id current-state)))
 
 (defn update-puppets! [editor-id]
@@ -140,15 +141,16 @@
           disposable-id (.onDidChange inline-editor handler)]
       (swap! book-keeping assoc editor-id {:on-did-change-disposable-id disposable-id}))))
 
-(defn setup-inline-editor-for-editing [editor-id text mode]
-  {:pre [(contains? known-editor-modes mode)]}
+(defn setup-inline-editor-for-editing [editor-id setup]
+  {:pre [(contains? known-editor-modes (:mode setup))]}
   (let [inline-editor (get-atom-inline-editor-instance editor-id)
         inline-editor-view (get-atom-inline-editor-view-instance editor-id)
+        {:keys [mode text]} setup
         initial-text (preprocess-text-before-editing mode text)]
     (initial-inline-editor-setup-if-needed editor-id inline-editor inline-editor-view)
     (swap! book-keeping update editor-id #(-> %
                                            (assoc :active true)
-                                           (assoc :initial-value {:text text :mode mode})))
+                                           (assoc :initial-value setup)))
     ; synchronous updates prevent intermittent jumps
     ; editor gets correct dimensions before it gets appended in the DOM
     (update-inline-editor-synchronously inline-editor-view
@@ -170,8 +172,8 @@
         (fancy-log log-label "setup, append, focus and add \"inline-editor-active\" class to the root-view"))
       (.addClass $root-view "inline-editor-active")
       (let [editor (get-in @db [:editors editor-id])
-            [text mode] (editor/get-editing-text-and-mode editor)]
-        (setup-inline-editor-for-editing editor-id text mode)
+            setup (editor/get-editing-setup editor)]
+        (setup-inline-editor-for-editing editor-id setup)
         (append-inline-editor editor-id $root-view)                                                                   ; temporary, react renderer will relocate it to proper place, see activate-transplantation
         (focus-inline-editor editor-id)))))                                                                           ; it is important to focus inline editor ASAP, so we don't lose keystrokes
 

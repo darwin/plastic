@@ -56,9 +56,7 @@
 '.plastic-editor-view atom-text-editor':
   'ctrl-up': 'plastic:stop-editing'
   'ctrl-down': 'plastic:nop'
-  'enter': 'plastic:enter'
   'escape': 'plastic:stop-editing'
-  'alt-enter': 'plastic:alt-enter'
   'ctrl-shift-space': 'plastic:toggle-puppets'
 
 '.plastic-editor-view atom-text-editor.empty':
@@ -74,6 +72,7 @@
 
 '.plastic-editor-view atom-text-editor:not(.plastic-mode-string)':
   'enter': 'plastic:enter'
+  'alt-enter': 'plastic:alt-enter'
   'space': 'plastic:space'
   'tab': 'plastic:next-interest'
   'alt-tab': 'plastic:prev-interest'

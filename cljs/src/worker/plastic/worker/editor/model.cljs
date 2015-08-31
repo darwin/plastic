@@ -6,7 +6,8 @@
             [rewrite-clj.node :as node]
             [plastic.util.helpers :as helpers]
             [plastic.util.zip :as zip-utils]
-            [plastic.worker.editor.toolkit.id :as id]))
+            [plastic.worker.editor.toolkit.id :as id]
+            [clojure.zip :as z]))
 
 (defprotocol IEditor)
 
@@ -64,7 +65,7 @@
 
 (defn set-parse-tree [editor parse-tree]
   {:pre [(valid-editor? editor)
-         (= (node/tag parse-tree) :forms)]}
+         (= (node/tag parse-tree) :top)]}
   (or
     (when-not (identical? (get-parse-tree editor) parse-tree)
       (dispatch :editor-update-layout (get-id editor))
@@ -175,11 +176,11 @@
     (zip-utils/make-zipper parse-tree)))                                                                              ; root "forms" node
 
 (defn get-top-level-locs [editor]
-  (let [first-top-level-form-loc (zip/down (get-parse-tree-zipper editor))]
+  (let [first-top-level-form-loc (z/down (get-parse-tree-zipper editor))]
     (zip-utils/collect-all-right first-top-level-form-loc)))
 
-(defn get-top-level-form-locs [editor]
-  (remove zip-utils/whitespace? (get-top-level-locs editor)))
+(defn get-form-locs [editor]
+  (get-top-level-locs editor))
 
 (defn find-node-loc [editor node-id]
   {:pre [(valid-editor? editor)]}
@@ -212,7 +213,7 @@
 
 (defn apply-to-forms [editor selector f]
   {:pre [(valid-editor? editor)]}
-  (process (get-top-level-form-locs editor) editor
+  (process (get-form-locs editor) editor
     (fn [editor form-loc]
       (if (helpers/selector-matches? selector (zip-utils/loc-id form-loc))
         (or (f editor form-loc) editor)

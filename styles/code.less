@@ -1,32 +1,31 @@
 @import "./__config";
 
-@natural-padding: 6px;
-
 .plastic-editor-view {
 
-  .code-box {
-    margin-left: @form-inner-indent;
-    display: inline-block;
-    padding-right: 1em;
-    padding: @natural-padding;
-    background-color: #161719; // TODO: should be same as .scope-1
-    border-radius: 2px;
+  .code-section {
+    display: flex;
   }
   
-  .code-box.form-kind-ns {
-    margin-left: 0;
-    background-color: @ns-background-color;
+  .code-box {
+    display: inline-block;
+    background-color: #161719; // TODO: should be same as .scope-1
+    border-radius: 2px;
     padding: @natural-padding;
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
-    margin-left: -6px;
+  }
+  
+  .form-kind-ns .code-box {
+    background-color: @ns-background-color;
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+    padding-bottom: 4px;
     border-bottom: 4px solid lighten(@ns-background-color, 10%);
   }
   
-  .code-box.form-kind-declare {
-    margin-left: 0;
+  .form-kind-empty-line .code-box {
+    background-color: inherit;
+    padding: 0px;
   }
-
+  
   .block {
     display: inline-block;
     white-space: nowrap;
@@ -44,6 +43,7 @@
   
   table.elements {
     display: inline-block;
+    margin-bottom: -3px;
   }
   
   div.elements {
@@ -107,8 +107,8 @@
     vertical-align: top;
   }
 
-  .closer {
-    vertical-align: bottom !important;
-  }
+  // .closer {
+  //   vertical-align: bottom !important;
+  // }
   
 } // .plastic-editor-view

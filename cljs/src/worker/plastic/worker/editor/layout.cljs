@@ -11,15 +11,14 @@
             [plastic.worker.editor.layout.selections :refer [build-selections-render-info]]
             [plastic.worker.editor.layout.structural :refer [build-structural-web]]
             [plastic.worker.editor.layout.spatial :refer [build-spatial-web]]
-            [plastic.util.zip :as zip-utils]
+            [plastic.util.zip :as zip-utils :refer [valid-loc?]]
             [plastic.worker.editor.layout.utils :as utils]
             [plastic.worker.paths :as paths]
             [plastic.util.helpers :refer [prepare-map-patch]]))
 
 (defn update-form-layout [editor form-loc]
-  {:pre [(zip/node form-loc)
-         (= (zip/tag (zip/up form-loc)) :forms)                                                                       ; parent has to be :forms
-         (= 1 (count (node/children (zip/node (zip/up form-loc)))))]}                                                 ; root-loc is the only child
+  {:pre [(valid-loc? form-loc)
+         (zip-utils/form? form-loc)]}
   (let [editor-id (editor/get-id editor)
         form-id (zip-utils/loc-id form-loc)
         layout (build-layout form-loc)
@@ -55,15 +54,15 @@
   (editor/apply-to-editors editors selector
     (fn [editor]
       {:pre [(editor/parsed? editor)]}
-      (let [independent-top-level-locs (map zip/down
-                                         (map zip-utils/independent-zipper (editor/get-top-level-form-locs editor)))
+      (let [form-locs (editor/get-form-locs editor)
+            independent-form-locs (map zip-utils/independent-zipper form-locs)
             old-render-state (editor/get-render-state editor)
-            new-render-state {:order (map #(zip-utils/loc-id %) independent-top-level-locs)}]
+            new-render-state {:order (map #(zip-utils/loc-id %) independent-form-locs)}]
         (if (not= old-render-state new-render-state)
           (main-dispatch :editor-update-render-state (:id editor) new-render-state))
         (-> editor
           (editor/set-render-state new-render-state)
-          (update-forms-layout-if-needed independent-top-level-locs))))))
+          (update-forms-layout-if-needed independent-form-locs))))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; register handlers

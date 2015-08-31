@@ -11,5 +11,8 @@
 (defn toggle-docs [db]
   (toggle-setting db :docs-visible))
 
+(defn toggle-comments [db]
+  (toggle-setting db :comments-visible))
+
 (defn toggle-selections-debug [db]
   (toggle-setting db :selections-debug-visible))

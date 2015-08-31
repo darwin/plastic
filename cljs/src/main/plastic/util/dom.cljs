@@ -5,7 +5,8 @@
             [plastic.onion.api :refer [$]]
             [plastic.onion.atom :as atom]
             [plastic.main.editor.toolkit.id :as id]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [clojure.string :as str]))
 
 (defn node-from-react [react-component]
   (let [dom-node (.getDOMNode react-component)]                                                                       ; TODO: deprecated!
@@ -103,9 +104,6 @@
   (let [$editor ($ (find-plastic-editor editor-id))]
     (find $editor (str ".form[data-pnid=" form-id "]"))))
 
-(defn skelet-node? [dom-node]
-  (boolean (try-find-closest dom-node ".form-skelet")))
-
 (defn inline-editor-present? [dom-node]
   (single-result? (.children ($ dom-node) "atom-text-editor")))
 
@@ -113,3 +111,10 @@
   (if-let [node-ids-seq (seq node-ids)]
     (string/join "," (map (fn [id] (str "[data-pnid=" id "]")) node-ids-seq))
     "[data-pnid=NONE]"))
+
+(defn escape-html [text]
+  (-> text
+    (str/replace "&"  "&amp;")
+    (str/replace "<"  "&lt;")
+    (str/replace ">"  "&gt;")
+    (str/replace "\"" "&quot;")))

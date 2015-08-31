@@ -35,6 +35,7 @@ module.exports = Plastic =
       'plastic:toggle-headers'
       'plastic:toggle-docs'
       'plastic:toggle-code'
+      'plastic:toggle-comments'
       'plastic:toggle-selections-debug'
     ]
 

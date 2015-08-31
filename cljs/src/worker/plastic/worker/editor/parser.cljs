@@ -11,9 +11,8 @@
   (editor/apply-to-editors editors editor-selector
     (fn [editor]
       (let [text (editor/get-text editor)
-            parse-tree (rewrite-cljs/parse-string-all text)
-            unique-parse-tree (utils/make-nodes-unique parse-tree)]
-        (editor/set-parse-tree editor unique-parse-tree)))))
+            parse-tree (utils/parse text)]
+        (editor/set-parse-tree editor parse-tree)))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; register handlers

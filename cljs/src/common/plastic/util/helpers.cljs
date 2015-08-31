@@ -91,6 +91,12 @@
     (.substring text 1)
     text))
 
+(defn strip-semicolor-and-whitespace-left [text]
+  (.replace text #"^[;]+[\s\t]?" ""))
+
+(defn count-lines [text]
+  (.-length (.split text "\n")))
+
 (defn selector-matches? [selector id]
   (cond
     (nil? selector) true

@@ -15,12 +15,14 @@
             (for [args arities]
               ^{:key (goog/getUid args)} [:div.args args])]])))))
 
-(defn headers-group-component [editor-id form-id node-id]
+(defn headers-section-component [editor-id form-id node-id]
   (let [layout (subscribe [:editor-layout-form-node editor-id form-id node-id])
-        headers-visible (subscribe [:settings :headers-visible])]
-    (fn [editor-id form-id node-id]
-      (log-render "headers-group" node-id
-        [:div.headers-group
-         (if @headers-visible
-           (for [header-id (:children @layout)]
-             ^{:key header-id} [header-component editor-id form-id header-id]))]))))
+        headers-visible (subscribe [:settings :headers-visible])
+        emitter (fn [header-id]
+                  ^{:key header-id} [header-component editor-id form-id header-id])]
+    (fn [_editor-id _form-id node-id]
+      (log-render "headers-section" node-id
+        (let [{:keys [children]} @layout]
+          [:div.headers-section
+           (if @headers-visible
+             (map emitter children))])))))

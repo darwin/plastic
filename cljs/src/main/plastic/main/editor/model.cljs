@@ -92,7 +92,7 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn get-layout-info-for-node [editor node-id]
+(defn get-layout-for-node [editor node-id]
   {:pre [(valid-editor? editor)]}
   (let [form-id (get-form-id-for-node-id editor node-id)
         _ (assert form-id)
@@ -274,17 +274,20 @@
   (let [editing (:editing editor)]
     (and editing (not (empty? editing)))))
 
-(defn layout-info-type->editor-mode [type]
+(defn layout-type->editor-mode [type]
   (condp = type
     :doc :string                                                                                                      ; doc nodes should be edited as strings for now
+    :comment :string
     type))
 
-(defn get-editing-text-and-mode [editor]
+(defn get-editing-setup [editor]
   {:pre [(valid-editor? editor)
          (editing? editor)]}
   (let [editing (get-editing editor)
-        layout-info (get-layout-info-for-node editor editing)]
-    [(:text layout-info) (layout-info-type->editor-mode (:type layout-info))]))
+        layout (get-layout-for-node editor editing)]
+    {:text (:text layout)
+     :type (:type layout)
+     :mode (layout-type->editor-mode (:type layout))}))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -347,7 +350,9 @@
 (defn get-form-id-for-node-id [editor node-id]
   {:pre [(valid-editor? editor)]}
   (let [form-ids (get-top-level-form-ids editor)]
-    (some #(if (is-node-present-in-form? editor node-id %) %) form-ids)))
+    (if (some #{node-id} form-ids)
+      node-id
+      (some #(if (is-node-present-in-form? editor node-id %) %) form-ids))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; cursor
@@ -410,6 +415,10 @@
 (defn get-inline-editor-value [editor]
   {:pre [(valid-editor? editor)]}
   (:value (get-inline-editor editor)))
+
+(defn get-inline-editor-initial-value [editor]
+  {:pre [(valid-editor? editor)]}
+  (:initial-value (get-inline-editor editor)))
 
 (defn get-inline-editor-mode [editor]
   {:pre [(valid-editor? editor)]}

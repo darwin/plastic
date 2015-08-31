@@ -42,22 +42,21 @@
         (fancy-log log-label "returning focus back to root-view"))
       (.focus $root-view))))
 
-(defn inline-editor-transplantation [action react-component]
+(defn transplant-inline-editor [action react-component]
   (let [$dom-node ($ (dom/node-from-react react-component))]
-    (if (dom/skelet-node? $dom-node)
-      (condp = action
-        :activate (activate-transplantation $dom-node)
-        :deactivate (deactivate-transplantation $dom-node)))))
+    (condp = action
+      :activate (activate-transplantation $dom-node)
+      :deactivate (deactivate-transplantation $dom-node))))
 
-(defn inline-editor-scaffold [render-fn]
+(defn inline-editor-class [render-fn]
   (reagent/create-class
-    {:component-did-mount    (partial inline-editor-transplantation :activate)
-     :component-did-update   (partial inline-editor-transplantation :activate)
-     :component-will-unmount (partial inline-editor-transplantation :deactivate)
+    {:component-did-mount    (partial transplant-inline-editor :activate)
+     :component-did-update   (partial transplant-inline-editor :activate)
+     :component-will-unmount (partial transplant-inline-editor :deactivate)
      :reagent-render         render-fn}))
 
 (defn inline-editor-component []
-  (inline-editor-scaffold
+  (inline-editor-class
     (fn [node-id]
       [:div.inline-editor
        {:data-pnid node-id}])))

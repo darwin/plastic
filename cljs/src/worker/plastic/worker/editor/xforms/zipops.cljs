@@ -29,13 +29,6 @@
   (let [sticky-bits (select-keys old-node [:id])]
     (merge new-node sticky-bits)))
 
-(defn empty-value? [node]
-  (let [text (node/string node)
-        sexpr (node/sexpr node)]
-    (or
-      (and (symbol? sexpr) (empty? text))
-      (and (keyword? sexpr) (= ":" text)))))
-
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn report* [f report loc]
@@ -127,7 +120,7 @@
   [(z/edit loc (fn [old-node] (transfer-sticky-attrs old-node new-node))) (report-modified report loc)])
 
 (defn commit [new-node [loc report]]
-  (if-not (empty-value? new-node)
+  (if new-node
     (edit new-node [loc report])
     (remove [loc report])))
 

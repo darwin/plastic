@@ -25,10 +25,11 @@
       ((continue cb) (disable-editing-mode editor))
       (let [edited-node-id (editor/get-editing editor)
             value (editor/get-inline-editor-value editor)
+            initial-value (editor/get-inline-editor-initial-value editor)
             moved-cursor (editor/get-cursor (move-cursor-for-case-of-selected-node-removal editor))
             effective? (editor/get-inline-editor-puppets-effective? editor)
             puppets (if effective? (editor/get-puppets editor) #{})]
-        (xform-editor-on-worker (disable-editing-mode editor) [:edit edited-node-id puppets value]
+        (xform-editor-on-worker (disable-editing-mode editor) [:edit edited-node-id puppets value initial-value]
           (fn [editor]
             ((continue cb) (sanitize-cursor editor moved-cursor))))))))
 
