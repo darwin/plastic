@@ -7,13 +7,15 @@
 .plastic-editor-view {
   
   .scope {
-    padding: 1px 2px;
+    padding: 0px;
     margin-top: -1px;
+    border-top-width: 1px;
+    border-top-style: solid;
   }
 
   .scope.after-nl {
-    margin-top: 2px;
-    padding: 2px 2px;
+    margin-top: 1px;
+    padding-top: 2px;
   }
 
   .makeScope(@scope, @color) {
@@ -75,7 +77,9 @@
       @depth: @base-index + @i - 1;
 
       .scope-depth-@{depth} {
-        background-color: mix(@start, @end, (@depth-steps - @i)*@depth-increment);
+        @bg-color: mix(@start, @end, (@depth-steps - @i)*@depth-increment);
+        background-color: @bg-color;
+        border-top-color: lighten(@bg-color, 1);
       }
       
       .makeDepths(@start, @end, @base-index, (@i - 1));
