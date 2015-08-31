@@ -3,20 +3,7 @@
   (:require [clojure.string :as string]
             [figwheel.client :as figwheel]
             [figwheel.client.socket :as socket]
-            [figwheel.client.utils :as utils]
-            [figwheel.client.file-reloading :as reloading]))
-
-; note: figwheel does not play well with advanced optimizations, do not include it
-
-(defonce _
-  (let [original-ns-to-js-file reloading/ns-to-js-file]
-    (log "patching figwheel's ns-to-js-file")
-    (set! reloading/ns-to-js-file
-      (fn [ns]
-        (let [res (original-ns-to-js-file ns)]
-          (condp = res
-            "goog/string/format.js" "goog/string/stringformat.js"
-            res))))))
+            [figwheel.client.utils :as utils]))
 
 (defonce need-loophole? true)
 
