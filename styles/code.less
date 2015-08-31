@@ -1,17 +1,22 @@
 @import "./__config";
 
+@natural-padding: 8px;
+
 .plastic-editor-view {
 
   .code-box {
     margin-left: @form-inner-indent;
     display: inline-block;
     padding-right: 1em;
+    padding: @natural-padding;
+    background-color: #161719; // TODO: should be same as .scope-1
+    border-radius: 2px;
   }
   
   .code-box.form-kind-ns {
     margin-left: 0;
     background-color: @ns-background-color;
-    padding: 6px 6px;
+    padding: @natural-padding;
     border-top-left-radius: 4px;
     border-top-right-radius: 4px;
     margin-left: -6px;

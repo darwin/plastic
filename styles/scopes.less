@@ -7,7 +7,13 @@
 .plastic-editor-view {
   
   .scope {
-//    margin-bottom: 1px;
+    padding: 1px 2px;
+    margin-top: -1px;
+  }
+
+  .scope.after-nl {
+    margin-top: 2px;
+    padding: 2px 2px;
   }
 
   .makeScope(@scope, @color) {
@@ -30,13 +36,13 @@
       
   }
   
-  // purple is keywords
-  // green is strings
-  // -- other colors are avail
+  // purple is for keywords
+  // red is for strings
+  // -- other colors are avail, first few colors must be nice
   .makeScope(1, hsl(200, @scope-saturation, @scope-lightness));
   .makeScope(2, hsl(50, @scope-saturation, @scope-lightness));
   .makeScope(3, hsl(280, @scope-saturation, @scope-lightness));
-  .makeScope(4, hsl(160, @scope-saturation, @scope-lightness));
+  .makeScope(4, hsl(130, @scope-saturation, @scope-lightness));
   .makeScope(5, hsl(0, @scope-saturation, @scope-lightness));
   .makeScope(6, hsl(120, @scope-saturation, @scope-lightness));
   .makeScope(7, hsl(300, @scope-saturation, @scope-lightness));
