@@ -10,7 +10,7 @@
    [com.cognitect/transit-cljs "0.8.225"]
    [re-frame "0.4.1"]
    [rewrite-cljs "0.3.1"]
-   [binaryage/devtools "0.1.2"]                                                                                       ; Electron 0.28.2 has old Blink, we have to stick with this old version of devtools for now
+   [binaryage/devtools "0.3.0"]
    [figwheel "0.3.8"]
    [rm-hull/inkspot "0.0.1-SNAPSHOT"]
    [spellhouse/phalanges "0.1.6"]
