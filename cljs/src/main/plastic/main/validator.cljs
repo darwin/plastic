@@ -3,7 +3,7 @@
   (:require [schema.core :as s :include-macros true]
             [plastic.validator :refer [cached factory TODO! string! editor-id! node-id-set! editor-render-state!
                                        editor-layout! editor-selectables! editor-spatial-web! editor-structural-web!
-                                       editor-analysis! integer! key? bool! keyword!]]
+                                       editor-analysis! integer! key? bool! keyword! all!]]
             [plastic.main.editor.model :as editor]
             [plastic.main.editor.toolkit.id :as id]))
 
@@ -54,7 +54,7 @@
 
 (def editor!
   (cached
-    (s/both
+    (all!
       (s/protocol editor/IEditor)
       editor-members!
       (s/pred editor-cursor-consistent?)
@@ -69,7 +69,7 @@
    (s/one editor! "editor snapshot")])
 
 (def undo-redo-queue!
-  (s/both
+  (all!
     (s/pred vector?)
     [undo-redo-item!]))
 

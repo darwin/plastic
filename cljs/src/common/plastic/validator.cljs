@@ -63,7 +63,11 @@
 
 (def editor-id! integer!)
 
-(def node-id! (s/either integer! string!))
+(def either! s/either)
+
+(def all! s/both)
+
+(def node-id! (either! integer! string!))
 
 (def node-id? (s/maybe node-id!))
 
@@ -92,7 +96,7 @@
      (key? :line)     line-number!
      (key? :text)     string!
      (key? :type)     keyword!
-     (key? :children) (s/either children-table! node-id-list!)
+     (key? :children) (either! children-table! node-id-list!)
      keyword!         TODO!}))
 
 (def editor-layout!
@@ -105,7 +109,7 @@
      (key? :line)     line-number!
      (key? :text)     string!
      (key? :type)     keyword!
-     (key? :children) (s/either children-table! node-id-list!)
+     (key? :children) (either! children-table! node-id-list!)
      keyword!         TODO!}))
 
 (def editor-selectables!

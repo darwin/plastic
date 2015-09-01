@@ -3,7 +3,7 @@
   (:require [schema.core :as s :include-macros true]
             [plastic.validator :refer [cached factory editor-id! editor-render-state! editor-layout! TODO!
                                        editor-selectables! editor-spatial-web! editor-structural-web! editor-analysis!
-                                       form-id! anything string! key?]]
+                                       form-id! anything string! key? all!]]
             [plastic.worker.editor.model :as editor]))
 
 ; -------------------------------------------------------------------------------------------------------------------
@@ -26,7 +26,7 @@
    (key? :xform-report)              TODO!})
 
 (def editor!
-  (cached (s/both
+  (cached (all!
             (s/protocol editor/IEditor)
             editor-members!)))
 
@@ -35,7 +35,7 @@
    (s/one editor! "editor snapshot")])
 
 (def undo-redo-queue!
-  (s/both
+  (all!
     (s/pred vector?)
     [undo-redo-item!]))
 
