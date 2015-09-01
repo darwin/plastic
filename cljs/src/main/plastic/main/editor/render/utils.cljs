@@ -1,8 +1,7 @@
 (ns plastic.main.editor.render.utils
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [clojure.string :as string]
-            [plastic.onion.api :refer [$]]
-            [plastic.util.dom :as dom]))
+            [plastic.onion.api :refer [$]]))
 
 (defn dangerously-set-html [html]
   {:dangerouslySetInnerHTML {:__html html}})
@@ -29,3 +28,8 @@
   (if (= (last s) "\n")
     (str s "&nbsp;")
     s))
+
+(defn sections-to-class-names [parts]
+  (string/join " " (remove nil? (map (fn [[k v]]
+                                       {:pre [(keyword? k)]}
+                                       (if v (str "has-" (name k)))) parts))))
