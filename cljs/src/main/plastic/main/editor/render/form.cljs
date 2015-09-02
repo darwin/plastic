@@ -11,31 +11,6 @@
             [plastic.main.editor.render.utils :refer [dangerously-set-html classv sections-to-class-names]]
             [plastic.main.editor.toolkit.id :as id]))
 
-(defn form-body-component [editor-id form-id node-id]
-  (let [layout (subscribe [:editor-layout-form-node editor-id form-id node-id])
-        selection-subscription (subscribe [:editor-selection-node editor-id node-id])]
-    (fn [editor-id form-id node-id]
-      (log-render "form-root" node-id
-        (let [{:keys [id tag selectable? sections form-kind]} @layout
-              {:keys [headers docs code comments]} sections]
-          [:div.form-body {:data-pnid id
-                           :class     (classv
-                                        (name tag)
-                                        (str "form-kind-" (name form-kind))
-                                        (sections-to-class-names sections)
-                                        (if selectable? "selectable")
-                                        (if (and selectable? @selection-subscription) "selected"))}
-           (if headers
-             [headers-section-component editor-id form-id headers])
-           (if docs
-             [docs-section-component editor-id form-id docs])
-           (if (or code comments)
-             [:div.code-section
-              (if code
-                [code-box-component editor-id form-id code])
-              (if comments
-                [comments-box-component editor-id form-id comments])])])))))
-
 (defn handle-form-click [_form-id event]
   (let [target-dom-node (.-target event)
         _ (assert target-dom-node)
@@ -50,14 +25,33 @@
           (dispatch :editor-toggle-selection editor-id #{selected-node-id}))))))
 
 (defn form-component [editor-id form-id]
-  (let [focused-form? (subscribe [:editor-focused-form-node editor-id form-id])]
+  (let [root-id (id/make form-id :root)
+        focused? (subscribe [:editor-focused-form-node editor-id form-id])
+        layout (subscribe [:editor-layout-form-node editor-id form-id root-id])
+        selection-subscription (subscribe [:editor-selection-node editor-id root-id])]
     (fn [editor-id form-id]
       (log-render "form" form-id
-        [:tr
-         [:td
-          [:div.form
-           {:data-pnid form-id
-            :class     (classv
-                         (if @focused-form? "focused"))
-            :on-click  (partial handle-form-click form-id)}
-           [form-body-component editor-id form-id (id/make form-id :root)]]]]))))
+        (let [{:keys [tag selectable? sections form-kind]} @layout
+              {:keys [headers docs code comments]} sections]
+          [:tr
+           [:td
+            [:div.form
+             {:data-pnid form-id
+              :class     (classv
+                           (name tag)
+                           (str "form-kind-" (name form-kind))
+                           (if @focused? "focused")
+                           (sections-to-class-names sections)
+                           (if selectable? "selectable")
+                           (if (and selectable? @selection-subscription) "selected"))
+              :on-click  (partial handle-form-click form-id)}
+             (if headers
+               [headers-section-component editor-id form-id headers])
+             (if docs
+               [docs-section-component editor-id form-id docs])
+             (if (or code comments)
+               [:div.code-section
+                (if code
+                  [code-box-component editor-id form-id code])
+                (if comments
+                  [comments-box-component editor-id form-id comments])])]]])))))

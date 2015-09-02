@@ -18,7 +18,8 @@
         (let [{:keys [order]} @state]
           [:div.plastic-editor                                                                                        ; .editor class is taken by Atom
            {:data-peid editor-id
-            :class     (classv (if @selections-debug-visible "debug-selections"))
+            :class     (classv
+                         (if @selections-debug-visible "debug-selections"))
             :on-click  (partial handle-editor-click editor-id)}
            [:table.form-table
             [:tbody
