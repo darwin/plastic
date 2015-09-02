@@ -28,20 +28,20 @@
   (let [root-id (id/make form-id :root)
         focused? (subscribe [:editor-focused-form-node editor-id form-id])
         layout (subscribe [:editor-layout-form-node editor-id form-id root-id])
-        selection-subscription (subscribe [:editor-selection-node editor-id root-id])]
+        selected? (subscribe [:editor-selection-node editor-id root-id])]
     (fn [editor-id form-id]
       (log-render "form" form-id
-        (let [{:keys [tag selectable? sections form-kind]} @layout
+        (let [selected? @selected?
+              {:keys [selectable? sections form-kind]} @layout
               {:keys [headers docs code comments]} sections]
           [:div.form
            {:data-pnid form-id
             :class     (classv
-                         (name tag)
                          (str "form-kind-" (name form-kind))
                          (if @focused? "focused")
                          (sections-to-class-names sections)
                          (if selectable? "selectable")
-                         (if (and selectable? @selection-subscription) "selected"))
+                         (if (and selectable? selected?) "selected"))
             :on-click  (partial handle-form-click form-id)}
            (if headers
              [headers-section-component editor-id form-id headers])
