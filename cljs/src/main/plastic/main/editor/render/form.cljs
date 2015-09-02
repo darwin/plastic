@@ -33,25 +33,23 @@
       (log-render "form" form-id
         (let [{:keys [tag selectable? sections form-kind]} @layout
               {:keys [headers docs code comments]} sections]
-          [:tr
-           [:td
-            [:div.form
-             {:data-pnid form-id
-              :class     (classv
-                           (name tag)
-                           (str "form-kind-" (name form-kind))
-                           (if @focused? "focused")
-                           (sections-to-class-names sections)
-                           (if selectable? "selectable")
-                           (if (and selectable? @selection-subscription) "selected"))
-              :on-click  (partial handle-form-click form-id)}
-             (if headers
-               [headers-section-component editor-id form-id headers])
-             (if docs
-               [docs-section-component editor-id form-id docs])
-             (if (or code comments)
-               [:div.code-section
-                (if code
-                  [code-box-component editor-id form-id code])
-                (if comments
-                  [comments-box-component editor-id form-id comments])])]]])))))
+          [:div.form
+           {:data-pnid form-id
+            :class     (classv
+                         (name tag)
+                         (str "form-kind-" (name form-kind))
+                         (if @focused? "focused")
+                         (sections-to-class-names sections)
+                         (if selectable? "selectable")
+                         (if (and selectable? @selection-subscription) "selected"))
+            :on-click  (partial handle-form-click form-id)}
+           (if headers
+             [headers-section-component editor-id form-id headers])
+           (if docs
+             [docs-section-component editor-id form-id docs])
+           (if (or code comments)
+             [:div.code-section
+              (if code
+                [code-box-component editor-id form-id code])
+              (if comments
+                [comments-box-component editor-id form-id comments])])])))))

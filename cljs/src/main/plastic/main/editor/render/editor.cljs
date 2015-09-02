@@ -21,7 +21,6 @@
             :class     (classv
                          (if @selections-debug-visible "debug-selections"))
             :on-click  (partial handle-editor-click editor-id)}
-           [:table.form-table
-            [:tbody
-             (for [form-id order]
-               ^{:key form-id} [form-component editor-id form-id])]]])))))
+           [:div.forms
+            (for [form-id order]
+              ^{:key form-id} [form-component editor-id form-id])]])))))
