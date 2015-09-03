@@ -81,10 +81,13 @@
 (def get-by-id (partial get-by-key :id))
 
 (defn next-item [f coll]
-  (nth (drop-while #(not (f %)) coll) 1 nil))
+  (let [tail (drop-while #(not (f %)) coll)]
+    (if (empty? tail)
+      (first coll)
+      (second tail))))
 
 (defn prev-item [f coll]
-  (last (take-while #(not (f %)) coll)))
+  (next-item f (reverse coll)))
 
 (defn strip-colon [text]
   (if (= (first text) ":")
@@ -214,3 +217,14 @@
       (if (nil? (get m key))
         (dissoc accum key)
         accum))))
+
+(defn transform-map-vals
+  ([m f] (transform-map-vals m f {}))
+  ([m f init] {:pre [(map? m)]} (reduce-kv #(assoc %1 %2 (f %3)) init m)))
+
+(defn best-val [s op]
+  (process s ::nil
+    (fn [best val]
+      (if (or (= best ::nil) (op val best))
+        val
+        best))))

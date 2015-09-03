@@ -26,11 +26,23 @@
 (defn mid-point [geometry]
   (+ (:left geometry) (/ (:width geometry) 2)))
 
+(defn width [geometry]
+  (or (:width geometry) 0))
+
+(defn height [geometry]
+  (or (:height geometry) 0))
+
 (defn left-point [geometry]
   (or (:left geometry) 0))
 
+(defn top-point [geometry]
+  (or (:top geometry) 0))
+
 (defn right-point [geometry]
-  (+ (:left geometry) (:width geometry)))
+  (+ (left-point geometry) (width geometry)))
+
+(defn bottom-point [geometry]
+  (+ (top-point geometry) (height geometry)))
 
 (defn overlap-score* [[l1 r1] [l2 r2]]
   {:pre [(<= l1 l2)]}

@@ -1,67 +1,23 @@
 (ns plastic.main.editor.ops.cursor
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.main :refer [react! dispatch]]
-                   [plastic.common :refer [process]])
-  (:require [plastic.main.editor.model :as editor]
-            [plastic.util.helpers :as helpers]
-            [plastic.main.editor.ops.movement.form :refer [move-form]]
-            [plastic.main.editor.ops.movement.interest :refer [interest-movement-prev-next]]
-            [plastic.main.editor.ops.movement.spatial :refer [spatial-movement-left-right spatial-movement-up-down]]
+  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
+  (:require [plastic.main.editor.ops.movement.form :refer [form-movement]]
+            [plastic.main.editor.ops.movement.interest :refer [interest-movement]]
+            [plastic.main.editor.ops.movement.spatial :refer [spatial-movement]]
             [plastic.main.editor.ops.movement.structural :refer [structural-movemement]]))
 
-; -------------------------------------------------------------------------------------------------------------------
-
-(defn move-spatial-down [editor]
-  (spatial-movement-up-down editor inc))
-
-(defn move-spatial-up [editor]
-  (spatial-movement-up-down editor dec))
-
-(defn move-spatial-right [editor]
-  (spatial-movement-left-right editor :right))
-
-(defn move-spatial-left [editor]
-  (spatial-movement-left-right editor :left))
-
-(defn move-structural-up [editor]
-  (structural-movemement editor :up))
-
-(defn move-structural-down [editor]
-  (structural-movemement editor :down))
-
-(defn move-structural-left [editor]
-  (structural-movemement editor :left))
-
-(defn move-structural-right [editor]
-  (structural-movemement editor :right))
-
-(defn move-prev-form [editor]
-  (move-form editor helpers/prev-item editor/get-last-selectable-token-id-for-form))
-
-(defn move-next-form [editor]
-  (move-form editor helpers/next-item editor/get-first-selectable-token-id-for-form))
-
-(defn move-next-interest [editor]
-  (interest-movement-prev-next editor helpers/next-item))
-
-(defn move-prev-interest [editor]
-  (interest-movement-prev-next editor helpers/prev-item))
-
-; -------------------------------------------------------------------------------------------------------------------
-
 (def movements
-  {:spatial-up       move-spatial-up
-   :spatial-down     move-spatial-down
-   :spatial-left     move-spatial-left
-   :spatial-right    move-spatial-right
-   :structural-up    move-structural-up
-   :structural-down  move-structural-down
-   :structural-left  move-structural-left
-   :structural-right move-structural-right
-   :prev-form        move-prev-form
-   :next-form        move-next-form
-   :prev-interest    move-prev-interest
-   :next-interest    move-next-interest})
+  {:spatial-up       (partial spatial-movement :up)
+   :spatial-down     (partial spatial-movement :down)
+   :spatial-left     (partial spatial-movement :left)
+   :spatial-right    (partial spatial-movement :right)
+   :structural-up    (partial structural-movemement :up)
+   :structural-down  (partial structural-movemement :down)
+   :structural-left  (partial structural-movemement :left)
+   :structural-right (partial structural-movemement :right)
+   :prev-form        (partial form-movement :prev)
+   :next-form        (partial form-movement :next)
+   :prev-interest    (partial interest-movement :prev)
+   :next-interest    (partial interest-movement :next)})
 
 (defn apply-moves [editor moves-to-try]
   (if-let [movement (first moves-to-try)]

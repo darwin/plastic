@@ -147,3 +147,7 @@
             (not (:id accum)) (assoc :id id)
             true (update :lines inc)
             true (update :text #(if % (str % "\n" text) text))))))))
+
+(defn spatial? [selectable]
+  (let [tag (:tag selectable)]
+    (#{:token :linebreak :comment} tag)))

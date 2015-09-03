@@ -97,10 +97,12 @@
     (-> accum
       (update :code #(conj % node-id))
       (assoc-in [:data node-id]
-        (cond-> {:id   node-id
-                 :line (:line accum)
-                 :tag  (node/tag node)
-                 :type :symbol}
+        (cond-> {:id            node-id
+                 :line          (:line accum)
+                 :spatial-index (:line accum)
+                 :tag           (node/tag node)
+                 :section       :code
+                 :type          :symbol}
           inner? (assoc :children (process-children loc))
           after-nl? (assoc :after-nl true)
           (not inner?) (assoc :text (prepare-node-text node))
@@ -110,6 +112,19 @@
           (utils/string-node? node) (assoc :type :string)
           (utils/keyword-node? node) (assoc :type :keyword))))))
 
+(defn add-spot-item [accum loc]
+  (let [node (zip/node loc)
+        node-id (:id node)
+        spot-id (id/make-spot node-id)]
+    (assoc-in accum [:data spot-id] {:id            spot-id
+                                     :tag           :token
+                                     :type          :spot
+                                     :section       :code
+                                     :line          (:line accum)
+                                     :spatial-index (:line accum)
+                                     :selectable?   true
+                                     :text          ""})))
+
 (defn add-doc-item [accum loc]
   (let [node (z/node loc)
         node-id (:id node)
@@ -117,23 +132,14 @@
     (-> accum
       (update :docs #(conj % node-id))
       (assoc-in [:data node-id]
-        {:id          node-id
-         :tag         :token
-         :type        :doc
-         :selectable? true
-         :line        -1
-         :text        (utils/prepare-string-for-display text)}))))
-
-(defn add-spot-item [accum loc]
-  (let [node (zip/node loc)
-        node-id (:id node)
-        spot-id (id/make-spot node-id)]
-    (assoc-in accum [:data spot-id] {:id          spot-id
-                                     :tag         :token
-                                     :type        :spot
-                                     :line        (:line accum)
-                                     :selectable? true
-                                     :text        ""})))
+        {:id            node-id
+         :tag           :token
+         :type          :doc
+         :section       :docs
+         :selectable?   true
+         :line          0
+         :spatial-index (count (:docs accum))
+         :text          (utils/prepare-string-for-display text)}))))
 
 (defn add-comment-item [accum loc]
   (let [combined-comment (utils/combine-comments loc)
@@ -141,10 +147,12 @@
     (-> accum
       (update :comments #(conj % node-id))
       (assoc-in [:data node-id] (merge combined-comment
-                                  {:tag         :comment
-                                   :type        :comment
-                                   :line        (:line accum)
-                                   :selectable? true})))))
+                                  {:tag           :comment
+                                   :type          :comment
+                                   :section       :comments
+                                   :line          (:line accum)
+                                   :spatial-index (count (:comments accum))
+                                   :selectable?   true})))))
 
 (defn lookup-def-arities [accum loc]
   (let [node (zip/node loc)

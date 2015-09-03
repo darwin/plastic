@@ -77,6 +77,8 @@
 
 (def line-number! integer!)
 
+(def spatial-index! integer!)
+
 (def form-id! integer!)
 
 (def scope-id! integer!)
@@ -125,10 +127,12 @@
      s/Keyword    TODO!}))
 
 (def spatial-info!
-  (cached {line-number! [spatial-item!]}))
+  (cached {spatial-index! [spatial-item!]
+           :min spatial-index!
+           :max spatial-index!}))
 
 (def editor-spatial-web!
-  (cached {form-id! spatial-info!}))
+  (cached {form-id! {keyword! spatial-info!}}))
 
 (def structural-item!
   (cached

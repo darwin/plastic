@@ -4,7 +4,7 @@
                    [plastic.common :refer [process]])
   (:require [plastic.main.editor.model :as editor]))
 
-(defn structural-movemement [editor op]
+(defn structural-movemement [op editor]
   (let [cursor-id (editor/get-cursor editor)
         form-id (editor/get-focused-form-id editor)
         structural-web (editor/get-structural-web-for-form editor form-id)]
