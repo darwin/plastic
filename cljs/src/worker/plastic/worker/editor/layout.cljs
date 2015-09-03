@@ -2,9 +2,7 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
                    [plastic.worker :refer [react! dispatch main-dispatch dispatch-args]]
                    [plastic.common :refer [process]])
-  (:require [rewrite-clj.zip :as zip]
-            [rewrite-clj.node :as node]
-            [clojure.zip :as z]
+  (:require [clojure.zip :as z]
             [plastic.worker.frame :refer [subscribe register-handler]]
             [plastic.worker.editor.model :as editor]
             [plastic.worker.editor.layout.builder :refer [build-layout]]
