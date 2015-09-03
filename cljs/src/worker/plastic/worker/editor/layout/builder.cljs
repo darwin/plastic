@@ -247,9 +247,6 @@
                                       :children headers})
       has-comments? (assoc comments-id {:tag           :comments
                                         :id            comments-id
-                                        :selectable?   true
-                                        :section       :comments
-                                        :spatial-index -1
                                         :children      comments
                                         :metrics       (compute-comments-metrics data comments)})
       has-docs? (assoc docs-id {:tag      :docs

@@ -53,13 +53,12 @@
           (node/inner? node) (structural-web-for-spot-item id down-loc))))))
 
 (defn build-structural-web-for-comments [web comments-layout]
-  (let [root-id (:id comments-layout)
-        ids (vec (:children comments-layout))]
+  (let [ids (vec (:children comments-layout))]
     (process (map-indexed (fn [i v] [i v]) ids) web
       (fn [accum [index comment-id]]
         (let [record {:left  (nth ids (dec index) nil)
                       :right (nth ids (inc index) nil)
-                      :up    root-id
+                      :up    nil                                                                                      ; later we could group all under a virtual comments node
                       :down  nil}]
           (assoc accum comment-id record))))))
 

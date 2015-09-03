@@ -1,6 +1,6 @@
 (ns plastic.main.editor.render.form
   (:require-macros [plastic.logging :refer [log info warn error group group-end log-render]]
-                   [plastic.main :refer [react! dispatch]])
+                   [plastic.main :refer [dispatch]])
   (:require [plastic.util.dom :as dom]
             [plastic.main.frame :refer [subscribe]]
             [plastic.main.editor.render.headers :refer [headers-section-component]]

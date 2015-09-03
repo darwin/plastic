@@ -20,9 +20,11 @@
 (defn move-cursor-for-case-of-selected-node-removal [editor]
   (let [cursor-id (id/id-part (editor/get-cursor editor))
         moves-to-try (if (= cursor-id (editor/get-focused-form-id editor))
-                       [:move-next-form :move-prev-form]                                                              ; a case of deleting whole focused form
-                       [:structural-left :structural-right :structural-up])]
-    (apply cursor/apply-move-cursor editor moves-to-try)))
+                       [:next-form :prev-form]                                                                        ; a case of deleting whole focused form
+                       [:structural-left :structural-right :structural-up :spatial-up :spatial-down])
+        editor-after-move (apply cursor/apply-move-cursor editor moves-to-try)]
+    (assert (not= (id/id-part (editor/get-cursor editor-after-move)) cursor-id))                                      ; cursor has to move somewhere
+    editor-after-move))
 
 (defn editing-string? [editor]
   (and (editor/editing? editor) (= (editor/get-inline-editor-mode editor) :string)))
