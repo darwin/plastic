@@ -119,6 +119,14 @@
 (defn form? [loc]
   (and (valid-loc? loc) (= (zip/tag loc) :forms)))
 
+(defn space? [loc]
+  (let [node (zip/node loc)]
+    (and (node/whitespace? node) (not (node/linebreak? node)))))
+
+(defn contains-only-spaces? [loc]
+  (let [children-locs (collect-all-children loc)]
+    (every? space? children-locs)))
+
 (defn loc-id [loc]
   (:id (z/node loc)))
 
@@ -152,3 +160,9 @@
 
 (defn find-by-id [id loc]
   (find #(if (loc-id? id %) %) loc))
+
+(defn top [loc]
+  (->> loc
+    (iterate z/up)
+    (take-while identity)
+    last))

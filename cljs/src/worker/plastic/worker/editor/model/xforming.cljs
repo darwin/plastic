@@ -3,7 +3,8 @@
   (:require [plastic.util.zip :as zip-utils]
             [clojure.zip :as z]
             [plastic.worker.editor.model.report :as report]
-            [plastic.worker.editor.model :as editor :refer [valid-editor?]]))
+            [plastic.worker.editor.model :as editor :refer [valid-editor?]]
+            [rewrite-clj.zip :as zip]))
 
 (defn make-state [loc report]
   [loc report])
@@ -20,12 +21,38 @@
         root-loc (zip-utils/make-zipper parse-tree)]
     (make-state root-loc (report/make))))
 
+(defn remove-empty-forms [loc]
+  {:pre [(zip-utils/form? loc)]}
+  (if (zip-utils/contains-only-spaces? loc)
+    (let [after-loc (z/remove loc)
+          next-form-loc (zip-utils/skip z/next zip-utils/form? after-loc)]
+      (if next-form-loc
+        (recur next-form-loc)
+        after-loc))
+    (if-let [next-loc (z/right loc)]
+      (recur next-loc)
+      loc)))
+
+(defn sanitize-zipper [top-loc]
+  (-> top-loc
+    z/down
+    remove-empty-forms))
+
+(defn sanitize-if-needed [state]
+  (let [report (get-report state)]
+    (if (and (empty? (:removed report)) (empty? (:moved report)))
+      state
+      (let [top (zip-utils/top (get-loc state))]
+        (assert (= (zip/tag top) :top))
+        (make-state (sanitize-zipper top) report)))))
+
 (defn commit-state [editor state]
   {:pre [(valid-editor? editor)]}
   (if (nil? state)
     editor
-    (let [parse-tree (z/root (get-loc state))
-          report (get-report state)]
+    (let [sanitized-state (sanitize-if-needed state)
+          parse-tree (z/root (get-loc sanitized-state))
+          report (get-report sanitized-state)]
       (-> editor
         (editor/set-xform-report report)
         (editor/set-parse-tree parse-tree)))))

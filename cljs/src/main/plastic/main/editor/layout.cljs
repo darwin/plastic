@@ -20,8 +20,14 @@
     (fn [editor]
       (editor/set-render-state editor render-state))))
 
+(defn remove-forms [editors [editor-selector form-ids]]
+  (editor/apply-to-editors editors editor-selector
+    (fn [editor]
+      (editor/remove-forms editor form-ids))))
+
 ; -------------------------------------------------------------------------------------------------------------------
 ; register handlers
 
 (register-handler :editor-commit-layout-patch paths/editors-path commit-layout-patch)
 (register-handler :editor-update-render-state paths/editors-path update-render-state)
+(register-handler :editor-remove-forms paths/editors-path remove-forms)

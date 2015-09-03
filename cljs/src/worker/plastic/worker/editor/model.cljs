@@ -109,7 +109,7 @@
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn get-spatial-web-for-form [editor form-id]
-  {:pre  [(valid-editor? editor)]}
+  {:pre [(valid-editor? editor)]}
   (get-in editor [:spatial-web form-id]))
 
 (defn set-spatial-web-for-form [editor form-id new-spatial-web]
@@ -232,3 +232,19 @@
   {:pre [(valid-editor? editor)]}
   (let [form-nodes (get editor :previously-layouted-forms)]
     (assoc editor :previously-layouted-forms (select-keys form-nodes form-ids-to-keep))))
+
+; -------------------------------------------------------------------------------------------------------------------
+
+(defn remove-form [editor id]
+  (-> editor
+    (dissoc :layout id)
+    (dissoc :selectables id)
+    (dissoc :spatial-web id)
+    (dissoc :structural-web id)
+    (dissoc :analysis id)))
+
+(defn remove-forms [editor ids]
+  {:pre [(valid-editor? editor)]}
+  (process ids editor
+    (fn [editor id]
+      (remove-form editor id))))

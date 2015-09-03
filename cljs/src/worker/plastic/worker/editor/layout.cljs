@@ -12,7 +12,8 @@
             [plastic.util.zip :as zip-utils :refer [valid-loc?]]
             [plastic.worker.editor.layout.utils :as utils]
             [plastic.worker.paths :as paths]
-            [plastic.util.helpers :refer [prepare-map-patch]]))
+            [plastic.util.helpers :refer [prepare-map-patch]]
+            [clojure.set :as set]))
 
 (defn update-form-layout [editor form-loc]
   {:pre [(valid-loc? form-loc)
@@ -55,10 +56,14 @@
       (let [form-locs (editor/get-form-locs editor)
             independent-form-locs (map zip-utils/independent-zipper form-locs)
             old-render-state (editor/get-render-state editor)
-            new-render-state {:order (map #(zip-utils/loc-id %) independent-form-locs)}]
+            new-render-state {:order (map #(zip-utils/loc-id %) independent-form-locs)}
+            removed-form-ids (set/difference (set (:order old-render-state)) (set (:order new-render-state)))]
+        (if-not (empty? removed-form-ids)
+          (main-dispatch :editor-remove-forms (:id editor) removed-form-ids))
         (if (not= old-render-state new-render-state)
           (main-dispatch :editor-update-render-state (:id editor) new-render-state))
         (-> editor
+          (editor/remove-forms removed-form-ids)
           (editor/set-render-state new-render-state)
           (update-forms-layout-if-needed independent-form-locs))))))
 
