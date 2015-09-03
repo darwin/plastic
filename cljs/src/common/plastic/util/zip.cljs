@@ -117,8 +117,7 @@
     (or (node/whitespace? node) (node/comment? node))))
 
 (defn form? [loc]
-  (let [node (z/node loc)]
-    (= (node/tag node) :forms)))
+  (and (valid-loc? loc) (= (zip/tag loc) :forms)))
 
 (defn loc-id [loc]
   (:id (z/node loc)))

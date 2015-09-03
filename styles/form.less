@@ -1,12 +1,19 @@
 @import "./__config";
 
 .plastic-editor-view {
+  
+  .forms {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
 
   .form {
     .noselect;
     .promote-as-a-new-gpu-layer;
     opacity: 0.8;
     border-radius: 2px;
+    display: inline-block;
     position: relative; // important for form overlays
   }
 
@@ -28,6 +35,11 @@
   .has-headers > .docs-section,
   .has-headers > .code-section {
     margin-left: @form-with-header-indent;
+  }
+  
+  .form.has-headers,
+  .form-kind-comment-block {
+    margin-top: 2em;
   }
 
 } // .plastic-editor-view

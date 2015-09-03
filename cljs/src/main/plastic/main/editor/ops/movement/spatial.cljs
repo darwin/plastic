@@ -65,6 +65,7 @@
     (get spatial-graph next-spatial-index)))
 
 (defn find-spatial-graph [editor form-id section]
+  {:pre [(#{:headers :docs :code :comments} section)]}
   (let [spatial-web (editor/get-spatial-web-for-form editor form-id)]
     (section spatial-web)))
 
@@ -149,16 +150,15 @@
 
 (defn spatial-token-movement [editor form-id node-id direction]
   (let [editor-id (editor/get-id editor)
-        selectables (editor/get-selectables-for-form editor form-id)
-        selectable (get selectables node-id)
-        spatial-graph (find-spatial-graph editor form-id (:section selectable))
-        _ (assert spatial-graph)
-        spatial-group (case direction
-                        (:left :right) (get spatial-graph (:spatial-index selectable))
-                        (:up :down) (find-next-spatial-group spatial-graph (:spatial-index selectable) direction))
-        candidate-ids (map :id spatial-group)]
-    (if-let [result (resolve-best-spatial-match editor-id form-id node-id candidate-ids direction)]
-      (editor/set-cursor editor result))))
+        selectables (editor/get-selectables-for-form editor form-id)]
+    (if-let [selectable (get selectables node-id)]
+      (let [spatial-graph (find-spatial-graph editor form-id (:section selectable))
+            spatial-group (case direction
+                            (:left :right) (get spatial-graph (:spatial-index selectable))
+                            (:up :down) (find-next-spatial-group spatial-graph (:spatial-index selectable) direction))
+            candidate-ids (map :id spatial-group)]
+        (if-let [result (resolve-best-spatial-match editor-id form-id node-id candidate-ids direction)]
+          (editor/set-cursor editor result))))))
 
 (defn spatial-movement [direction editor]
   (let [form-id (editor/get-focused-form-id editor)]

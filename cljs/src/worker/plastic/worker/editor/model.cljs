@@ -109,8 +109,7 @@
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn get-spatial-web-for-form [editor form-id]
-  {:pre  [(valid-editor? editor)]
-   :post [(or (nil? %) (instance? PersistentTreeMap %))]}                                                             ; spatial-web must be sorted by line numbers
+  {:pre  [(valid-editor? editor)]}
   (get-in editor [:spatial-web form-id]))
 
 (defn set-spatial-web-for-form [editor form-id new-spatial-web]

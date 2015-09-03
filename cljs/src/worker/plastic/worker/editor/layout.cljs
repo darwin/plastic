@@ -25,7 +25,7 @@
         selectables-patch (prepare-map-patch (editor/get-selectables-for-form editor form-id) selectables)
         spatial-web (build-spatial-web form-loc selectables)
         spatial-web-patch (prepare-map-patch (editor/get-spatial-web-for-form editor form-id) spatial-web)
-        structural-web (build-structural-web form-loc)
+        structural-web (build-structural-web form-loc layout)
         structural-web-patch (prepare-map-patch (editor/get-structural-web-for-form editor form-id) structural-web)]
     (dispatch-args 0 [:editor-run-analysis editor-id form-id])
     (main-dispatch :editor-commit-layout-patch editor-id form-id

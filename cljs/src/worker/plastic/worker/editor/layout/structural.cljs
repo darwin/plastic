@@ -32,6 +32,9 @@
                           :up    id
                           :down  nil})))
 
+(defn ignore-form [loc]
+  (if-not (zip-utils/form? loc) loc))
+
 (defn build-structural-web-for-code [web code-locs]
   (process code-locs web
     (fn [accum loc]
@@ -43,27 +46,29 @@
             right-loc (zip-right loc)
             record {:left  (or (safe-loc-id left-loc) (safe-make-spot-id (safe-loc-id up-loc)))
                     :right (safe-loc-id right-loc)
-                    :up    (safe-loc-id up-loc)
+                    :up    (safe-loc-id (ignore-form up-loc))
                     :down  (safe-loc-id down-loc)}]
         (cond-> accum
           true (assoc id record)
           (node/inner? node) (structural-web-for-spot-item id down-loc))))))
 
-(defn link-selectable-docs [web docs-locs form-id]
-  (process docs-locs web
-    (fn [accum loc]
-      (let [id (zip-utils/loc-id loc)
-            record {:left  nil
-                    :right nil
-                    :up    form-id
-                    :down  nil}]
-        (assoc accum id record)))))
+(defn build-structural-web-for-comments [web comments-layout]
+  (let [root-id (:id comments-layout)
+        ids (vec (:children comments-layout))]
+    (process (map-indexed (fn [i v] [i v]) ids) web
+      (fn [accum [index comment-id]]
+        (let [record {:left  (nth ids (dec index) nil)
+                      :right (nth ids (inc index) nil)
+                      :up    root-id
+                      :down  nil}]
+          (assoc accum comment-id record))))))
 
-(defn build-structural-web [form-loc]
+(defn build-structural-web [form-loc layout]
   (let [form-id (zip-utils/loc-id form-loc)
         all-locs (zip-utils/zip-seq form-loc)
-        docs-locs (filter utils/is-doc? all-locs)
+        comments-id (id/make form-id :comments)
+        comments-layout (get layout comments-id)
         code-locs (remove utils/is-doc? all-locs)]
-    (-> {}
-      (build-structural-web-for-code code-locs)
-      (link-selectable-docs docs-locs form-id))))
+    (cond-> {}
+      true (build-structural-web-for-code code-locs)
+      comments-layout (build-structural-web-for-comments comments-layout))))

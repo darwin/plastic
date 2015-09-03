@@ -31,11 +31,20 @@
 (defn comments-box-component [editor-id form-id node-id]
   (let [layout (subscribe [:editor-layout-form-node editor-id form-id node-id])
         comments-visible (subscribe [:settings :comments-visible])
+        cursor? (subscribe [:editor-cursor-node editor-id node-id])
+        selected? (subscribe [:editor-selection-node editor-id node-id])
         emitter (fn [comment-id spacing]
                   ^{:key comment-id} [comment-component editor-id form-id comment-id spacing])]
     (fn [_editor-id _form-id node-id]
       (log-render "comments-box" node-id
-        (let [{:keys [children metrics]} @layout]
-          [:div.comments-box
-           (if @comments-visible
+        (let [{:keys [id children metrics selectable?]} @layout
+              cursor? @cursor?
+              selected? @selected?
+              comments-visible @comments-visible]
+          [:div.comments-box {:data-pnid id
+                              :class     (classv
+                                           (if selectable? "selectable")
+                                           (if (and selectable? selected?) "selected")
+                                           (if cursor? "cursor"))}
+           (if comments-visible
              (map emitter children metrics))])))))

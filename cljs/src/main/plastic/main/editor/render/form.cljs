@@ -28,18 +28,22 @@
   (let [root-id (id/make form-id :root)
         focused? (subscribe [:editor-focused-form-node editor-id form-id])
         layout (subscribe [:editor-layout-form-node editor-id form-id root-id])
-        selected? (subscribe [:editor-selection-node editor-id root-id])]
+        selected? (subscribe [:editor-selection-node editor-id form-id])
+        cursor? (subscribe [:editor-cursor-node editor-id form-id])]
     (fn [editor-id form-id]
       (log-render "form" form-id
         (let [selected? @selected?
+              focused? @focused?
+              cursor? @cursor?
               {:keys [selectable? sections form-kind]} @layout
               {:keys [headers docs code comments]} sections]
           [:div.form
            {:data-pnid form-id
             :class     (classv
                          (str "form-kind-" (name form-kind))
-                         (if @focused? "focused")
                          (sections-to-class-names sections)
+                         (if focused? "focused")
+                         (if cursor? "cursor")
                          (if selectable? "selectable")
                          (if (and selectable? selected?) "selected"))
             :on-click  (partial handle-form-click form-id)}
