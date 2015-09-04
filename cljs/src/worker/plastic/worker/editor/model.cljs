@@ -236,12 +236,13 @@
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn remove-form [editor id]
+  {:pre [id]}
   (-> editor
-    (dissoc :layout id)
-    (dissoc :selectables id)
-    (dissoc :spatial-web id)
-    (dissoc :structural-web id)
-    (dissoc :analysis id)))
+    (update :layout dissoc id)
+    (update :selectables dissoc id)
+    (update :spatial-web dissoc id)
+    (update :structural-web dissoc id)
+    (update :analysis dissoc id)))
 
 (defn remove-forms [editor ids]
   {:pre [(valid-editor? editor)]}

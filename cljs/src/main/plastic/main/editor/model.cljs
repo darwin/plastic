@@ -371,13 +371,24 @@
       (set-focused-form-id new-cursor-form-id)
       (update-highlight-and-puppets))))
 
-(defn replace-cursor-if-not-valid [editor new-cursor]
+(defn find-valid-cursor-position [editor potential-editors]
   {:pre [(valid-editor? editor)]}
-  (let [cursor (get-cursor editor)
-        focused-form-id (get-focused-form-id editor)]
-    (if (is-node-selectable? editor focused-form-id cursor)
-      editor
-      (set-cursor editor new-cursor))))
+  (if-let [potential-editor (first potential-editors)]
+    (when-let [potential-cursor (get-cursor potential-editor)]
+      (if (is-node-selectable? editor (get-focused-form-id potential-editor) potential-cursor)
+        (set-cursor editor potential-cursor)
+        (recur editor (rest potential-editors))))))
+
+(defn has-valid-cursor? [editor]
+  (let [cursor (get-cursor editor)]
+    (is-node-selectable? editor (get-focused-form-id editor) cursor)))
+
+(defn move-cursor-to-valid-position-if-needed [editor potential-editors]
+  (if (has-valid-cursor? editor)
+    editor
+    (if-let [editor-with-moved-cursor (find-valid-cursor-position editor potential-editors)]
+      editor-with-moved-cursor
+      (set-cursor editor nil))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; related rings
@@ -472,12 +483,13 @@
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn remove-form [editor id]
+  {:pre [id]}
   (-> editor
-    (dissoc :layout id)
-    (dissoc :selectables id)
-    (dissoc :spatial-web id)
-    (dissoc :structural-web id)
-    (dissoc :analysis id)))
+    (update :layout dissoc id)
+    (update :selectables dissoc id)
+    (update :spatial-web dissoc id)
+    (update :structural-web dissoc id)
+    (update :analysis dissoc id)))
 
 (defn remove-forms [editor ids]
   {:pre [(valid-editor? editor)]}

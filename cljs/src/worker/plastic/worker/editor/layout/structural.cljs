@@ -12,9 +12,11 @@
   (if (zip-utils/valid-loc? loc)
     (zip-utils/loc-id loc)))
 
-(defn safe-make-spot-id [id]
+(defn safe-make-spot-id [id layout]
   (if id
-    (id/make-spot id)))
+    (let [spot-id (id/make-spot id)]
+      (if (get layout spot-id)
+        spot-id))))
 
 (defn structure? [loc]
   (let [node (z/node loc)]
@@ -35,7 +37,7 @@
 (defn ignore-form [loc]
   (if-not (zip-utils/form? loc) loc))
 
-(defn build-structural-web-for-code [web code-locs]
+(defn build-structural-web-for-code [web code-locs layout]
   (process code-locs web
     (fn [accum loc]
       (let [node (zip/node loc)
@@ -44,7 +46,7 @@
             down-loc (zip-down loc)
             left-loc (zip-left loc)
             right-loc (zip-right loc)
-            record {:left  (or (safe-loc-id left-loc) (safe-make-spot-id (safe-loc-id up-loc)))
+            record {:left  (or (safe-loc-id left-loc) (safe-make-spot-id (safe-loc-id up-loc) layout))
                     :right (safe-loc-id right-loc)
                     :up    (safe-loc-id (ignore-form up-loc))
                     :down  (safe-loc-id down-loc)}]
@@ -69,5 +71,5 @@
         comments-layout (get layout comments-id)
         code-locs (remove utils/is-doc? all-locs)]
     (cond-> {}
-      true (build-structural-web-for-code code-locs)
+      true (build-structural-web-for-code code-locs layout)
       comments-layout (build-structural-web-for-comments comments-layout))))

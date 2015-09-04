@@ -4,7 +4,6 @@
             [plastic.main.editor.ops.cursor :as cursor]
             [plastic.main.editor.toolkit.id :as id]
             [plastic.main.editor.ops.editing.helpers :refer [xform-editor-on-worker continue editing-string?
-                                                             move-cursor-for-case-of-selected-node-removal
                                                              get-edit-point walk-structural-web select-neighbour
                                                              should-commit? sanitize-cursor disable-editing-mode
                                                              enable-editing-mode]]))
@@ -23,15 +22,15 @@
     ((continue cb) editor)
     (if-not (should-commit? editor)
       ((continue cb) (disable-editing-mode editor))
-      (let [edited-node-id (editor/get-editing editor)
+      (let [original-editor editor
+            edited-node-id (editor/get-editing editor)
             value (editor/get-inline-editor-value editor)
             initial-value (editor/get-inline-editor-initial-value editor)
-            moved-cursor (editor/get-cursor (move-cursor-for-case-of-selected-node-removal editor))
             effective? (editor/get-inline-editor-puppets-effective? editor)
             puppets (if effective? (editor/get-puppets editor) #{})]
         (xform-editor-on-worker (disable-editing-mode editor) [:edit edited-node-id puppets value initial-value]
           (fn [editor]
-            ((continue cb) (sanitize-cursor editor moved-cursor))))))))
+            ((continue cb) (sanitize-cursor editor original-editor))))))))
 
 (defn apply-change-but-preserve-editing-mode [editor op & [cb]]
   (if (editor/editing? editor)
@@ -64,12 +63,11 @@
   (apply-change-but-preserve-editing-mode editor identity cb))                                                        ; empty placeholder was removed, cursor moved left
 
 (defn perform-backspace [editor & [cb]]
-  (let [edit-point (get-edit-point editor)
-        editor-with-moved-cursor (move-cursor-for-case-of-selected-node-removal editor)
-        moved-cursor (editor/get-cursor editor-with-moved-cursor)]
+  (let [original-editor editor
+        edit-point (get-edit-point editor)]
     (xform-editor-on-worker editor [:backspace edit-point]
       (fn [editor]
-        ((continue cb) (sanitize-cursor editor moved-cursor))))))
+        ((continue cb) (sanitize-cursor editor original-editor))))))
 
 (defn delete-after-cursor [editor & [cb]]
   (let [edit-point (get-edit-point editor)]

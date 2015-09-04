@@ -17,15 +17,6 @@
 (defn continue [cb]
   (or cb identity))
 
-(defn move-cursor-for-case-of-selected-node-removal [editor]
-  (let [cursor-id (id/id-part (editor/get-cursor editor))
-        moves-to-try (if (= cursor-id (editor/get-focused-form-id editor))
-                       [:next-form :prev-form]                                                                        ; a case of deleting whole focused form
-                       [:structural-left :structural-right :structural-up :spatial-up :spatial-down])
-        editor-after-move (apply cursor/apply-move-cursor editor moves-to-try)]
-    (assert (not= (id/id-part (editor/get-cursor editor-after-move)) cursor-id))                                      ; cursor has to move somewhere
-    editor-after-move))
-
 (defn editing-string? [editor]
   (and (editor/editing? editor) (= (editor/get-inline-editor-mode editor) :string)))
 
@@ -58,6 +49,18 @@
   (-> editor
     (editor/set-editing nil)))
 
-(defn sanitize-cursor [editor alt-cursor]
-  (-> editor
-    (editor/replace-cursor-if-not-valid alt-cursor)))
+(defn- stuck-or-invalid-cursor? [old-cursor editor]
+  (let [new-cursor (editor/get-cursor editor)]
+    (or (nil? new-cursor) (= old-cursor new-cursor))))
+
+(defn potential-cursor-move [editor]
+  (let [cursor-id (editor/get-cursor editor)
+        moves-to-try [:structural-left :structural-right :structural-up :spatial-up :spatial-down]
+        test-editors (map (partial cursor/apply-move-cursor editor) moves-to-try)
+        editors-with-valid-moves (remove (partial stuck-or-invalid-cursor? cursor-id) test-editors)]
+    (if-not (empty? editors-with-valid-moves)
+      (first editors-with-valid-moves))))
+
+(defn sanitize-cursor [editor original-editor]
+  (editor/move-cursor-to-valid-position-if-needed editor (iterate potential-cursor-move original-editor)))
+
