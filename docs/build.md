@@ -13,12 +13,6 @@ Good luck!
 
 From now on I will be refering to this directory as `$workspace`.
 
-##### install tools.reader SNAPSHOT
-
-    git clone https://github.com/clojure/tools.reader.git
-    cd tools.reader
-    lein do clean, install
-
 ##### clone atom and plastic
 
     git clone git@github.com:darwin/plastic.git

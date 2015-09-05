@@ -5,8 +5,8 @@
 ; 3 lines
 
 
-; -----------------------
-; under separator
+   ; -----------------------
+   ; under separator
 
 (defn log-ex
   "Middleware which catches and prints any handler-generated exceptions to console.

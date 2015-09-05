@@ -11,7 +11,7 @@
     (fn [editor]
       (let [editor-id (editor/get-id editor)
             uri (editor/get-uri editor)]
-        (atom/load-file-content uri #(worker-dispatch :editor-set-text editor-id %))
+        (atom/load-file-content uri #(worker-dispatch :editor-set-source editor-id %))
         editor))))
 
 ; -------------------------------------------------------------------------------------------------------------------

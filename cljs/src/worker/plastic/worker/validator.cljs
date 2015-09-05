@@ -14,7 +14,7 @@
 (def editor-members!
   {:id                               editor-id!
    :uri                              string!
-   (key? :text)                      string!
+   (key? :source)                    string!
    (key? :parse-tree)                anything
    (key? :render-state)              editor-render-state!
    (key? :previously-layouted-forms) editor-previously-layouted-forms!

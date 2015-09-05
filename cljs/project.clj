@@ -5,7 +5,7 @@
   :dependencies
   [[org.clojure/clojure "1.7.0"]
    [org.clojure/clojurescript "1.7.122"]
-   [org.clojure/tools.reader "0.10.0-SNAPSHOT"]
+   [org.clojure/tools.reader "0.10.0-alpha3"]
    [org.clojure/core.async "0.1.346.0-17112a-alpha"]
    [com.cognitect/transit-cljs "0.8.225"]
    [re-frame "0.4.1"]
@@ -42,9 +42,11 @@
                     "checkouts/re-frame/src"
                     "checkouts/reagent/src"
                     "checkouts/rewrite-cljs/src"
+                    "checkouts/tools.reader/src/main"
                     "src/macros"
                     "src/env"
                     "src/dev"
+                    "src/meld"
                     "src/common"
                     "src/main"
                     "src/worker"]
@@ -83,9 +85,11 @@
     :worker
     {:source-paths ["checkouts/re-frame/src"
                     "checkouts/rewrite-cljs/src"
+                    "checkouts/tools.reader/src/main"
                     "src/macros"
                     "src/env"
                     "src/dev"
+                    "src/meld"
                     "src/common"
                     "src/worker"]
      :compiler     {:main                  plastic.worker

@@ -43,18 +43,31 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn get-text [editor]
+(defn get-source [editor]
   {:pre  [(valid-editor? editor)]
    :post [(string? %)]}
-  (or (get editor :text) ""))
+  (or (get editor :source) ""))
 
-(defn set-text [editor text]
+(defn set-source [editor source]
   {:pre [(valid-editor? editor)
-         (string? text)]}
+         (string? source)]}
   (or
-    (when-not (= (get-text editor) text)
+    (when-not (= (get-source editor) source)
       (dispatch :editor-parse-source (get-id editor))
-      (assoc editor :text text))
+      (assoc editor :source source))
+    editor))
+
+(defn get-uri [editor]
+  {:pre  [(valid-editor? editor)]
+   :post [(string? %)]}
+  (or (get editor :uri) ""))
+
+(defn set-uri [editor uri]
+  {:pre [(valid-editor? editor)
+         (string? uri)]}
+  (or
+    (when-not (= (get-uri editor) uri)
+      (assoc editor :uri uri))
     editor))
 
 ; -------------------------------------------------------------------------------------------------------------------

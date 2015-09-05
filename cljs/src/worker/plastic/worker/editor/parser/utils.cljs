@@ -8,11 +8,10 @@
             [plastic.worker.editor.parser.top-node :refer [top-node]]
             [clojure.zip :as z]))
 
-(defonce ^:dynamic node-id 0)
+(defonce node-id (atom 0))
 
 (defn next-node-id! []
-  (set! node-id (inc node-id))
-  node-id)
+  (swap! node-id inc))
 
 (defn assoc-node-id [node]
   (assoc node :id (next-node-id!)))

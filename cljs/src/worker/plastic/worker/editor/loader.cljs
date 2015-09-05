@@ -5,12 +5,13 @@
             [plastic.worker.paths :as paths]
             [plastic.worker.editor.model :as editor]))
 
-(defn set-text [editors [editor-selector text]]
+(defn set-source [editors [editor-selector source]]
   (editor/apply-to-editors editors editor-selector
     (fn [editor]
-      (editor/set-text editor text))))
+      (-> editor
+        (editor/set-source source)))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; register handlers
 
-(register-handler :editor-set-text paths/editors-path set-text)
+(register-handler :editor-set-source paths/editors-path set-source)

@@ -4,14 +4,17 @@
   (:require [plastic.worker.frame :refer [subscribe register-handler]]
             [plastic.worker.paths :as paths]
             [plastic.worker.editor.parser.utils :as utils]
-            [rewrite-clj.parser :as rewrite-cljs]
-            [plastic.worker.editor.model :as editor]))
+            [plastic.worker.editor.model :as editor]
+            [meld.parser :as meld]))
 
 (defn parse-source [editors [editor-selector]]
   (editor/apply-to-editors editors editor-selector
     (fn [editor]
-      (let [text (editor/get-text editor)
-            parse-tree (utils/parse text)]
+      (let [source (editor/get-source editor)
+            uri (editor/get-uri editor)
+            parse-tree (utils/parse source)
+            meld (meld/parse! source uri)]
+        (log "MELD:" meld)
         (editor/set-parse-tree editor parse-tree)))))
 
 ; -------------------------------------------------------------------------------------------------------------------
