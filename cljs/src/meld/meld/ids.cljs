@@ -11,7 +11,7 @@
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn assign-unique-ids! [node]
-  (let [root-loc (zip/make-zipper node)]
+  (let [root-loc (zip/zipper node)]
     (loop [loc root-loc]
       (if (z/end? loc)
         (z/root loc)

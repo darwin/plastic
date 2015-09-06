@@ -1,6 +1,6 @@
 (ns meld.tracker
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [meld.gray-matter :refer [parse-gray-matter]]
+  (:require [meld.gray-matter :refer [measure-gray-matter]]
             [meld.node :as node]))
 
 (defn get-token-start [frames]
@@ -12,7 +12,7 @@
 (defn matches? [range-start node]
   (>= (:start node) range-start))
 
-(defn is-token-interesting? [token]
+(defn ^boolean is-token-interesting? [token]
   (not (object? token)))                                                                                              ; opening brackets emit empty js-object tokens
 
 (defn split-nodes-at [nodes point]
@@ -22,24 +22,21 @@
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn source-tracker [source reader f]
-  (let [frames-atom (.-frames reader)
-        buffer (:buffer @frames-atom)
-        cur-pos (.getLength buffer)]
-    (swap! frames-atom update-in [:offset] conj cur-pos)
-    (let [token (f)
-          frames @frames-atom
-          nodes (:nodes frames)
-          token-start (get-token-start frames)
-          token-end (get-token-end frames)
-          chunk (subs source token-start token-end)
-          gray-matter (parse-gray-matter chunk token-start [1 1])                                                     ; TODO: rewrite this by simply skipping white matter
-          gray-matter-end (or (:end (last gray-matter)) token-start)
-          [baked-nodes children] (split-nodes-at nodes gray-matter-end)
-          info {:source (subs source gray-matter-end token-end)
-                :start  gray-matter-end
-                :end    token-end}
-          new-nodes (if (is-token-interesting? token) [(node/make-node token info children)])]
-      (swap! frames-atom (fn [frames]
-                           (assoc frames :nodes (concat baked-nodes new-nodes))))
+  (let [frames-atom (.-frames reader)]
+    (swap! frames-atom update-in [:offset] conj (.getLength (:buffer @frames-atom)))
+    (let [token (f)]                                                                                                  ; let reader do its hard work... yielding a new token
+      (if (is-token-interesting? token)
+        (let [frames @frames-atom
+              nodes (:nodes frames)
+              token-start (get-token-start frames)
+              token-end (get-token-end frames)
+              chunk (subs source token-start token-end)                                                               ; reader includes comments as part of token start-end range
+              gray-matter-end (+ token-start (measure-gray-matter chunk))                                             ; we want to start after potential comments and get meat only
+              [baked-nodes children] (split-nodes-at nodes gray-matter-end)                                           ; source tracker is being called depth-first, we collect children from previous calls
+              info {:source (subs source gray-matter-end token-end)
+                    :start  gray-matter-end
+                    :end    token-end}
+              new-node (node/make-node-from-token token info children)]                                               ; attach children to new node
+          (swap! frames-atom assoc :nodes (conj baked-nodes new-node))))
       (swap! frames-atom update-in [:offset] pop)
       token)))

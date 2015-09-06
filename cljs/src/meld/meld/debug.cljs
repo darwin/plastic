@@ -8,8 +8,8 @@
   [(- (:start node) (count (:whitespace node))) (:end node)])
 
 (defn histogram [node & [include-compounds?]]
-  (let [loc (zip/make-zipper node)
-        all-locs (take-while (complement z/end?) (iterate z/next loc))
+  (let [loc (zip/zipper node)
+        all-locs (zip/take-all loc)
         h (transient (vec (repeat (:end node) 0)))]
     (doseq [loc all-locs]
       (let [node (z/node loc)

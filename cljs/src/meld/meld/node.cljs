@@ -1,10 +1,10 @@
 (ns meld.node
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]))
 
+(def compounds #{:list :vector :map :set :unit})
+
 (defn strip-meta [o]
   (if (implements? IWithMeta o) (with-meta o nil) o))
-
-(def compounds #{:list :vector :map :set :unit})
 
 (defn detect-token-type [token tag]
   (case token
@@ -27,9 +27,7 @@
     (merge {:type (detect-token-type token tag)
             :tag  tag})))
 
-; -------------------------------------------------------------------------------------------------------------------
-
-(defn make-node [token info children]
+(defn make-node-from-token [token info children]
   (let [classification (classify token)
         node (merge info
                classification

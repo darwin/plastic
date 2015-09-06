@@ -7,13 +7,12 @@
   (assoc node :whitespace whitespace-node))
 
 (defn merge-whitespace [node]
-  (let [root-loc (zip/make-zipper node)]
+  (let [root-loc (zip/zipper node)]
     (loop [loc root-loc]
       (if (z/end? loc)
         (z/root loc)
-        (let [node (z/node loc)
-              type (:type node)]
-          (if (= type :whitespace)
+        (let [node (z/node loc)]
+          (if (= (:type node) :whitespace)
             (let [prev-loc (z/remove loc)
                   next-loc (z/next prev-loc)
                   _ (assert next-loc "every whitespace node must have a right siblink")

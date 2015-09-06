@@ -5,11 +5,11 @@
 
 (def ws-rx #"[\s]")
 
-(defn ^boolean newline? [c]
+(defn ^boolean linebreak? [c]
   (or (identical? \newline c) (identical? "\n" c) (nil? c)))
 
 (defn ^boolean whitespace? [ch]
-  (when-not (or (nil? ch) (newline? ch))
+  (when-not (or (nil? ch) (linebreak? ch))
     (if (identical? ch \,)
       true
       (.test ws-rx ch))))
@@ -19,7 +19,7 @@
 (defn read-line [reader init]
   (loop [buf (StringBuffer. init)
          char (read-char reader)]
-    (if (newline? char)
+    (if (linebreak? char)
       (do
         (unread reader char)
         (str buf))
@@ -44,7 +44,7 @@
   {:type   :whitespace
    :source (read-whitespace reader init)})
 
-(defn slurp-newline [_reader ch]
+(defn slurp-linebreak [_reader ch]
   {:type   :linebreak
    :source ch})
 
