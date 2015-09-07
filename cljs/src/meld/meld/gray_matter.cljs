@@ -4,7 +4,9 @@
             [clojure.zip :as z]
             [meld.helpers :as helpers]
             [meld.comments :refer [stitch-aligned-comments]]
-            [meld.zip :as zip]))
+            [meld.zip :as zip]
+            [meld.node :as node]
+            [meld.ids :as ids]))
 
 ; gray matter is whitespaces, linebreaks and comments
 ; standard tools.reader does not record them in parsed output
@@ -25,7 +27,8 @@
         (if token
           (let [end (+ offset (count (:source token)))
                 token (merge token
-                        {:start  offset
+                        {:id     (ids/next-node-id!)
+                         :start  offset
                          :end    end
                          :line   line
                          :column column})]
@@ -52,36 +55,51 @@
 
 ; we want to walk reader from left to right in one go for it to provide consistent line/column infos
 (defn collect-gray-matter [reader offsets]
-  (let [* (fn [[current-offset table] next-gray-matter-offset]
+  (let [* (fn [[current-offset table*] next-gray-matter-offset]
             (helpers/skip-chunk reader (- next-gray-matter-offset current-offset))                                    ; advance reader to the next position of interest
             (let [gray-matter (read-gray-matter reader next-gray-matter-offset)
                   new-offset (or (:end (last gray-matter)) next-gray-matter-offset)
                   new-table (if-not (empty? gray-matter)
-                              (assoc! table next-gray-matter-offset (stitch-aligned-comments gray-matter))            ; note comment stitching
-                              table)]
+                              (assoc! table* next-gray-matter-offset (stitch-aligned-comments gray-matter))           ; note comment stitching
+                              table*)]
               [new-offset new-table]))
-        result (reduce * [0 (transient {})] offsets)]
+        result-table* (second (reduce * [0 (transient {})] offsets))]
     (assert (nil? (read-char reader)))                                                                                ; reader should be empty at this point
-    (persistent! (second result))))                                                                                   ; return final table
+    (persistent! result-table*)))                                                                                     ; return final table
 
-(defn merge-gray-matter [root-loc table]
-  (let [* (fn [loc [end-offset gray-matter]]
-            (let [top-loc (zip/top loc)]
-              (if (zero? end-offset)
-                (zip/insert-childs top-loc gray-matter)                                                               ; special case of leading gray matter, see ***
-                (let [all-locs (zip/take-all top-loc)
-                      matching-locs (filter (partial zip/matching-end-loc? end-offset) all-locs)
-                      best-loc (last matching-locs)]                                                                  ; we want to take outer-most sexpr closing at end-offset
-                  (assert best-loc (str "no loc suitable for gray matter insertion at offset " end-offset))
-                  (zip/insert-rights best-loc gray-matter)))))]
-    (reduce * root-loc table)))
+(defn is-parent? [meld parent-id node-id]
+  (loop [id node-id]
+    (let [node (get meld id)
+          parent (node/get-parent node)]
+      (if-not parent
+        false
+        (if (= parent parent-id)
+          true
+          (recur parent))))))
 
-(defn process-gray-matter [node]
-  (let [root-loc (zip/zipper node)
-        all-locs (zip/take-all root-loc)
-        all-ends (dedupe (sort (map zip/get-node-end all-locs)))                                                      ; nodes' ends are potential beginnings of gray matter sections
+(defn build-ends-lookup-table [meld]
+  (let [table*! (volatile! (transient {}))]
+    (doseq [[id node] meld]
+      (if-let [end (:end node)]
+        (let [prev-id (get @table*! end)]
+          (if (or (nil? prev-id) (is-parent? meld id prev-id))
+            (vswap! table*! assoc! end id)))))
+    (persistent! @table*!)))
+
+(defn merge-gray-matter [meld table]
+  (let [ends-table (build-ends-lookup-table meld)
+        * (fn [loc [end-offset gray-matter]]
+            (if (zero? end-offset)
+              (zip/insert-childs (zip/top loc) gray-matter)                                                           ; special case of leading gray matter, see ***
+              (let [best-id (ends-table end-offset)
+                    best-loc (zip/find loc best-id)]                                                                  ; we want to take outer-most sexpr closing at end-offset
+                (zip/insert-rights best-loc gray-matter))))]
+    (zip/unzip (reduce * (zip/zip meld) table))))
+
+(defn process-gray-matter [meld source]
+  (let [all-ends (dedupe (sort (keep node/get-end (vals meld))))                                                      ; nodes' ends are potential beginnings of gray matter sections
         all-ends-with-special (cons 0 all-ends)                                                                       ; a special case of leading gray matter, see ***
-        reader (rt/indexing-push-back-reader (:source node))
-        gray-matter-table (collect-gray-matter reader all-ends-with-special)                                          ; map node's end-offsets -> gray-matter sequences
-        result-loc (merge-gray-matter root-loc gray-matter-table)]
-    (z/root result-loc)))
+        reader (rt/indexing-push-back-reader source)
+        gray-matter-table (collect-gray-matter reader all-ends-with-special)]                                         ; map node's end-offsets -> gray-matter sequences
+    (merge-gray-matter meld gray-matter-table)))
+

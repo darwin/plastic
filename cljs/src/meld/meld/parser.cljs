@@ -2,32 +2,45 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [cljs.tools.reader.reader-types :as rt]
             [cljs.tools.reader :as r]
-            [meld.tracker :refer [source-tracker]]
+            [meld.tracker :refer [make-tracker]]
             [meld.gray-matter :refer [process-gray-matter]]
             [meld.whitespace :refer [merge-whitespace]]
-            [meld.ids :refer [assign-unique-ids!]]
             [meld.node :as node]))
 
-(defn post-process-unit! [unit]
-  (-> unit
-    (process-gray-matter)                                                                                             ; gray matter is whitespace, linebreaks and comments, we deal with it in this second pass
-    (merge-whitespace)                                                                                                ; want to merge whitespace nodes into following non-whitespace nodes
-    (assign-unique-ids!)))                                                                                            ; each node gets an unique id for easy addressing
+(defn find-top-level-nodes-ids [meld]
+  (map first (remove (fn [[id _node]] (:parent (get meld id))) meld)))
 
-(defn read-form [reader]
-  (let [opts {:eof       ::eof-sentinel
+(defn define-unit [meld source name]
+  (let [top-level-ids (find-top-level-nodes-ids meld)
+        unit (node/make-unit top-level-ids source name)
+        unit-id (:id unit)
+        meld* (transient meld)
+        meld*! (volatile! meld*)]
+    (vswap! meld*! assoc! unit-id unit)
+    (vswap! meld*! assoc! :top unit-id)
+    (doseq [id top-level-ids]
+      (vswap! meld*! assoc! id (assoc (get meld* id) :parent (:id unit))))
+    (persistent! @meld*!)))
+
+(defn post-process-meld! [meld source name]
+  (-> meld
+    (define-unit source name)
+    (process-gray-matter source)                                                                                      ; gray matter is whitespace, linebreaks and comments, we deal with it in this second pass
+    (merge-whitespace)))                                                                                              ; want to merge whitespace nodes into following non-whitespace nodes
+
+(defn read-form! [reader]
+  (let [opts {:eof       :eof-sentinel
               :read-cond :preserve}
         res (r/read opts reader)]
-    (if-not (keyword-identical? res ::eof-sentinel)
+    (if-not (keyword-identical? res :eof-sentinel)
       res)))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn parse! [source name]
-  (binding [rt/log-source* (partial source-tracker source)]                                                           ; piggyback on log-source* to extract metadata for our second pass via source-tracker
-    (let [reader (rt/source-logging-push-back-reader source 1 name)
-          read-next-form (partial read-form reader)]
-      (dorun (take-while identity (repeatedly read-next-form)))                                                       ; read all avail forms
-      (let [top-level-nodes (:nodes @(.-frames reader))                                                               ; extract our collected data from reader
-            unit (node/make-unit top-level-nodes source name)]                                                        ; unit is a special node representing whole file
-        (post-process-unit! unit)))))
+  (let [[tracker! flush!] (make-tracker source)]
+    (binding [rt/log-source* tracker!]
+      (let [reader (rt/source-logging-push-back-reader source 1 name)
+            read-next-form! (partial read-form! reader)]
+        (dorun (take-while identity (repeatedly read-next-form!)))                                                    ; read all avail forms
+        (post-process-meld! (flush!) source name)))))

@@ -1,22 +1,24 @@
 (ns meld.whitespace
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [clojure.zip :as z]
-            [meld.zip :as zip]))
+            [meld.zip :as zip]
+            [meld.node :as node]))
 
 (defn inject-whitespace [node whitespace-node]
   (assoc node :whitespace whitespace-node))
 
-(defn merge-whitespace [node]
-  (let [root-loc (zip/zipper node)]
-    (loop [loc root-loc]
-      (if (z/end? loc)
-        (z/root loc)
-        (let [node (z/node loc)]
-          (if (= (:type node) :whitespace)
-            (let [prev-loc (z/remove loc)
-                  next-loc (z/next prev-loc)
+(defn merge-whitespace [meld]
+  (let [start-loc (zip/zip meld)]
+    (loop [loc start-loc]
+      (if (zip/end? loc)
+        (zip/unzip loc)
+        (let [node (zip/node loc)]
+          (if (= (node/get-type node) :whitespace)
+            (let [prev-loc (zip/remove loc)
+                  next-loc (zip/next prev-loc)
                   _ (assert next-loc "every whitespace node must have a right siblink")
-                  _ (assert (not (zip/whitespace-loc? next-loc)) "whitespace must have non-whitespace right siblink")
-                  edited-loc (z/edit next-loc inject-whitespace node)]
-              (recur (z/next edited-loc)))
-            (recur (z/next loc))))))))
+                  _ (assert (not (node/whitespace? (zip/node next-loc))) "whitespace must have non-whitespace right siblink")
+                  edited-loc (zip/edit next-loc inject-whitespace node)]
+              (recur (zip/next edited-loc)))
+            (recur (zip/next loc))))))))
+
