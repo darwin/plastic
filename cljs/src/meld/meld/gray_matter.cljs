@@ -97,7 +97,7 @@
     (zip/unzip (reduce * (zip/zip meld) table))))
 
 (defn process-gray-matter [meld source]
-  (let [all-ends (dedupe (sort (keep node/get-end (vals meld))))                                                      ; nodes' ends are potential beginnings of gray matter sections
+  (let [all-ends (dedupe (sort (map node/get-end (vals meld))))                                                       ; nodes' ends are potential beginnings of gray matter sections
         all-ends-with-special (cons 0 all-ends)                                                                       ; a special case of leading gray matter, see ***
         reader (rt/indexing-push-back-reader source)
         gray-matter-table (collect-gray-matter reader all-ends-with-special)]                                         ; map node's end-offsets -> gray-matter sequences

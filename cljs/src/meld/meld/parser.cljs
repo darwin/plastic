@@ -5,22 +5,7 @@
             [meld.tracker :refer [make-tracker]]
             [meld.gray-matter :refer [process-gray-matter]]
             [meld.whitespace :refer [merge-whitespace]]
-            [meld.node :as node]))
-
-(defn find-top-level-nodes-ids [meld]
-  (map first (remove (fn [[id _node]] (:parent (get meld id))) meld)))
-
-(defn define-unit [meld source name]
-  (let [top-level-ids (find-top-level-nodes-ids meld)
-        unit (node/make-unit top-level-ids source name)
-        unit-id (:id unit)
-        meld* (transient meld)
-        meld*! (volatile! meld*)]
-    (vswap! meld*! assoc! unit-id unit)
-    (vswap! meld*! assoc! :top unit-id)
-    (doseq [id top-level-ids]
-      (vswap! meld*! assoc! id (assoc (get meld* id) :parent (:id unit))))
-    (persistent! @meld*!)))
+            [meld.meld :refer [define-unit]]))
 
 (defn post-process-meld! [meld source name]
   (-> meld
