@@ -1,4 +1,5 @@
 (ns plastic.devcards
-  (:require [plastic.env]
-            [devcards.core]
+  (:require [devcards.core]
+            [plastic.env]
+            [plastic.dev]
             [plastic.devcards.main]))
