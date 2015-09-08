@@ -36,8 +36,7 @@
    :nrepl-port       7777
    :server-logfile   ".tmp/figwheel_server.log"
    :http-server-root "devcards"                                                                                       ;; this will be in resources/
-   :css-dirs         ["resources/devcards/css"]
-   }
+   :css-dirs         ["resources/devcards/css"]}
 
   :cljsbuild
   {:builds
@@ -54,6 +53,7 @@
                     "src/common"
                     "src/main"
                     "src/worker"]
+     :figwheel     true
      :compiler     {:main                  plastic.main
                     :closure-defines       {"plastic.env.run_worker_on_main_thread" true
                                             "plastic.env.need_loophole"             true
@@ -66,7 +66,6 @@
                     :anon-fn-naming-policy :unmapped
                     :compiler-stats        true
                     :cache-analysis        true
-                    :figwheel              true
                     :source-map            true
                     :source-map-timestamp  true}}
     :devcards
@@ -83,6 +82,7 @@
                     "src/common"
                     "src/main"
                     "src/worker"]
+     :figwheel     {:devcards true}
      :compiler     {:main                  plastic.devcards
                     :closure-defines       {"plastic.env.dont_run_loops"            true
                                             "plastic.env.run_worker_on_main_thread" true
@@ -95,7 +95,6 @@
                     :anon-fn-naming-policy :unmapped
                     :compiler-stats        true
                     :cache-analysis        true
-                    :figwheel              {:devcards true}
                     :source-map            true
                     :source-map-timestamp  true}}
     :main
@@ -107,6 +106,7 @@
                     "src/dev"
                     "src/common"
                     "src/main"]
+     :figwheel     true
      :compiler     {:main                  plastic.main
                     :closure-defines       {"plastic.env.need_loophole" true}
                     :output-to             "../lib/_build/main/plastic.js"
@@ -116,7 +116,6 @@
                     :anon-fn-naming-policy :unmapped
                     :compiler-stats        true
                     :cache-analysis        true
-                    :figwheel              true
                     :source-map            true
                     :source-map-timestamp  true}}
     :worker
@@ -129,6 +128,7 @@
                     "src/meld"
                     "src/common"
                     "src/worker"]
+     :figwheel     true
      :compiler     {:main                  plastic.worker
                     :closure-defines       {"plastic.env.need_loophole" true}
                     :output-to             "../lib/_build/worker/plastic.js"
@@ -138,6 +138,5 @@
                     :anon-fn-naming-policy :unmapped
                     :compiler-stats        true
                     :cache-analysis        true
-                    :figwheel              true
                     :source-map            true
                     :source-map-timestamp  true}}}})
