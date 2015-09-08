@@ -5,10 +5,8 @@
             [figwheel.client.socket :as socket]
             [figwheel.client.utils :as utils]))
 
-(defonce need-loophole? true)
-
 (defn eval [code]
-  (if need-loophole?
+  (if plastic.env.need-loophole
     (.runInThisContext (js/require "vm") code)                                                                        ; https://github.com/atom/loophole
     (js* "eval(~{code})")))
 

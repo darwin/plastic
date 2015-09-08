@@ -4,6 +4,8 @@
 ; this function has to be specified
 (set! *main-cli-fn* (fn [& args] (.log js/console "main-cli-fn:" (into-array args))))
 
+; -------------------------------------------------------------------------------------------------------------------
+
 (defonce ^:dynamic *current-thread* "MAIN")
 (defonce ^:dynamic *current-main-job-id* 0)
 (defonce ^:dynamic *current-main-event* nil)
@@ -14,6 +16,8 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
+(goog-define need-loophole false)
+(goog-define dont-run-loops false)
 (goog-define run-worker-on-main-thread false)
 
 (goog-define limit-undo-redo-queue 20)
@@ -45,7 +49,7 @@
 (goog-define log-onion false)
 (goog-define log-onion-inface false)
 (goog-define log-inline-editor false)
-(goog-define log-zip-ops true)
+(goog-define log-zip-ops false)
 (goog-define log-threaded-zip-ops false)
 (goog-define log-undo-redo false)
 (goog-define log-parse-tree false)

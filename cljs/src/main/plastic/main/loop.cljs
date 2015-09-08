@@ -3,5 +3,6 @@
   (:require [plastic.main.frame :refer [main-loop frame]]
             [plastic.main.init]))
 
-(fancy-log "MAIN LOOP" @frame)
-(main-loop)                                                                                                           ; start event processing
+(when-not plastic.env.dont-run-loops
+  (fancy-log "MAIN LOOP" @frame)
+  (main-loop))                                                                                                        ; start event processing

@@ -4,5 +4,6 @@
   (:require [plastic.worker.init]
             [plastic.worker.frame :refer [worker-loop frame]]))
 
-(fancy-log "WORK LOOP" @frame)
-(worker-loop)                                                                                                         ; start event processing
+(when-not plastic.env.dont-run-loops
+  (fancy-log "WORK LOOP" @frame)
+  (worker-loop))                                                                                                      ; start event processing
