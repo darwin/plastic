@@ -62,7 +62,8 @@
                     :compiler-stats        true
                     :cache-analysis        true
                     :figwheel              true
-                    :source-map            true}}
+                    :source-map            true
+                    :source-map-timestamp  true}}
     :main
     {:source-paths ["checkouts/cljs-devtools/src"
                     "checkouts/re-frame/src"
@@ -81,7 +82,8 @@
                     :compiler-stats        true
                     :cache-analysis        true
                     :figwheel              true
-                    :source-map            true}}
+                    :source-map            true
+                    :source-map-timestamp  true}}
     :worker
     {:source-paths ["checkouts/re-frame/src"
                     "checkouts/rewrite-cljs/src"
@@ -101,4 +103,5 @@
                     :compiler-stats        true
                     :cache-analysis        true
                     :figwheel              true
-                    :source-map            true}}}})
+                    :source-map            true
+                    :source-map-timestamp  true}}}})
