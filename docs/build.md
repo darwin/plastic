@@ -1,4 +1,4 @@
-These steps are for my OS X box. Worked around commit [#bf7975ddb9](https://github.com/darwin/plastic/commit/bf7975ddb9306afb3446fd725b04fd1eaa372ef5). 
+These steps are for my OS X box. Worked around commit [#0638331e63](https://github.com/darwin/plastic/commit/0638331e63aaed1d78839638219069d24f7818e6). 
 
 All is still in flux. You have to know a bit about node.js and clojurescript ecosystems. I don't cover it here. 
 
@@ -99,7 +99,7 @@ Sometimes Atom needs you to compile some native modules, it will shout at you fr
 First run Figwheel and wait for it to finish compilation and enter into waiting mode:
 
     cd $workspace/plastic/cljs
-    ./script/figwheel.sh
+    ./script/dev.sh
 
 And in another shell session:
 
@@ -132,12 +132,13 @@ This setting should persist, so next time you kill Atom and launch it again, clj
 
 For development it is easier to run all code on main thread. That is default behaviour for now.
 In release mode Plastic will be able to utilize multiple threads thanks to web workers. You can run Plastic using web workers by following steps below.
-Warning: This is experimental and could be broken from time to time. But general idea is to have editor heavy-lifting on worker thread and main thread available for Atom and UI updates only.
+Warning: This is experimental and could be broken from time to time because I spend most time running dev.sh. 
+         But general idea is to have editor heavy-lifting on worker thread and main thread available for Atom and UI updates only.
 
 First run Figwheel and wait for it to finish compilation and enter into waiting mode:
 
     cd $workspace/plastic/cljs
-    ./script/figwheel.sh main worker
+    ./script/run.sh
 
 And in another shell session:
 
