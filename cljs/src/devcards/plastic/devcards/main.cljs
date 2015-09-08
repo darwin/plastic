@@ -1,8 +1,7 @@
 (ns plastic.devcards.main
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [devcards.core :refer [defcard deftest start-devcard-ui!]])
-  (:require [devcards.core :as devcards]
-            [plastic.dev.figwheel]))
+                   [devcards.core :refer [defcard deftest]])
+  (:require [plastic.dev.figwheel]))
 
 (defcard (list 1 2 3))
 
@@ -15,9 +14,3 @@
     a))
 
 (defcard atom-observing-card observed-atom)
-
-(log "HELLO devcards")
-
-;(start-devcard-ui!)
-;(devcards.core/start-devcard-ui!)
-;(devcards.core/start-figwheel-reloader!)

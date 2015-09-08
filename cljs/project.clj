@@ -22,7 +22,7 @@
 
   :plugins
   [[lein-cljsbuild "1.1.0"]
-   [lein-figwheel "0.3.8"]]
+   [lein-figwheel "0.3.9"]]
 
   :source-paths
   ["src/macros"
@@ -40,7 +40,9 @@
 
   :cljsbuild
   {:builds
-   {:dev
+   {
+    ; ---------------------------------------------------------------------------------------------------------------
+    :dev
     {:source-paths ["checkouts/cljs-devtools/src"
                     "checkouts/re-frame/src"
                     "checkouts/reagent/src"
@@ -57,6 +59,7 @@
      :compiler     {:main                  plastic.main
                     :closure-defines       {"plastic.env.run_worker_on_main_thread" true
                                             "plastic.env.need_loophole"             true
+                                            "plastic.env.legacy_devtools"           true
                                             "plastic.env.validate_dbs"              true
                                             "plastic.env.log_all_dispatches"        true}
                     :output-to             "../lib/_dev_build/main/plastic.js"
@@ -68,6 +71,8 @@
                     :cache-analysis        true
                     :source-map            true
                     :source-map-timestamp  true}}
+
+    ; ---------------------------------------------------------------------------------------------------------------
     :devcards
     {:source-paths ["checkouts/cljs-devtools/src"
                     "checkouts/re-frame/src"
@@ -97,6 +102,8 @@
                     :cache-analysis        true
                     :source-map            true
                     :source-map-timestamp  true}}
+
+    ; ---------------------------------------------------------------------------------------------------------------
     :main
     {:source-paths ["checkouts/cljs-devtools/src"
                     "checkouts/re-frame/src"
@@ -108,7 +115,10 @@
                     "src/main"]
      :figwheel     true
      :compiler     {:main                  plastic.main
-                    :closure-defines       {"plastic.env.need_loophole" true}
+                    :closure-defines       {"plastic.env.need_loophole"       true
+                                            "plastic.env.legacy_devtools"     true
+                                            "plastic.env.dont_start_figwheel" true
+                                            "plastic.env.log_main_dispatches" true}
                     :output-to             "../lib/_build/main/plastic.js"
                     :output-dir            "../lib/_build/main"
                     :optimizations         :none
@@ -118,19 +128,20 @@
                     :cache-analysis        true
                     :source-map            true
                     :source-map-timestamp  true}}
+
+    ; ---------------------------------------------------------------------------------------------------------------
+    ; note: figwheel and devtools are not supported in web workers
     :worker
     {:source-paths ["checkouts/re-frame/src"
                     "checkouts/rewrite-cljs/src"
                     "checkouts/tools.reader/src/main"
                     "src/macros"
                     "src/env"
-                    "src/dev"
                     "src/meld"
                     "src/common"
                     "src/worker"]
-     :figwheel     true
      :compiler     {:main                  plastic.worker
-                    :closure-defines       {"plastic.env.need_loophole" true}
+                    :closure-defines       {"plastic.env.log_worker_dispatches" true}
                     :output-to             "../lib/_build/worker/plastic.js"
                     :output-dir            "../lib/_build/worker"
                     :optimizations         :none

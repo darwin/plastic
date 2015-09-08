@@ -56,8 +56,9 @@
   ;(dispatch :editor-update-layout)
   )
 
-(figwheel/start
-  {:on-jsload     on-js-load
-   :eval-fn       eval
-   :websocket-url "ws://localhost:7000/figwheel-ws"
-   :merge-plugins {:repl-plugin repl-plugin}})
+(when-not plastic.env.dont-start-figwheel
+  (figwheel/start
+    {:on-jsload     on-js-load
+     :eval-fn       eval
+     :websocket-url "ws://localhost:7000/figwheel-ws"
+     :merge-plugins {:repl-plugin repl-plugin}}))

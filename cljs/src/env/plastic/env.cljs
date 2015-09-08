@@ -16,6 +16,8 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
+(goog-define dont-start-figwheel false)
+(goog-define legacy-devtools false)
 (goog-define need-loophole false)
 (goog-define dont-run-loops false)
 (goog-define run-worker-on-main-thread false)
