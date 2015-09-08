@@ -48,7 +48,6 @@
 
 (defn ^:export dispatch-on-worker
   ([event] (dispatch-on-worker event nil))
-  ([event continuation] (let [job-id (if continuation (next-job-id!) 0)]
-                          (if continuation
-                            (frame/register-job job-id continuation))
+  ([event continuation] (let [job-id (next-job-id!)]                                                                  ; TODO: this could be later relaxed, dispatchers would opt-in into job effects coallescing
+                          (frame/register-job job-id (or continuation identity))
                           (post-message event job-id))))
