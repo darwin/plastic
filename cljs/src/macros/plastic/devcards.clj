@@ -4,8 +4,9 @@
 
 (defmacro defmeldcard [source]
   (let [doc (str "```\n" source "\n```")]
-    `(let [meld# (meld.parser/parse! ~source "*output of defmeldcard*")]
-       (devcards.core/defcard ~doc meld#))))
+    `(binding [meld.ids/*last-node-id!* (volatile! 0)]                                                                ; to have stable node ids for devcard purposes
+       (let [meld# (meld.parser/parse! ~source)]
+         (devcards.core/defcard ~doc meld#)))))
 
 (defmacro defhistcard [source compounds?]
   `(let [meld# (meld.parser/parse! ~source)

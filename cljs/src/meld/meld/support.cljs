@@ -11,15 +11,15 @@
         top-node (meld/get-top-node meld)
         [start end] (node/get-range top-node)
         init (vec (concat (repeat start 0) (repeat (- end start) 1)))
-        hist*! (volatile! (transient init))]
+        hist$! (volatile! (transient init))]
     (loop [loc start-loc]
       (if (zip/end? loc)
-        (persistent! @hist*!)
+        (persistent! @hist$!)
         (let [node (zip/node loc)
               [ra rb] (node/get-range node)]
           (if (or include-compounds? (not (node/compound? node)))
             (doseq [i (range ra rb)]
-              (vswap! hist*! update! i inc)))
+              (vswap! hist$! update! i inc)))
           (recur (zip/next loc)))))))
 
 (defn format-as-text-block [text size]

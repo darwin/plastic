@@ -23,7 +23,12 @@
   (node/get-source (get-top-node meld)))
 
 (defn nodes-count [meld]
+  {:pre [meld]}
   (count (keys meld)))
+
+(defn get-node [meld id]
+  {:pre [meld]}
+  (get meld id))
 
 (defn descendants [meld id]
   (let [node (get meld id)
@@ -32,8 +37,8 @@
       (concat children (apply concat (map (partial descendants meld) children)))
       '())))
 
-(defn dissoc-all! [meld* ids]
-  (reduce dissoc! meld* ids))
+(defn dissoc-all! [meld& ids]
+  (reduce dissoc! meld& ids))
 
 (defn find-top-level-nodes-ids [meld]
   (map first (remove (fn [[id _node]] (:parent (get meld id))) meld)))
@@ -42,10 +47,10 @@
   (let [top-level-ids (find-top-level-nodes-ids meld)
         unit (node/make-unit top-level-ids source name)
         unit-id (:id unit)
-        meld* (transient meld)
-        meld*! (volatile! meld*)]
-    (vswap! meld*! assoc! unit-id unit)
+        meld& (transient meld)
+        meld&! (volatile! meld&)]
+    (vswap! meld&! assoc! unit-id unit)
     (doseq [id top-level-ids]
-      (vswap! meld*! assoc! id (assoc (get meld* id) :parent (:id unit))))
-    (with-meta (persistent! @meld*!) (set-top {} unit-id))))
+      (vswap! meld&! assoc! id (assoc (get meld& id) :parent (:id unit))))
+    (with-meta (persistent! @meld&!) (set-top {} unit-id))))
 

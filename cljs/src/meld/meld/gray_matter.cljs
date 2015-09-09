@@ -14,7 +14,7 @@
 ; we have to another post processing step to extract this information and include it in our parse-tree
 
 (defn read-gray-matter [reader start-offset]
-  (let [tokens (transient [])]
+  (let [tokens&! (volatile! (transient []))]
     (loop [offset start-offset]
       (let [line (get-line-number reader)
             column (get-column-number reader)
@@ -33,9 +33,9 @@
                          :end    end
                          :line   line
                          :column column})]
-            (conj! tokens token)
+            (vswap! tokens&! conj! token)
             (recur end))
-          (persistent! tokens))))))
+          (persistent! @tokens&!))))))
 
 (defn measure-gray-matter [text]
   (let [len (alength text)
@@ -56,17 +56,17 @@
 
 ; we want to walk reader from left to right in one go for it to provide consistent line/column infos
 (defn collect-gray-matter [reader offsets]
-  (let [* (fn [[current-offset table*] next-gray-matter-offset]
+  (let [* (fn [[current-offset table&] next-gray-matter-offset]
             (helpers/skip-chunk reader (- next-gray-matter-offset current-offset))                                    ; advance reader to the next position of interest
             (let [gray-matter (read-gray-matter reader next-gray-matter-offset)
                   new-offset (or (:end (last gray-matter)) next-gray-matter-offset)
                   new-table (if-not (empty? gray-matter)
-                              (assoc! table* next-gray-matter-offset (stitch-aligned-comments gray-matter))           ; note comment stitching
-                              table*)]
+                              (assoc! table& next-gray-matter-offset (stitch-aligned-comments gray-matter))           ; note comment stitching
+                              table&)]
               [new-offset new-table]))
-        result-table* (second (reduce * [0 (transient {})] offsets))]
+        result-table& (second (reduce * [0 (transient {})] offsets))]
     (assert (nil? (read-char reader)))                                                                                ; reader should be empty at this point
-    (persistent! result-table*)))                                                                                     ; return final table
+    (persistent! result-table&)))                                                                                     ; return final table
 
 (defn is-parent? [meld parent-id node-id]
   (loop [id node-id]
@@ -79,13 +79,13 @@
           (recur parent))))))
 
 (defn build-ends-lookup-table [meld]
-  (let [table*! (volatile! (transient {}))]
+  (let [table&! (volatile! (transient {}))]
     (doseq [[id node] meld]
       (if-let [end (:end node)]
-        (let [prev-id (get @table*! end)]
+        (let [prev-id (get @table&! end)]
           (if (or (nil? prev-id) (is-parent? meld id prev-id))
-            (vswap! table*! assoc! end id)))))
-    (persistent! @table*!)))
+            (vswap! table&! assoc! end id)))))
+    (persistent! @table&!)))
 
 (defn merge-gray-matter [meld table]
   (let [ends-table (build-ends-lookup-table meld)

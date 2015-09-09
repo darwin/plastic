@@ -45,25 +45,25 @@
     (assoc loc 1 id)))
 
 (defn insert-child [loc child-node]
-  (let [[meld* id] loc
+  (let [[meld& id] loc
         child-id (node/get-id child-node)
-        new-meld* (-> meld*
+        new-meld& (-> meld&
                     (update! id node/insert-child-leftmost child-id)
                     (assoc! child-id (node/set-parent child-node id)))]
-    (assoc loc 0 new-meld*)))
+    (assoc loc 0 new-meld&)))
 
 (defn insert-childs [loc nodes]
   (let [* (fn [loc node] (insert-child loc node))]
     (reduce * loc (reverse nodes))))
 
 (defn insert-right [loc child-node]
-  (let [[meld* id] loc
+  (let [[meld& id] loc
         parent-id (parent loc)
         child-id (node/get-id child-node)
-        new-meld* (-> meld*
+        new-meld& (-> meld&
                     (update! parent-id node/insert-child-right id child-id)
                     (assoc! child-id (node/set-parent child-node parent-id)))]
-    (assoc loc 0 new-meld*)))
+    (assoc loc 0 new-meld&)))
 
 (defn insert-rights [loc nodes]
   (let [* (fn [loc node] (insert-right loc node))]
@@ -86,42 +86,42 @@
 (defn right
   "Returns the loc of the right sibling of the node at this loc, or nil"
   [loc]
-  (let [[meld* id meta] loc]
+  (let [[meld& id meta] loc]
     (if-let [parent-id (parent loc)]
-      (if-let [right-id (node/peek-right (get meld* parent-id) id)]
-        [meld* right-id meta]))))
+      (if-let [right-id (node/peek-right (get meld& parent-id) id)]
+        [meld& right-id meta]))))
 
 (defn left
   "Returns the loc of the left sibling of the node at this loc, or nil"
   [loc]
-  (let [[meld* id meta] loc]
+  (let [[meld& id meta] loc]
     (if-let [parent-id (parent loc)]
-      (if-let [left-id (node/peek-left (get meld* parent-id) id)]
-        [meld* left-id meta]))))
+      (if-let [left-id (node/peek-left (get meld& parent-id) id)]
+        [meld& left-id meta]))))
 
 (defn rightmost
   "Returns the loc of the rightmost sibling of the node at this loc, or self"
   [loc]
-  (let [[meld* id meta] loc
+  (let [[meld& id meta] loc
         parent-id (parent loc)
-        parent (get meld* parent-id)
+        parent (get meld& parent-id)
         result-id (node/rightmost-child parent)]
     (if result-id
       (if (identical? result-id id)
         loc
-        [meld* result-id meta]))))
+        [meld& result-id meta]))))
 
 (defn leftmost
   "Returns the loc of the leftmost sibling of the node at this loc, or self"
   [loc]
-  (let [[meld* id meta] loc
+  (let [[meld& id meta] loc
         parent-id (parent loc)
-        parent (get meld* parent-id)
+        parent (get meld& parent-id)
         result-id (node/rightmost-child parent)]
     (if result-id
       (if (identical? result-id id)
         loc
-        [meld* result-id meta]))))
+        [meld& result-id meta]))))
 
 (defn next
   "Moves to the next loc in the hierarchy, depth-first. When reaching
@@ -154,23 +154,23 @@
   it in a depth-first walk."
   [loc]
   (if-let [prev-loc (prev loc)]
-    (let [[meld* id meta] loc
+    (let [[meld& id meta] loc
           parent-id (parent loc)
-          new-meld* (-> meld*
+          new-meld& (-> meld&
                       (update! parent-id node/remove-child id)
-                      (meld/dissoc-all! (meld/descendants meld* id))
+                      (meld/dissoc-all! (meld/descendants meld& id))
                       (dissoc! id))]
-      [new-meld* (prev-loc 1) meta])
+      [new-meld& (prev-loc 1) meta])
     (throw "Remove at top")))
 
 (defn replace
   "Replaces the node at this loc, without moving"
   [loc node]
-  (let [[meld* id] loc
-        new-meld* (-> meld*
+  (let [[meld& id] loc
+        new-meld& (-> meld&
                     (assoc! id node))]
     (assert (identical? id (node/get-id node)))
-    (assoc loc 0 new-meld*)))
+    (assoc loc 0 new-meld&)))
 
 (defn edit
   "Replaces the node at this loc with the value of (f node args)"
