@@ -7,17 +7,17 @@
             [meld.support :refer [histogram-display]]
             [meld.meld :as meld]))
 
-(defhistcard "symbol" false)
-(defhistcard ":keword" false)
+(defhistcard symbol "symbol" false)
+(defhistcard keyword ":keword" false)
 
-(defhistcard "(1 2)" false)
-(defhistcard "[a b (1 2) 3]" true)
-(defhistcard "  1  " false)
-(defhistcard "  ;comment  " false)
-(defhistcard "  x ;comment  " false)
+(defhistcard list "(1 2)" false)
+(defhistcard nested "[a b (1 2) 3]" true)
+(defhistcard one "  1  " false)
+(defhistcard comment "  ;comment  " false)
+(defhistcard x-comment "  x ;comment  " false)
 
 
-(defhistcard "(ns n1.doc)
+(defhistcard some-doc-example "(ns n1.doc)
 
 ; independent comment
 ; block spanning

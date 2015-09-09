@@ -50,7 +50,8 @@
             (helpers/whitespace? char) (recur (inc offset))
             (helpers/linebreak? char) (recur (inc offset))
             (= char ";") (recur (skip-to-linebreak-or-end (inc offset)))
-            :else offset))))))
+            :else offset))
+        offset))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 

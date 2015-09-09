@@ -21,7 +21,8 @@
     (seq? token) :list
     (vector? token) :vector
     (map? token) :map
-    (set? token) :set))
+    (set? token) :set
+    :else :other))
 
 (defn classify [token]
   (let [tag (detect-token-tag token)]
@@ -41,14 +42,14 @@
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn make-unit [top-level-nodes-ids source name]
-  {:id       (ids/next-node-id!)
-   :tag      :unit
-   :type     :compound
-   :start    0
-   :end      (count source)
-   :source   source
-   :name     name
-   :children top-level-nodes-ids})
+  (cond-> {:id       (ids/next-node-id!)
+           :tag      :unit
+           :type     :compound
+           :start    0
+           :end      (count source)
+           :source   source
+           :children top-level-nodes-ids}
+    name (assoc :name name)))
 
 ; -------------------------------------------------------------------------------------------------------------------
 

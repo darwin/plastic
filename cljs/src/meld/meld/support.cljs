@@ -44,6 +44,7 @@
   (let [hist (histogram meld include-compounds?)]
     (histogram-view (meld/get-source meld) (apply str hist) chunk-size)))
 
-(defn histogram-component [hist]
-  [:div.meld-support
-   [:pre.histogram hist]])
+(defn histogram-component [data-atom]
+  (let [data @data-atom]
+    [:div.meld-support
+     [:pre.histogram (:histogram data)]]))

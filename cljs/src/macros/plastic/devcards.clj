@@ -8,10 +8,11 @@
        (let [meld# (meld.parser/parse! ~source)]
          (devcards.core/defcard ~doc meld#)))))
 
-(defmacro defhistcard [source compounds?]
+(defmacro defhistcard [name source compounds?]
   `(let [meld# (meld.parser/parse! ~source)
-         histogram# (meld.support/histogram-display meld# 130 ~compounds?)]
+         histogram# (meld.support/histogram-display meld# 100 ~compounds?)]
      (devcards.core/defcard
-       (dc/reagent (partial meld.support/histogram-component histogram#))
-       {}
+       ~name
+       (dc/reagent meld.support/histogram-component)
+       {:histogram histogram#}
        {:padding false})))
