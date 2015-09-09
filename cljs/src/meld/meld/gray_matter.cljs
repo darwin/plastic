@@ -6,7 +6,8 @@
             [meld.comments :refer [stitch-aligned-comments]]
             [meld.zip :as zip]
             [meld.node :as node]
-            [meld.ids :as ids]))
+            [meld.ids :as ids]
+            [meld.util :refer [transplant-meta]]))
 
 ; gray matter is whitespaces, linebreaks and comments
 ; standard tools.reader does not record them in parsed output
@@ -101,5 +102,5 @@
         all-ends-with-special (cons 0 all-ends)                                                                       ; a special case of leading gray matter, see ***
         reader (rt/indexing-push-back-reader source)
         gray-matter-table (collect-gray-matter reader all-ends-with-special)]                                         ; map node's end-offsets -> gray-matter sequences
-    (merge-gray-matter meld gray-matter-table)))
+    (transplant-meta (merge-gray-matter meld gray-matter-table) meld)))
 

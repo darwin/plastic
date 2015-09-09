@@ -6,3 +6,6 @@
 (defn update! [m k f & args]
   (let [o (get m k)]
     (assoc! m k (apply f o args))))
+
+(defn transplant-meta [new old]
+  (with-meta new (meta old)))

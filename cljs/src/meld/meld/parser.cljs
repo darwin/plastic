@@ -22,10 +22,12 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn parse! [source name]
-  (let [[tracker! flush!] (make-tracker source)]
-    (binding [rt/log-source* tracker!]
-      (let [reader (rt/source-logging-push-back-reader source 1 name)
-            read-next-form! (partial read-form! reader)]
-        (dorun (take-while identity (repeatedly read-next-form!)))                                                    ; read all avail forms
-        (post-process-meld! (flush!) source name)))))
+(defn parse!
+  ([source] (parse! source nil))
+  ([source name]
+   (let [[tracker! flush!] (make-tracker source)]
+     (binding [rt/log-source* tracker!]
+       (let [reader (rt/source-logging-push-back-reader source 1 name)
+             read-next-form! (partial read-form! reader)]
+         (dorun (take-while identity (repeatedly read-next-form!)))                                                   ; read all avail forms
+         (post-process-meld! (flush!) source name))))))

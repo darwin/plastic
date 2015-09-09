@@ -50,9 +50,6 @@
    :name     name
    :children top-level-nodes-ids})
 
-(defn get-end [node]
-  (:end node))
-
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn get-id [node]
@@ -86,6 +83,30 @@
 (defn set-parent [node parent]
   {:pre [node]}
   (assoc node :parent parent))
+
+(defn get-source [node]
+  {:pre [node]}
+  (:source node))
+
+(defn set-source [node source]
+  {:pre [node]}
+  (assoc node :source source))
+
+(defn get-end [node]
+  {:pre [node]}
+  (:end node))
+
+(defn set-end [node end]
+  {:pre [node]}
+  (assoc node :end end))
+
+(defn get-start [node]
+  {:pre [node]}
+  (:start node))
+
+(defn set-start [node start]
+  {:pre [node]}
+  (assoc node :start start))
 
 (defn peek-right [node id]
   {:pre [node
@@ -138,3 +159,23 @@
 (defn ^boolean whitespace? [node]
   {:pre [node]}
   (#{:whitespace} (get-type node)))
+
+(defn ^boolean compound? [node]
+  {:pre [node]}
+  (#{:compound} (get-type node)))
+
+(defn get-whitespace-subnode [node]
+  {:pre [node]}
+  (:whitespace node))
+
+(defn get-whitespace [node]
+  {:pre [node]}
+  (:source (get-whitespace-subnode node)))
+
+(defn get-whitespace-size [node]
+  {:pre [node]}
+  (count (get-whitespace node)))
+
+(defn get-range [node]
+  [(- (get-start node) (get-whitespace-size node)) (get-end node)])
+

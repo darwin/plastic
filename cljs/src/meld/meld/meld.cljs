@@ -10,6 +10,21 @@
   {:post [%]}
   (:top meta))
 
+(defn get-top-node-id [meld]
+  {:pre [meld]}
+  (get-top (meta meld)))
+
+(defn get-top-node [meld]
+  {:pre [meld]}
+  (get meld (get-top-node-id meld)))
+
+(defn get-source [meld]
+  {:pre [meld]}
+  (node/get-source (get-top-node meld)))
+
+(defn nodes-count [meld]
+  (count (keys meld)))
+
 (defn descendants [meld id]
   (let [node (get meld id)
         children (node/get-children node)]
