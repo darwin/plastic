@@ -41,7 +41,13 @@
   (reduce dissoc! meld& ids))
 
 (defn find-top-level-nodes-ids [meld]
-  (map first (remove (fn [[id _node]] (:parent (get meld id))) meld)))
+  (let [sorter (fn [[_ a] [_ b]]
+                 (let [start-a (node/get-start a)
+                       start-b (node/get-start b)]
+                   (compare start-a start-b)))
+        has-parent? (fn [[_id node]]
+                      (node/get-parent node))]
+    (map first (sort sorter (remove has-parent? meld)))))
 
 (defn define-unit [meld source name]
   (let [top-level-ids (find-top-level-nodes-ids meld)
@@ -54,3 +60,12 @@
       (vswap! meld&! assoc! id (assoc (get meld& id) :parent (:id unit))))
     (with-meta (persistent! @meld&!) (set-top {} unit-id))))
 
+(defn get-compound-metrics [meld node]
+  {:pre [node
+         (node/compound? node)]}
+  (let [children (node/get-children node)
+        first-child (get-node meld (first children))
+        last-child (get-node meld (last children))
+        left-size (- (node/get-range-start first-child) (node/get-start node))
+        right-size (- (node/get-range-end node) (node/get-end last-child))]
+    [left-size right-size]))

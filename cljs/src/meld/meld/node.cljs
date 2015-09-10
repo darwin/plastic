@@ -109,6 +109,14 @@
   {:pre [node]}
   (assoc node :start start))
 
+(defn get-tag [node]
+  {:pre [node]}
+  (:tag node))
+
+(defn set-tag [node tag]
+  {:pre [node]}
+  (assoc node :tag tag))
+
 (defn peek-right [node id]
   {:pre [node
          (number? id)]}
@@ -165,18 +173,47 @@
   {:pre [node]}
   (#{:compound} (get-type node)))
 
-(defn get-whitespace-subnode [node]
+(defn get-leadspace-subnode [node]
   {:pre [node]}
-  (:whitespace node))
+  (:leadspace node))
 
-(defn get-whitespace [node]
+(defn set-leadspace-subnode [node subnode]
   {:pre [node]}
-  (:source (get-whitespace-subnode node)))
+  (assoc node :leadspace subnode))
 
-(defn get-whitespace-size [node]
+(defn get-leadspace [node]
   {:pre [node]}
-  (count (get-whitespace node)))
+  (:source (get-leadspace-subnode node)))
+
+(defn get-leadspace-size [node]
+  {:pre [node]}
+  (count (get-leadspace node)))
+
+(defn get-trailspace-subnode [node]
+  {:pre [node]}
+  (:trailspace node))
+
+(defn set-trailspace-subnode [node subnode]
+  {:pre [node]}
+  (assoc node :trailspace subnode))
+
+(defn get-trailspace [node]
+  {:pre [node]}
+  (:source (get-trailspace-subnode node)))
+
+(defn get-trailspace-size [node]
+  {:pre [node]}
+  (count (get-trailspace node)))
+
+(defn get-range-start [node]
+  {:pre [node]}
+  (- (get-start node) (get-leadspace-size node)))
+
+(defn get-range-end [node]
+  {:pre [node]}
+  (- (get-end node) (get-trailspace-size node)))
 
 (defn get-range [node]
-  [(- (get-start node) (get-whitespace-size node)) (get-end node)])
+  {:pre [node]}
+  [(get-range-start node) (get-range-end node)])
 

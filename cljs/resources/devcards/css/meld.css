@@ -1,6 +1,71 @@
+.meld-support {
+  padding: 6px 6px;
+}
+
 .histogram {
-  background-color: #eff;
   font-size: 12px;
-  padding: 2px 6px;
+  line-height: 12px;
   margin: 0;
+
+  /* http://stackoverflow.com/a/15533575/84283 */
+  background-image: linear-gradient(#efe 50%, #afa 0%);
+  background-position: 0 0;
+  background-repeat: repeat;
+  background-size: 1em 2em;
+}
+
+.meld-viz {
+  font-size: 12px;
+  line-height: 12px;
+  margin: 0;
+  position: relative;
+}
+
+.meld-viz .raw-source {
+  color: #bbb;
+  margin: 0;
+  padding: 0;
+}
+
+.meld-viz .raw-source {
+  margin: 0;
+  padding: 0;
+}
+
+.meld-viz .raw-source .raw-line {
+  display: inline-block;
+  background-color: #eee;
+  margin: 0;
+  padding: 0;
+}
+
+.meld-viz .tokens {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  opacity: 0.8;
+}
+
+.meld-viz .token {
+  margin: 0;
+  padding: 0;
+  display: inline-block;
+  font-family: monospace;
+  white-space: pre;
+  background-color: red;
+  color: black;
+  opacity: 0.4;
+}
+
+.meld-viz .token.whitespace {
+  background-color: yellow;
+}
+
+.meld-viz .token.open,
+.meld-viz .token.close{
+  background-color: blue;
+}
+
+.meld-viz .token.symbol {
+  background-color: green;
 }

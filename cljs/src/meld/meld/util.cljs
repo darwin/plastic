@@ -9,3 +9,7 @@
 
 (defn transplant-meta [new old]
   (with-meta new (meta old)))
+
+(defn indexed-iteration [coll]
+  {:pre [(coll? coll)]}
+  (map-indexed (fn [i v] [i v]) coll))

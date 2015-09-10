@@ -3,7 +3,7 @@
   (:require [clojure.string :as string]
             [meld.zip :as zip]
             [meld.node :as node]
-            [meld.util :refer [update!]]
+            [meld.util :refer [update! indexed-iteration]]
             [meld.meld :as meld]))
 
 (defn histogram [meld & [include-compounds?]]
@@ -44,7 +44,72 @@
   (let [hist (histogram meld include-compounds?)]
     (histogram-view (meld/get-source meld) (apply str hist) chunk-size)))
 
+; -------------------------------------------------------------------------------------------------------------------
+
 (defn histogram-component [data-atom]
-  (let [data @data-atom]
+  (let [{:keys [histogram]} @data-atom]
     [:div.meld-support
-     [:pre.histogram (:histogram data)]]))
+     [:pre.histogram histogram]]))
+
+; -------------------------------------------------------------------------------------------------------------------
+
+(defn enter-node [meld node]
+  (let [[size _] (meld/get-compound-metrics meld node)
+        source (node/get-source node)]
+    {:id   (node/get-id node)
+     :kind :open
+     :text (subs source 0 size)}))
+
+(defn leave-node [meld node]
+  (let [[_ size] (meld/get-compound-metrics meld node)
+        source (node/get-source node)]
+    {:id   (node/get-id node)
+     :kind :close
+     :text (subs source (- (count source) size))}))
+
+(defn process-node [node]
+  {:id   (node/get-id node)
+   :kind (or (node/get-tag node) (node/get-type node))
+   :text (node/get-source node)})
+
+(defn extract-leadspace [node]
+  (if-let [whitespace (node/get-leadspace node)]
+    {:id   (node/get-id node)
+     :kind :whitespace
+     :text whitespace}))
+
+(defn extract-trailspace [node]
+  (if-let [whitespace (node/get-trailspace node)]
+    {:id   (node/get-id node)
+     :kind :whitespace
+     :text whitespace}))
+
+(defn collect-visible-tokens [meld]
+  (let [start-loc (zip/zip meld)]
+    (remove nil? (zip/walk start-loc []
+                   (fn [accum node op]
+                     (-> accum
+                       (conj (case op
+                               (:enter :token) (extract-leadspace node)
+                               :leave (extract-trailspace node)))
+                       (conj (case op
+                               :enter (enter-node meld node)
+                               :leave (leave-node meld node)
+                               :token (process-node node)))))))))
+
+(defn meld-viz-component [data-atom]
+  (let [{:keys [meld]} @data-atom
+        source (meld/get-source meld)
+        source-lines (string/split source #"\n")
+        tokens (collect-visible-tokens meld)]
+    [:div.meld-support
+     [:div.meld-viz
+      [:div.raw-source
+       (interpose [:br] (for [[index line] (indexed-iteration source-lines)]
+                          ^{:key index} [:pre.raw-line line]))]
+      [:div.tokens
+       (for [[index {:keys [id kind text]}] (indexed-iteration tokens)]
+         (case kind
+           :linebreak ^{:key index} [:br {:class kind}]
+           ^{:key index} [:div.token {:class   kind
+                                      :data-id id} text]))]]]))

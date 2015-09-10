@@ -16,3 +16,10 @@
        (dc/reagent meld.support/histogram-component)
        {:histogram histogram#}
        {:padding false})))
+
+(defmacro defmeldvizcard [name meld]
+  `(devcards.core/defcard
+     ~name
+     (dc/reagent meld.support/meld-viz-component)
+     {:meld ~meld}
+     {:padding false}))

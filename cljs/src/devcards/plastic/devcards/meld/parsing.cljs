@@ -9,10 +9,10 @@
 (defmeldcard "(0 1)")
 (defmeldcard "[0 1 2]")
 (defmeldcard "; comment \n  ")
+(defmeldcard " (1  )   ")
 
 ; something more complex
 (defmeldcard "[0 symbol :keyword \"string\" #\"regex\" [x y z] '(1 2 3) #{3 4 4} {:k v 0 \"x\"}]")
-
 
 
 

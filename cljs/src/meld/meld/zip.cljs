@@ -24,6 +24,9 @@
   {:post [%]}
   (get (loc 0) (loc 1)))
 
+(defn id [loc]
+  (loc 1))
+
 (defn ^boolean branch? [loc]
   (node/get-children (node loc)))
 
@@ -166,13 +169,21 @@
 (defn replace
   "Replaces the node at this loc, without moving"
   [loc node]
-  (let [[meld& id] loc
-        new-meld& (-> meld&
-                    (assoc! id node))]
+  (let [[meld& id] loc]
     (assert (identical? id (node/get-id node)))
-    (assoc loc 0 new-meld&)))
+    (assoc loc 0 (assoc! meld& id node))))
 
 (defn edit
   "Replaces the node at this loc with the value of (f node args)"
   [loc f & args]
   (replace loc (apply f (node loc) args)))
+
+(defn walk [loc accum f & args]
+  (let [walk-child (fn [accum child-id]
+                     (apply walk (assoc loc 1 child-id) accum f args))]
+    (if-let [children (node/get-children (node loc))]
+      (let [accum-after-enter (apply f accum (node loc) :enter args)
+            accum-after-children (reduce walk-child accum-after-enter children)
+            accum-after-leave (apply f accum-after-children (node loc) :leave args)]
+        accum-after-leave)
+      (apply f accum (node loc) :token args))))
