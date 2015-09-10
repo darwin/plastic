@@ -16,12 +16,12 @@
 (defn collect-geometry [parent-offset dom-nodes]
   (apply hash-map (mapcat (partial read-geometry parent-offset) dom-nodes)))
 
-(defn retrieve-form-nodes-geometries [editor-id form-id node-ids]
-  (let [$form ($ (dom/find-plastic-editor-form editor-id form-id))
-        form-offset (.offset $form)
+(defn retrieve-unit-nodes-geometries [editor-id unit-id node-ids]
+  (let [$unit ($ (dom/find-plastic-editor-unit editor-id unit-id))
+        unit-offset (.offset $unit)
         selector (dom/build-nodes-selector node-ids)
-        dom-nodes (dom/find-all-as-vec $form selector)]
-    (collect-geometry form-offset dom-nodes)))
+        dom-nodes (dom/find-all-as-vec $unit selector)]
+    (collect-geometry unit-offset dom-nodes)))
 
 (defn mid-point [geometry]
   (+ (:left geometry) (/ (:width geometry) 2)))

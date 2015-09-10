@@ -1,79 +1,66 @@
 (ns plastic.worker.editor.layout.builder
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
                    [plastic.common :refer [process]])
-  (:require [rewrite-clj.zip :as zip]
-            [rewrite-clj.node :as node]
-            [clojure.zip :as z]
-            [plastic.util.zip :as zip-utils :refer [valid-loc? loc-id]]
-            [plastic.util.helpers :as helpers]
+  (:require [plastic.util.helpers :as helpers]
             [plastic.worker.editor.layout.utils :as utils]
-            [plastic.worker.editor.toolkit.id :as id]))
-
-(defn strip-whitespaces-but-keep-linebreaks-policy [loc]
-  (let [node (z/node loc)]
-    (or (node/linebreak? node) (not (node/whitespace? node)))))
-
-(def zip-down (partial zip-utils/zip-down strip-whitespaces-but-keep-linebreaks-policy))
-(def zip-right (partial zip-utils/zip-right strip-whitespaces-but-keep-linebreaks-policy))
-(def zip-left (partial zip-utils/zip-left strip-whitespaces-but-keep-linebreaks-policy))
-(def zip-next (partial zip-utils/zip-next strip-whitespaces-but-keep-linebreaks-policy))
-(def zip-prev (partial zip-utils/zip-prev strip-whitespaces-but-keep-linebreaks-policy))
-
-(defn collect-all-right [loc]
-  (take-while valid-loc? (iterate zip-right loc)))
-
-(defn child-locs [loc]
-  (collect-all-right (zip-down loc)))
-
-(defn prepare-node-text [node]
-  (cond
-    (utils/string-node? node) (utils/prepare-string-for-display (node/string node))
-    (utils/keyword-node? node) (helpers/strip-colon (node/string node))
-    :else (node/string node)))
-
-(defn is-linebreak? [loc]
-  (or (nil? loc) (node/linebreak? (z/node loc))))
-
-(defn is-simple? [loc]
-  (if (nil? loc)
-    true
-    (not (node/inner? (z/node loc)))))
-
-(defn is-double-column-line? [line]
-  (let [items (if (is-linebreak? (first line)) (rest line) line)]
-    (if (= (count items) 2)
-      (is-simple? (first items)))))
+            [plastic.worker.editor.toolkit.id :as id]
+            [meld.zip :as zip]
+            [meld.node :as node]
+            [clojure.string :as string]))
 
 (defn linebreak-near-doc? [loc]
   (or
-    (utils/is-linebreak-near-doc? loc zip-left)
-    (utils/is-linebreak-near-doc? loc zip-right)))
+    (utils/linebreak-near-doc? loc zip/left)
+    (utils/linebreak-near-doc? loc zip/right)))
 
-(defn linebreak-near-comment? [loc]
-  (utils/is-linebreak-near-comment? loc zip-right))
+(defn linebreak-before-standalone-comment? [loc]
+  (let [right-loc (zip/right loc)]
+    (if (zip/good? right-loc)
+      (utils/standalone-comment? right-loc))))
 
 (defn ignored-linebreak? [loc]
   (or
     (linebreak-near-doc? loc)
-    (linebreak-near-comment? loc)))
+    (linebreak-before-standalone-comment? loc)))
+
+(defn child-locs-without-comments-and-ignored-linebreaks [loc]
+  (let [ignored? (fn [loc] (or (zip/comment? loc) (ignored-linebreak? loc)))]
+    (remove ignored? (zip/child-locs loc))))
+
+(defn prepare-node-text [node]
+  (cond
+    (node/string? node) (utils/prepare-string-for-display (node/get-source node))
+    (node/keyword? node) (helpers/strip-colon (node/get-source node))
+    :else (node/get-source node)))
+
+(defn linebreak? [loc]
+  (or (nil? loc) (zip/linebreak? loc)))
+
+(defn is-simple? [loc]
+  (or (nil? loc) (not (zip/compound? loc))))
+
+(defn is-double-column-line? [line]
+  (let [items (if (linebreak? (first line)) (rest line) line)]
+    (if (= (count items) 2)
+      (is-simple? (first items)))))
 
 (defn break-locs-into-lines [accum loc]
-  (let [accum (if (is-linebreak? loc) (conj accum []) accum)]
+  (let [accum (if (linebreak? loc) (conj accum []) accum)]
     (assoc accum (dec (count accum)) (conj (last accum) loc))))
 
 (defn prepare-children-table [locs]
-  (let [relevant-locs (remove #(or (utils/is-doc? %) (linebreak-near-doc? %)) locs)
+  (let [relevant-locs (remove #(or (utils/doc? %) (linebreak-near-doc? %)) locs)
         lines (reduce break-locs-into-lines [[]] relevant-locs)]
     (if (<= (count lines) 1)
-      [{:oneliner? true} (cons {} (map loc-id (first lines)))]
+      [{:oneliner? true} (cons {} (map zip/id (first lines)))]
       (let [first-line-is-double-column? (is-double-column-line? (first lines))]
         (cons {:multiline? true}
           (for [line lines]
             (if (is-double-column-line? line)
               (let [indent? (and (not first-line-is-double-column?) (not= line (first lines)))]
-                (cons {:double-column? true :indent indent?} (map loc-id line)))
+                (cons {:double-column? true :indent indent?} (map zip/id line)))
               (let [indent? (not= line (first lines))]
-                (cons {:indent indent?} (map loc-id line))))))))))
+                (cons {:indent indent?} (map zip/id line))))))))))
 
 (defn prepend-spot [table node-id]
   (let [spot-id (id/make-spot node-id)
@@ -83,181 +70,176 @@
 
 (defn process-children [loc]
   (-> loc
-    (child-locs)
+    (child-locs-without-comments-and-ignored-linebreaks)
     (prepare-children-table)
-    (prepend-spot (loc-id loc))))
+    (prepend-spot (zip/id loc))))
 
 (defn add-code-item [accum loc]
   (let [node (zip/node loc)
-        node-id (:id node)
-        inner? (node/inner? node)
-        linebreak? (is-linebreak? loc)
-        prev-loc (zip-prev loc)
-        after-nl? (and (valid-loc? prev-loc) (is-linebreak? prev-loc) (not (ignored-linebreak? prev-loc)))]
+        node-id (node/get-id node)
+        inner? (node/compound? node)
+        tag (node/get-tag node)
+        type (node/get-type node)
+        prev-loc (zip/prev loc)
+        after-nl? (and (zip/good? prev-loc) (linebreak? prev-loc) (not (ignored-linebreak? prev-loc)))]
     (-> accum
       (update :code #(conj % node-id))
       (assoc-in [:data node-id]
         (cond-> {:id            node-id
+                 :section       :code
+                 :tag           tag
+                 :type          type
                  :line          (:line accum)
                  :spatial-index (:line accum)
-                 :tag           (node/tag node)
-                 :section       :code
-                 :type          :symbol}
-          inner? (assoc :children (process-children loc))
+                 :selectable?   true
+                 :editable?     (not (= type :linebreak))}
           after-nl? (assoc :after-nl true)
-          (not inner?) (assoc :text (prepare-node-text node))
-          (utils/is-selectable? (node/tag node)) (assoc :selectable? true)
-          linebreak? (assoc :type :linebreak)
-          linebreak? (assoc :tag :token)
-          (utils/string-node? node) (assoc :type :string)
-          (utils/keyword-node? node) (assoc :type :keyword))))))
+          inner? (assoc :children (process-children loc))
+          (not inner?) (assoc :text (prepare-node-text node)))))))
 
 (defn add-spot-item [accum loc]
-  (let [node (zip/node loc)
-        node-id (:id node)
-        spot-id (id/make-spot node-id)]
-    (assoc-in accum [:data spot-id] {:id            spot-id
-                                     :tag           :token
-                                     :type          :spot
-                                     :section       :code
-                                     :line          (:line accum)
-                                     :spatial-index (:line accum)
-                                     :selectable?   true
-                                     :text          ""})))
+  (let [node-id (zip/id loc)
+        spot-id (id/make-spot node-id)
+        line (:line accum)]
+    (-> accum
+      (assoc-in [:data spot-id]
+        {:id            spot-id
+         :type          :spot
+         :tag           :spot
+         :section       :code
+         :line          line
+         :spatial-index line
+         :selectable?   true
+         :editable?     true
+         :text          ""}))))
 
 (defn add-doc-item [accum loc]
-  (let [node (z/node loc)
-        node-id (:id node)
-        text (node/string node)]
+  (let [node-id (zip/id loc)
+        text (zip/get-source loc)]
     (-> accum
       (update :docs #(conj % node-id))
       (assoc-in [:data node-id]
         {:id            node-id
-         :tag           :token
          :type          :doc
+         :tag           :doc
          :section       :docs
          :selectable?   true
+         :editable?     true
          :line          0
          :spatial-index (count (:docs accum))
          :text          (utils/prepare-string-for-display text)}))))
 
 (defn add-comment-item [accum loc]
-  (let [combined-comment (utils/combine-comments loc)
-        node-id (:id combined-comment)]
+  (let [node-id (zip/id loc)
+        line (:line accum)]
     (-> accum
       (update :comments #(conj % node-id))
-      (assoc-in [:data node-id] (merge combined-comment
-                                  {:tag           :comment
-                                   :type          :comment
-                                   :section       :comments
-                                   :line          (:line accum)
-                                   :spatial-index (count (:comments accum))
-                                   :selectable?   true})))))
+      (assoc-in [:data node-id]
+        {:id            node-id
+         :type          :comment
+         :tag           :comment
+         :section       :comments
+         :line          line
+         :spatial-index (count (:comments accum))
+         :selectable?   true
+         :editable?     true
+         :text          (zip/get-content loc)}))))
 
 (defn lookup-def-arities [accum loc]
-  (let [node (zip/node loc)
-        node-id (:id node)]
+  (let [node-id (zip/id loc)]
     (if-let [arities (utils/lookup-arities loc)]
       (assoc-in accum [:data node-id :arities] arities)
       accum)))
 
 (defn add-def-name [accum loc]
-  (let [node (zip/node loc)
-        node-id (:id node)]
+  (let [node-id (zip/id loc)]
     (-> accum
       (add-code-item loc)
       (lookup-def-arities loc)
       (update :headers #(conj % node-id)))))
 
-(defn build-form-layout [accum loc]
-  (if-not (valid-loc? loc)
+(defn build-unit-layout [accum loc stop-id]
+  (if (= (zip/id loc) stop-id)
     accum
-    (let [slurp-loc (if (utils/is-comment? loc)
-                      (last (utils/slurp-comments loc))
-                      loc)
-          next-loc (zip-next slurp-loc)
+    (let [next-loc (zip/next loc)
           ignored? (ignored-linebreak? loc)]
       (if ignored?
-        (recur accum next-loc)
-        (let [layout-item (fn [accum]
-                            (cond
-                              (utils/is-doc? loc) (add-doc-item accum loc)
-                              (utils/is-comment? loc) (add-comment-item accum loc)
-                              (utils/is-def-name? loc) (add-def-name accum loc)
-                              :else (cond-> accum
-                                      (utils/inner? loc) (add-spot-item loc)
-                                      true (add-code-item loc))))
+        (recur accum next-loc stop-id)
+        (let [add-spot-item-if-needed (fn [accum]
+                                        (if (zip/compound? loc)
+                                          (add-spot-item accum loc)
+                                          accum))
+              do-layout-item (fn [accum]
+                               (cond
+                                 (utils/doc? loc) (add-doc-item accum loc)
+                                 (zip/comment? loc) (add-comment-item accum loc)
+                                 (utils/def-name? loc) (add-def-name accum loc)
+                                 :else (add-code-item accum loc)))
               detect-new-lines (fn [accum]
-                                 (if (is-linebreak? loc)
+                                 (if (linebreak? loc)
                                    (update accum :line inc) accum))
               new-accum (-> accum
                           detect-new-lines
-                          layout-item)]
-          (recur new-accum next-loc))))))
+                          do-layout-item
+                          add-spot-item-if-needed)]
+          (recur new-accum next-loc stop-id))))))
 
 (defn get-first-leaf-expr [loc]
-  (let [bottom-loc (last (take-while valid-loc? (iterate zip-down loc)))]
-    (if (valid-loc? bottom-loc)
-      (node/string (z/node bottom-loc)))))
+  (let [bottom-loc (zip/next loc)
+        right-loc (zip/right loc)]
+    (if (and (zip/good? bottom-loc) (not= (zip/id right-loc) (zip/id bottom-loc)))
+      (node/get-source (zip/node bottom-loc)))))
+
+(defn count-comment-lines [comment-layout]
+  (count (string/split (:text comment-layout) #"\n")))
 
 (defn compute-comments-metrics [data comment-ids]
   (first (process comment-ids [[] 0]
            (fn [[metrics end] comment-id]
-             (let [comment-info (get data comment-id)
-                   preferred-start (:line comment-info)
-                   size (:lines comment-info)
+             (let [comment-layout (get data comment-id)
+                   preferred-start (:line comment-layout)
+                   size (count-comment-lines comment-layout)
                    diff (- preferred-start end)
                    spacing (if (neg? diff) 0 diff)
                    new-start (+ end spacing)
                    new-end (+ new-start size)]
                [(conj metrics spacing) new-end])))))
 
-(defn detect-form-kind [form-loc]
-  (let [children (node/children (z/node form-loc))]
-    (assert (> (count children) 0))
-    (or
-      (let [first-child (first children)]
-        (cond
-          (node/linebreak? first-child) :empty-line
-          (node/comment? first-child) :comment-block))
-      (get-first-leaf-expr form-loc))))
-
-(defn filter-valid [coll]
-  (remove nil? coll))
-
-(defn build-layout [form-loc]
-  {:pre [(valid-loc? form-loc)
-         (zip-utils/form? form-loc)]}
+(defn build-layout [unit-loc]
+  {:pre [(zip/good? unit-loc)]}
   (let [initial {:data {} :code [] :docs [] :headers [] :comments [] :line 0}
-        {:keys [data code docs headers comments _line]} (build-form-layout initial (z/down form-loc))
-        form-id (loc-id form-loc)
-        form-kind (detect-form-kind form-loc)
+        stop-id (zip/id (zip/right unit-loc))
+        first-loc (zip/down unit-loc)
+        {:keys [data code docs headers comments _line]} (build-unit-layout initial first-loc stop-id)
+        unit-id (zip/id unit-loc)
+        unit-type (name (zip/get-type first-loc))
+        unit-kind (get-first-leaf-expr first-loc)
         has-code? (not (empty? code))
         has-docs? (not (empty? docs))
         has-headers? (not (empty? headers))
         has-comments? (not (empty? comments))
-        root-id (id/make form-id :root)
-        code-id (id/make form-id :code)
-        docs-id (id/make form-id :docs)
-        comments-id (id/make form-id :comments)
-        headers-id (id/make form-id :headers)]
+        code-id (id/make unit-id :code)
+        docs-id (id/make unit-id :docs)
+        comments-id (id/make unit-id :comments)
+        headers-id (id/make unit-id :headers)]
     (cond-> data
       has-headers? (assoc headers-id {:tag      :headers
                                       :id       headers-id
                                       :children headers})
-      has-comments? (assoc comments-id {:tag           :comments
-                                        :id            comments-id
-                                        :children      comments
-                                        :metrics       (compute-comments-metrics data comments)})
+      has-comments? (assoc comments-id {:tag      :comments
+                                        :id       comments-id
+                                        :children comments
+                                        :metrics  (compute-comments-metrics data comments)})
       has-docs? (assoc docs-id {:tag      :docs
                                 :id       docs-id
                                 :children docs})
       has-code? (assoc code-id {:tag      :code
                                 :id       code-id
-                                :children code})
-      true (assoc root-id {:tag       :root
-                           :id        root-id
-                           :form-kind form-kind
+                                :children [(first code)]})
+      true (assoc unit-id {:tag       :unit
+                           :id        unit-id
+                           :unit-type unit-type
+                           :unit-kind unit-kind
                            :sections  {:headers  (if has-headers? headers-id)
                                        :docs     (if has-docs? docs-id)
                                        :code     (if has-code? code-id)

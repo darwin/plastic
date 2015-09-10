@@ -2,12 +2,11 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]]
                    [plastic.worker :refer [dispatch main-dispatch]]
                    [plastic.common :refer [process]])
-  (:require [rewrite-clj.zip :as zip]
-            [rewrite-clj.node :as node]
-            [plastic.util.helpers :as helpers]
-            [plastic.util.zip :as zip-utils]
+  (:require [plastic.util.helpers :as helpers :refer [select-values]]
             [plastic.worker.editor.toolkit.id :as id]
-            [clojure.zip :as z]))
+            [meld.core :as meld]
+            [meld.node :as node]
+            [meld.zip :as zip]))
 
 (defprotocol IEditor)
 
@@ -27,7 +26,7 @@
 (defn valid-editor-id? [editor-id]
   (pos? editor-id))
 
-(def valid-loc? zip-utils/valid-loc?)
+(def good? zip/good?)
 
 (declare find-node-loc)
 
@@ -72,72 +71,69 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn get-parse-tree [editor]
+(defn get-meld [editor]
   {:pre [(valid-editor? editor)]}
-  (get editor :parse-tree))
+  (get editor :meld))
 
-(defn set-parse-tree [editor parse-tree]
-  {:pre [(valid-editor? editor)
-         (= (node/tag parse-tree) :top)]}
-  (or
-    (when-not (identical? (get-parse-tree editor) parse-tree)
+(defn set-meld [editor meld]
+  {:pre [(valid-editor? editor)]}
+  (if (identical? (get-meld editor) meld)
+    editor
+    (do
       (dispatch :editor-update-layout (get-id editor))
-      (assoc editor :parse-tree parse-tree))
-    editor))
+      (assoc editor :meld meld))))
 
-(defn parsed? [editor]
+(defn ^boolean has-meld? [editor]
   {:pre [(valid-editor? editor)]}
-  (not (nil? (get-parse-tree editor))))
+  (not (nil? (get-meld editor))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn get-analysis-for-form [editor form-id]
+(defn get-analysis-for-unit [editor unit-id]
   {:pre [(valid-editor? editor)]}
-  (get-in editor [:analysis form-id]))
+  (get-in editor [:analysis unit-id]))
 
-(defn set-analysis-for-form [editor form-id new-analysis]
+(defn set-analysis-for-unit [editor unit-id new-analysis]
   {:pre [(valid-editor? editor)]}
-  (assoc-in editor [:analysis form-id] new-analysis))
+  (assoc-in editor [:analysis unit-id] new-analysis))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn get-layout-for-form [editor form-id]
+(defn get-layout-for-unit [editor unit-id]
   {:pre [(valid-editor? editor)]}
-  (get-in editor [:layout form-id]))
+  (get-in editor [:layout unit-id]))
 
-(defn set-layout-for-form [editor form-id new-layout]
+(defn set-layout-for-unit [editor unit-id new-layout]
   {:pre [(valid-editor? editor)]}
-  (assoc-in editor [:layout form-id] new-layout))
+  (assoc-in editor [:layout unit-id] new-layout))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn get-selectables-for-form [editor form-id]
+(defn get-spatial-web-for-unit [editor unit-id]
   {:pre [(valid-editor? editor)]}
-  (get-in editor [:selectables form-id]))
+  (get-in editor [:spatial-web unit-id]))
 
-(defn set-selectables-for-form [editor form-id new-selectables]
+(defn set-spatial-web-for-unit [editor unit-id new-spatial-web]
   {:pre [(valid-editor? editor)]}
-  (assoc-in editor [:selectables form-id] new-selectables))
+  (assoc-in editor [:spatial-web unit-id] new-spatial-web))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn get-spatial-web-for-form [editor form-id]
+(defn get-structural-web-for-unit [editor unit-id]
   {:pre [(valid-editor? editor)]}
-  (get-in editor [:spatial-web form-id]))
+  (get-in editor [:structural-web unit-id]))
 
-(defn set-spatial-web-for-form [editor form-id new-spatial-web]
+(defn set-structural-web-for-unit [editor unit-id new-structural-web]
   {:pre [(valid-editor? editor)]}
-  (assoc-in editor [:spatial-web form-id] new-spatial-web))
+  (assoc-in editor [:structural-web unit-id] new-structural-web))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn get-structural-web-for-form [editor form-id]
+(defn get-selectables-for-unit [editor unit-id]
   {:pre [(valid-editor? editor)]}
-  (get-in editor [:structural-web form-id]))
-
-(defn set-structural-web-for-form [editor form-id new-structural-web]
-  {:pre [(valid-editor? editor)]}
-  (assoc-in editor [:structural-web form-id] new-structural-web))
+  (let [layout (get-layout-for-unit editor unit-id)]
+    (assert layout)
+    (select-values :selectable? layout)))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -170,6 +166,18 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
+(defn get-units [editor]
+  {:pre [(valid-editor? editor)]}
+  (get editor :units))
+
+(defn set-units [editor units]
+  {:pre [(valid-editor? editor)]}
+  (if-not (identical? (get-units editor) units)
+    (assoc editor :units units)
+    editor))
+
+; -------------------------------------------------------------------------------------------------------------------
+
 (defn set-editing [editor node-id]
   {:pre [(valid-editor? editor)]}
   (if node-id
@@ -183,27 +191,28 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn get-parse-tree-zipper [editor]
-  (let [parse-tree (get-parse-tree editor)]
-    (zip-utils/make-zipper parse-tree)))                                                                              ; root "forms" node
-
-(defn get-top-level-locs [editor]
-  (let [first-top-level-form-loc (z/down (get-parse-tree-zipper editor))]
-    (zip-utils/collect-all-right first-top-level-form-loc)))
-
-(defn get-form-locs [editor]
-  (get-top-level-locs editor))
+(defn get-unit-locs [editor]
+  (let [meld (get-meld editor)
+        top-loc (zip/zip meld)]
+    (zip/child-locs top-loc)))
 
 (defn find-node-loc [editor node-id]
   {:pre [(valid-editor? editor)]}
-  (let [root-loc (get-parse-tree-zipper editor)]
-    (zip-utils/find #(if (zip-utils/loc-id? node-id %) %) root-loc)))
+  (let [meld (get-meld editor)
+        top-loc (zip/zip meld)]
+    (zip/find top-loc node-id)))
 
 (defn find-node [editor node-id]
   {:pre [(valid-editor? editor)]}
   (let [node-loc (find-node-loc editor node-id)]
-    (if (valid-loc? node-loc)
+    (if (good? node-loc)
       (zip/node node-loc))))
+
+(defn get-unit-ids [editor]
+  {:pre [(valid-editor? editor)]}
+  (let [meld (get-meld editor)
+        top-node (meld/get-top-node meld)]
+    (node/get-children top-node)))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -214,51 +223,58 @@
     (set? selector) (contains? selector editor-id)
     :default (= editor-id selector)))
 
-(defn apply-to-editors [editors selector f]
+(defn apply-to-editors [editors selector f & args]
   (process (keys editors) editors
     (fn [editors editor-id]
       (or
         (if (selector-matches-editor? editor-id selector)
-          (if-let [new-editor (f (get editors editor-id))]
+          (if-let [new-editor (apply f (get editors editor-id) args)]
             (assoc editors editor-id new-editor)))
         editors))))
 
-(defn apply-to-forms [editor selector f]
+(defn apply-to-units [editor selector f & args]
   {:pre [(valid-editor? editor)]}
-  (process (get-form-locs editor) editor
-    (fn [editor form-loc]
-      (if (helpers/selector-matches? selector (zip-utils/loc-id form-loc))
-        (or (f editor form-loc) editor)
+  (process (get-unit-locs editor) editor
+    (fn [editor unit-loc]
+      (or (if (helpers/selector-matches? selector (zip/id unit-loc))
+            (apply f editor unit-loc args))
         editor))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn get-previously-layouted-form-node [editor form-id]
+(defn get-previously-layouted-unit-revision [editor unit-id]
   {:pre [(valid-editor? editor)]}
-  (get-in editor [:previously-layouted-forms form-id]))
+  (get-in editor [:previously-layouted-units unit-id]))
 
-(defn remember-previously-layouted-form-node [editor form-node]
+(defn remember-previously-layouted-unit-revision [editor unit-id revision]
   {:pre [(valid-editor? editor)]}
-  (assoc-in editor [:previously-layouted-forms (:id form-node)] form-node))
+  (assoc-in editor [:previously-layouted-units unit-id] revision))
 
-(defn prune-cache-of-previously-layouted-forms [editor form-ids-to-keep]
+(defn prune-cache-of-previously-layouted-units [editor unit-ids-to-keep]
   {:pre [(valid-editor? editor)]}
-  (let [form-nodes (get editor :previously-layouted-forms)]
-    (assoc editor :previously-layouted-forms (select-keys form-nodes form-ids-to-keep))))
+  (let [form-nodes (get editor :previously-layouted-units)]
+    (assoc editor :previously-layouted-units (select-keys form-nodes unit-ids-to-keep))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn remove-form [editor id]
-  {:pre [id]}
+(defn remove-unit [editor unit-id]
+  {:pre [unit-id]}
   (-> editor
-    (update :layout dissoc id)
-    (update :selectables dissoc id)
-    (update :spatial-web dissoc id)
-    (update :structural-web dissoc id)
-    (update :analysis dissoc id)))
+    (update :layout dissoc unit-id)
+    (update :selectables dissoc unit-id)
+    (update :spatial-web dissoc unit-id)
+    (update :structural-web dissoc unit-id)
+    (update :analysis dissoc unit-id)))
 
-(defn remove-forms [editor ids]
+(defn remove-units [editor ids]
   {:pre [(valid-editor? editor)]}
   (process ids editor
-    (fn [editor id]
-      (remove-form editor id))))
+    (fn [editor unit-id]
+      (remove-unit editor unit-id))))
+
+; -------------------------------------------------------------------------------------------------------------------
+
+(defn get-node [editor id]
+  {:pre [(valid-editor? editor)]}
+  (let [meld (get-meld editor)]
+    (meld/get-node meld id)))

@@ -1,33 +1,28 @@
 (ns plastic.main.editor.layout
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.main.frame :refer [subscribe register-handler]]
+  (:require [plastic.main.frame :refer [register-handler]]
             [plastic.main.editor.model :as editor]
             [plastic.main.paths :as paths]))
 
-(defn commit-layout-patch [editors [editor-selector form-id layout selectables spatial-web structural-web]]
+(defn commit-layout-patch [editors [editor-selector unit-id layout-patch spatial-web-patch structural-web-patch]]
   (editor/apply-to-editors editors editor-selector
     (fn [editor]
       (-> editor
-        (editor/set-layout-patch-for-form form-id layout)
-        (editor/set-selectables-patch-for-form form-id selectables)
-        (editor/set-spatial-web-patch-for-form form-id spatial-web)
-        (editor/set-structural-web-patch-for-form form-id structural-web)
+        (editor/set-layout-patch-for-unit unit-id layout-patch)
+        (editor/set-spatial-web-patch-for-unit unit-id spatial-web-patch)
+        (editor/set-structural-web-patch-for-unit unit-id structural-web-patch)
         (editor/set-puppets #{})
         (editor/set-highlight #{})))))
 
-(defn update-render-state [editors [editor-selector render-state]]
-  (editor/apply-to-editors editors editor-selector
-    (fn [editor]
-      (editor/set-render-state editor render-state))))
+(defn remove-units [editors [editor-selector unit-ids]]
+  (editor/apply-to-editors editors editor-selector editor/remove-units unit-ids))
 
-(defn remove-forms [editors [editor-selector form-ids]]
-  (editor/apply-to-editors editors editor-selector
-    (fn [editor]
-      (editor/remove-forms editor form-ids))))
+(defn update-units [editors [editor-selector units]]
+  (editor/apply-to-editors editors editor-selector editor/set-units units))
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; register handlers
 
 (register-handler :editor-commit-layout-patch paths/editors-path commit-layout-patch)
-(register-handler :editor-update-render-state paths/editors-path update-render-state)
-(register-handler :editor-remove-forms paths/editors-path remove-forms)
+(register-handler :editor-update-units paths/editors-path update-units)
+(register-handler :editor-remove-units paths/editors-path remove-units)

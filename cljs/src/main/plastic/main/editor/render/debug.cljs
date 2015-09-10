@@ -1,6 +1,5 @@
 (ns plastic.main.editor.render.debug
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.util.helpers :as helpers]))
+  (:require-macros [plastic.logging :refer [log info warn error group group-end]]))
 
 (defn selection-component [item]
   (let [{:keys [id geometry]} item

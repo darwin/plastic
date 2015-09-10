@@ -9,8 +9,8 @@
 
 (defn interest-movement [direction editor]
   (let [cursor-id (editor/get-cursor editor)
-        form-id (editor/get-focused-form-id editor)
-        spatial-web (editor/get-spatial-web-for-form editor form-id)
+        form-id (editor/get-focused-unit-id editor)
+        spatial-web (editor/get-spatial-web-for-unit editor form-id)
         all-lines (filter is-token-of-interest? (apply concat (vals spatial-web)))
         move (case direction
                :prev helpers/prev-item

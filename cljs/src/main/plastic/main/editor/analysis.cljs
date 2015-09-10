@@ -9,7 +9,7 @@
 (defn commit-analysis-patch [editors [editor-selector form-id analysis-patch]]
   (editor/apply-to-editors editors editor-selector
     (fn [editor]
-      (editor/set-analysis-patch-for-form editor form-id analysis-patch))))
+      (editor/set-analysis-patch-for-unit editor form-id analysis-patch))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; register handlers

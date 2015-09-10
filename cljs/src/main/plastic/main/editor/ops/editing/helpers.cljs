@@ -33,10 +33,10 @@
         (dir info)))))
 
 (defn should-commit? [editor]
-  (or (editor/is-inline-editor-empty? editor) (editor/is-inline-editor-modified? editor)))                            ; empty inline editor is a placeholder and must be comitted regardless
+  (or (editor/is-inline-editor-empty? editor) (editor/is-inline-editor-modified? editor)))                            ; empty inline editor is a placeholder and must be committed regardless
 
 (defn select-neighbour [form-id edit-point path editor]
-  (let [structural-web (editor/get-structural-web-for-form editor form-id)
+  (let [structural-web (editor/get-structural-web-for-unit editor form-id)
         target-node-id (walk-structural-web structural-web edit-point path)]
     (editor/set-cursor editor target-node-id)))
 

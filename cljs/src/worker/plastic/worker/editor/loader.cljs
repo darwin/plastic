@@ -6,10 +6,7 @@
             [plastic.worker.editor.model :as editor]))
 
 (defn set-source [editors [editor-selector source]]
-  (editor/apply-to-editors editors editor-selector
-    (fn [editor]
-      (-> editor
-        (editor/set-source source)))))
+  (editor/apply-to-editors editors editor-selector editor/set-source source))
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; register handlers

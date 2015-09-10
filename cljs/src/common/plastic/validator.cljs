@@ -79,7 +79,7 @@
 
 (def spatial-index! integer!)
 
-(def form-id! integer!)
+(def unit-id! integer!)
 
 (def scope-id! integer!)
 
@@ -102,7 +102,7 @@
      keyword!         TODO!}))
 
 (def editor-layout!
-  (cached {form-id! {node-id! layout-info!}}))
+  (cached {unit-id! {node-id! layout-info!}}))
 
 (def selectable-info!
   (cached
@@ -115,7 +115,7 @@
      keyword!         TODO!}))
 
 (def editor-selectables!
-  (cached {form-id! {node-id! selectable-info!}}))
+  (cached {unit-id! {node-id! selectable-info!}}))
 
 (def spatial-item!
   (cached
@@ -128,11 +128,11 @@
 
 (def spatial-info!
   (cached {spatial-index! [spatial-item!]
-           :min spatial-index!
-           :max spatial-index!}))
+           :min           spatial-index!
+           :max           spatial-index!}))
 
 (def editor-spatial-web!
-  (cached {form-id! {keyword! spatial-info!}}))
+  (cached {unit-id! {keyword! spatial-info!}}))
 
 (def structural-item!
   (cached
@@ -145,7 +145,7 @@
   {node-id! structural-item!})
 
 (def editor-structural-web!
-  (cached {form-id! structural-info!}))
+  (cached {unit-id! structural-info!}))
 
 (def analysis-scope!
   {:id      scope-id!
@@ -164,7 +164,10 @@
   {node-id! analysis-item!})
 
 (def editor-analysis!
-  (cached {form-id! analysis-info!}))
+  (cached {unit-id! analysis-info!}))
 
 (def editor-render-state!
-  (cached {:order [form-id!]}))
+  (cached {:order [unit-id!]}))
+
+(def editor-units!
+  (cached [unit-id!]))

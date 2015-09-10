@@ -16,3 +16,9 @@
 
 (defn indexed-react-keys [coll]
   (map (fn [[index item]] (with-meta item {:key index})) (indexed-iteration coll)))
+
+(defn select-values [pred map]
+  (let [keys (keep (fn [[k v]] (if (pred v) k)) map)]
+    (select-keys map keys)))
+
+(def remove-nil-keys (partial select-values (complement nil?)))

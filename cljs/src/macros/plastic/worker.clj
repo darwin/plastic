@@ -43,12 +43,12 @@
                                         (fancy-log* "" "WORK" "ZIPOP"
                                           (apply str (repeat plastic.env.*zip-op-nesting* "  "))
                                           (.-name op#) args# "@"
-                                          (plastic.util.zip.loc-id (first x#))
-                                          (plastic.util.zip.loc-desc (first x#))))
+                                          (meld.zip.id (first x#))
+                                          (meld.zip.desc (first x#))))
                                 res# (apply op# (conj args# x#))]
                             (assert (or (nil? res#) (and (vector? res#)
                                                       (= 2 (count res#))
-                                                      (plastic.util.zip.valid-loc? (first res#))))
+                                                      (meld.zip.good? (first res#))))
                               (str "zip op result must be [loc report] or nil, "
                                 (.-name op#) " returned " (pr-str res#) " instead"))
                             res#)))]

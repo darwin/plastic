@@ -36,7 +36,7 @@
   (let [inline-editor-view (get-atom-inline-editor-view-instance editor-id)]
     (.focus inline-editor-view)))
 
-(def known-editor-modes #{:switcher :symbol :keyword :string})
+(def known-editor-modes #{:switcher :symbol :keyword :string :regexp})
 
 (defn editor-mode-to-class-name [editor-mode]
   {:pre [(contains? known-editor-modes editor-mode)]}

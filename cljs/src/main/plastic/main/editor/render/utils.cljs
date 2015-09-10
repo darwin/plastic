@@ -30,6 +30,6 @@
     s))
 
 (defn sections-to-class-names [parts]
-  (string/join " " (remove nil? (map (fn [[k v]]
-                                       {:pre [(keyword? k)]}
-                                       (if v (str "has-" (name k)))) parts))))
+  (string/join " " (keep (fn [[k v]]
+                           {:pre [(keyword? k)]}
+                           (if v (str "has-" (name k)))) parts)))

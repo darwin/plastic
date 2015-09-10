@@ -1,45 +1,53 @@
 (ns plastic.worker.editor.model.nodes
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.worker.editor.parser.utils :as parser]
-            [rewrite-clj.node.whitespace :refer [whitespace-node]]
-            [rewrite-clj.node.token :refer [token-node]]
-            [rewrite-clj.node.keyword :refer [keyword-node]]
-            [rewrite-clj.node.whitespace :refer [newline-node]]
-            [rewrite-clj.node.meta :refer [meta-node]]
-            [rewrite-clj.node.fn :refer [fn-node]]
-            [rewrite-clj.node.seq :refer [list-node vector-node map-node set-node]]
-            [rewrite-clj.node.reader-macro :refer [deref-node]]
-            [rewrite-clj.node.quote :refer [quote-node]]))
+  (:require [meld.node :as node]
+            [meld.core :as meld]))
 
 (defn prepare-placeholder-node []
-  (parser/assoc-node-id (token-node "" "")))
+  (meld/make-tree (node/make-symbol "")))
 
 (defn prepare-linebreak-node []
-  (parser/assoc-node-id (newline-node "\n")))
+  (meld/make-tree (node/make-linebreak)))
 
-(defn prepare-keyword-node [k]
-  (parser/assoc-node-id (keyword-node k)))
+(defn prepare-comment [content]
+  (meld/make-tree (node/make-comment content)))
 
-(defn prepare-list-node [children]
-  (parser/assoc-node-id (list-node children)))
+(defn prepare-symbol [v]
+  (meld/make-tree (node/make-symbol (str v))))
 
-(defn prepare-vector-node [children]
-  (parser/assoc-node-id (vector-node children)))
+(defn prepare-string [s]
+  (meld/make-tree (node/make-string s)))
 
-(defn prepare-map-node [children]
-  (parser/assoc-node-id (map-node children)))
+(defn prepare-keyword [k]
+  (meld/make-tree (node/make-keyword k)))
 
-(defn prepare-set-node [children]
-  (parser/assoc-node-id (set-node children)))
+(defn prepare-regexp [re]
+  (meld/make-tree (node/make-regexp re)))
 
-(defn prepare-fn-node [children]
-  (parser/assoc-node-id (fn-node children)))
+(defn prepare-list [children]
+  (meld/make-tree (node/make-list) children))
 
-(defn prepare-meta-node [children]
-  (parser/assoc-node-id (meta-node children)))
+(defn prepare-vector [children]
+  (meld/make-tree (node/make-vector) children))
 
-(defn prepare-quote-node [children]
-  (parser/assoc-node-id (quote-node children)))
+(defn prepare-map [children]
+  (meld/make-tree (node/make-map) children))
 
-(defn prepare-deref-node [children]
-  (parser/assoc-node-id (deref-node children)))
+(defn prepare-set [children]
+  (meld/make-tree (node/make-set) children))
+
+(defn prepare-fn [children]
+  (error "implement prepare-fn-node")
+  (meld/make-tree (node/make-list) children))
+
+(defn prepare-meta [children]
+  (error "implement prepare-meta-node")
+  (meld/make-tree (node/make-list) children))
+
+(defn prepare-quote [children]
+  (error "implement prepare-quote-node")
+  (meld/make-tree (node/make-list) children))
+
+(defn prepare-deref [children]
+  (error "implement prepare-deref-node")
+  (meld/make-tree (node/make-list) children))

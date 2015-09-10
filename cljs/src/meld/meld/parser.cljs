@@ -5,13 +5,15 @@
             [meld.tracker :refer [make-tracker]]
             [meld.gray-matter :refer [process-gray-matter]]
             [meld.whitespace :refer [merge-whitespace]]
-            [meld.meld :refer [define-unit]]))
+            [meld.file :refer [wrap-all-as-file]]
+            [meld.unit :refer [group-into-units]]))
 
 (defn post-process-meld! [meld source name]
   (-> meld
-    (define-unit source name)
+    (wrap-all-as-file source name)
     (process-gray-matter source)                                                                                      ; gray matter is whitespace, linebreaks and comments, we deal with it in this second pass
-    (merge-whitespace)))                                                                                              ; want to merge whitespace nodes into following non-whitespace nodes
+    (merge-whitespace)
+    (group-into-units)))                                                                                              ; want to merge whitespace nodes into following non-whitespace nodes
 
 (defn read-form! [reader]
   (let [opts {:eof       :eof-sentinel

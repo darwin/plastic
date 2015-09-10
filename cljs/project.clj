@@ -1,5 +1,5 @@
 (defproject plastic "0.1.0-SNAPSHOT"
-  :description "Plastic - Experimental ClojureScript editor component for Atom"
+  :description "Plastic - Experimental ClojureScript editor for Atom"
   :url "http://github.com/darwin/plastic"
 
   :dependencies
@@ -10,19 +10,18 @@
    [com.cognitect/transit-cljs "0.8.225"]
    [devcards "0.2.0-SNAPSHOT"]
    [re-frame "0.4.1"]
-   [rewrite-cljs "0.3.1"]
    [binaryage/devtools "0.3.0"]
-   [figwheel "0.3.8"]
+   [figwheel "0.4.0"]
    [rm-hull/inkspot "0.0.1-SNAPSHOT"]
    [spellhouse/phalanges "0.1.6"]
    [funcool/cuerdas "0.6.0"]
-   [prismatic/schema "1.0.0"]
-   [reagent "0.5.0" :exclusions [cljsjs/react]]
+   [prismatic/schema "1.0.1"]
+   [reagent "0.5.1" :exclusions [cljsjs/react]]
    [cljsjs/react "0.13.3-1"]]
 
   :plugins
   [[lein-cljsbuild "1.1.0"]
-   [lein-figwheel "0.3.9"]]
+   [lein-figwheel "0.4.0"]]
 
   :source-paths
   ["src/macros"
@@ -46,7 +45,6 @@
     {:source-paths ["checkouts/cljs-devtools/src"
                     "checkouts/re-frame/src"
                     "checkouts/reagent/src"
-                    "checkouts/rewrite-cljs/src"
                     "checkouts/tools.reader/src/main"
                     "src/macros"
                     "src/env"
@@ -55,7 +53,7 @@
                     "src/common"
                     "src/main"
                     "src/worker"]
-     :figwheel     true
+     ; :figwheel     true <-- do not include figwheel automagically, we start it manually with our custom config
      :compiler     {:main                  plastic.main
                     :closure-defines       {"plastic.env.run_worker_on_main_thread" true
                                             "plastic.env.need_loophole"             true
@@ -77,7 +75,6 @@
     {:source-paths ["checkouts/cljs-devtools/src"
                     "checkouts/re-frame/src"
                     "checkouts/reagent/src"
-                    "checkouts/rewrite-cljs/src"
                     "checkouts/tools.reader/src/main"
                     "src/macros"
                     "src/env"
@@ -113,7 +110,7 @@
                     "src/dev"
                     "src/common"
                     "src/main"]
-     :figwheel     true
+     ; :figwheel     true <-- do not include figwheel automagically, we start it manually with our custom config
      :compiler     {:main                  plastic.main
                     :closure-defines       {"plastic.env.need_loophole"       true
                                             "plastic.env.legacy_devtools"     true
@@ -133,7 +130,6 @@
     ; note: figwheel and devtools are not supported in web workers
     :worker
     {:source-paths ["checkouts/re-frame/src"
-                    "checkouts/rewrite-cljs/src"
                     "checkouts/tools.reader/src/main"
                     "src/macros"
                     "src/env"

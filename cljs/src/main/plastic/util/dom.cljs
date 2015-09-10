@@ -49,10 +49,10 @@
     (assert (number? id))
     id))
 
-(defn lookup-form-id [dom-node]
-  (let [$form-dom-node (.closest ($ dom-node) ".form")
-        _ (assert (single-result? $form-dom-node))]
-    (read-node-id $form-dom-node)))
+(defn lookup-unit-id [dom-node]
+  (let [$unit-dom-node (.closest ($ dom-node) ".unit")
+        _ (assert (single-result? $unit-dom-node))]
+    (read-node-id $unit-dom-node)))
 
 (defn lookup-editor-id [dom-node]
   (let [$editor-dom-node (.closest ($ dom-node) ".plastic-editor")
@@ -100,9 +100,9 @@
   (let [$editor-view ($ (find-plastic-editor-view editor-id))]
     (find $editor-view ".plastic-editor")))
 
-(defn find-plastic-editor-form [editor-id form-id]
+(defn find-plastic-editor-unit [editor-id unit-id]
   (let [$editor ($ (find-plastic-editor editor-id))]
-    (find $editor (str ".form[data-pnid=" form-id "]"))))
+    (find $editor (str ".unit[data-pnid=" unit-id "]"))))
 
 (defn inline-editor-present? [dom-node]
   (single-result? (.children ($ dom-node) "atom-text-editor")))

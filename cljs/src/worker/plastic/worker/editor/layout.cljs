@@ -1,71 +1,64 @@
 (ns plastic.worker.editor.layout
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.worker :refer [react! dispatch main-dispatch dispatch-args]]
+                   [plastic.worker :refer [main-dispatch dispatch-args]]
                    [plastic.common :refer [process]])
-  (:require [clojure.zip :as z]
-            [plastic.worker.frame :refer [subscribe register-handler]]
+  (:require [plastic.worker.frame :refer [subscribe register-handler]]
             [plastic.worker.editor.model :as editor]
             [plastic.worker.editor.layout.builder :refer [build-layout]]
             [plastic.worker.editor.layout.selections :refer [build-selections-render-info]]
             [plastic.worker.editor.layout.structural :refer [build-structural-web]]
             [plastic.worker.editor.layout.spatial :refer [build-spatial-web]]
-            [plastic.util.zip :as zip-utils :refer [valid-loc?]]
-            [plastic.worker.editor.layout.utils :as utils]
             [plastic.worker.paths :as paths]
-            [plastic.util.helpers :refer [prepare-map-patch]]
-            [clojure.set :as set]))
+            [plastic.util.helpers :refer [prepare-map-patch select-values]]
+            [clojure.set :as set]
+            [meld.zip :as zip]
+            [meld.node :as node]))
 
-(defn update-form-layout [editor form-loc]
-  {:pre [(valid-loc? form-loc)
-         (zip-utils/form? form-loc)]}
+(defn update-unit-layout [editor unit-id]
   (let [editor-id (editor/get-id editor)
-        form-id (zip-utils/loc-id form-loc)
-        layout (build-layout form-loc)
-        layout-patch (prepare-map-patch (editor/get-layout-for-form editor form-id) layout)
-        selectables (utils/extract-all-selectables layout)
-        selectables-patch (prepare-map-patch (editor/get-selectables-for-form editor form-id) selectables)
-        spatial-web (build-spatial-web form-loc selectables)
-        spatial-web-patch (prepare-map-patch (editor/get-spatial-web-for-form editor form-id) spatial-web)
-        structural-web (build-structural-web form-loc layout)
-        structural-web-patch (prepare-map-patch (editor/get-structural-web-for-form editor form-id) structural-web)]
-    (dispatch-args 0 [:editor-run-analysis editor-id form-id])
-    (main-dispatch :editor-commit-layout-patch editor-id form-id
-      layout-patch selectables-patch spatial-web-patch structural-web-patch)
+        unit-loc (zip/zip (editor/get-meld editor) unit-id)
+        layout (build-layout unit-loc)
+        layout-patch (prepare-map-patch (editor/get-layout-for-unit editor unit-id) layout)
+        spatial-web (build-spatial-web unit-loc (select-values :selectable? layout))
+        spatial-web-patch (prepare-map-patch (editor/get-spatial-web-for-unit editor unit-id) spatial-web)
+        structural-web (build-structural-web unit-loc layout)
+        structural-web-patch (prepare-map-patch (editor/get-structural-web-for-unit editor unit-id) structural-web)]
+    (dispatch-args 0 [:editor-run-analysis editor-id unit-id])
+    (main-dispatch :editor-commit-layout-patch editor-id unit-id layout-patch spatial-web-patch structural-web-patch)
     (-> editor
-      (editor/set-layout-for-form form-id layout)
-      (editor/set-selectables-for-form form-id selectables)
-      (editor/set-spatial-web-for-form form-id spatial-web)
-      (editor/set-structural-web-for-form form-id structural-web))))
+      (editor/set-layout-for-unit unit-id layout)
+      (editor/set-spatial-web-for-unit unit-id spatial-web)
+      (editor/set-structural-web-for-unit unit-id structural-web))))
 
-(defn update-forms-layout-if-needed [editor form-locs]
-  (process form-locs editor
-    (fn [editor form-loc]
-      (let [form-node (z/node form-loc)
-            previously-layouted-node (editor/get-previously-layouted-form-node editor (:id form-node))]
-        (if (= previously-layouted-node form-node)
-          editor
-          (-> editor
-            (update-form-layout form-loc)
-            (editor/prune-cache-of-previously-layouted-forms (map zip-utils/loc-id form-locs))
-            (editor/remember-previously-layouted-form-node form-node)))))))
+(defn update-forms-layout-if-needed [editor unit-ids]
+  (let [editor (editor/prune-cache-of-previously-layouted-units editor unit-ids)]
+    (process unit-ids editor
+      (fn [editor unit-id]
+        (let [old-node-revision (editor/get-previously-layouted-unit-revision editor unit-id)
+              new-node (editor/get-node editor unit-id)
+              new-node-revision (node/get-revision new-node)]
+          (if (identical? old-node-revision new-node-revision)
+            editor
+            (-> editor
+              (update-unit-layout unit-id)
+              (editor/remember-previously-layouted-unit-revision unit-id new-node-revision))))))))
 
-(defn update-layout [editors [selector]]
-  (editor/apply-to-editors editors selector
+(defn update-layout [editors [editor-selector]]
+  (editor/apply-to-editors editors editor-selector
     (fn [editor]
-      {:pre [(editor/parsed? editor)]}
-      (let [form-locs (editor/get-form-locs editor)
-            independent-form-locs (map zip-utils/independent-zipper form-locs)
-            old-render-state (editor/get-render-state editor)
-            new-render-state {:order (map #(zip-utils/loc-id %) independent-form-locs)}
-            removed-form-ids (set/difference (set (:order old-render-state)) (set (:order new-render-state)))]
-        (if-not (empty? removed-form-ids)
-          (main-dispatch :editor-remove-forms (:id editor) removed-form-ids))
-        (if (not= old-render-state new-render-state)
-          (main-dispatch :editor-update-render-state (:id editor) new-render-state))
+      {:pre [(editor/has-meld? editor)]}
+      (let [editor-id (editor/get-id editor)
+            new-units (editor/get-unit-ids editor)
+            old-units (editor/get-units editor)
+            removed-unit-ids (set/difference (set old-units) (set new-units))]
+        (if-not (empty? removed-unit-ids)
+          (main-dispatch :editor-remove-units editor-id removed-unit-ids))
+        (if (not= old-units new-units)
+          (main-dispatch :editor-update-units editor-id new-units))
         (-> editor
-          (editor/remove-forms removed-form-ids)
-          (editor/set-render-state new-render-state)
-          (update-forms-layout-if-needed independent-form-locs))))))
+          (editor/remove-units removed-unit-ids)
+          (editor/set-units new-units)
+          (update-forms-layout-if-needed new-units))))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; register handlers

@@ -6,10 +6,6 @@
             [plastic.worker.editor.model.xforming :refer [apply-op apply-ops]]
             [plastic.worker.editor.model :refer [valid-edit-point?]]
             [plastic.worker.editor.toolkit.id :as id]
-            [rewrite-clj.node.keyword :refer [keyword-node]]
-            [rewrite-clj.node.comment :refer [comment-node]]
-            [rewrite-clj.node :as node]
-            [plastic.worker.editor.parser.utils :as parser]
             [clojure.set :as set]))
 
 (def get-node-id id/id-part)
@@ -20,21 +16,21 @@
     (apply-op editor ops/insert-values-before-first-child-of-node values (get-node-id edit-point))))
 
 (defn build-node [value initial-value]
-  (let [{:keys [text mode]} value
-        {:keys [type]} initial-value]
-    (if (empty? value)
-      nil
+  (if-not (empty? value)
+    (let [{:keys [text mode]} value
+          {:keys [type]} initial-value]
       (case type
-        :comment (comment-node (str " " text))
-        (condp = mode
-          :symbol (node/coerce (symbol text))
-          :keyword (keyword-node (keyword text))                                                                      ; TODO: investigate - coerce does not work for keywords?
-          :string (node/coerce text)
+        :comment (nodes/prepare-comment text)
+        (case mode
+          :symbol (nodes/prepare-symbol text)
+          :keyword (nodes/prepare-keyword text)
+          :string (nodes/prepare-string text)
+          :regexp (nodes/prepare-regexp text)
           (throw "unknown editor mode passed to build-node:" mode))))))
 
 (defn edit [editor edit-point puppets value initial-value]
   {:pre [(valid-edit-point? editor edit-point)]}
-  (let [new-node (parser/assoc-node-id (build-node value initial-value))
+  (let [new-node (build-node value initial-value)
         affected-node-ids (set/union #{(get-node-id edit-point)} puppets)]
     (apply-ops editor #(ops/commit-node-value %2 new-node %1) affected-node-ids)))
 
@@ -75,32 +71,32 @@
     (insert editor edit-point compound-node)))
 
 (defn open-list [editor edit-point]
-  (open-compound editor edit-point nodes/prepare-list-node))
+  (open-compound editor edit-point nodes/prepare-list))
 
 (defn open-vector [editor edit-point]
-  (open-compound editor edit-point nodes/prepare-vector-node))
+  (open-compound editor edit-point nodes/prepare-vector))
 
 (defn open-map [editor edit-point]
-  (open-compound editor edit-point nodes/prepare-map-node))
+  (open-compound editor edit-point nodes/prepare-map))
 
 (defn open-set [editor edit-point]
-  (open-compound editor edit-point nodes/prepare-set-node))
+  (open-compound editor edit-point nodes/prepare-set))
 
 (defn open-fn [editor edit-point]
-  (open-compound editor edit-point nodes/prepare-fn-node))
+  (open-compound editor edit-point nodes/prepare-fn))
 
 (defn open-meta [editor edit-point]
   {:pre [(valid-edit-point? editor edit-point)]}
   (let [placeholder-node (nodes/prepare-placeholder-node)
-        temporary-meta-data (nodes/prepare-keyword-node :meta)
-        compound-node (nodes/prepare-meta-node [temporary-meta-data placeholder-node])]
+        temporary-meta-data (nodes/prepare-keyword :meta)
+        compound-node (nodes/prepare-meta [temporary-meta-data placeholder-node])]
     (insert editor edit-point compound-node)))
 
 (defn open-quote [editor edit-point]
-  (open-compound editor edit-point nodes/prepare-quote-node))
+  (open-compound editor edit-point nodes/prepare-quote))
 
 (defn open-deref [editor edit-point]
-  (open-compound editor edit-point nodes/prepare-deref-node))
+  (open-compound editor edit-point nodes/prepare-deref))
 
 (defn insert-placeholder-as-first-child [editor edit-point]
   {:pre [(valid-edit-point? editor edit-point)]}

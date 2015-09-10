@@ -1,7 +1,7 @@
 (ns meld.ids
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]))
 
-(defonce ^:dynamic *last-node-id!* (volatile! 0))
+(defonce ^:dynamic *last-node-id!* (volatile! 0))                                                                     ; dynamic for devcards to override it
 
 (defn next-node-id! []
   (vswap! *last-node-id!* inc))

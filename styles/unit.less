@@ -2,30 +2,30 @@
 
 .plastic-editor-view {
   
-  .forms {
+  .units {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .form {
+  .unit {
     .noselect;
     .promote-as-a-new-gpu-layer;
     opacity: 0.8;
     border-radius: 2px;
     display: inline-block;
-    position: relative; // important for form overlays
+    position: relative; // important for unit overlays
   }
 
-  .form:hover {
+  .unit:hover {
     opacity: 1;
   }
 
-  .form.focused {
+  .unit.focused {
     opacity: 1;
   }
 
-  .form-overlay {
+  .unit-overlay {
     .promote-as-a-new-gpu-layer;
     pointer-events: none;
     width: 100%;
@@ -34,11 +34,11 @@
   
   .has-headers > .docs-section,
   .has-headers > .code-section {
-    margin-left: @form-with-header-indent;
+    margin-left: @unit-with-header-indent;
   }
   
-  .form.has-headers,
-  .form-kind-comment-block {
+  .unit.has-headers,
+  .unit-kind-comment-block {
     margin-top: 2em;
   }
 

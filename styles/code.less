@@ -8,12 +8,11 @@
   
   .code-box {
     display: inline-block;
-    background-color: #161719; // TODO: should be same as .scope-1
     border-radius: 2px;
     padding: @natural-padding;
   }
   
-  .form-kind-ns .code-box {
+  .unit-kind-ns .code-box {
     background-color: @ns-background-color;
     border-top-left-radius: 2px;
     border-top-right-radius: 2px;
@@ -21,8 +20,15 @@
     border-bottom: 4px solid lighten(@ns-background-color, 10%);
   }
   
-  .form-kind-empty-line .code-box {
-    background-color: inherit;
+  .unit-type-compound .code-box {
+    background-color: #161719; // TODO: should be same as .scope-1
+  }
+  
+  .unit-type-linebreak .code-box {
+    padding: 0px;
+  }
+
+  .unit-type-comment .code-box {
     padding: 0px;
   }
   

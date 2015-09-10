@@ -24,14 +24,14 @@
   }
 
   .highlighted {
-    -webkit-animation: highlight-flash @highlight-delay cubic-bezier(0.165, 0.84, 0.44, 1) 0 1,
-                       highlight-throbbing @cursor-throbbing-speed ease-in-out @highlight-delay infinite alternate, 
-                       cursor-border-throbbing @highlight-delay ease-in-out @highlight-delay infinite alternate; 
+    animation: highlight-flash @highlight-delay cubic-bezier(0.165, 0.84, 0.44, 1) 0s 1,
+	           highlight-throbbing @cursor-throbbing-speed ease-in-out @highlight-delay infinite alternate,
+	           cursor-border-throbbing @highlight-delay ease-in-out @highlight-delay infinite alternate;
   }
   
   .highlighted.cursor {
     background-color: hsl(0, 0%, 30%);
-    -webkit-animation-name: inherit; // more pleasant for readability
+    animation-name: inherit; // more pleasant for readability
   }
 
 } // .plastic-editor-view

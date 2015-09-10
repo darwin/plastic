@@ -38,14 +38,17 @@
 
 (defn slurp-comment [reader init]
   {:type   :comment
+   :tag    :comment
    :source (read-line reader init)})
 
 (defn slurp-whitespace [reader init]
   {:type   :whitespace
+   :tag    :whitespace
    :source (read-whitespace reader init)})
 
 (defn slurp-linebreak [_reader ch]
   {:type   :linebreak
+   :tag    :linebreak
    :source ch})
 
 ; -------------------------------------------------------------------------------------------------------------------

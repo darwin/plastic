@@ -1,26 +1,20 @@
 (ns plastic.worker.editor.layout.utils
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
                    [plastic.common :refer [process]])
-  (:require [rewrite-clj.node :as node]
-            [clojure.string :as string]
-            [rewrite-clj.node.stringz :refer [StringNode]]
-            [rewrite-clj.node.token :refer [TokenNode]]
-            [rewrite-clj.node.keyword :refer [KeywordNode]]
-            [rewrite-clj.zip :as zip]
-            [clojure.zip :as z]
-            [plastic.util.zip :as zip-utils :refer [valid-loc?]]
-            [plastic.worker.editor.toolkit.id :as id]
-            [plastic.util.helpers :as helpers]))
+  (:require [clojure.string :as string]
+            [meld.zip :as zip]
+            [meld.node :as node]))
 
 (defn unwrap-metas [nodes]
-  (let [unwrap-meta-node (fn [node]
+  nodes
+  #_(let [unwrap-meta-node (fn [node]
                            (if (= (node/tag node) :meta)
                              (unwrap-metas (node/children node))
                              [node]))]
     (mapcat unwrap-meta-node nodes)))
 
-(defn first-word [s]
-  (first (string/split s #"\s")))
+;(defn first-word [s]
+;  (first (string/split s #"\s")))
 
 (defn strip-double-quotes [s]
   (-> s
@@ -49,105 +43,59 @@
     strip-double-quotes
     replace-unescape-double-quotes))
 
-(defn is-selectable? [tag]
-  (#{:token :fn :list :map :vector :set :meta :deref :quote :syntax-quote :unquote :unquote-splicing :newline} tag))
-
-(defn string-node? [node]
-  (instance? StringNode node))
-
-(defn symbol-node? [node]
-  (instance? TokenNode node))
-
-(defn keyword-node? [node]
-  (instance? KeywordNode node))
-
-(defn string-loc? [loc]
-  (string-node? (z/node loc)))
-
-(defn symbol-loc? [loc]
-  (symbol-node? (z/node loc)))
-
-(defn tag? [key loc]
-  (= key (zip/tag loc)))
-
-(defn inner? [loc]
-  (node/inner? (zip/node loc)))
-
-(defn first-child-sexpr [loc]
-  (first (node/child-sexprs (zip/node loc))))
+(defn first-child-source [loc]
+  (if-let [first-child-loc (zip/down loc)]
+    (zip/get-source first-child-loc)))
 
 (defn is-def? [loc]
-  (if (= (zip/tag loc) :list)
-    (re-find #"^def" (str (first-child-sexpr loc)))))
+  (if (zip/list? loc)
+    (re-find #"^def" (first-child-source loc))))
 
 (defn is-defn? [loc]
-  (if (= (zip/tag loc) :list)
-    (re-find #"^defn" (str (first-child-sexpr loc)))))
+  (if (zip/list? loc)
+    (re-find #"^defn" (first-child-source loc))))
 
-(defn is-comment? [loc]
-  (node/comment? (z/node loc)))
-
-(defn is-doc? [loc]
-  (if (string-loc? loc)
+(defn doc? [loc]
+  (if (zip/string? loc)
     (if-let [parent-loc (zip/up loc)]
       (if (is-defn? parent-loc)
-        (let [left-strings (filter string-node? (z/lefts loc))]
+        (let [left-strings (filter node/string? (zip/lefts loc))]
           (empty? left-strings))))))
 
-(defn is-def-name? [loc]
-  (if (symbol-loc? loc)
+(defn def-name? [loc]
+  (if (zip/symbol? loc)
     (if-let [parent-loc (zip/up loc)]
       (if (is-def? parent-loc)
-        (let [left-symbols (filter symbol-node? (z/lefts loc))]
+        (let [left-symbols (filter node/symbol? (zip/lefts loc))]
           (= 1 (count left-symbols)))))))
 
-(defn is-linebreak-near-doc? [loc dir]
-  (if (node/linebreak? (zip/node loc))
+(defn linebreak-near-doc? [loc dir]
+  (if (zip/linebreak? loc)
     (let [test-loc (dir loc)]
-      (if (zip-utils/valid-loc? test-loc)
-        (is-doc? test-loc)))))
+      (if (zip/good? test-loc)
+        (doc? test-loc)))))
 
-(defn is-linebreak-near-comment? [loc dir]
-  (if (node/linebreak? (zip/node loc))
+(defn standalone-comment? [loc]
+  (if (zip/comment? loc)
+    (let [prev-loc (zip/prev loc)
+          next-loc (zip/next loc)
+          prev-linebreak? (or (not (zip/good? prev-loc)) (zip/linebreak? prev-loc))
+          next-linebreak? (or (not (zip/good? next-loc)) (zip/linebreak? next-loc))]
+      (and prev-linebreak? next-linebreak?))))
+
+(defn linebreak-near-comment? [loc dir]
+  (if (zip/linebreak? loc)
     (let [test-loc (dir loc)]
-      (if (zip-utils/valid-loc? test-loc)
-        (is-comment? test-loc)))))
-
-(defn extract-all-selectables [render-data]
-  (into {} (filter #(:selectable? (second %)) render-data)))
+      (if (zip/good? test-loc)
+        (zip/comment? test-loc)))))
 
 (defn lookup-arities [loc]
-  (let [first-vec (first (filter (partial tag? :vector) (take-while valid-loc? (iterate z/right loc))))]
-    (if (valid-loc? first-vec)
-      [(node/string (z/node first-vec))]
-      (let [lists (filter (partial tag? :list) (take-while valid-loc? (iterate z/right loc)))]
+  (let [first-vec (first (filter zip/vector? (take-while zip/good? (iterate zip/right loc))))]
+    (if (zip/good? first-vec)
+      [(zip/get-source first-vec)]
+      (let [lists (filter zip/list? (take-while zip/good? (iterate zip/right loc)))]
         (if (seq lists)
-          (vec (map #(node/string (z/node (z/down %))) lists)))))))
+          (vec (map #(zip/get-source (zip/down %)) lists)))))))
 
-(defn strip-whitespaces-and-linebreaks-policy [loc]
-  (let [node (z/node loc)]
-    (not (node/whitespace? node))))
-
-(def zip-right-skipping-whitespace-and-linebreaks (partial zip-utils/zip-right strip-whitespaces-and-linebreaks-policy))
-
-(defn slurp-comments [loc]
-  {:pre [(valid-loc? loc)
-         (is-comment? loc)]}
-  (take-while is-comment? (take-while valid-loc? (iterate zip-right-skipping-whitespace-and-linebreaks loc))))
-
-(defn combine-comments [loc]
-  (let [comment-locs (slurp-comments loc)]
-    (process comment-locs {:lines 0}
-      (fn [accum loc]
-        {:pre [(is-comment? loc)]}
-        (let [node (zip/node loc)
-              text (helpers/strip-semicolor-and-whitespace-left (node/string node))
-              id (:id node)]
-          (cond-> accum
-            (not (:id accum)) (assoc :id id)
-            true (update :lines inc)
-            true (update :text #(if % (str % "\n" text) text))))))))
-
-(defn spatial? [selectable]
-  (let [tag (:tag selectable)]
-    (#{:token :linebreak :comment} tag)))
+(defn spatial? [layout-info]
+  (#{:token :spot :doc :linebreak :comment} (:type layout-info)))

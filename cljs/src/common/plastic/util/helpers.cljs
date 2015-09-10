@@ -178,7 +178,7 @@
   ([old-map map-patch] (patch-map old-map map-patch hash-map))
   ([old-map [keys-for-removal modifications] construct]
    {:pre [(or (nil? old-map) (map? old-map))]}
-   (let [map-after-removal (apply dissoc (or old-map (construct)) keys-for-removal)]
+   (let [map-after-removal (if old-map (apply dissoc old-map keys-for-removal) (construct))]
      (into map-after-removal modifications))))
 
 (defn indexed-iteration [coll]
@@ -218,9 +218,11 @@
         (dissoc accum key)
         accum))))
 
-(defn transform-map-vals
-  ([m f] (transform-map-vals m f {}))
-  ([m f init] {:pre [(map? m)]} (reduce-kv #(assoc %1 %2 (f %3)) init m)))
+(defn process-map
+  ([m f] (process-map m f {}))
+  ([m f init]
+   {:pre [(map? m)]}
+   (reduce-kv #(assoc %1 %2 (f %3)) init m)))
 
 (defn best-val [s op]
   (process s ::nil
@@ -228,3 +230,7 @@
       (if (or (= best ::nil) (op val best))
         val
         best))))
+
+(defn select-values [pred map]
+  (let [keys (keep (fn [[k v]] (if (pred v) k)) map)]
+    (select-keys map keys)))

@@ -10,16 +10,17 @@
             [plastic.undo :as undo]))
 
 (defn add-editor! [editors [editor-id editor-uri]]
+  {:pre [(not (get editors editor-id))]}
   (let [editors (if (map? editors) editors {})
         editor (editor/make editor-id editor-uri)]
     (watcher/init-editor editor-id)
     (assoc editors editor-id editor)))
 
 (defn remove-editor! [db [editor-id]]
-  (let [editors (get db :editors)]
-    (-> db
-      (assoc :editors (dissoc editors editor-id))
-      (undo/remove-undo-redo-for-editor editor-id))))
+  {:pre [(get-in db [:editors editor-id])]}
+  (-> db
+    (update :editors dissoc editor-id)
+    (undo/remove-undo-redo-for-editor editor-id)))
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; register handlers

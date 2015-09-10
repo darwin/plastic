@@ -2,31 +2,30 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]])
   (:require [plastic.worker.frame :refer [register-handler]]
             [plastic.undo :as undo]
-            [rewrite-clj.node :as node]
             [plastic.worker.editor.model :as editor]))
 
 (defn undo [db [editor-id]]
   (let [new-db (undo/do-undo db [editor-id])]
     (if plastic.env.log-parse-tree
-      (fancy-log "UNDO-PTREE" (node/string (editor/get-parse-tree (get-in new-db [:editors editor-id])))))
+      (fancy-log "UNDO-PTREE" (editor/get-meld (get-in new-db [:editors editor-id]))))
     new-db))
 
 (defn redo [db [editor-id]]
   (let [new-db (undo/do-redo db [editor-id])]
     (if plastic.env.log-parse-tree
-      (fancy-log "REDO-PTREE" (node/string (editor/get-parse-tree (get-in new-db [:editors editor-id])))))
+      (fancy-log "REDO-PTREE" (editor/get-meld (get-in new-db [:editors editor-id]))))
     new-db))
 
 (defn push-undo [db [editor-id description editor]]
   (let [new-db (undo/push-undo db [editor-id description editor])]
     (if plastic.env.log-parse-tree
-      (fancy-log "PUSH-UNDO-PTREE" (node/string (editor/get-parse-tree editor))))
+      (fancy-log "PUSH-UNDO-PTREE" (editor/get-meld editor)))
     new-db))
 
 (defn push-redo [db [editor-id description editor]]
   (let [new-db (undo/push-redo db [editor-id description editor])]
     (if plastic.env.log-parse-tree
-      (fancy-log "PUSH-REDO-PTREE" (node/string (editor/get-parse-tree editor))))
+      (fancy-log "PUSH-REDO-PTREE" (editor/get-meld editor)))
     new-db))
 
 ; -------------------------------------------------------------------------------------------------------------------

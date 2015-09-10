@@ -2,7 +2,7 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
                    [plastic.main :refer [dispatch worker-dispatch]]
                    [plastic.common :refer [process]])
-  (:require [plastic.util.helpers :as helpers]
+  (:require [plastic.util.helpers :as helpers :refer [select-values]]
             [plastic.main.editor.toolkit.id :as id]
             [clojure.set :as set]))
 
@@ -18,14 +18,14 @@
 (defn make [editor-id]
   (Editor. editor-id))
 
-(defn valid-editor? [editor]
+(defn ^boolean valid-editor? [editor]
   (satisfies? IEditor editor))
 
-(defn valid-editor-id? [editor-id]
+(defn ^boolean valid-editor-id? [editor-id]
   (pos? editor-id))
 
 (declare update-highlight-and-puppets)
-(declare get-form-id-for-node-id)
+(declare get-unit-id-for-node-id)
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -52,107 +52,103 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn get-analysis-for-form [editor form-id]
+(defn get-analysis-for-unit [editor unit-id]
   {:pre [(valid-editor? editor)]}
-  (get-in editor [:analysis form-id]))
+  (get-in editor [:analysis unit-id]))
 
-(defn set-analysis-for-form [editor form-id new-analysis]
+(defn set-analysis-for-unit [editor unit-id new-analysis]
   {:pre [(valid-editor? editor)]}
-  (let [old-analysis (get-analysis-for-form editor form-id)
+  (let [old-analysis (get-analysis-for-unit editor unit-id)
         updated-analysis (helpers/overwrite-map old-analysis new-analysis)]
     (-> editor
-      (assoc-in [:analysis form-id] updated-analysis)
+      (assoc-in [:analysis unit-id] updated-analysis)
       (update-highlight-and-puppets))))
 
-(defn set-analysis-patch-for-form [editor form-id patch]
+(defn set-analysis-patch-for-unit [editor unit-id patch]
   {:pre [(valid-editor? editor)]}
-  (let [old-analysis (get-analysis-for-form editor form-id)
+  (let [old-analysis (get-analysis-for-unit editor unit-id)
         patched-analysis (helpers/patch-map old-analysis patch)]
     (-> editor
-      (assoc-in [:analysis form-id] patched-analysis)
+      (assoc-in [:analysis unit-id] patched-analysis)
       (update-highlight-and-puppets))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn get-layout-for-form [editor form-id]
+(defn get-layout-for-unit [editor unit-id]
   {:pre [(valid-editor? editor)]}
-  (get-in editor [:layout form-id]))
+  (get-in editor [:layout unit-id]))
 
-(defn set-layout-for-form [editor form-id new-layout]
+(defn set-layout-for-unit [editor unit-id new-layout]
   {:pre [(valid-editor? editor)]}
-  (let [old-layout (get-layout-for-form editor form-id)
+  (let [old-layout (get-layout-for-unit editor unit-id)
         updated-layout (helpers/overwrite-map old-layout new-layout)]
-    (assoc-in editor [:layout form-id] updated-layout)))
+    (assoc-in editor [:layout unit-id] updated-layout)))
 
-(defn set-layout-patch-for-form [editor form-id patch]
+(defn set-layout-patch-for-unit [editor unit-id patch]
   {:pre [(valid-editor? editor)]}
-  (let [old-layout (get-layout-for-form editor form-id)
+  (let [old-layout (get-layout-for-unit editor unit-id)
         updated-layout (helpers/patch-map old-layout patch)]
-    (assoc-in editor [:layout form-id] updated-layout)))
+    (assoc-in editor [:layout unit-id] updated-layout)))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn get-layout-for-node [editor node-id]
   {:pre [(valid-editor? editor)]}
-  (let [form-id (get-form-id-for-node-id editor node-id)
-        _ (assert form-id)
-        form-layout (get-layout-for-form editor form-id)]
-    (assert form-layout)
-    (get form-layout node-id)))
+  (let [unit-id (get-unit-id-for-node-id editor node-id)
+        _ (assert unit-id)
+        unit-layout (get-layout-for-unit editor unit-id)]
+    (assert unit-layout)
+    (get unit-layout node-id)))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn get-selectables-for-form [editor form-id]
+(defn get-selectables-for-unit [editor unit-id]
   {:pre [(valid-editor? editor)]}
-  (get-in editor [:selectables form-id]))
+  (let [layout (get-layout-for-unit editor unit-id)]
+    (assert layout)
+    (select-values :selectable? layout)))
 
-(defn set-selectables-for-form [editor form-id new-selectables]
+(defn get-editables-for-unit [editor unit-id]
   {:pre [(valid-editor? editor)]}
-  (let [old-selectables (get-selectables-for-form editor form-id)
-        updated-selectables (helpers/overwrite-map old-selectables new-selectables)]
-    (assoc-in editor [:selectables form-id] updated-selectables)))
-
-(defn set-selectables-patch-for-form [editor form-id patch]
-  {:pre [(valid-editor? editor)]}
-  (let [old-selectables (get-selectables-for-form editor form-id)
-        updated-selectables (helpers/patch-map old-selectables patch)]
-    (assoc-in editor [:selectables form-id] updated-selectables)))
+  (let [layout (get-layout-for-unit editor unit-id)]
+    (assert layout)
+    (select-values :editable? layout)))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn get-spatial-web-for-form [editor form-id]
+(defn get-spatial-web-for-unit [editor unit-id]
   {:pre [(valid-editor? editor)]}
-  (get-in editor [:spatial-web form-id]))
+  (get-in editor [:spatial-web unit-id]))
 
-(defn set-spatial-web-for-form [editor form-id new-spatial-web]
+(defn set-spatial-web-for-unit [editor unit-id new-spatial-web]
   {:pre [(valid-editor? editor)]}
-  (let [old-spatial-web (get-spatial-web-for-form editor form-id)
+  (let [old-spatial-web (get-spatial-web-for-unit editor unit-id)
         updated-spatial-web (helpers/overwrite-map old-spatial-web new-spatial-web sorted-map)]
-    (assoc-in editor [:spatial-web form-id] updated-spatial-web)))
+    (assoc-in editor [:spatial-web unit-id] updated-spatial-web)))
 
-(defn set-spatial-web-patch-for-form [editor form-id patch]
+(defn set-spatial-web-patch-for-unit [editor unit-id patch]
   {:pre [(valid-editor? editor)]}
-  (let [old-spatial-web (get-spatial-web-for-form editor form-id)
+  (let [old-spatial-web (get-spatial-web-for-unit editor unit-id)
         updated-spatial-web (helpers/patch-map old-spatial-web patch sorted-map)]
-    (assoc-in editor [:spatial-web form-id] updated-spatial-web)))
+    (assoc-in editor [:spatial-web unit-id] updated-spatial-web)))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn get-structural-web-for-form [editor form-id]
+(defn get-structural-web-for-unit [editor unit-id]
   {:pre [(valid-editor? editor)]}
-  (get-in editor [:structural-web form-id]))
+  (get-in editor [:structural-web unit-id]))
 
-(defn set-structural-web-for-form [editor form-id new-structural-web]
+(defn set-structural-web-for-unit [editor unit-id new-structural-web]
   {:pre [(valid-editor? editor)]}
-  (let [old-structural-web (get-structural-web-for-form editor form-id)
+  (let [old-structural-web (get-structural-web-for-unit editor unit-id)
         updated-structural-web (helpers/overwrite-map old-structural-web new-structural-web)]
-    (assoc-in editor [:structural-web form-id] updated-structural-web)))
+    (assoc-in editor [:structural-web unit-id] updated-structural-web)))
 
-(defn set-structural-web-patch-for-form [editor form-id patch]
+(defn set-structural-web-patch-for-unit [editor unit-id patch]
   {:pre [(valid-editor? editor)]}
-  (let [old-structural-web (get-structural-web-for-form editor form-id)
+  (let [old-structural-web (get-structural-web-for-unit editor unit-id)
         updated-structural-web (helpers/patch-map old-structural-web patch)]
-    (assoc-in editor [:structural-web form-id] updated-structural-web)))
+    (assoc-in editor [:structural-web unit-id] updated-structural-web)))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -166,14 +162,6 @@
     (if (not= old-render-state render-state)
       (assoc-in editor [:render-state] render-state)
       editor)))
-
-(defn get-render-order [editor]
-  {:pre [(valid-editor? editor)]}
-  (get-in editor [:render-state :order]))
-
-(defn set-render-order [editor order]
-  {:pre [(valid-editor? editor)]}
-  (assoc-in editor [:render-state :order] order))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -242,15 +230,15 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn set-focused-form-id [editor form-id]
+(defn set-focused-unit-id [editor unit-id]
   {:pre [(valid-editor? editor)]}
-  (assoc editor :focused-form-id (if form-id #{form-id} #{})))
+  (assoc editor :focused-unit-id (if unit-id #{unit-id} #{})))
 
-(defn get-focused-form-id [editor]
+(defn get-focused-unit-id [editor]
   {:pre [(valid-editor? editor)
-         (set? (or (get editor :focused-form-id) #{}))
-         (<= (count (get editor :focused-form-id)) 1)]}
-  (first (get editor :focused-form-id)))
+         (set? (or (get editor :focused-unit-id) #{}))
+         (<= (count (get editor :focused-unit-id)) 1)]}
+  (first (get editor :focused-unit-id)))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -273,46 +261,59 @@
   (let [editing (:editing editor)]
     (and editing (not (empty? editing)))))
 
-(defn layout-type->editor-mode [type]
-  (condp = type
-    :doc :string                                                                                                      ; doc nodes should be edited as strings for now
-    :comment :string
-    type))
+(defn layout-editor-mode [layout]
+  (let [tag (:tag layout)]
+    (case tag
+      :symbol :symbol
+      :string :string
+      :regexp :regexp
+      :keyword :keyword
+      :doc :string                                                                                                    ; doc nodes should be edited as strings for now, markdown later
+      :comment :string)))
 
 (defn get-editing-setup [editor]
   {:pre [(valid-editor? editor)
          (editing? editor)]}
   (let [editing (get-editing editor)
-        layout (get-layout-for-node editor editing)]
+        layout (get-layout-for-node editor editing)
+        layout-type (:type layout)]
     {:text (:text layout)
-     :type (:type layout)
-     :mode (layout-type->editor-mode (:type layout))}))
+     :type layout-type
+     :mode (layout-editor-mode layout)}))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn get-top-level-form-ids [editor]
+(defn get-units [editor]
   {:pre [(valid-editor? editor)]}
-  (get-render-order editor))
+  (get editor :units))
 
-(defn get-first-form-id [editor]
+(defn set-units [editor unit-ids]
   {:pre [(valid-editor? editor)]}
-  (first (get-render-order editor)))
+  (if-not (identical? (get-units editor) unit-ids)
+    (assoc editor :units unit-ids)
+    editor))
 
-(defn get-last-form-id [editor]
-  {:pre [(valid-editor? editor)]}
-  (last (get-render-order editor)))
+; -------------------------------------------------------------------------------------------------------------------
 
-(defn get-first-selectable-token-id-for-form [editor form-id]
+(defn get-first-unit-id [editor]
   {:pre [(valid-editor? editor)]}
-  (let [spatial-web (get-spatial-web-for-form editor form-id)
+  (first (get-units editor)))
+
+(defn get-last-unit-id [editor]
+  {:pre [(valid-editor? editor)]}
+  (last (get-units editor)))
+
+(defn get-first-selectable-token-id-for-unit [editor unit-id]
+  {:pre [(valid-editor? editor)]}
+  (let [spatial-web (get-spatial-web-for-unit editor unit-id)
         _ (assert spatial-web)
         first-line (second (first spatial-web))
         _ (assert (vector? first-line))]
     (:id (first first-line))))
 
-(defn get-last-selectable-token-id-for-form [editor form-id]
+(defn get-last-selectable-token-id-for-unit [editor unit-id]
   {:pre [(valid-editor? editor)]}
-  (let [spatial-web (get-spatial-web-for-form editor form-id)
+  (let [spatial-web (get-spatial-web-for-unit editor unit-id)
         _ (assert spatial-web)
         last-line (second (last spatial-web))
         _ (assert (vector? last-line))]
@@ -336,22 +337,29 @@
           (assert report (str "unable to lookup report for editor #" editor-id ": " (pr-str undo-summary)))
           (apply f editor report args))))))
 
-(defn is-node-selectable? [editor form-id node-id]
+(defn ^boolean is-node-selectable? [editor unit-id node-id]
   {:pre [(valid-editor? editor)]}
-  (let [selectables (get-selectables-for-form editor form-id)]
-    (not (nil? (get selectables node-id)))))
+  (let [layout (get-layout-for-unit editor unit-id)
+        node-layout (get layout node-id)]
+    (:selectable? node-layout)))
 
-(defn is-node-present-in-form? [editor node-id form-id]
+(defn ^boolean is-node-editable? [editor unit-id node-id]
   {:pre [(valid-editor? editor)]}
-  (let [layout (get-layout-for-form editor form-id)]
+  (let [layout (get-layout-for-unit editor unit-id)
+        node-layout (get layout node-id)]
+    (:editable? node-layout)))
+
+(defn ^boolean is-node-present-in-unit? [editor node-id unit-id]
+  {:pre [(valid-editor? editor)]}
+  (let [layout (get-layout-for-unit editor unit-id)]
     (not (nil? (get layout node-id)))))
 
-(defn get-form-id-for-node-id [editor node-id]
+(defn get-unit-id-for-node-id [editor node-id]
   {:pre [(valid-editor? editor)]}
-  (let [form-ids (get-top-level-form-ids editor)]
-    (if (some #{node-id} form-ids)
+  (let [unit-ids (get-units editor)]
+    (if (some #{node-id} unit-ids)
       node-id
-      (some #(if (is-node-present-in-form? editor node-id %) %) form-ids))))
+      (some #(if (is-node-present-in-unit? editor node-id %) %) unit-ids))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; cursor
@@ -365,23 +373,23 @@
 (defn set-cursor [editor cursor]
   {:pre [(valid-editor? editor)]}
   (let [new-cursor (if cursor #{cursor} #{})
-        new-cursor-form-id (if cursor (get-form-id-for-node-id editor cursor))]
+        new-cursor-unit-id (if cursor (get-unit-id-for-node-id editor cursor))]
     (-> editor
       (assoc :cursor new-cursor)
-      (set-focused-form-id new-cursor-form-id)
+      (set-focused-unit-id new-cursor-unit-id)
       (update-highlight-and-puppets))))
 
 (defn find-valid-cursor-position [editor potential-editors]
   {:pre [(valid-editor? editor)]}
   (if-let [potential-editor (first potential-editors)]
     (when-let [potential-cursor (get-cursor potential-editor)]
-      (if (is-node-selectable? editor (get-focused-form-id potential-editor) potential-cursor)
+      (if (is-node-selectable? editor (get-focused-unit-id potential-editor) potential-cursor)
         (set-cursor editor potential-cursor)
         (recur editor (rest potential-editors))))))
 
-(defn has-valid-cursor? [editor]
+(defn ^boolean has-valid-cursor? [editor]
   (let [cursor (get-cursor editor)]
-    (is-node-selectable? editor (get-focused-form-id editor) cursor)))
+    (is-node-selectable? editor (get-focused-unit-id editor) cursor)))
 
 (defn move-cursor-to-valid-position-if-needed [editor potential-editors]
   (if (has-valid-cursor? editor)
@@ -390,16 +398,19 @@
       editor-with-moved-cursor
       (set-cursor editor nil))))
 
+(defn ^boolean is-cursor-editable? [editor]
+  (let [cursor (get-cursor editor)]
+    (is-node-editable? editor (get-focused-unit-id editor) cursor)))
+
 ; -------------------------------------------------------------------------------------------------------------------
 ; related rings
 
 (defn find-related-ring [editor node-id]
   {:pre [(valid-editor? editor)]}
-  ; TODO: in future searching for related ring should be across whole file, not just form-specific
-  (let [form-id (get-form-id-for-node-id editor node-id)
-        _ (assert form-id)
-        analysis (get-analysis-for-form editor form-id)
-        _ (assert analysis)
+  ; TODO: in future searching for related ring should be across whole file, not just unit-specific
+  (let [unit-id (get-unit-id-for-node-id editor node-id)
+        _ (assert unit-id)
+        analysis (get-analysis-for-unit editor unit-id)
         info (get analysis node-id)]
     (or (:related info) #{})))
 
@@ -414,11 +425,11 @@
   {:pre [(valid-editor? editor)]}
   (assoc editor :inline-editor new-state))
 
-(defn is-inline-editor-modified? [editor]
+(defn ^boolean is-inline-editor-modified? [editor]
   {:pre [(valid-editor? editor)]}
   (:modified? (get-inline-editor editor)))
 
-(defn is-inline-editor-empty? [editor]
+(defn ^boolean is-inline-editor-empty? [editor]
   {:pre [(valid-editor? editor)]}
   (:empty? (get-inline-editor editor)))
 
@@ -438,7 +449,7 @@
   {:pre [(valid-editor? editor)]}
   (:text (get-inline-editor-value editor)))
 
-(defn get-inline-editor-puppets-active? [editor]
+(defn ^boolean get-inline-editor-puppets-active? [editor]
   {:pre [(valid-editor? editor)]}
   (not (:puppets-deactivated? (get-inline-editor editor))))
 
@@ -446,7 +457,7 @@
   {:pre [(valid-editor? editor)]}
   (assoc-in editor [:inline-editor :puppets-deactivated?] (not active?)))
 
-(defn get-inline-editor-puppets-effective? [editor]
+(defn ^boolean get-inline-editor-puppets-effective? [editor]
   {:pre [(valid-editor? editor)]}
   (let [active? (get-inline-editor-puppets-active? editor)
         mode (get-inline-editor-mode editor)]
@@ -474,25 +485,26 @@
     (let [id (id/id-part cursor-id)
           related-nodes (find-related-ring editor id)
           puppets (set/difference related-nodes #{cursor-id})
-          spot-closer-node (if (id/spot? cursor-id) #{(id/make id :closer)})]
+          spot-closer-node (if (id/spot? cursor-id) #{(id/make id :closer)})
+          highlights (set/union related-nodes spot-closer-node)]
       (-> editor
-        (set-highlight (set/union related-nodes spot-closer-node))
+        (set-highlight highlights)
         (set-puppets puppets)))
     editor))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn remove-form [editor id]
-  {:pre [id]}
+(defn remove-unit [editor unit-id]
+  {:pre [unit-id]}
   (-> editor
-    (update :layout dissoc id)
-    (update :selectables dissoc id)
-    (update :spatial-web dissoc id)
-    (update :structural-web dissoc id)
-    (update :analysis dissoc id)))
+    (update :layout dissoc unit-id)
+    (update :selectables dissoc unit-id)
+    (update :spatial-web dissoc unit-id)
+    (update :structural-web dissoc unit-id)
+    (update :analysis dissoc unit-id)))
 
-(defn remove-forms [editor ids]
+(defn remove-units [editor unit-ids]
   {:pre [(valid-editor? editor)]}
-  (process ids editor
+  (process unit-ids editor
     (fn [editor id]
-      (remove-form editor id))))
+      (remove-unit editor id))))

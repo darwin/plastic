@@ -89,8 +89,6 @@
    :structural-right   structural-right
    :structural-up      structural-up
    :structural-down    structural-down
-   :next-interest      editing/next-interest
-   :prev-interest      editing/prev-interest
    :start-editing      start-editing
    :stop-editing       stop-editing
    :toggle-editing     toggle-editing
@@ -103,6 +101,8 @@
    :activate-puppets   editing/activate-puppets
    :deactivate-puppets editing/deactivate-puppets
    :toggle-puppets     editing/toggle-puppets
+   :next-interest      editing/next-interest
+   :prev-interest      editing/prev-interest
    :open-list          editing/open-list
    :open-vector        editing/open-vector
    :open-map           editing/open-map
@@ -113,10 +113,10 @@
    :open-deref         editing/open-deref})
 
 (defn dispatch-op* [editors [editor-id op]]
-  (let [old-editor (get editors editor-id)]
+  (let [editor (get editors editor-id)]
     (if-let [handler (op ops)]
-      (if-let [new-editor (handler old-editor)]
-        (assoc-in editors [editor-id] new-editor))
+      (if-let [new-editor (handler editor)]
+        (assoc editors editor-id new-editor))
       (error (str "Unknown editor operation '" op "'")))))
 
 (defn dispatch-op [& args]

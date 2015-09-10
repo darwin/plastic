@@ -1,10 +1,8 @@
 (ns plastic.worker.editor.model.xforming
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.util.zip :as zip-utils]
-            [clojure.zip :as z]
-            [plastic.worker.editor.model.report :as report]
+  (:require [plastic.worker.editor.model.report :as report]
             [plastic.worker.editor.model :as editor :refer [valid-editor?]]
-            [rewrite-clj.zip :as zip]))
+            [meld.zip :as zip]))
 
 (defn make-state [loc report]
   [loc report])
@@ -17,13 +15,14 @@
 
 (defn make-initial-state [editor]
   {:pre [(valid-editor? editor)]}
-  (let [parse-tree (editor/get-parse-tree editor)
-        root-loc (zip-utils/make-zipper parse-tree)]
+  (let [meld (editor/get-meld editor)
+        root-loc (zip/zip meld)]
     (make-state root-loc (report/make))))
 
-(defn remove-empty-forms [loc]
-  {:pre [(zip-utils/form? loc)]}
-  (if (zip-utils/contains-only-spaces? loc)
+(defn remove-empty-units [loc]
+  {:pre [(zip/unit? loc)]}
+  loc ; TODO:
+  #_(if (zip-utils/contains-only-spaces? loc)
     (let [after-loc (z/remove loc)
           next-form-loc (zip-utils/skip z/next zip-utils/form? after-loc)]
       (if next-form-loc
@@ -35,15 +34,14 @@
 
 (defn sanitize-zipper [top-loc]
   (-> top-loc
-    z/down
-    remove-empty-forms))
+      zip/down
+      remove-empty-units))
 
 (defn sanitize-if-needed [state]
   (let [report (get-report state)]
     (if (and (empty? (:removed report)) (empty? (:moved report)))
       state
-      (let [top (zip-utils/top (get-loc state))]
-        (assert (= (zip/tag top) :top))
+      (let [top (zip/top (get-loc state))]
         (make-state (sanitize-zipper top) report)))))
 
 (defn commit-state [editor state]
@@ -51,11 +49,11 @@
   (if (nil? state)
     editor
     (let [sanitized-state (sanitize-if-needed state)
-          parse-tree (z/root (get-loc sanitized-state))
+          meld (zip/unzip (get-loc sanitized-state))
           report (get-report sanitized-state)]
       (-> editor
         (editor/set-xform-report report)
-        (editor/set-parse-tree parse-tree)))))
+        (editor/set-meld meld)))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 

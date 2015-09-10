@@ -3,21 +3,20 @@
   (:require [meld.gray-matter :refer [measure-gray-matter]]
             [meld.node :as node]
             [meld.ids :as ids]
-            [meld.meld :as meld]
+            [meld.core :as meld]
             [meld.util :refer [update!]]))
 
 (defn ^boolean is-token-interesting? [token]
-  (not (object? token)))                                                                                              ; opening brackets emit empty js-object tokens
+  (not (or (object? token) (keyword-identical? token :eof-sentinel))))                                                ; opening brackets emit empty js-object tokens
 
 (defn find-nodes-after-offset [starts offset]
   (map second (drop-while (fn [[start-offset _id]] (< start-offset offset)) starts)))
 
 (defn filter-nodes-without-parent [meld ids]
-  (filter #(nil? (node/get-parent (meld/get-node meld %))) ids))
+  (remove #(node/get-parent (meld/get-node meld %)) ids))
 
 (defn assign-parent! [meld& ids parent]
-  (let [* (fn [meld& id]
-            (update! meld& id node/set-parent parent))]
+  (let [* (fn [meld& id] (update! meld& id node/set-parent parent))]
     (reduce * meld& ids)))
 
 ; -------------------------------------------------------------------------------------------------------------------

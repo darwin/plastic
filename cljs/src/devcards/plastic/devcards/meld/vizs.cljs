@@ -5,7 +5,7 @@
   (:require [meld.parser :as parser]
             [reagent.core :as r]
             [meld.support :refer [histogram-display]]
-            [meld.meld :as meld]
+            [meld.core :as meld]
             [meld.zip :as zip]
             [meld.node :as node]))
 

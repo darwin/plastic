@@ -11,10 +11,10 @@
 (declare perform-space)
 
 (defn start-editing [editor & [cb]]
-  (if (editor/editing? editor)
+  (if (or (editor/editing? editor) (not (editor/is-cursor-editable? editor)))
     ((continue cb) editor)
     (if (id/spot? (editor/get-cursor editor))
-      (perform-space editor cb)                                                                                       ; enter edit mode by emulating hitting space
+      (perform-space editor cb)                                                                                       ; enter edit mode by emulating a space action
       ((continue cb) (enable-editing-mode editor)))))
 
 (defn stop-editing [editor & [cb]]
@@ -83,7 +83,7 @@
   (stop-editing editor
     (fn [editor]
       (let [edit-point (get-edit-point editor)
-            focused-form-id (editor/get-focused-form-id editor)]
+            focused-form-id (editor/get-focused-unit-id editor)]
         (xform-editor-on-worker editor [op edit-point]
           (fn [editor]
             (start-editing (select-neighbour focused-form-id edit-point path editor) cb)))))))

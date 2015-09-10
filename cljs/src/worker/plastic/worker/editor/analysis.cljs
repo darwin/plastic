@@ -1,41 +1,39 @@
 (ns plastic.worker.editor.analysis
   (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]]
-                   [plastic.worker :refer [react! dispatch main-dispatch]])
-  (:require [rewrite-clj.zip :as zip]
-            [rewrite-clj.node :as node]
-            [plastic.worker.frame :refer [register-handler]]
+                   [plastic.worker :refer [dispatch main-dispatch]])
+  (:require [plastic.worker.frame :refer [register-handler]]
             [plastic.worker.editor.model :as editor]
             [plastic.worker.editor.layout.analysis.calls :refer [analyze-calls]]
             [plastic.worker.editor.layout.analysis.scopes :refer [analyze-scopes]]
             [plastic.worker.editor.layout.analysis.defs :refer [analyze-defs]]
-            [plastic.util.zip :as zip-utils]
             [plastic.worker.paths :as paths]
-            [plastic.util.helpers :as helpers]))
+            [plastic.util.helpers :as helpers]
+            [meld.zip :as zip]))
 
 ; TODO: implement a cache to prevent recomputing analysis for unchanged forms
-(defn prepare-form-analysis [form-loc]
-  {:pre [(zip-utils/valid-loc? form-loc)
-         (zip-utils/form? form-loc)]}
+(defn prepare-unit-analysis [unit-loc]
+  {:pre [(zip/unit? unit-loc)]}
   (-> {}
-    (analyze-calls form-loc)
-    (analyze-scopes form-loc)
-    (analyze-defs form-loc)
+    (analyze-calls unit-loc)
+    (analyze-scopes unit-loc)
+    (analyze-defs unit-loc)
     (helpers/remove-nil-values)))
 
 (defn run-analysis [editors [editor-selector form-selector]]
   (editor/apply-to-editors editors editor-selector
     (fn [editor]
-      (if-not (editor/parsed? editor)
-        (error "editor not parsed!" editor)
-        (editor/apply-to-forms editor form-selector
-          (fn [editor form-loc]
+      (if-not (editor/has-meld? editor)
+        (error "editor not parsed! (no meld)" editor)
+        (editor/apply-to-units editor form-selector
+          (fn [editor unit-loc]
             (let [editor-id (editor/get-id editor)
-                  form-id (zip-utils/loc-id form-loc)
-                  old-analysis (editor/get-analysis-for-form editor form-id)
-                  new-analysis (prepare-form-analysis form-loc)
+                  unit-loc (zip/subzip unit-loc)
+                  unit-id (zip/id unit-loc)
+                  old-analysis (editor/get-analysis-for-unit editor unit-id)
+                  new-analysis (prepare-unit-analysis unit-loc)
                   patch (helpers/prepare-map-patch old-analysis new-analysis)]
-              (main-dispatch :editor-commit-analysis-patch editor-id form-id patch)
-              (editor/set-analysis-for-form editor form-id new-analysis))))))))
+              (main-dispatch :editor-commit-analysis-patch editor-id unit-id patch)
+              (editor/set-analysis-for-unit editor unit-id new-analysis))))))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; register handlers

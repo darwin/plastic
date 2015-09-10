@@ -4,7 +4,7 @@
             [meld.zip :as zip]
             [meld.node :as node]
             [meld.util :refer [update! indexed-react-keys]]
-            [meld.meld :as meld]))
+            [meld.core :as meld]))
 
 (defn histogram [meld & [include-compounds?]]
   (let [start-loc (zip/zip meld)
@@ -58,6 +58,7 @@
         source (node/get-source node)]
     {:id   (node/get-id node)
      :kind :open
+     :tag (node/get-tag node)
      :text (subs source 0 size)}))
 
 (defn leave-node [meld node]
@@ -65,11 +66,12 @@
         source (node/get-source node)]
     {:id   (node/get-id node)
      :kind :close
+     :tag (node/get-tag node)
      :text (subs source (- (count source) size))}))
 
 (defn process-node [node]
   {:id   (node/get-id node)
-   :kind (or (node/get-tag node) (node/get-type node))
+   :kind (node/get-tag node)
    :text (node/get-source node)})
 
 (defn extract-leadspace [node]
@@ -86,16 +88,17 @@
 
 (defn collect-visible-tokens [meld]
   (let [start-loc (zip/zip meld)]
-    (remove nil? (zip/walk start-loc []
-                   (fn [accum node op]
-                     (-> accum
-                       (conj (case op
-                               (:enter :token) (extract-leadspace node)
-                               :leave (extract-trailspace node)))
-                       (conj (case op
-                               :enter (enter-node meld node)
-                               :leave (leave-node meld node)
-                               :token (process-node node)))))))))
+    (remove nil?
+      (zip/walk start-loc []
+        (fn [accum node op]
+          (-> accum
+            (conj (case op
+                    (:enter :token) (extract-leadspace node)
+                    :leave (extract-trailspace node)))
+            (conj (case op
+                    :enter (enter-node meld node)
+                    :leave (leave-node meld node)
+                    :token (process-node node)))))))))
 
 (defn emit-token [token]
   (let [{:keys [id kind text]} token]

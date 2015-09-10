@@ -44,14 +44,13 @@
     (assoc editors editor-id editor)))
 
 (defn remove-editor! [db [editor-id dom-node]]
-  (let [editors (get db :editors)]
-    (worker-dispatch :remove-editor editor-id)
-    (dispose-reactions! (booking/get-item book editor-id))
-    (booking/unregister-item! book editor-id)
-    (render/unmount-editor dom-node)
-    (-> db
-      (assoc :editors (dissoc editors editor-id))
-      (undo/remove-undo-redo-for-editor editor-id))))
+  (worker-dispatch :remove-editor editor-id)
+  (dispose-reactions! (booking/get-item book editor-id))
+  (booking/unregister-item! book editor-id)
+  (render/unmount-editor dom-node)
+  (-> db
+    (update :editors dissoc editor-id)
+    (undo/remove-undo-redo-for-editor editor-id)))
 
 (defn wire-editor! [editors [selector]]
   (editor/apply-to-editors editors selector

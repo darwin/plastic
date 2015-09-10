@@ -1,13 +1,13 @@
 (ns meld.gray-matter
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [cljs.tools.reader.reader-types :as rt :refer [read-char unread get-line-number get-column-number]]
-            [clojure.zip :as z]
             [meld.helpers :as helpers]
             [meld.comments :refer [stitch-aligned-comments]]
             [meld.zip :as zip]
             [meld.node :as node]
             [meld.ids :as ids]
-            [meld.util :refer [transplant-meta]]))
+            [meld.util :refer [transplant-meta]]
+            [meld.core :as meld]))
 
 ; gray matter is whitespaces, linebreaks and comments
 ; standard tools.reader does not record them in parsed output
@@ -69,9 +69,9 @@
     (assert (nil? (read-char reader)))                                                                                ; reader should be empty at this point
     (persistent! result-table&)))                                                                                     ; return final table
 
-(defn is-parent? [meld parent-id node-id]
+(defn parent? [meld parent-id node-id]
   (loop [id node-id]
-    (let [node (get meld id)
+    (let [node (meld/get-node meld id)
           parent (node/get-parent node)]
       (if-not parent
         false
@@ -84,7 +84,7 @@
     (doseq [[id node] meld]
       (if-let [end (:end node)]
         (let [prev-id (get @table&! end)]
-          (if (or (nil? prev-id) (is-parent? meld id prev-id))
+          (if (or (nil? prev-id) (parent? meld id prev-id))
             (vswap! table&! assoc! end id)))))
     (persistent! @table&!)))
 

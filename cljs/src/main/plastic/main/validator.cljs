@@ -3,7 +3,7 @@
   (:require [schema.core :as s :include-macros true]
             [plastic.validator :refer [cached factory TODO! string! editor-id! node-id-set! editor-render-state!
                                        editor-layout! editor-selectables! editor-spatial-web! editor-structural-web!
-                                       editor-analysis! integer! key? bool! keyword! all!]]
+                                       editor-analysis! integer! key? bool! keyword! all! editor-units!]]
             [plastic.main.editor.model :as editor]
             [plastic.main.editor.toolkit.id :as id]))
 
@@ -12,7 +12,7 @@
 (def editor-members!
   {:id                     editor-id!
    :uri                    string!
-   (key? :render-state)    editor-render-state!
+   (key? :units)           editor-units!
    (key? :layout)          editor-layout!
    (key? :selectables)     editor-selectables!
    (key? :spatial-web)     editor-spatial-web!
@@ -22,7 +22,7 @@
    (key? :cursor)          node-id-set!
    (key? :selection)       node-id-set!
    (key? :puppets)         node-id-set!
-   (key? :focused-form-id) node-id-set!
+   (key? :focused-unit-id) node-id-set!
    (key? :editing)         node-id-set!
    (key? :inline-editor)   TODO!
    (key? :xform-report)    TODO!})
@@ -32,7 +32,7 @@
                  node-or-nodes
                  (if-not (nil? node-or-nodes)
                    [node-or-nodes]))]
-    (every? #(editor/get-form-id-for-node-id editor (id/id-part %)) things)))
+    (every? #(editor/get-unit-id-for-node-id editor (id/id-part %)) things)))
 
 (defn editor-cursor-consistent? [editor]
   (editor-nodes-present-in-layout? editor (editor/get-cursor editor)))
@@ -47,7 +47,7 @@
   (editor-nodes-present-in-layout? editor (editor/get-puppets editor)))
 
 (defn editor-focused-form-id-consistent? [editor]
-  (editor-nodes-present-in-layout? editor (editor/get-focused-form-id editor)))
+  (editor-nodes-present-in-layout? editor (editor/get-focused-unit-id editor)))
 
 (defn editor-editing-consistent? [editor]
   (editor-nodes-present-in-layout? editor (editor/get-editing editor)))

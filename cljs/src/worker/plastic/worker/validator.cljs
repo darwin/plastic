@@ -3,21 +3,22 @@
   (:require [schema.core :as s :include-macros true]
             [plastic.validator :refer [cached factory editor-id! editor-render-state! editor-layout! TODO!
                                        editor-selectables! editor-spatial-web! editor-structural-web! editor-analysis!
-                                       form-id! anything string! key? all!]]
+                                       unit-id! anything string! key? all! editor-units!]]
             [plastic.worker.editor.model :as editor]))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(def editor-previously-layouted-forms!
-  (cached {form-id! TODO!}))
+(def editor-previously-layouted-units!
+  (cached {unit-id! TODO!}))
 
 (def editor-members!
   {:id                               editor-id!
    :uri                              string!
    (key? :source)                    string!
    (key? :parse-tree)                anything
-   (key? :render-state)              editor-render-state!
-   (key? :previously-layouted-forms) editor-previously-layouted-forms!
+   (key? :meld)                      anything
+   (key? :units)                     editor-units!
+   (key? :previously-layouted-units) editor-previously-layouted-units!
    (key? :layout)                    editor-layout!
    (key? :selectables)               editor-selectables!
    (key? :spatial-web)               editor-spatial-web!

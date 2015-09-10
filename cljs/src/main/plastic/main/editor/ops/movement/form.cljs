@@ -5,7 +5,7 @@
             [plastic.util.helpers :as helpers]))
 
 (defn form-movement [direction editor]
-  (let [focused-form-id (editor/get-focused-form-id editor)
+  (let [focused-form-id (editor/get-focused-unit-id editor)
         cursor-id (editor/get-cursor editor)
         dir (case direction
               :next :down

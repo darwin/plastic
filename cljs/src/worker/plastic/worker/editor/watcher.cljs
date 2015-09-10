@@ -2,8 +2,7 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]]
                    [plastic.worker :refer [react!]])
   (:require [plastic.worker.frame :refer [subscribe]]
-            [clojure.data :as data]
-            [rewrite-clj.node :as node]))
+            [clojure.data :as data]))
 
 (defonce ^:dynamic prev nil)
 
@@ -18,7 +17,7 @@
           (set! prev editors)))))
 
 (defn init-editor [editor-id]
-  (if plastic.env.log-parse-tree
+  #_(if plastic.env.log-parse-tree
     (let [parse-tree-sub (subscribe [:editor-parse-tree editor-id])]
       (react!
         (when-let [parse-tree @parse-tree-sub]
