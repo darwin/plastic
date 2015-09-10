@@ -3,7 +3,7 @@
   (:require [clojure.string :as string]
             [meld.zip :as zip]
             [meld.node :as node]
-            [meld.util :refer [update! indexed-iteration]]
+            [meld.util :refer [update! indexed-react-keys]]
             [meld.meld :as meld]))
 
 (defn histogram [meld & [include-compounds?]]
@@ -97,6 +97,16 @@
                                :leave (leave-node meld node)
                                :token (process-node node)))))))))
 
+(defn emit-token [token]
+  (let [{:keys [id kind text]} token]
+    (case kind
+      :linebreak [[:div.token.linebreak "↓"] [:br]]
+      (mapcat identity
+        (interpose [[:div.token.linebreak.inner "↓"] [:br]]
+          (let [lines (string/split text #"\n")]
+            (for [line lines]
+              [[:div.token {:class kind :data-id id} line]])))))))
+
 (defn meld-viz-component [data-atom]
   (let [{:keys [meld]} @data-atom
         source (meld/get-source meld)
@@ -105,11 +115,9 @@
     [:div.meld-support
      [:div.meld-viz
       [:div.raw-source
-       (interpose [:br] (for [[index line] (indexed-iteration source-lines)]
-                          ^{:key index} [:pre.raw-line line]))]
+       (indexed-react-keys
+         (interpose [:br] (for [line source-lines]
+                            [:pre.raw-line line])))]
       [:div.tokens
-       (for [[index {:keys [id kind text]}] (indexed-iteration tokens)]
-         (case kind
-           :linebreak ^{:key index} [:br {:class kind}]
-           ^{:key index} [:div.token {:class   kind
-                                      :data-id id} text]))]]]))
+       (indexed-react-keys
+         (mapcat emit-token tokens))]]]))

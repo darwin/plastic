@@ -44,6 +44,7 @@
   top: 0px;
   left: 0px;
   opacity: 0.8;
+  white-space: nowrap;
 }
 
 .meld-viz .token {
@@ -52,8 +53,7 @@
   display: inline-block;
   font-family: monospace;
   white-space: pre;
-  background-color: red;
-  color: black;
+  background-color: white;
   opacity: 0.4;
 }
 
@@ -69,3 +69,30 @@
 .meld-viz .token.symbol {
   background-color: green;
 }
+
+.meld-viz .token.comment {
+  background-color: gray;
+}
+
+.meld-viz .token.keyword {
+  background-color: purple;
+}
+
+.meld-viz .token.number {
+  background-color: orange;
+}
+
+.meld-viz .token.string {
+  background-color: red;
+}
+
+.meld-viz .token.linebreak {
+  background-color: purple;
+  opacity: 0.8;
+  color: white;
+}
+
+.meld-viz .token.linebreak.inner {
+  background-color: black;
+}
+

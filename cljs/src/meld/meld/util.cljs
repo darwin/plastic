@@ -13,3 +13,6 @@
 (defn indexed-iteration [coll]
   {:pre [(coll? coll)]}
   (map-indexed (fn [i v] [i v]) coll))
+
+(defn indexed-react-keys [coll]
+  (map (fn [[index item]] (with-meta item {:key index})) (indexed-iteration coll)))

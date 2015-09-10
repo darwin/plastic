@@ -18,6 +18,7 @@
     (string? token) :string
     (regexp? token) :regexp
     (number? token) :number
+    (keyword? token) :keyword
     (seq? token) :list
     (vector? token) :vector
     (map? token) :map
