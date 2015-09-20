@@ -6,8 +6,10 @@
             [meld.core :as meld]
             [meld.util :refer [update!]]))
 
+(def eof-sentinel ::eof-sentinel)
+
 (defn ^boolean is-token-interesting? [token]
-  (not (or (object? token) (keyword-identical? token :eof-sentinel))))                                                ; opening brackets emit empty js-object tokens
+  (not (or (object? token) (keyword-identical? token eof-sentinel))))                                                 ; opening brackets emit empty js-object tokens
 
 (defn find-nodes-after-offset [starts offset]
   (map second (drop-while (fn [[start-offset _id]] (< start-offset offset)) starts)))

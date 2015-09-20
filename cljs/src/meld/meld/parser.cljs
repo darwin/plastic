@@ -2,7 +2,7 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [cljs.tools.reader.reader-types :as rt]
             [cljs.tools.reader :as r]
-            [meld.tracker :refer [make-tracker]]
+            [meld.tracker :refer [make-tracker eof-sentinel]]
             [meld.gray-matter :refer [process-gray-matter]]
             [meld.whitespace :refer [merge-whitespace]]
             [meld.file :refer [wrap-all-as-file]]
@@ -16,10 +16,10 @@
     (merge-whitespace)))                                                                                              ; want to merge whitespace nodes into following non-whitespace nodes or parents
 
 (defn read-form! [reader]
-  (let [opts {:eof       :eof-sentinel
+  (let [opts {:eof       eof-sentinel
               :read-cond :preserve}
         res (r/read opts reader)]
-    (if-not (keyword-identical? res :eof-sentinel)
+    (if-not (keyword-identical? res eof-sentinel)
       res)))
 
 ; -------------------------------------------------------------------------------------------------------------------
