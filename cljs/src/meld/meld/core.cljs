@@ -4,6 +4,44 @@
   (:require [meld.node :as node]
             [meld.util :refer [update!]]))
 
+; -------------------------------------------------------------------------------------------------------------------
+;
+; introducing the 'meld' library
+;
+;   https://www.youtube.com/watch?v=lfZAuDcWmc0
+;
+; This is going to be Plastic's parse-tree library and replace rewrite-cljs.
+;
+; rewrite-cljs is a great library and helped bootstrap initial Plastic development.
+;
+; kudos @rundis!
+;
+; The main reason is that I want Plastic parser to use recent tools.reader without modifications.
+; In the future I will use boostrapped clojurescript to analyze and compile edited code.
+; Using identical reader will allow to cross-match Plastic tokens to cljs analyzer ones
+; (both will use the same parse-tree data) and later will hopefully allow to pass edited sexprs
+; from Plastic directly to cljs analyzer, without going through full text conversion and
+; full reader pass after each change.
+;
+; The secondary reason is that I wanted to move some responsibilities down to rewrite-cljs
+; and remove some complexity on Plastic level. This required better understanding of
+; rewrite-cljs and changing some original design assumptions. This would lead to a divergent fork.
+;
+; Some things I wanted to do:
+;
+; 1. I want linebreaks as individual tokens, rewrite-cljs glues multiple consequent linebreaks together
+; 2. I want linebreaks, rewrite-cljs treats linebreaks as whitespace in zip operations by default
+; 3. I want to stitch multiple aligned comments as single comment tokens
+; 4. I want to glue whitespace token with following non-whitespace token, effectively attaching it for editing ops
+; 5. I prefer simple maps without protocols
+; 6. I need efficient addressing of nodes by id
+; 7. I will need my own whitespace normalization pass when producing final text file
+; 8. I want to implement my own effective zipping library on top
+;
+; I expect Meld to overtake some responsibilities for low-level editing operations.
+;
+; -------------------------------------------------------------------------------------------------------------------
+
 (defn set-top [meta top-id]
   (assoc meta :top top-id))
 
@@ -32,6 +70,8 @@
   {:pre [meld]}
   (get meld id))
 
+; -------------------------------------------------------------------------------------------------------------------
+
 (defn descendants [meld id]
   (let [node (get meld id)
         children (if (node/compound? node) (node/get-children node))]
@@ -50,6 +90,8 @@
       (if-let [parent-id (node/get-parent node)]                                                                      ; ignoring-subtree-boundary
         (recur parent-id (conj res node))
         res))))
+
+; -------------------------------------------------------------------------------------------------------------------
 
 (defn get-compound-metrics [meld node]
   {:pre [node
@@ -77,10 +119,13 @@
 ; -------------------------------------------------------------------------------------------------------------------
 
 ; tree is a convenience structure for building node tree to be later merged into meld
-; a tree node is `[node seq-of-children-trees]` or just `node` if leaf
-; merge-tree does the work of flattening this nested structure and assigning parent/children links between nodes
-; it does not assign parent to the root node of the tree, you have to do it yourself after merging
-; see some flatten-tree-into-meld usages in meld.zip namespace
+; a tree is `[node seq-of-children-trees]` or just `node` if leaf
+; flatten-tree-into-meld does the work of
+;   flattening this nested structure into a meld and
+;   assigning parent/children links between nodes
+;
+; it does not assign parent to the root node of the tree, you have to link it yourself after merging
+;   see some flatten-tree-into-meld usages in meld.zip namespace
 
 (defn make-tree
   ([node] (make-tree node nil))
@@ -120,7 +165,7 @@
     (flatten-tree-into-meld tree)
     (persistent!)))
 
-; this is a low-level operation, you have to properly assign parent of top tree node
+; this is a low-level operation, you have to properly link to the parent of root tree node
 (defn merge-tree [meld tree]
-  (let [flattened-tree (flatten-tree tree)]
-    (merge meld flattened-tree)))
+  (let [flattened-tree-meld (flatten-tree tree)]
+    (merge meld flattened-tree-meld)))
