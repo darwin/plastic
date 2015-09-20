@@ -301,8 +301,7 @@
   (let [[meld& id] loc
         node (meld/get-tree-node tree)
         _ (assert (identical? id (node/get-id node)))                                                                 ; TODO: support general case of replacing with a different node id?
-        parent-id (parent loc)
-        _ (assert parent-id)
+        parent-id (parent loc)                                                                                        ; note: can be nil
         new-meld& (-> meld&
                     (meld/flatten-tree-into-meld tree)
                     (update! id node/set-parent parent-id)                                                            ; note: no need to mess with parent's children, node id is the same

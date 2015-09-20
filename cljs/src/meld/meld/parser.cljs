@@ -12,8 +12,8 @@
   (-> meld
     (wrap-all-as-file source name)
     (process-gray-matter source)                                                                                      ; gray matter is whitespace, linebreaks and comments, we deal with it in this second pass
-    (merge-whitespace)
-    (group-into-units)))                                                                                              ; want to merge whitespace nodes into following non-whitespace nodes
+    (group-into-units)
+    (merge-whitespace)))                                                                                              ; want to merge whitespace nodes into following non-whitespace nodes or parents
 
 (defn read-form! [reader]
   (let [opts {:eof       :eof-sentinel

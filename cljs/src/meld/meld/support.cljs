@@ -59,6 +59,7 @@
     {:id   (node/get-id node)
      :kind :open
      :tag (node/get-tag node)
+     :title (pr-str node)
      :text (subs source 0 size)}))
 
 (defn leave-node [meld node]
@@ -67,23 +68,27 @@
     {:id   (node/get-id node)
      :kind :close
      :tag (node/get-tag node)
+     :title (pr-str node)
      :text (subs source (- (count source) size))}))
 
 (defn process-node [node]
   {:id   (node/get-id node)
    :kind (node/get-tag node)
+   :title (pr-str node)
    :text (node/get-source node)})
 
 (defn extract-leadspace [node]
   (if-let [whitespace (node/get-leadspace node)]
     {:id   (node/get-id node)
      :kind :whitespace
+     :title (pr-str node)
      :text whitespace}))
 
 (defn extract-trailspace [node]
   (if-let [whitespace (node/get-trailspace node)]
     {:id   (node/get-id node)
      :kind :whitespace
+     :title (pr-str node)
      :text whitespace}))
 
 (defn collect-visible-tokens [meld]
@@ -101,14 +106,17 @@
                     :token (process-node node)))))))))
 
 (defn emit-token [token]
-  (let [{:keys [id kind text]} token]
+  (let [{:keys [id kind text title]} token]
     (case kind
       :linebreak [[:div.token.linebreak "↓"] [:br]]
       (mapcat identity
         (interpose [[:div.token.linebreak.inner "↓"] [:br]]
           (let [lines (string/split text #"\n")]
             (for [line lines]
-              [[:div.token {:class kind :data-id id} line]])))))))
+              [[:div.token {:data-id id
+                            :class kind
+                            :title title}
+                line]])))))))
 
 (defn meld-viz-component [data-atom]
   (let [{:keys [meld]} @data-atom

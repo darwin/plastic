@@ -54,12 +54,14 @@
 (defn get-compound-metrics [meld node]
   {:pre [node
          (node/compound? node)]}
-  (let [children (node/get-children node)
-        first-child (get-node meld (first children))
-        last-child (get-node meld (last children))
-        left-size (- (node/get-range-start first-child) (node/get-start node))
-        right-size (- (node/get-range-end node) (node/get-end last-child))]
-    [left-size right-size]))
+  (let [children (node/get-children node)]
+    (if (empty? children)
+      [0 0]
+      (let [first-child (get-node meld (first children))
+            last-child (get-node meld (last children))
+            left-size (- (node/get-range-start first-child) (node/get-start node))
+            right-size (- (node/get-range-end node) (node/get-end last-child))]
+        [left-size right-size]))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -75,9 +77,10 @@
 ; -------------------------------------------------------------------------------------------------------------------
 
 ; tree is a convenience structure for building node tree to be later merged into meld
-; a tree node is `[node vec-of-children-tree-nodes]` or just `node` if leaf
+; a tree node is `[node seq-of-children-trees]` or just `node` if leaf
 ; merge-tree does the work of flattening this nested structure and assigning parent/children links between nodes
 ; it does not assign parent to the root node of the tree, you have to do it yourself after merging
+; see some flatten-tree-into-meld usages in meld.zip namespace
 
 (defn make-tree
   ([node] (make-tree node nil))

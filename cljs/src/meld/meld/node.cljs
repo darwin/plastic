@@ -93,6 +93,10 @@
   {:pre [node]}
   (assoc node :tag tag))
 
+(defn get-sexpr [node]
+  {:pre [node]}
+  (:sexpr node))
+
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn strip-meta [o]
@@ -325,25 +329,7 @@
   {:pre [node]}
   (keyword-identical? :unit (get-tag node)))
 
-(defn ^boolean revisioning? [node]
-  {:pre [node]}
-  (:revisioning? node))
-
-(defn get-revision [node]
-  {:pre [node]}
-  (or (:revision node) 0))
-
-(defn update-revision [node f & args]
-  {:pre [node
-         (revisioning? node)]}
-  (apply update node :revision f args))
-
-(defn inc-revision [node]
-  (update-revision node inc))
-
-(defn get-sexpr [node]
-  {:pre [node]}
-  (:sexpr node))
+; -------------------------------------------------------------------------------------------------------------------
 
 (defn get-leadspace-subnode [node]
   {:pre [node]}
@@ -388,3 +374,23 @@
 (defn get-range [node]
   {:pre [node]}
   [(get-range-start node) (get-range-end node)])
+
+; -------------------------------------------------------------------------------------------------------------------
+
+(defn ^boolean revisioning? [node]
+  {:pre [node]}
+  (:revisioning? node))
+
+(defn get-revision [node]
+  {:pre [node]}
+  (or (:revision node) 0))
+
+(defn update-revision [node f & args]
+  {:pre [node
+         (revisioning? node)]}
+  (apply update node :revision f args))
+
+(defn inc-revision [node]
+  (update-revision node inc))
+
+; -------------------------------------------------------------------------------------------------------------------

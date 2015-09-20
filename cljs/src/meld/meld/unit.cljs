@@ -12,6 +12,7 @@
 ; so, in unit we want to capture top-level forms, linebreaks and comments
 ; in case of form we should include following comment and linebreak
 ; in case of comment we should include following linebreak
+; in all cases we want following whitespace to be included as well
 
 (defn make-unit-detector []
   (let [prev-type! (volatile! :linebreak)
@@ -19,7 +20,7 @@
     (fn [loc]
       (let [type (zip/get-type loc)]
         (case type
-          (:comment :linebreak) (if (#{:linebreak} @prev-type!) (vswap! group! inc))
+          (:comment :linebreak :whitespace) (if (#{:linebreak} @prev-type!) (vswap! group! inc))
           (vswap! group! inc))
         (vreset! prev-type! type))
       @group!)))
