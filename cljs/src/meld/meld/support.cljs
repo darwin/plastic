@@ -120,7 +120,7 @@
                             :title   title}
                 line]])))))))
 
-(defn meld-viz-component [data-atom]
+(defn meldviz-component [data-atom]
   (let [{:keys [meld]} @data-atom
         source (meld/get-source meld)
         source-lines (string/split source #"\n")

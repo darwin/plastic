@@ -1,25 +1,21 @@
 (ns plastic.devcards.meld.vizs
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [devcards.core :as dc :refer [defcard deftest]]
-                   [plastic.devcards :refer [defmeldcard defmeldvizcard defhistcard]])
-  (:require [meld.parser :as parser]
-            [reagent.core :as r]
-            [meld.support :refer [histogram-display]]
-            [meld.core :as meld]
-            [meld.zip :as zip]
-            [meld.node :as node]))
+                   [devcards.core :refer [defcard deftest]])
+  (:require [plastic.devcards.util :refer [def-meld-card]]))
 
-(defmeldvizcard bad-case (parser/parse! " (0   )  "))
+(def card-ns :meld.viz)
 
-(defmeldvizcard small-vec (parser/parse! "[0 1 2]"))
+(def-meld-card card-ns "bad-case" " (0   )  ")
 
-(defmeldvizcard simple-fn (parser/parse! "(ns n1.simplefn)
+(def-meld-card card-ns "small-vec" "[0 1 2]")
+
+(def-meld-card card-ns "simple-fn" "(ns n1.simplefn)
 
 (defn fn1 [p1]
   (fn fn2 [p2]
-    (use p1 p2)))"))
+    (use p1 p2)))")
 
-(defmeldvizcard some-doc-example (parser/parse! "(ns n1.doc)
+(def-meld-card card-ns "some-doc-example" "(ns n1.doc)
 
 ; independent comment
 ; block spanning
@@ -58,9 +54,9 @@
 ; another comment
 
 (def test \"some string\") ; test comment
-"))
+")
 
-(defmeldvizcard real-code (parser/parse! "(ns plastic.main.editor.render.code
+(def-meld-card card-ns "real-code" "(ns plastic.main.editor.render.code
   (:require-macros [plastic.logging :refer [log info warn error group group-end log-render]])
   (:require [plastic.main.editor.render.utils :refer [wrap-specials classv apply-shadowing-subscripts]]
             [plastic.main.editor.render.inline-editor :refer [inline-editor-component]]
@@ -228,4 +224,4 @@ A hint: set `plastic.env.log-rendering` to log render calls into devtools consol
           [:div.code-box {:class (classv (if form-kind (str \"form-kind-\" form-kind)))}
            (if @code-visible
              (let [child-id (first children)]
-               [code-block-component editor-id form-id child-id]))])))))"))
+               [code-block-component editor-id form-id child-id]))])))))")
