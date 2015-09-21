@@ -5,3 +5,4 @@ lib/_build
 .idea/
 *.iml
 cljs/resources/devcards/.build
+cljs/resources/test/.build

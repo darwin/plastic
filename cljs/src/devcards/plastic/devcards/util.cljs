@@ -13,7 +13,6 @@
 (defn pretty-print [v]
   (binding [*print-length* (* 16 1024)] (with-out-str (pprint v))))
 
-
 (defn parse-with-stable-ids [source]
   (binding [meld.ids/*last-node-id!* (volatile! 0)]
     (parser/parse! source)))

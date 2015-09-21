@@ -28,7 +28,11 @@
    "src/env"
    "target/classes"]
 
-  :clean-targets ^{:protect false} ["../lib/_build" "target" ".tmp" "resources/devcards/.build"]
+  :clean-targets ^{:protect false} ["../lib/_build"
+                                    "target"
+                                    ".tmp"
+                                    "resources/devcards/.build"
+                                    "resources/test/.build"]
 
   :figwheel
   {:server-port      7000
@@ -101,6 +105,36 @@
                     :source-map-timestamp  true}}
 
     ; ---------------------------------------------------------------------------------------------------------------
+    :test
+    {:source-paths ["checkouts/cljs-devtools/src"
+                    "checkouts/re-frame/src"
+                    "checkouts/reagent/src"
+                    "checkouts/tools.reader/src/main"
+                    "src/macros"
+                    "src/env"
+                    "src/dev"
+                    "src/devcards"
+                    "src/meld"
+                    "src/common"
+                    "src/main"
+                    "src/worker"
+                    "src/test"]
+     :compiler     {:main                  plastic.test
+                    :closure-defines       {"plastic.env.dont_run_loops"            true
+                                            "plastic.env.run_worker_on_main_thread" true
+                                            "plastic.env.validate_dbs"              true
+                                            "plastic.env.log_all_dispatches"        true}
+                    :output-to             "resources/test/.build/test/plastic.js"
+                    :output-dir            "resources/test/.build/test"
+                    :asset-path            "base/cljs/resources/test/.build/test"
+                    :optimizations         :none
+                    :anon-fn-naming-policy :unmapped
+                    :compiler-stats        true
+                    :cache-analysis        true
+                    :source-map            true
+                    :source-map-timestamp  true}}
+
+    ; ---------------------------------------------------------------------------------------------------------------
     :main
     {:source-paths ["checkouts/cljs-devtools/src"
                     "checkouts/re-frame/src"
@@ -146,4 +180,6 @@
                     :compiler-stats        true
                     :cache-analysis        true
                     :source-map            true
-                    :source-map-timestamp  true}}}})
+                    :source-map-timestamp  true}}}
+   :test-commands {"unit-tests"
+                   ["../node_modules/karma/bin/karma" "start" "../karma.conf.js" "--single-run"]}})
