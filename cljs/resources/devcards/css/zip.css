@@ -19,7 +19,6 @@
 
 .zip-viz .node.disabled {
   fill: #eee;
-  /* opacity: 0.4 !important; */
 }
 
 .zip-viz .node .label {

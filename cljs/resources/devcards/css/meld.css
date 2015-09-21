@@ -42,7 +42,7 @@
   position: absolute;
   top: 0px;
   left: 0px;
-  opacity: 0.8;
+  opacity: 0.4;
   white-space: nowrap;
 }
 
@@ -54,6 +54,7 @@
   white-space: pre;
   background-color: white;
   opacity: 0.4;
+  cursor: pointer;
 }
 
 .meld-viz .token.whitespace {

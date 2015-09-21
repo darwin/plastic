@@ -8,6 +8,16 @@
             [meld.core :as meld]
             [reagent.core :as reagent]))
 
+(defn pretty-print [v]
+  (binding [*print-length* 512] (with-out-str (pprint v))))
+
+(defn dom-node-from-react [react-component]
+  (let [dom-node (.getDOMNode react-component)]                                                                       ; TODO: deprecated!
+    (assert dom-node)
+    dom-node))
+
+; -------------------------------------------------------------------------------------------------------------------
+
 (defn histogram [meld & [include-compounds?]]
   (let [start-loc (zip/zip meld)
         top-node (meld/get-top-node meld)
@@ -61,7 +71,7 @@
     {:id    (node/get-id node)
      :kind  :open
      :tag   (node/get-tag node)
-     :title (pr-str node)
+     :title #(pretty-print node)
      :text  (subs source 0 size)}))
 
 (defn leave-node [meld node]
@@ -70,27 +80,27 @@
     {:id    (node/get-id node)
      :kind  :close
      :tag   (node/get-tag node)
-     :title (pr-str node)
+     :title #(pretty-print node)
      :text  (subs source (- (count source) size))}))
 
 (defn process-node [node]
   {:id    (node/get-id node)
    :kind  (node/get-tag node)
-   :title (pr-str node)
+   :title #(pretty-print node)
    :text  (node/get-source node)})
 
 (defn extract-leadspace [node]
   (if-let [whitespace (node/get-leadspace node)]
     {:id    (node/get-id node)
      :kind  :whitespace
-     :title (pr-str node)
+     :title #(pretty-print node)
      :text  whitespace}))
 
 (defn extract-trailspace [node]
   (if-let [whitespace (node/get-trailspace node)]
     {:id    (node/get-id node)
      :kind  :whitespace
-     :title (pr-str node)
+     :title #(pretty-print node)
      :text  whitespace}))
 
 (defn collect-visible-tokens [meld]
@@ -107,6 +117,23 @@
                     :leave (leave-node meld node)
                     :token (process-node node)))))))))
 
+(defn token-tooltip-markup [content]
+  (str "<pre class='title'>" content "</pre>"))
+
+(defn setup-token-tipsy [title react-component]
+  (let [dom-node (dom-node-from-react react-component)
+        tooltip-spec #js {:gravity "s"
+                          :opacity 1
+                          :html true
+                          :title #(token-tooltip-markup (title))}]
+    (.tipsy (js/$ dom-node) tooltip-spec)))
+
+(defn token-tipsy-component [tag props title line]
+  (reagent/create-class
+    {:component-did-mount  (partial setup-token-tipsy title)
+     :component-did-update (partial setup-token-tipsy title)
+     :reagent-render       (fn [] [tag props line])}))
+
 (defn emit-token [token]
   (let [{:keys [id kind text title]} token]
     (case kind
@@ -115,9 +142,11 @@
         (interpose [[:div.token.linebreak.inner "↓"] [:br]]
           (let [lines (string/split text #"\n")]
             (for [line lines]
-              [[:div.token {:data-id id
-                            :class   kind
-                            :title   title}
+              [[token-tipsy-component
+                :div.token
+                {:data-id id
+                 :class   kind}
+                title
                 line]])))))))
 
 (defn meldviz-component [data-atom]
@@ -137,19 +166,6 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(def *order!* (volatile! 0))
-
-(defn next-order! []
-  (vswap! *order!* inc))
-
-(defn pretty-print [v]
-  (binding [*print-length* 500] (with-out-str (pprint v))))
-
-(defn dom-node-from-react [react-component]
-  (let [dom-node (.getDOMNode react-component)]                                                                       ; TODO: deprecated!
-    (assert dom-node)
-    dom-node))
-
 (defn get-top-loc [loc]
   (let [meta (zip/meta loc)
         top-id (meld/get-top meta)]
@@ -161,9 +177,9 @@
     "rect"))
 
 (defn get-graph-node-class [_node selected? disabled?]
-  (let [classes [(if selected? "selected")
-                 (if disabled? "disabled")]]
-    (->> classes
+  (let [class-names [(if selected? "selected")
+                     (if disabled? "disabled")]]
+    (->> class-names
       (remove nil?)
       (interpose " ")
       (apply str))))
@@ -237,17 +253,18 @@
     zoom))
 
 (defn style-tooltip [graph-node]
-  (str "<pre class='description'>" (.-title graph-node) "</pre>"))
+  (str "<pre class='title'>" (.-title graph-node) "</pre>"))
 
 (defn setup-tooltips [graph root]
   (let [$nodes (.selectAll root ".node")]
-    (-> $nodes
-      (.each (fn [v]
-               (this-as this
-                 (.tipsy (js/$ this) #js {:gravity "w"
-                                          :opacity 1
-                                          :title   #(style-tooltip (.node graph v))
-                                          :html    true})))))))
+    (.each $nodes
+      (fn [graph-node-id]
+        (this-as this
+          (let [tooltip-spec #js {:gravity "w"
+                                  :opacity 1
+                                  :title   #(style-tooltip (.node graph graph-node-id))
+                                  :html    true}]
+            (.tipsy (js/$ this) tooltip-spec)))))))
 
 (defn render-dag [graph dom-element]
   (let [d3 (.-d3 js/window)

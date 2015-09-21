@@ -2,12 +2,17 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
                    [devcards.core :refer [defcard defcard* deftest reagent]])
   (:require [devcards.core :refer [card-base register-card]]
+            [cljs.pprint :refer [pprint]]
             [meld.parser :as parser]
             [meld.zip :as zip]
             [meld.support :refer [zipviz-component meldviz-component histogram-display histogram-component]]))
 
 (defn markdown-source [source & [lang]]
   (str "```" (or lang "clojure") "\n" source "\n```"))
+
+(defn pretty-print [v]
+  (binding [*print-length* (* 16 1024)] (with-out-str (pprint v))))
+
 
 (defn parse-with-stable-ids [source]
   (binding [meld.ids/*last-node-id!* (volatile! 0)]
@@ -54,6 +59,6 @@
                     :func #(card-base
                             {:name          name
                              :documentation (markdown-source source)
-                             :main-obj      meld
+                             :main-obj      (markdown-source (pretty-print meld))
                              :initial-data  nil
                              :options       {}})})))

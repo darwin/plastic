@@ -16,3 +16,5 @@
   (str
     "[0 symbol :keyword \"string\" #\"regex\""
     "[x y z] '(1 2 3) #{3 4 4} {:k v 0 \"x\"}]"))
+
+(def-zip-card card-ns "multiple units" "(def form 1) ; with comment\n\n; a standalone comment\n\n(second-form)")
