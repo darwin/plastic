@@ -1,23 +1,20 @@
 (ns plastic.devcards.meld.histograms
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [devcards.core :as dc :refer [defcard deftest]]
-                   [plastic.devcards :refer [defmeldcard defhistcard]])
-  (:require [meld.parser :as parser]
-            [reagent.core :as r]
-            [meld.support :refer [histogram-display]]
-            [meld.core :as meld]))
+  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
+  (:require [plastic.devcards.util :refer [def-hist-card]]))
 
-(defhistcard symbol "symbol" false)
-(defhistcard keyword ":keword" false)
+(def card-ns :meld.histograms)
 
-(defhistcard list "(1 2)" false)
-(defhistcard nested "[a b (1 2) 3]" true)
-(defhistcard one "  1  " false)
-(defhistcard comment "  ;comment  " false)
-(defhistcard x-comment "  x ;comment  " false)
+(def-hist-card card-ns "a symbol" "symbol" false)
+(def-hist-card card-ns "a keyword" ":keword" false)
+
+(def-hist-card card-ns "a list" "(1 2)" false)
+(def-hist-card card-ns "nested" "[a b (1 2) 3]" true)
+(def-hist-card card-ns "one" "  1  " false)
+(def-hist-card card-ns "a comment" "  ;comment  " false)
+(def-hist-card card-ns "x-comment" "  x ;comment  " false)
 
 
-(defhistcard some-doc-example "(ns n1.doc)
+(def-hist-card card-ns "some-doc-example" "(ns n1.doc)
 
 ; independent comment
 ; block spanning

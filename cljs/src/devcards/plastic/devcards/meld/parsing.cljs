@@ -1,19 +1,18 @@
 (ns plastic.devcards.meld.parsing
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [devcards.core :refer [defcard deftest]]
-                   [plastic.devcards :refer [defmeldcard]])
-  (:require [meld.parser :as parser]))
+  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
+  (:require [plastic.devcards.util :refer [def-meld-data-card]]))
 
-(defmeldcard "0")
-(defmeldcard " (0   )  ")
-(defmeldcard "\"string\"")
-(defmeldcard "(0 1)")
-(defmeldcard "[0 1 2]")
-(defmeldcard "; comment \n  ")
-(defmeldcard " (1  )   ")
+(def card-ns :meld.parsing)
 
-; something more complex
-(defmeldcard "[0 symbol :keyword \"string\" #\"regex\" [x y z] '(1 2 3) #{3 4 4} {:k v 0 \"x\"}]")
+(def-meld-data-card card-ns "a single token" "0")
+(def-meld-data-card card-ns "some whitespace around" " (0   )  ")
+(def-meld-data-card card-ns "a string" "\"string\"")
+(def-meld-data-card card-ns "a list" "(0 1)")
+(def-meld-data-card card-ns "a vector" "[0 1 2]")
+(def-meld-data-card card-ns "a comment with newline" "; comment \n  ")
+(def-meld-data-card card-ns "trailing whitespace" " (1  )   ")
+(def-meld-data-card card-ns "something more complex"
+  "[0 symbol :keyword \"string\" #\"regex\" [x y z] '(1 2 3) #{3 4 4} {:k v 0 \"x\"}]")
 
 
 

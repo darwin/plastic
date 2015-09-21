@@ -1,6 +1,5 @@
 (ns plastic.devcards.meld.zip
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [devcards.core :refer [defcard defcard* deftest reagent]])
+  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [plastic.devcards.util :refer [def-zip-card]]
             [meld.zip :as z]))
 
