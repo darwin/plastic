@@ -1,0 +1,41 @@
+.zip-viz svg {
+  width: 100%;
+}
+
+.zip-viz text {
+  font-size: 12px;
+}
+
+.zip-viz .node {
+  stroke: #333;
+  stroke-width: 1px;
+  fill: #afa;
+  cursor: pointer;
+}
+
+.zip-viz .node.selected {
+  fill: #ff0;
+}
+
+.zip-viz .node.disabled {
+  fill: #eee;
+  /* opacity: 0.4 !important; */
+}
+
+.zip-viz .node .label {
+  fill: #000;
+  stroke: none;
+}
+
+.zip-viz .edgePath {
+  stroke: #ccc;
+  fill: #ccc;
+}
+
+.zip-viz .node text {
+  pointer-events: none;
+}
+
+.tipsy .tipsy-inner {
+  text-align: left;
+}

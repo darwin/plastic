@@ -394,3 +394,10 @@
   (update-revision node inc))
 
 ; -------------------------------------------------------------------------------------------------------------------
+
+(defn get-desc [node]
+  (case (get-type node)
+    :compound (str (get-tag node))
+    :linebreak "↓"
+    :comment (get-content node)
+    (get-source node)))

@@ -1,3 +1,11 @@
 .com-rigsomelight-devcards-panel-heading {
   padding: 2px 6px !important;
 }
+
+.com-rigsomelight-devcards-devcard-padding {
+  padding: 0px !important;
+}
+
+.com-rigsomelight-devcards-markdown pre {
+  margin: 0px !important;
+}

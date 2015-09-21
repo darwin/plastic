@@ -14,7 +14,7 @@
 ;
 ; rewrite-cljs is a great library and helped bootstrap initial Plastic development.
 ;
-; kudos @rundis!
+; kudos @rundis and @xsc
 ;
 ; The main reason is that I want Plastic parser to use recent tools.reader without modifications.
 ; In the future I will use boostrapped clojurescript to analyze and compile edited code.

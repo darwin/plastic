@@ -1,10 +1,12 @@
 (ns meld.support
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [clojure.string :as string]
+            [cljs.pprint :refer [pprint]]
             [meld.zip :as zip]
             [meld.node :as node]
             [meld.util :refer [update! indexed-react-keys]]
-            [meld.core :as meld]))
+            [meld.core :as meld]
+            [reagent.core :as reagent]))
 
 (defn histogram [meld & [include-compounds?]]
   (let [start-loc (zip/zip meld)
@@ -56,40 +58,40 @@
 (defn enter-node [meld node]
   (let [[size _] (meld/get-compound-metrics meld node)
         source (node/get-source node)]
-    {:id   (node/get-id node)
-     :kind :open
-     :tag (node/get-tag node)
+    {:id    (node/get-id node)
+     :kind  :open
+     :tag   (node/get-tag node)
      :title (pr-str node)
-     :text (subs source 0 size)}))
+     :text  (subs source 0 size)}))
 
 (defn leave-node [meld node]
   (let [[_ size] (meld/get-compound-metrics meld node)
         source (node/get-source node)]
-    {:id   (node/get-id node)
-     :kind :close
-     :tag (node/get-tag node)
+    {:id    (node/get-id node)
+     :kind  :close
+     :tag   (node/get-tag node)
      :title (pr-str node)
-     :text (subs source (- (count source) size))}))
+     :text  (subs source (- (count source) size))}))
 
 (defn process-node [node]
-  {:id   (node/get-id node)
-   :kind (node/get-tag node)
+  {:id    (node/get-id node)
+   :kind  (node/get-tag node)
    :title (pr-str node)
-   :text (node/get-source node)})
+   :text  (node/get-source node)})
 
 (defn extract-leadspace [node]
   (if-let [whitespace (node/get-leadspace node)]
-    {:id   (node/get-id node)
-     :kind :whitespace
+    {:id    (node/get-id node)
+     :kind  :whitespace
      :title (pr-str node)
-     :text whitespace}))
+     :text  whitespace}))
 
 (defn extract-trailspace [node]
   (if-let [whitespace (node/get-trailspace node)]
-    {:id   (node/get-id node)
-     :kind :whitespace
+    {:id    (node/get-id node)
+     :kind  :whitespace
      :title (pr-str node)
-     :text whitespace}))
+     :text  whitespace}))
 
 (defn collect-visible-tokens [meld]
   (let [start-loc (zip/zip meld)]
@@ -114,8 +116,8 @@
           (let [lines (string/split text #"\n")]
             (for [line lines]
               [[:div.token {:data-id id
-                            :class kind
-                            :title title}
+                            :class   kind
+                            :title   title}
                 line]])))))))
 
 (defn meld-viz-component [data-atom]
@@ -132,3 +134,148 @@
       [:div.tokens
        (indexed-react-keys
          (mapcat emit-token tokens))]]]))
+
+; -------------------------------------------------------------------------------------------------------------------
+
+(def *order!* (volatile! 0))
+
+(defn next-order! []
+  (vswap! *order!* inc))
+
+(defn pretty-print [v]
+  (binding [*print-length* 500] (with-out-str (pprint v))))
+
+(defn dom-node-from-react [react-component]
+  (let [dom-node (.getDOMNode react-component)]                                                                       ; TODO: deprecated!
+    (assert dom-node)
+    dom-node))
+
+(defn get-top-loc [loc]
+  (let [meta (zip/meta loc)
+        top-id (meld/get-top meta)]
+    (zip/set-id loc top-id)))
+
+(defn get-graph-node-shape [node]
+  (case (node/get-type node)
+    :compound "circle"
+    "rect"))
+
+(defn get-graph-node-class [_node selected? disabled?]
+  (apply str
+    (interpose " "
+      (remove nil?
+        [(if selected? "selected")
+         (if disabled? "disabled")]))))
+
+(defn get-graph-node-info [node selected? disabled?]
+  {:label (node/get-desc node)
+   :shape (get-graph-node-shape node)
+   :title (pretty-print node)
+   ;:rank (rand 1000)
+   :class (get-graph-node-class node selected? disabled?)})
+
+(defn get-graph-edge-info [_node _child]
+  {:lineInterpolate "basis"})
+(reify)
+(defn populate-graph-nodes! [graph start-loc selected-id]
+  (let [top-id (zip/top-id start-loc)
+        is-disabled? (fn [loc] (not (some #{top-id} (zip/ancestors loc))))]
+    (loop [loc start-loc]
+      (if-not (zip/end? loc)
+        (let [node (zip/node loc)
+              node-id (node/get-id node)
+              selected? (= node-id selected-id)
+              disabled? (is-disabled? loc)
+              graph-node-info (get-graph-node-info node selected? disabled?)]
+          (.setNode graph (node/get-id node) (clj->js graph-node-info))
+          (recur (zip/next loc)))))))
+
+(defn populate-graph-edges! [graph start-loc]
+  (loop [loc start-loc]
+    (when-not (zip/end? loc)
+      (if (zip/branch? loc)
+        (let [node (zip/node loc)
+              node-id (node/get-id node)
+              children (node/get-children node)]
+          (doseq [child-id children]
+            (let [graph-edge-info (get-graph-edge-info node child-id)]
+              (.setEdge graph node-id child-id (clj->js graph-edge-info))))))
+      (recur (zip/next loc)))))
+
+(defn build-dag [loc]
+  (let [graphlib (.-graphlib js/dagreD3)
+        graph-class (.-Graph graphlib)
+        graph (graph-class.)
+        top-loc (get-top-loc loc)]
+    (.setGraph graph #js {})
+    (populate-graph-nodes! graph top-loc (zip/id loc))
+    (populate-graph-edges! graph top-loc)
+    graph))
+
+(defn center-graph [graph root zoom scale]
+  (let [root-width (js/parseInt (.style root "width") 10)
+        graph-width (* (.-width (.graph graph)) scale)
+        graph-height (* (.-height (.graph graph)) scale)
+        center-offset (/ (- root-width graph-width) 2)]
+    (doto zoom
+      (.translate #js [center-offset 0])
+      (.scale scale)
+      (.event root))
+    (.attr root "height" graph-height)))
+
+(defn transform-str [translate scale]
+  (str "translate(" translate ") " "scale (" scale ")"))
+
+(defn make-zoom [root canvas]
+  (let [d3 (.-d3 js/window)
+        zoom-behavior (.zoom (.-behavior d3))
+        handler (fn []
+                  (let [event (.-event d3)]
+                    (.attr canvas "transform" (transform-str (.-translate event) (.-scale event)))))
+        zoom (.on zoom-behavior "zoom" handler)]
+    (.call root zoom)
+    zoom))
+
+(defn style-tooltip [graph-node]
+  (str "<pre class='description'>" (.-title graph-node) "</pre>"))
+
+(defn setup-tooltips [graph root]
+  (let [$nodes (.selectAll root ".node")]
+    (-> $nodes
+      (.each (fn [v]
+               (this-as this
+                 (.tipsy (js/$ this) #js {:gravity "w"
+                                          :opacity 1
+                                          :title #(style-tooltip (.node graph v))
+                                          :html    true})))))))
+
+(defn render-dag [graph dom-element]
+  (let [d3 (.-d3 js/window)
+        root (.select d3 dom-element)
+        canvas (.select root ".canvas")
+        renderer-class (.-render js/dagreD3)
+        renderer (renderer-class)
+        zoom (make-zoom root canvas)]
+    (renderer canvas graph)
+    (center-graph graph root zoom 0.75)
+    (setup-tooltips graph root)))
+
+(defn render-loc-graph [loc react-component]
+  (if loc
+    (let [graph (build-dag loc)
+          dom-node (dom-node-from-react react-component)]
+      (render-dag graph dom-node))))
+
+(defn loc-graph-component [loc]
+  (reagent/create-class
+    {:component-did-mount  (partial render-loc-graph loc)
+     :component-did-update (partial render-loc-graph loc)
+     :reagent-render       (fn []
+                             [:svg.root
+                              [:g.canvas]])}))
+
+(defn zipviz-component [data-atom]
+  (let [{:keys [loc]} @data-atom]
+    [:div.meld-support
+     [:div.zip-viz
+      [loc-graph-component loc]]]))

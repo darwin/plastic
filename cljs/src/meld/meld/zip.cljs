@@ -1,5 +1,6 @@
 (ns meld.zip
-  (:refer-clojure :exclude [meta find next remove replace descendants string? symbol? list? map? vector? set?])
+  (:refer-clojure :exclude [meta find next remove replace descendants ancestors
+                            string? symbol? list? map? vector? set?])
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [meld.node :as node]
             [meld.core :as meld]
@@ -16,6 +17,9 @@
 
 (defn top-id [loc]
   (get loc 3))
+
+(defn set-id [loc id]
+  (assoc loc 1 id))
 
 (defn ^boolean end? [loc]
   (keyword-identical? :end (id loc)))
@@ -221,6 +225,9 @@
 (defn ancestor-locs [loc]
   (take-while good? (iterate up loc)))
 
+(defn ancestors [loc]
+  (map id (ancestor-locs loc)))
+
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn mark-new-revision! [meld& id]
@@ -360,9 +367,7 @@
   (if-not (good? loc)
     "nil"
     (let [node (node loc)]
-      (if (node/compound? node)
-        (name (node/get-tag node))
-        (node/get-source node)))))
+      (node/get-desc node))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 

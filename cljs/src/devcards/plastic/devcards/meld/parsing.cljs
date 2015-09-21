@@ -5,6 +5,7 @@
   (:require [meld.parser :as parser]))
 
 (defmeldcard "0")
+(defmeldcard " (0   )  ")
 (defmeldcard "\"string\"")
 (defmeldcard "(0 1)")
 (defmeldcard "[0 1 2]")
