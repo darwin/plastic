@@ -161,22 +161,22 @@
     "rect"))
 
 (defn get-graph-node-class [_node selected? disabled?]
-  (apply str
-    (interpose " "
-      (remove nil?
-        [(if selected? "selected")
-         (if disabled? "disabled")]))))
+  (let [classes [(if selected? "selected")
+                 (if disabled? "disabled")]]
+    (->> classes
+      (remove nil?)
+      (interpose " ")
+      (apply str))))
 
 (defn get-graph-node-info [node selected? disabled?]
   {:label (node/get-desc node)
    :shape (get-graph-node-shape node)
    :title (pretty-print node)
-   ;:rank (rand 1000)
    :class (get-graph-node-class node selected? disabled?)})
 
 (defn get-graph-edge-info [_node _child]
   {:lineInterpolate "basis"})
-(reify)
+
 (defn populate-graph-nodes! [graph start-loc selected-id]
   (let [top-id (zip/top-id start-loc)
         is-disabled? (fn [loc] (not (some #{top-id} (zip/ancestors loc))))]
@@ -246,7 +246,7 @@
                (this-as this
                  (.tipsy (js/$ this) #js {:gravity "w"
                                           :opacity 1
-                                          :title #(style-tooltip (.node graph v))
+                                          :title   #(style-tooltip (.node graph v))
                                           :html    true})))))))
 
 (defn render-dag [graph dom-element]
