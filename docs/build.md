@@ -28,7 +28,7 @@ build atom according to [Atom's instructions](https://github.com/atom/atom/tree/
 
 ##### launch custom Atom for the first time
 
-    cd plastic/cljs
+    cd plastic
     ./script/atom.sh
 
 This will run Atom from sources and you should see familiar Atom welcome screen with two tabs side by side.
@@ -75,12 +75,12 @@ Alternatively, you may try to comment out those bleeding-edge checkouts out, it 
 
 First run Figwheel and wait for it to finish compilation and enter into waiting mode:
 
-    cd $workspace/plastic/cljs
+    cd $workspace/plastic
     ./script/figwheel.sh
 
 Wait for figwheel to finish booting. And then in another terminal session
 
-    cd $workspace/plastic/cljs
+    cd $workspace/plastic
     ./script/atom.sh
 
 Atom file browser should point to $workspace/plastic/cljs/src, open some cljs files from `src/playground` and have fun!
@@ -98,12 +98,12 @@ Sometimes Atom needs you to compile some native modules, it will shout at you fr
 
 First run Figwheel and wait for it to finish compilation and enter into waiting mode:
 
-    cd $workspace/plastic/cljs
+    cd $workspace/plastic
     ./script/dev.sh
 
 And in another shell session:
 
-    cd $workspace/plastic/cljs
+    cd $workspace/plastic
     ./script/atom.sh
 
 Figwheel should do automatic code reloading, Atom itself in devmode watches for css (or .less) changes
@@ -137,12 +137,12 @@ Warning: This is experimental and could be broken from time to time because I sp
 
 First run Figwheel and wait for it to finish compilation and enter into waiting mode:
 
-    cd $workspace/plastic/cljs
+    cd $workspace/plastic
     ./script/run.sh
 
 And in another shell session:
 
-    cd $workspace/plastic/cljs
+    cd $workspace/plastic
     ./script/atom.sh
 
 ## happy hacking!

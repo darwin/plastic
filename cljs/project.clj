@@ -180,6 +180,4 @@
                     :compiler-stats        true
                     :cache-analysis        true
                     :source-map            true
-                    :source-map-timestamp  true}}}
-   :test-commands {"unit-tests"
-                   ["../node_modules/karma/bin/karma" "start" "../karma.conf.js" "--single-run"]}})
+                    :source-map-timestamp  true}}}})

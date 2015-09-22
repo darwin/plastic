@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
-# Ensure we start in project root
-cd "$(dirname "${BASH_SOURCE[0]}")"; cd ..
+# ensure we start in cljs project root
+cd "$(dirname "${BASH_SOURCE[0]}")"; cd ../cljs
 
 ROOT=`pwd`
 SRC="$ROOT/src"
