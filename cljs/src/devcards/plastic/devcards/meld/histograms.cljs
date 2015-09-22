@@ -13,7 +13,6 @@
 (def-hist-card card-ns "a comment" "  ;comment  " false)
 (def-hist-card card-ns "x-comment" "  x ;comment  " false)
 
-
 (def-hist-card card-ns "some-doc-example" "(ns n1.doc)
 
 ; independent comment

@@ -2,4 +2,4 @@
   (:require [devcards.core]
             [plastic.env]
             [plastic.dev]
-            [plastic.devcards.main]))
+            [plastic.devcards.all]))
