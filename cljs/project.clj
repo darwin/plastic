@@ -23,9 +23,8 @@
   [[lein-cljsbuild "1.1.0"]
    [lein-figwheel "0.4.0"]]
 
-  :source-paths
-  ["src"
-   "target/classes"]
+  :source-paths ["src"
+                 "target/classes"]
 
   :clean-targets ^{:protect false} ["../lib/_build"
                                     "target"
@@ -54,6 +53,7 @@
                     "src/meld"
                     "src/common"
                     "src/main"
+                    "src/onion-atom"
                     "src/worker"]
      ; :figwheel     true <-- do not include figwheel automagically, we start it manually with our custom config
      :compiler     {:main                  plastic.main
@@ -84,6 +84,7 @@
                     "src/meld"
                     "src/common"
                     "src/main"
+                    "src/onion-atom"
                     "src/worker"]
      :figwheel     {:devcards true}
      :compiler     {:main                  plastic.devcards
@@ -113,6 +114,7 @@
                     "src/meld"
                     "src/common"
                     "src/main"
+                    "src/onion-atom"
                     "src/worker"
                     "src/test"]
      :compiler     {:main                  plastic.test
@@ -138,7 +140,8 @@
                     "src/env"
                     "src/dev"
                     "src/common"
-                    "src/main"]
+                    "src/main"
+                    "src/onion-atom"]
      ; :figwheel     true <-- do not include figwheel automagically, we start it manually with our custom config
      :compiler     {:main                  plastic.main
                     :closure-defines       {"plastic.env.need_loophole"       true
