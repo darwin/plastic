@@ -4,7 +4,7 @@
             [plastic.devcards.util :refer-macros [deftest]]
             [devcards.core]))
 
-(deftest first-testers
+#_(deftest first-testers
   "## This is documentation
    It should work well"
   (testing "good stuff"

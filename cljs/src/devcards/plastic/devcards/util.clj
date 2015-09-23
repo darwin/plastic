@@ -8,6 +8,10 @@
   (if (utils/devcards-active?)
     `(plastic.devcards.util/def-zip-card* ~@args)))
 
+(defmacro def-source-zip-card [& args]
+  (if (utils/devcards-active?)
+    `(plastic.devcards.util/def-source-zip-card* ~@args)))
+
 (defmacro def-meld-card [& args]
   (if (utils/devcards-active?)
     `(plastic.devcards.util/def-meld-card* ~@args)))

@@ -12,25 +12,31 @@
 (defn pretty-print [v]
   (binding [*print-length* (* 16 1024)] (with-out-str (pprint v))))
 
-(defn parse-with-stable-ids [source]
+(defn with-stable-meld-ids [f & args]
   (binding [meld.ids/*last-node-id!* (volatile! 0)]
-    (parser/parse! source)))
+    (apply f args)))
+
+(defn parse-with-stable-meld-ids [source]
+  (with-stable-meld-ids parser/parse! source))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn def-zip-card* [ns name source & [move]]
-  (let [top-loc (zip/zip (parse-with-stable-ids source))
+(defn def-zip-card* [ns name doc loc]
+  (register-card {:path [ns name]
+                  :func #(card-base
+                          {:name          name
+                           :documentation doc
+                           :main-obj      (reagent zipviz-component)
+                           :initial-data  (atom {:loc loc})
+                           :options       {}})}))
+
+(defn def-source-zip-card* [ns name source & [move]]
+  (let [top-loc (zip/zip (parse-with-stable-meld-ids source))
         loc (if move (move top-loc) top-loc)]
-    (register-card {:path [ns name]
-                    :func #(card-base
-                            {:name          name
-                             :documentation (markdown-source source)
-                             :main-obj      (reagent zipviz-component)
-                             :initial-data  (atom {:loc loc})
-                             :options       {}})})))
+    (def-zip-card* ns name (markdown-source source) loc)))
 
 (defn def-meld-card* [ns name source]
-  (let [meld (parse-with-stable-ids source)]
+  (let [meld (parse-with-stable-meld-ids source)]
     (register-card {:path [ns name]
                     :func #(card-base
                             {:name          name
@@ -41,7 +47,7 @@
 
 
 (defn def-hist-card* [ns name source & [compounds?]]
-  (let [meld (parse-with-stable-ids source)
+  (let [meld (parse-with-stable-meld-ids source)
         histogram (histogram-display meld 100 compounds?)]
     (register-card {:path [ns name]
                     :func #(card-base
@@ -52,7 +58,7 @@
                              :options       {}})})))
 
 (defn def-meld-data-card* [ns name source]
-  (let [meld (parse-with-stable-ids source)]
+  (let [meld (parse-with-stable-meld-ids source)]
     (register-card {:path [ns name]
                     :func #(card-base
                             {:name          name

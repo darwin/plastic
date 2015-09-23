@@ -42,21 +42,25 @@
 ;
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn set-top [meta top-id]
-  (assoc meta :top top-id))
-
-(defn get-top [meta]
-  {:post [%]}
+(defn get-top-node-id-from-meta [meta]
   (:top meta))
 
 (defn get-top-node-id [meld]
   {:pre [meld]}
-  (get-top (meta meld)))
+  (get-top-node-id-from-meta (meta meld)))
+
+(defn set-top-node-id [meld node-id]
+  {:pre [meld]}
+  (vary-meta meld assoc :top node-id))
+
+(defn get-node [meld id]
+  {:pre [meld]}
+  (get meld id))
 
 (defn get-top-node [meld]
-  {:pre  [meld]
-   :post [%]}
-  (get meld (get-top-node-id meld)))
+  {:pre  [meld]}
+  (if-let [top-node-id (get-top-node-id meld)]
+    (get-node meld top-node-id)))
 
 (defn get-source [meld]
   {:pre [meld]}
@@ -66,9 +70,9 @@
   {:pre [meld]}
   (count (keys meld)))
 
-(defn get-node [meld id]
-  {:pre [meld]}
-  (get meld id))
+(defn make
+  ([] (make {} nil))
+  ([base top-id] (set-top-node-id (into {} base) top-id)))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -111,10 +115,10 @@
   (let [node (get-node meld id)]
     (if-let [parent-id (node/get-parent node)]
       (conj (ancestors* meld parent-id) id)
-      [id])))
+      (list id))))
 
 (defn ancestors [meld id]
-  (butlast (ancestors* meld id)))
+  (rest (ancestors* meld id)))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -156,14 +160,15 @@
                   new-meld& (update! flatten-meld& child-id node/set-parent node-id)]
               [new-meld& (conj ids child-id)]))
         [flattened-meld& child-ids] (reduce * [meld& []] children)
-        node-with-children (if (seq child-ids) (node/set-children node child-ids) node)]
+        node-with-children (if (node/compound? node) (node/set-children node child-ids) node)]
     (assoc! flattened-meld& node-id node-with-children)))
 
 (defn flatten-tree [tree]
-  (-> {}
+  (-> (make)
     (transient)
     (flatten-tree-into-meld tree)
-    (persistent!)))
+    (persistent!)
+    (set-top-node-id (node/get-id (get-tree-node tree)))))
 
 ; this is a low-level operation, you have to properly link to the parent of root tree node
 (defn merge-tree [meld tree]

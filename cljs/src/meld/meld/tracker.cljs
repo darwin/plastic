@@ -24,7 +24,7 @@
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn make-tracker [source]
-  (let [meld&! (volatile! (transient {}))
+  (let [meld&! (volatile! (transient (meld/make)))
         starts! (volatile! (sorted-map))
         offsets&! (volatile! (transient []))
         tracker (fn [reader f]

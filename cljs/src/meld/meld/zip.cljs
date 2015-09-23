@@ -92,7 +92,7 @@
   ([meld] (zip meld nil))
   ([meld subtree-id]
    (let [meta (cljs.core/meta meld)
-         top-id (or subtree-id (meld/get-top meta))]
+         top-id (or subtree-id (meld/get-top-node-id meld))]
      (make-loc (transient meld) top-id meta top-id))))
 
 (defn unzip [loc]

@@ -1,3 +1,7 @@
+.com-rigsomelight-devcards-base {
+	font-size: 12px !important;
+}
+
 .com-rigsomelight-devcards-panel-heading {
   padding: 2px 6px !important;
 }
@@ -9,4 +13,16 @@
 
 .com-rigsomelight-devcards-markdown pre {
   margin: 0px !important;
+}
+
+.com-rigsomelight-devcards-test-line {
+	padding: 0px !important;
+}
+
+.com-rigsomelight-devcards-context {
+	padding: 10px 6px 4px 6px !important;
+}
+
+.com-rigsomelight-devcards-test-line pre {
+	display: inline !important;
 }

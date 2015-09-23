@@ -168,7 +168,7 @@
 
 (defn get-top-loc [loc]
   (let [meta (zip/meta loc)
-        top-id (meld/get-top meta)]
+        top-id (meld/get-top-node-id-from-meta meta)]
     (zip/set-id loc top-id)))
 
 (defn get-graph-node-shape [node]
