@@ -15,6 +15,7 @@
     "async": "1.4.2",
     "atom-space-pen-views": "^2.0.5",
     "emissary": "1.x",
+    "pathwatcher": "^6.2.5",
     "source-map-support": "^0.3.2",
     "space-pen": "~5.1.1",
     "underscore-plus": "^1.0.6"
