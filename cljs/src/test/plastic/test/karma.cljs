@@ -56,7 +56,7 @@
 (defn set-karma-state! [new-state]
   (karma-state-updater! identity new-state))
 
-(defn add-test-record [collection record]
+(defn add-test-record! [collection record]
   (update-karma-state! update-in [:collections collection] conj record))
 
 ; -------------------------------------------------------------------------------------------------------------------
@@ -82,15 +82,15 @@
   (call-default-reporter record))
 
 (defmethod cljs.test/report [::karma :pass] [record]
-  (add-test-record :pass record)
+  (add-test-record! :pass record)
   (call-default-reporter record))
 
 (defmethod cljs.test/report [::karma :fail] [record]
-  (add-test-record :fail record)
+  (add-test-record! :fail record)
   (call-default-reporter record))
 
 (defmethod cljs.test/report [::karma :error] [record]
-  (add-test-record :error record)
+  (add-test-record! :error record)
   (call-default-reporter record))
 
 (defmethod cljs.test/report [::karma :end-run-tests] [record]
