@@ -24,8 +24,7 @@
    [lein-figwheel "0.4.0"]]
 
   :source-paths
-  ["src/macros"
-   "src/env"
+  ["src"
    "target/classes"]
 
   :clean-targets ^{:protect false} ["../lib/_build"
@@ -50,7 +49,6 @@
                     "checkouts/re-frame/src"
                     "checkouts/reagent/src"
                     "checkouts/tools.reader/src/main"
-                    "src/macros"
                     "src/env"
                     "src/dev"
                     "src/meld"
@@ -80,7 +78,6 @@
                     "checkouts/re-frame/src"
                     "checkouts/reagent/src"
                     "checkouts/tools.reader/src/main"
-                    "src/macros"
                     "src/env"
                     "src/dev"
                     "src/devcards"
@@ -110,7 +107,6 @@
                     "checkouts/re-frame/src"
                     "checkouts/reagent/src"
                     "checkouts/tools.reader/src/main"
-                    "src/macros"
                     "src/env"
                     "src/dev"
                     "src/devcards"
@@ -139,7 +135,6 @@
     {:source-paths ["checkouts/cljs-devtools/src"
                     "checkouts/re-frame/src"
                     "checkouts/reagent/src"
-                    "src/macros"
                     "src/env"
                     "src/dev"
                     "src/common"
@@ -165,7 +160,6 @@
     :worker
     {:source-paths ["checkouts/re-frame/src"
                     "checkouts/tools.reader/src/main"
-                    "src/macros"
                     "src/env"
                     "src/meld"
                     "src/common"
