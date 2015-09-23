@@ -7,11 +7,11 @@
 (defn number-of-tests-in-namespace [namespace]
   (count (public-tests namespace)))
 
-(defn number-of-tests-in-namespaces [namespaces]
+(defn total-number-of-tests-in-namespaces [namespaces]
   (let [counts (map number-of-tests-in-namespace namespaces)]
     (apply + counts)))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defmacro number-of-tests-in-all-namespaces []
-  (number-of-tests-in-namespaces (ana-api/all-ns)))
+(defmacro total-number-of-tests-in-all-namespaces []
+  (total-number-of-tests-in-namespaces (ana-api/all-ns)))

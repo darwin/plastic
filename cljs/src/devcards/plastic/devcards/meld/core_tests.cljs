@@ -1,11 +1,8 @@
 (ns plastic.devcards.meld.core-tests
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [devcards.core :refer [defcard deftest]]
-                   [cljs.test :refer [is testing]])
-  (:require [plastic.devcards.util :refer [def-zip-card]]
-            [cljs.test :refer-macros [is testing]]))
-
-(def card-ns :meld.tests.core)
+  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
+  (:require [cljs.test :refer-macros [is testing]]
+            [plastic.devcards.util :refer-macros [deftest]]
+            [devcards.core]))
 
 (deftest first-testers
   "## This is documentation

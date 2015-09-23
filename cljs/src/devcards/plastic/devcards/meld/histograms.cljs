@@ -1,6 +1,6 @@
 (ns plastic.devcards.meld.histograms
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.devcards.util :refer [def-hist-card]]))
+  (:require [plastic.devcards.util :refer-macros [def-hist-card]]))
 
 (def card-ns :meld.histograms)
 

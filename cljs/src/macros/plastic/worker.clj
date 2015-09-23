@@ -58,6 +58,3 @@
          (let [r# ~x]
            (set! plastic.env.*zip-op-nesting* (dec plastic.env.*zip-op-nesting*))
            r#)))))
-
-;"=>"
-;(if res# (plastic.util.zip.loc-id (first res#)))

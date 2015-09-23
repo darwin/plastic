@@ -1,7 +1,6 @@
 (ns plastic.devcards.util
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [devcards.core :refer [defcard defcard* deftest reagent]])
-  (:require [devcards.core :refer [card-base register-card]]
+  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
+  (:require [devcards.core :refer [card-base register-card] :refer-macros [reagent]]
             [cljs.pprint :refer [pprint]]
             [meld.parser :as parser]
             [meld.zip :as zip]
@@ -19,7 +18,7 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn def-zip-card [ns name source & [move]]
+(defn def-zip-card* [ns name source & [move]]
   (let [top-loc (zip/zip (parse-with-stable-ids source))
         loc (if move (move top-loc) top-loc)]
     (register-card {:path [ns name]
@@ -30,7 +29,7 @@
                              :initial-data  (atom {:loc loc})
                              :options       {}})})))
 
-(defn def-meld-card [ns name source]
+(defn def-meld-card* [ns name source]
   (let [meld (parse-with-stable-ids source)]
     (register-card {:path [ns name]
                     :func #(card-base
@@ -41,7 +40,7 @@
                              :options       {}})})))
 
 
-(defn def-hist-card [ns name source & [compounds?]]
+(defn def-hist-card* [ns name source & [compounds?]]
   (let [meld (parse-with-stable-ids source)
         histogram (histogram-display meld 100 compounds?)]
     (register-card {:path [ns name]
@@ -52,7 +51,7 @@
                              :initial-data  (atom {:histogram histogram})
                              :options       {}})})))
 
-(defn def-meld-data-card [ns name source]
+(defn def-meld-data-card* [ns name source]
   (let [meld (parse-with-stable-ids source)]
     (register-card {:path [ns name]
                     :func #(card-base

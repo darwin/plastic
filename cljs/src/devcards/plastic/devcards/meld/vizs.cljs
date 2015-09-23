@@ -1,6 +1,6 @@
 (ns plastic.devcards.meld.vizs
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.devcards.util :refer [def-meld-card]]))
+  (:require [plastic.devcards.util :refer-macros [def-meld-card]]))
 
 (def card-ns :meld.viz)
 
