@@ -28,3 +28,6 @@
 
 (defn append-id [ids id]
   (conj ids id))
+
+(defn replace-id [ids old-id new-id]
+  (map (if [id] (if (identical? id old-id) new-id id) ids)))

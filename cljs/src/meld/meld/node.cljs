@@ -9,6 +9,10 @@
 (defn valid-id? [id]
   (number? id))
 
+(defn ^boolean compound? [node]
+  {:pre [node]}
+  (keyword-identical? :compound (get-type node)))
+
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn get-id [node]
@@ -28,14 +32,14 @@
   (assoc node :type type))
 
 (defn get-children [node]
-  {:pre  [node
-          (= :compound (:type node))]
-   :post [(seqable? %)]}
-  (:children node))
+  {:pre [node
+         (or (not (compound? node)) (seqable? (:children node)))]}
+  (if (compound? node)
+    (:children node)))
 
 (defn set-children [node children]
   {:pre [node
-         (= :compound (:type node))
+         (compound? node)
          (seqable? children)]}
   (assoc node :children children))
 
@@ -275,6 +279,12 @@
          (valid-id? new-id)]}
   (set-children node (ids/append-id (get-children node) new-id)))
 
+(defn replace-child [node old-id new-id]
+  {:pre [node
+         (valid-id? old-id)
+         (valid-id? new-id)]}
+  (set-children node (ids/replace-id (get-children node) old-id new-id)))
+
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn ^boolean whitespace? [node]
@@ -288,10 +298,6 @@
 (defn ^boolean comment? [node]
   {:pre [node]}
   (keyword-identical? :comment (get-type node)))
-
-(defn ^boolean compound? [node]
-  {:pre [node]}
-  (keyword-identical? :compound (get-type node)))
 
 (defn ^boolean string? [node]
   {:pre [node]}

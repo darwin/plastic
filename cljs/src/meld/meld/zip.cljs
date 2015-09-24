@@ -114,6 +114,9 @@
   {:pre [(branch? loc)]}
   (node/get-children (node loc)))
 
+(defn parent-ignoring-subzip-boundary [loc]
+  (node/get-parent (node loc)))
+
 (defn parent [loc]
   (if-not (identical? (id loc) (top-id loc))
     (node/get-parent (node loc))))
@@ -303,22 +306,39 @@
       (assoc prev-loc 0 new-meld&))))
 
 (defn replace
-  "Replaces the node at this loc, without moving"
+  "Replaces the node at this loc with a new tree, without moving"
   [loc tree]
   (let [[meld& id] loc
-        node (meld/get-tree-node tree)
-        _ (assert (identical? id (node/get-id node)))                                                                 ; TODO: support general case of replacing with a different node id?
-        parent-id (parent loc)                                                                                        ; note: can be nil
+        new-node (meld/get-tree-node tree)
+        new-node-id (node/get-id new-node)
+        parent-id (parent-ignoring-subzip-boundary loc)                                                               ; note: can be nil and that's a valid case for root node
         new-meld& (-> meld&
                     (meld/flatten-tree-into-meld tree)
-                    (update! id node/set-parent parent-id)                                                            ; note: no need to mess with parent's children, node id is the same
+                    (update! new-node-id node/set-parent parent-id)
+                    (update! parent-id node/replace-child id new-node-id)
+                    (mark-new-revision! new-node-id))]
+    (-> loc
+      (assoc 0 new-meld&)
+      (assoc 1 new-node-id))))
+
+(defn edit*
+  "Edits the node at this loc by replacing it with a new node in-place, not changing any parent/child relationships"
+  [loc new-node]
+  (let [[meld& id] loc
+        old-node (node loc)
+        ; new-node must have same id, parent and children
+        _ (assert (identical? (node/get-id old-node) (node/get-id new-node)))
+        _ (assert (identical? (node/get-parent old-node) (node/get-parent new-node)))
+        _ (assert (= (node/get-children old-node) (node/get-children new-node)))
+        new-meld& (-> meld&
+                    (assoc! id new-node)
                     (mark-new-revision! id))]
     (assoc loc 0 new-meld&)))
 
 (defn edit
-  "Replaces the node at this loc with the value of (f node args)"
+  "Edits the node at this loc with the value of (f node args)"
   [loc f & args]
-  (replace loc (apply f (node loc) args)))
+  (edit* loc (apply f (node loc) args)))
 
 (defn walk [loc accum f & args]
   (let [walk-child (fn [accum child-id]
