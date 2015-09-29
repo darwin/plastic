@@ -4,5 +4,8 @@ node_modules
 lib/_build
 .idea/
 *.iml
-cljs/resources/devcards/.build
-cljs/resources/test/.build
+resources/*/_build
+.tmp/
+target/
+*.iml
+checkouts/

@@ -11,7 +11,7 @@
 
 (defn ^boolean compound? [node]
   {:pre [node]}
-  (keyword-identical? :compound (get-type node)))
+  (keyword-identical? :compound (:type node)))
 
 ; -------------------------------------------------------------------------------------------------------------------
 

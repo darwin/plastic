@@ -6,8 +6,8 @@ if [ "$(uname)" != "Darwin" ]; then
   exit 1
 fi
 
-# ensure we start in cljs project root
-cd "$(dirname "${BASH_SOURCE[0]}")"; cd ../cljs
+# ensure we start in project root
+cd "$(dirname "${BASH_SOURCE[0]}")"; cd ..
 
 SRC_DIR="src"
 

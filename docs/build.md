@@ -1,6 +1,4 @@
-These steps are for my OS X box. Worked around commit [#0638331e63](https://github.com/darwin/plastic/commit/0638331e63aaed1d78839638219069d24f7818e6). 
-
-All is still in flux. You have to know a bit about node.js and clojurescript ecosystems. I don't cover it here. 
+These steps are for my OS X box.
 
 Good luck!
 
@@ -41,30 +39,30 @@ This home dir is a brand new atom profile for development.
 
 Quit Atom and install plastic package into Atom.
 
-    cd ../../.atom
+    cd $workspace/.atom
     mkdir packages
     cd packages
     ln -s ../../plastic plastic-clojurescript
 
-`plastic` symlink should point to $workspace/plastic
+`plastic-clojurescript` symlink should point to $workspace/plastic
 
 ##### plastic node dependencies
 
 install plastic npm deps:
 
-    cd ../../plastic
+    cd $workspace/plastic
     npm install
     apm rebuild
 
 ##### plastic bleeding-edge  dependencies
 
-I might be using bleeding-edge versions of some clojurescript libraries, look into [$workspace/plastic/cljs/project.clj](https://github.com/darwin/plastic/blob/master/cljs/project.clj) and look for uncommented paths into checkouts directory.
+I might be using bleeding-edge versions of some clojurescript libraries, look into [$workspace/plastic/project.clj](https://github.com/darwin/plastic/blob/master/project.clj) and look for uncommented paths into checkouts directory.
 
 Most likely they should point to forks of libraries maintained under [https://github.com/darwin/[lib-name]](https://github.com/darwin?tab=repositories).
 
 For example there might be "checkouts/re-frame/src", so you need to find [https://github.com/darwin/re-frame](https://github.com/darwin/re-frame) repo on github and clone it into checkouts.
 
-    cd cljs
+    cd $workspace/plastic
     mkdir checkouts
     cd checkouts
     git clone https://github.com/darwin/re-frame.git
@@ -83,7 +81,7 @@ Wait for figwheel to finish booting. And then in another terminal session
     cd $workspace/plastic
     ./script/atom.sh
 
-Atom file browser should point to $workspace/plastic/cljs/src, open some cljs files from `src/playground` and have fun!
+Atom file browser should point to $workspace/plastic/src, open some cljs files from `src/playground` and have fun!
 
 Note: effective keyboard shortcuts are specified in [$workspace/plastic/keymaps/plastic.cson](https://github.com/darwin/plastic/blob/master/keymaps/plastic.cson).
 

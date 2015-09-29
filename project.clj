@@ -26,11 +26,11 @@
   :source-paths ["src"
                  "target/classes"]
 
-  :clean-targets ^{:protect false} ["../lib/_build"
+  :clean-targets ^{:protect false} ["lib/_build"
                                     "target"
                                     ".tmp"
-                                    "resources/devcards/.build"
-                                    "resources/test/.build"]
+                                    "resources/devcards/_build"
+                                    "resources/test/_build"]
 
   :figwheel
   {:server-port      7000
@@ -62,8 +62,8 @@
                                             "plastic.env.legacy_devtools"           true
                                             "plastic.env.validate_dbs"              true
                                             "plastic.env.log_all_dispatches"        true}
-                    :output-to             "../lib/_dev_build/main/plastic.js"
-                    :output-dir            "../lib/_dev_build/main"
+                    :output-to             "lib/_dev_build/main/plastic.js"
+                    :output-dir            "lib/_dev_build/main"
                     :optimizations         :none
                     :target                :nodejs
                     :anon-fn-naming-policy :unmapped
@@ -92,9 +92,9 @@
                                             "plastic.env.run_worker_on_main_thread" true
                                             "plastic.env.validate_dbs"              true
                                             "plastic.env.log_all_dispatches"        true}
-                    :output-to             "resources/devcards/.build/devcards/plastic.js"
-                    :output-dir            "resources/devcards/.build/devcards"
-                    :asset-path            ".build/devcards"
+                    :output-to             "resources/devcards/_build/devcards/plastic.js"
+                    :output-dir            "resources/devcards/_build/devcards"
+                    :asset-path            "_build/devcards"
                     :optimizations         :none
                     :anon-fn-naming-policy :unmapped
                     :compiler-stats        true
@@ -122,9 +122,9 @@
                                             "plastic.env.run_worker_on_main_thread" true
                                             "plastic.env.validate_dbs"              true
                                             "plastic.env.log_all_dispatches"        true}
-                    :output-to             "resources/test/.build/test/plastic.js"
-                    :output-dir            "resources/test/.build/test"
-                    :asset-path            "base/cljs/resources/test/.build/test"
+                    :output-to             "resources/test/_build/test/plastic.js"
+                    :output-dir            "resources/test/_build/test"
+                    :asset-path            "base/cljs/resources/test/_build/test"
                     :optimizations         :none
                     :anon-fn-naming-policy :unmapped
                     :compiler-stats        true
@@ -148,8 +148,8 @@
                                             "plastic.env.legacy_devtools"     true
                                             "plastic.env.dont_start_figwheel" true
                                             "plastic.env.log_main_dispatches" true}
-                    :output-to             "../lib/_build/main/plastic.js"
-                    :output-dir            "../lib/_build/main"
+                    :output-to             "lib/_build/main/plastic.js"
+                    :output-dir            "lib/_build/main"
                     :optimizations         :none
                     :target                :nodejs
                     :anon-fn-naming-policy :unmapped
@@ -169,8 +169,8 @@
                     "src/worker"]
      :compiler     {:main                  plastic.worker
                     :closure-defines       {"plastic.env.log_worker_dispatches" true}
-                    :output-to             "../lib/_build/worker/plastic.js"
-                    :output-dir            "../lib/_build/worker"
+                    :output-to             "lib/_build/worker/plastic.js"
+                    :output-dir            "lib/_build/worker"
                     :optimizations         :none
                     :target                :nodejs
                     :anon-fn-naming-policy :unmapped

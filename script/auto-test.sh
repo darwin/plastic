@@ -33,8 +33,8 @@ echo "karmas's web server does not wait for cljs compiler to finish writing of f
 
 trap 'echo "killing child processes: $(jobs -p)..." && kill_childs $(jobs -p)' EXIT
 
-# ensure we start in cljs project root
-cd "$(dirname "${BASH_SOURCE[0]}")"; cd ../cljs
+# ensure we start in project root
+cd "$(dirname "${BASH_SOURCE[0]}")"; cd ..
 
 lein clean
 lein cljsbuild auto test &
