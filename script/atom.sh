@@ -20,7 +20,4 @@ ATOM_DEV_RESOURCE_PATH="$WORKSPACE/atom"
 #
 # running atom in --dev mode will enable dev-live-reload package, which will provide live reloading of css (less)
 
-echo $ATOM_HOME
-echo $ATOM_DEV_RESOURCE_PATH
-
 ATOM_HOME="$ATOM_HOME" ATOM_DEV_RESOURCE_PATH="$ATOM_DEV_RESOURCE_PATH" /Applications/Atom.app/Contents/MacOS/Atom --dev --log-file "$WORKSPACE/atom.log" $SRC

@@ -70,7 +70,6 @@
   (testing "excecise a simple tree-based meld"
     (let [meld tree-based-meld
           {:keys [root vector map symbol]} tree-based-protocol]
-      (log (meld/ancestors meld 6))
       (is (= (meld/nodes-count meld) 7))
       (is (nodes-match? (meld/get-top-node meld) root))
       (is (nodes-match? (meld/get-node meld 4) vector))

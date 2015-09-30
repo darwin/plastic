@@ -11,7 +11,7 @@
 
 (defn ^boolean compound? [node]
   {:pre [node]}
-  (keyword-identical? :compound (:type node)))
+  (compound-tags (:tag node)))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -25,11 +25,7 @@
 
 (defn get-type [node]
   {:pre [node]}
-  (:type node))
-
-(defn set-type [node type]
-  {:pre [node]}
-  (assoc node :type type))
+  (if (compound? node) :compound :token))
 
 (defn get-children [node]
   {:pre [node
@@ -106,9 +102,6 @@
 (defn strip-meta [o]
   (if (implements? IWithMeta o) (with-meta o nil) o))
 
-(defn detect-token-type [tag]
-  (if (compound-tags tag) :compound :token))
-
 (defn detect-token-tag [token]
   (cond
     (cljs.core/string? token) :string
@@ -120,26 +113,21 @@
     (cljs.core/set? token) :set
     :else :symbol))
 
-(defn classify [token]
-  (let [tag (detect-token-tag token)
-        type (detect-token-type tag)]
-    [type tag]))
-
 (defn make-node-from-token [token info children]
-  (let [[type tag] (classify token)]
-    (cond-> info
-      true (merge {:type  type
-                   :tag   (or tag type)
-                   :sexpr (strip-meta token)})
-      true (remove-nil-keys)
-      (= type :compound) (set-children children))))
+  (let [tag (detect-token-tag token)
+        node (-> info
+               (merge {:tag   tag
+                       :sexpr (strip-meta token)})
+               (remove-nil-keys))]
+    (if (compound? node)
+      (set-children node children)
+      node)))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn make-file [source children name]
   (remove-nil-keys
     {:id           (ids/next-node-id!)
-     :type         :compound
      :tag          :file
      :name         name
      :start        0
@@ -152,7 +140,6 @@
 (defn make-unit [source children start end]
   (remove-nil-keys
     {:id           (ids/next-node-id!)
-     :type         :compound
      :tag          :unit
      :start        start
      :end          end
@@ -160,48 +147,41 @@
      :revisioning? true
      :children     children}))
 
-(defn make-node [type tag source]
+(defn make-node [tag source]
   (remove-nil-keys
     {:id     (ids/next-node-id!)
-     :type   type
      :tag    tag
      :source source}))
 
-(defn make-token [tag source]
-  (make-node :token tag source))
-
-(defn make-compound [tag source]
-  (make-node :compound tag source))
-
 (defn make-symbol [source]
-  (make-token :symbol source))
+  (make-node :symbol source))
 
 (defn make-string [source]
-  (make-token :string source))
+  (make-node :string source))
 
 (defn make-keyword [source]
-  (make-token :keyword source))
+  (make-node :keyword source))
 
 (defn make-regexp [source]
-  (make-token :regexp source))
+  (make-node :regexp source))
 
 (defn make-list []
-  (make-compound :list ""))
+  (make-node :list ""))
 
 (defn make-vector []
-  (make-compound :vector ""))
+  (make-node :vector ""))
 
 (defn make-map []
-  (make-compound :map ""))
+  (make-node :map ""))
 
 (defn make-set []
-  (make-compound :set ""))
+  (make-node :set ""))
 
 (defn make-linebreak []
-  (make-node :linebreak :linebreak "\n"))
+  (make-node :linebreak "\n"))
 
 (defn make-comment [content]
-  (-> (make-node :comment :comment nil)
+  (-> (make-node :comment nil)
     (set-content content)))
 
 ; -------------------------------------------------------------------------------------------------------------------
