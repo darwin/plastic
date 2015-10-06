@@ -425,3 +425,8 @@
 (defn path<= [path1 path2]
   (let [res (path-compare path1 path2)]
     (or (zero? res) (neg? res))))
+
+; -------------------------------------------------------------------------------------------------------------------
+
+(defn take-all [f loc]
+  (take-while good? (iterate f loc)))

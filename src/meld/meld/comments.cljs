@@ -6,10 +6,10 @@
   (.replace text #"^[;]+[\s\t]?" ""))
 
 (defn comment? [token]
-  (keyword-identical? (:type token) :comment))
+  (keyword-identical? (:tag token) :comment))
 
 (defn linebreak? [token]
-  (keyword-identical? (:type token) :linebreak))
+  (keyword-identical? (:tag token) :linebreak))
 
 (defn merge-comment-tokens [tokens]
   (if (and (= (count tokens) 1) (not (comment? (first tokens))))

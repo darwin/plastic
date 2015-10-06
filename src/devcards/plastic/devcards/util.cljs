@@ -23,12 +23,23 @@
 
 (defn def-zip-card* [ns name doc loc]
   (register-card {:path [ns name]
-                  :func #(card-base
-                          {:name          name
-                           :documentation doc
-                           :main-obj      (reagent zipviz-component)
-                           :initial-data  (atom {:loc loc})
-                           :options       {}})}))
+                  :func (fn []
+                          (log "called card-base" name (count (zip/take-all zip/next loc)))
+                          (card-base
+                            {:name          name
+                             :documentation doc
+                             :main-obj      (reagent zipviz-component)
+                             :initial-data  {:loc loc}
+                             :options       {:xwatch-atom true}}))}))
+
+;(defn def-zip-card* [ns name doc loc]
+;  (register-card {:path [ns name]
+;                  :func #(card-base
+;                          {:name          name
+;                           :documentation doc
+;                           :main-obj      (reagent zipviz-component)
+;                           :initial-data  (atom {:loc loc})
+;                           :options       {}})}))
 
 (defn def-source-zip-card* [ns name source & [move]]
   (let [top-loc (zip/zip (parse-with-stable-meld-ids source))

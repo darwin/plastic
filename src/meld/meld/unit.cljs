@@ -15,14 +15,14 @@
 ; in all cases we want following whitespace to be included as well
 
 (defn make-unit-detector []
-  (let [prev-type! (volatile! :linebreak)
+  (let [prev-tag! (volatile! :linebreak)
         group! (volatile! 0)]
     (fn [loc]
-      (let [type (zip/get-type loc)]
-        (case type
-          (:comment :linebreak :whitespace) (if (#{:linebreak} @prev-type!) (vswap! group! inc))
+      (let [tag (zip/get-tag loc)]
+        (case tag
+          (:comment :linebreak :whitespace) (if (#{:linebreak} @prev-tag!) (vswap! group! inc))
           (vswap! group! inc))
-        (vreset! prev-type! type))
+        (vreset! prev-tag! tag))
       @group!)))
 
 (defn merge-nodes-info [meld& node-ids]

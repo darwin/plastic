@@ -4,7 +4,7 @@
   (:require [meld.ids :as ids]
             [meld.util :refer [remove-nil-keys]]))
 
-(def compound-tags #{:list :vector :map :set :unit :file})
+(def compound-tags #{:file :unit :list :vector :map :set :meta :quote :deref :unquote :unquote-splicing})
 
 (defn valid-id? [id]
   (number? id))
@@ -97,31 +97,66 @@
   {:pre [node]}
   (:sexpr node))
 
+(defn set-sexpr [node sexpr]
+  {:pre [node]}
+  (assoc node :sexpr sexpr))
+
+
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn strip-meta [o]
-  (if (implements? IWithMeta o) (with-meta o nil) o))
+  (if (implements? IWithMeta o)
+    (with-meta o nil)
+    o))
 
-(defn detect-token-tag [token]
-  (cond
-    (cljs.core/string? token) :string
-    (cljs.core/keyword? token) :keyword
-    (cljs.core/regexp? token) :regexp
-    (cljs.core/seq? token) :list
-    (cljs.core/vector? token) :vector
-    (cljs.core/map? token) :map
-    (cljs.core/set? token) :set
-    :else :symbol))
+(defn meta? [node]
+  (= (first (get-source node)) "^"))                                                                                  ; unfortunately we have no better way how to detect this case, meta information from tools.reader is messy
+
+(defn- quote? [sexpr]
+  (= (first sexpr) 'quote))
+
+(defn- deref? [sexpr]
+  (= (first sexpr) 'clojure.core/deref))
+
+(defn- unquote-splicing? [sexpr]
+  (= (first sexpr) 'clojure.core/unquote-splicing))
+
+(defn- unquote? [sexpr]
+  (= (first sexpr) 'clojure.core/unquote))
+
+(defn detect-node-tag [node]
+  (let [sexpr (get-sexpr node)]
+    (cond
+      (meta? node) :meta
+      (cljs.core/string? sexpr) :string
+      (cljs.core/keyword? sexpr) :keyword
+      (cljs.core/regexp? sexpr) :regexp
+      (cljs.core/symbol? sexpr) :symbol
+      (cljs.core/number? sexpr) :number
+      (cljs.core/vector? sexpr) :vector
+      (cljs.core/map? sexpr) :map
+      (cljs.core/set? sexpr) :set
+      (cljs.core/list? sexpr) (cond
+                                (quote? sexpr) :quote
+                                (deref? sexpr) :deref
+                                (unquote? sexpr) :unquote
+                                (unquote-splicing? sexpr) :unquote-splicing
+                                :else :list)
+      :else (assert "unable to detect node tag"))))
+
+(defn detect-and-set-node-tag [node]
+  (set-tag node (detect-node-tag node)))
 
 (defn make-node-from-token [token info children]
-  (let [tag (detect-token-tag token)
-        node (-> info
-               (merge {:tag   tag
-                       :sexpr (strip-meta token)})
+  (let [node (-> info
+               (set-sexpr (strip-meta token))
+               (detect-and-set-node-tag)
                (remove-nil-keys))]
     (if (compound? node)
       (set-children node children)
-      node)))
+      (do
+        (assert (nil? (seq children)) (str "node is not a compound, but has children: " (pr-str node)))
+        node))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -135,7 +170,6 @@
      :source       source
      :revisioning? true
      :children     children}))
-
 
 (defn make-unit [source children start end]
   (remove-nil-keys
@@ -269,15 +303,15 @@
 
 (defn ^boolean whitespace? [node]
   {:pre [node]}
-  (keyword-identical? :whitespace (get-type node)))
+  (keyword-identical? :whitespace (get-tag node)))
 
 (defn ^boolean linebreak? [node]
   {:pre [node]}
-  (keyword-identical? :linebreak (get-type node)))
+  (keyword-identical? :linebreak (get-tag node)))
 
 (defn ^boolean comment? [node]
   {:pre [node]}
-  (keyword-identical? :comment (get-type node)))
+  (keyword-identical? :comment (get-tag node)))
 
 (defn ^boolean string? [node]
   {:pre [node]}
@@ -384,6 +418,7 @@
 (defn get-desc [node]
   (case (get-type node)
     :compound (str (get-tag node))
-    :linebreak "↓"
-    :comment (get-content node)
-    (get-source node)))
+    (case (get-tag node)
+      :linebreak "↓"
+      :comment (get-content node)
+      (get-source node))))

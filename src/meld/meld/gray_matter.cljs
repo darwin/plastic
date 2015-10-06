@@ -5,7 +5,6 @@
             [meld.comments :refer [stitch-aligned-comments]]
             [meld.zip :as zip]
             [meld.node :as node]
-            [meld.ids :as ids]
             [meld.util :refer [transplant-meta]]
             [meld.core :as meld]))
 
@@ -28,8 +27,7 @@
         (if token
           (let [end (+ offset (count (:source token)))
                 token (merge token
-                        {:id     (ids/next-node-id!)
-                         :start  offset
+                        {:start  offset
                          :end    end
                          :line   line
                          :column column})]

@@ -1,6 +1,7 @@
 (ns meld.helpers
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [cljs.tools.reader.reader-types :refer [read-char unread]])
+  (:require [cljs.tools.reader.reader-types :refer [read-char unread]]
+            [meld.node :as node])
   (:import goog.string.StringBuffer))
 
 (def ws-rx #"[\s]")
@@ -37,19 +38,13 @@
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn slurp-comment [reader init]
-  {:type   :comment
-   :tag    :comment
-   :source (read-line reader init)})
+  (node/make-node :comment (read-line reader init)))
 
 (defn slurp-whitespace [reader init]
-  {:type   :whitespace
-   :tag    :whitespace
-   :source (read-whitespace reader init)})
+  (node/make-node :whitespace (read-whitespace reader init)))
 
 (defn slurp-linebreak [_reader ch]
-  {:type   :linebreak
-   :tag    :linebreak
-   :source ch})
+  (node/make-node :linebreak ch))
 
 ; -------------------------------------------------------------------------------------------------------------------
 

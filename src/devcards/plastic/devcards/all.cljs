@@ -4,4 +4,5 @@
             [plastic.devcards.meld.vizs]
             [plastic.devcards.meld.zip]
             [plastic.devcards.meld.core-tests]
-            [meld.core-tests]))
+            [meld.core-tests]
+            [meld.parser-tests]))

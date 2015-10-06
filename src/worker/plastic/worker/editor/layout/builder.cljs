@@ -212,7 +212,7 @@
         first-loc (zip/down unit-loc)
         {:keys [data code docs headers comments _line]} (build-unit-layout initial first-loc stop-id)
         unit-id (zip/id unit-loc)
-        unit-type (name (zip/get-type first-loc))
+        unit-type (name (zip/get-tag first-loc))
         unit-kind (get-first-leaf-expr first-loc)
         has-code? (not (empty? code))
         has-docs? (not (empty? docs))

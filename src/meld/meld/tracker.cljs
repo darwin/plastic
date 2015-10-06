@@ -42,8 +42,8 @@
                                     :source (subs source gray-matter-end token-end)
                                     :start  gray-matter-end
                                     :end    token-end}
-                              children-ids (filter-nodes-without-parent @meld&!
-                                             (find-nodes-after-offset @starts! gray-matter-end))                      ; source tracker is being called depth-first, we collect children from previous calls
+                              nodes-after-gray-matter (find-nodes-after-offset @starts! gray-matter-end)
+                              children-ids (filter-nodes-without-parent @meld&! nodes-after-gray-matter)              ; source tracker is being called depth-first, we collect children from previous calls
                               new-node (node/make-node-from-token token info children-ids)]                           ; attach children to new node
                           (vswap! starts! assoc gray-matter-end new-node-id)
                           (vswap! meld&! assign-parent! children-ids new-node-id)
