@@ -211,7 +211,7 @@
 (defn get-unit-ids [editor]
   {:pre [(valid-editor? editor)]}
   (let [meld (get-meld editor)
-        top-node (meld/get-top-node meld)]
+        top-node (meld/get-root-node meld)]
     (node/get-children top-node)))
 
 ; -------------------------------------------------------------------------------------------------------------------

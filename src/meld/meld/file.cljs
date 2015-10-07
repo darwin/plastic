@@ -21,4 +21,4 @@
     (vswap! meld&! assoc! file-id file)
     (doseq [id top-level-ids]
       (vswap! meld&! update! id node/set-parent file-id))
-    (meld/set-top-node-id (persistent! @meld&!) file-id)))
+    (meld/set-root-node-id (persistent! @meld&!) file-id)))

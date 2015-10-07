@@ -41,8 +41,8 @@
   (testing "construct an empty meld from scratch"
     (let [empty-meld (meld/make)]
       (is (= (meld/nodes-count empty-meld) 0))
-      (is (= (meld/get-top-node-id empty-meld) nil))
-      (is (= (meld/get-top-node empty-meld) nil))
+      (is (= (meld/get-root-node-id empty-meld) nil))
+      (is (= (meld/get-root-node empty-meld) nil))
       (is (= (meld/get-node empty-meld 0) nil))))
   (testing "construct a simple meld from scratch"
     (let [root-node {:id 0 :kind :root :children [1 2]}
@@ -52,8 +52,8 @@
                                      1 leaf1-node
                                      2 leaf2-node} 0)]
       (is (= (meld/nodes-count hand-made-meld) 3))
-      (is (= (meld/get-top-node-id hand-made-meld) 0))
-      (is (= (meld/get-top-node hand-made-meld) root-node))
+      (is (= (meld/get-root-node-id hand-made-meld) 0))
+      (is (= (meld/get-root-node hand-made-meld) root-node))
       (is (= (meld/get-node hand-made-meld 0) root-node))
       (is (= (meld/get-node hand-made-meld 1) leaf1-node))
       (is (= (meld/get-node hand-made-meld 2) leaf2-node))
@@ -66,7 +66,7 @@
     (let [[meld protocol] (build-tree-based-meld-and-protocol)
           {:keys [root vector map symbol]} protocol]
       (is (= (meld/nodes-count meld) 7))
-      (is (nodes-match? (meld/get-top-node meld) root))
+      (is (nodes-match? (meld/get-root-node meld) root))
       (is (nodes-match? (meld/get-node meld 4) vector))
       (is (nodes-match? (meld/get-node meld 6) map))
       (is (= (meld/get-source meld) (:source root)))
@@ -77,4 +77,4 @@
       (is (= (meld/ancestors meld 6) '(4 1)))
       (is (= (meld/ancestors meld 2) '(1)))
       (is (= (meld/ancestors meld 1) '()))
-      (is (= (meld/get-top-node-id meld) (node/get-id root))))))
+      (is (= (meld/get-root-node-id meld) (node/get-id root))))))

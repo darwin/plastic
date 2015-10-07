@@ -20,7 +20,7 @@
 
 (defn histogram [meld & [include-compounds?]]
   (let [start-loc (zip/zip meld)
-        top-node (meld/get-top-node meld)
+        top-node (meld/get-root-node meld)
         [start end] (node/get-range top-node)
         init (vec (concat (repeat start 0) (repeat (- end start) 1)))
         hist$! (volatile! (transient init))]
@@ -168,7 +168,7 @@
 
 (defn get-top-loc [loc]
   (let [meta (zip/get-aux loc)
-        top-id (meld/get-top-node-id-from-meta meta)]
+        top-id (meld/get-root-node-id-from-meta meta)]
     (zip/set-id loc top-id)))
 
 (defn get-graph-node-shape [node]

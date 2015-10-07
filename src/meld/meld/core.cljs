@@ -42,29 +42,29 @@
 ;
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn get-top-node-id-from-meta [meta]
-  (::top meta))
+(defn get-root-node-id-from-meta [meta]
+  (::root-id meta))
 
-(defn set-top-node-id [meld node-id]
+(defn set-root-node-id [meld node-id]
   {:pre [meld]}
-  (vary-meta meld assoc ::top node-id))
+  (vary-meta meld assoc ::root-id node-id))
 
-(defn get-top-node-id [meld]
+(defn get-root-node-id [meld]
   {:pre [meld]}
-  (::top (meta meld)))
+  (::root-id (meta meld)))
 
 (defn get-node [meld id]
   {:pre [meld]}
   (get meld id))
 
-(defn get-top-node [meld]
-  {:pre  [meld]}
-  (if-let [top-node-id (get-top-node-id meld)]
-    (get-node meld top-node-id)))
+(defn get-root-node [meld]
+  {:pre [meld]}
+  (if-let [root-node-id (get-root-node-id meld)]
+    (get-node meld root-node-id)))
 
 (defn get-source [meld]
   {:pre [meld]}
-  (node/get-source (get-top-node meld)))
+  (node/get-source (get-root-node meld)))
 
 (defn nodes-count [meld]
   {:pre [meld]}
@@ -72,7 +72,10 @@
 
 (defn make
   ([] (make {} nil))
-  ([base top-id] (set-top-node-id (into {} base) top-id)))
+  ([base root-id]
+   (-> {}
+     (into base)
+     (set-root-node-id root-id))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -168,7 +171,7 @@
     (transient)
     (flatten-tree-into-meld tree)
     (persistent!)
-    (set-top-node-id (node/get-id (get-tree-node tree)))))
+    (set-root-node-id (node/get-id (get-tree-node tree)))))
 
 ; this is a low-level operation, you have to properly link to the parent of root tree node
 (defn merge-tree [meld tree]

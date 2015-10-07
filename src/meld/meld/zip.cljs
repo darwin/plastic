@@ -99,9 +99,9 @@
 (defn zip
   "Returns a new zipper from meld optionally limited to a subtree"
   ([meld] (zip meld nil))
-  ([meld subtree-id]
+  ([meld top-id]
    (let [aux (meta meld)
-         top-id (or subtree-id (meld/get-top-node-id meld))]
+         top-id (or top-id (meld/get-root-node-id meld))]
      (make-loc (transient meld) top-id aux top-id))))
 
 (defn unzip [loc]
