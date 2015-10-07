@@ -1,25 +1,17 @@
 (ns plastic.devcards.util
-  (:require [devcards.util.utils :as utils]))
+  (:require [devcards.util.utils]))
 
 (defmacro deftest [vname & parts]
   `(devcards.core/deftest ~vname ~@parts))
 
-(defmacro def-zip-card [& args]
-  (if (utils/devcards-active?)
-    `(plastic.devcards.util/def-zip-card* ~@args)))
+(defmacro meld-zip-card [vname & args]
+  `(devcards.core/defcard* ~vname
+    (plastic.devcards.util/zip-card* ~vname ~@args)))
 
-(defmacro def-source-zip-card [& args]
-  (if (utils/devcards-active?)
-    `(plastic.devcards.util/def-source-zip-card* ~@args)))
+(defmacro meld-card [vname & args]
+  `(devcards.core/defcard* ~vname
+     (plastic.devcards.util/meld-card* ~vname ~@args)))
 
-(defmacro def-meld-card [& args]
-  (if (utils/devcards-active?)
-    `(plastic.devcards.util/def-meld-card* ~@args)))
-
-(defmacro def-hist-card [& args]
-  (if (utils/devcards-active?)
-    `(plastic.devcards.util/def-hist-card* ~@args)))
-
-(defmacro def-meld-data-card [& args]
-  (if (utils/devcards-active?)
-    `(plastic.devcards.util/def-meld-data-card* ~@args)))
+(defmacro hist-card [vname & args]
+  `(devcards.core/defcard* ~vname
+     (plastic.devcards.util/hist-card* ~vname ~@args)))

@@ -212,6 +212,37 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
+(defn take-all [f loc]
+  (->> loc
+    (iterate f)
+    (take-while good?)))
+
+(defn take-all-next [loc]
+  (take-all next loc))
+
+(defn take-subtree [loc]
+  (let [stop-id (id (right loc))]
+    (->> loc
+      (iterate next)
+      (take-while #(not= (id %) stop-id)))))
+
+(defn take-descendants [loc]
+  (rest (take-subtree loc)))
+
+(defn take-children [loc]
+  (->> loc
+    (down)
+    (iterate right)
+    (take-while good?)))
+
+(defn take-ancestors [loc]
+  (->> loc
+    (iterate up)
+    (take-while good?)))
+
+; -------------------------------------------------------------------------------------------------------------------
+; deprecated, use take-* functions
+
 (defn descendant-locs [loc]
   (let [stop-id (id (right loc))]
     (take-while #(not= (id %) stop-id) (iterate next (next loc)))))
@@ -425,8 +456,3 @@
 (defn path<= [path1 path2]
   (let [res (path-compare path1 path2)]
     (or (zero? res) (neg? res))))
-
-; -------------------------------------------------------------------------------------------------------------------
-
-(defn take-all [f loc]
-  (take-while good? (iterate f loc)))

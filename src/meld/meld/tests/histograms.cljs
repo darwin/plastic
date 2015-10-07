@@ -1,19 +1,18 @@
-(ns plastic.devcards.meld.histograms
+(ns meld.tests.histograms
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.devcards.util :refer-macros [def-hist-card]]))
+  (:require [plastic.devcards.util :refer-macros [hist-card]]
+            [meld.parser :as parser]))
 
-(def card-ns :meld.histograms)
+(hist-card "symbol" #(parser/parse! "symbol"))
+(hist-card "keyword" #(parser/parse! ":keword"))
 
-(def-hist-card card-ns "a symbol" "symbol" false)
-(def-hist-card card-ns "a keyword" ":keword" false)
+(hist-card "list" #(parser/parse! "(1 2)") false)
+(hist-card "nested" #(parser/parse! "[a b (1 2) 3]") true)
+(hist-card "one" #(parser/parse! "  1  ") false)
+(hist-card "comment" #(parser/parse! "  ;comment  ") false)
+(hist-card "x-comment" #(parser/parse! "  x ;comment  ") false)
 
-(def-hist-card card-ns "a list" "(1 2)" false)
-(def-hist-card card-ns "nested" "[a b (1 2) 3]" true)
-(def-hist-card card-ns "one" "  1  " false)
-(def-hist-card card-ns "a comment" "  ;comment  " false)
-(def-hist-card card-ns "x-comment" "  x ;comment  " false)
-
-(def-hist-card card-ns "some-doc-example" "(ns n1.doc)
+(hist-card "some-doc-example" #(parser/parse! "(ns n1.doc)
 
 ; independent comment
 ; block spanning
@@ -52,4 +51,4 @@
 ; another comment
 
 (def test \"some string\") ; test comment
-" false)
+") false)

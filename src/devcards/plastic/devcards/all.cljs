@@ -1,8 +1,6 @@
 (ns plastic.devcards.all
-  (:require [plastic.devcards.meld.histograms]
-            [plastic.devcards.meld.parsing]
-            [plastic.devcards.meld.vizs]
-            [plastic.devcards.meld.zip]
-            [plastic.devcards.meld.core-tests]
-            [meld.core-tests]
-            [meld.parser-tests]))
+  (:require [meld.tests.core]
+            [meld.tests.parser]
+            [meld.tests.vizs]
+            [meld.tests.histograms]
+            [meld.tests.zip]))

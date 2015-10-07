@@ -1,12 +1,13 @@
-(ns meld.core-tests
+(ns meld.tests.core
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.devcards.util :as util :refer-macros [deftest def-zip-card]]
+  (:require [plastic.devcards.util :as util :refer-macros [deftest meld-zip-card]]
             [cljs.test :refer-macros [is testing]]
+            [meld.tests.helpers :refer [clip-node nodes-match?]]
             [meld.core :as meld]
             [meld.node :as node]
             [meld.zip :as zip]))
 
-(defn prepare-tree-based-meld []
+(defn prepare-tree-based-meld-and-protocol []
   (let [root-node (node/set-source (node/make-list) "fake source")                                                    ; id 1
         string-node (node/make-string "\"a string\"")                                                                 ; id 2
         linebreak-node (node/make-linebreak)                                                                          ; id 3
@@ -28,27 +29,21 @@
                   :tree      tree}]
     [meld protocol]))
 
-(defn clip-node [node]
-  (select-keys node [:id :type :tag :source]))
+(defn build-tree-based-meld-and-protocol []
+  (util/with-stable-meld-ids prepare-tree-based-meld-and-protocol))
 
-(defn nodes-match? [n1 n2]
-  (= (clip-node n1) (clip-node n2)))
-
-(def tree-based-result (util/with-stable-meld-ids prepare-tree-based-meld))
-(def tree-based-meld (first tree-based-result))
-(def tree-based-protocol (second tree-based-result))
+(defn build-tree-based-meld []
+  (first (build-tree-based-meld-and-protocol)))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
 (deftest meld-construction
-
   (testing "construct an empty meld from scratch"
     (let [empty-meld (meld/make)]
       (is (= (meld/nodes-count empty-meld) 0))
       (is (= (meld/get-top-node-id empty-meld) nil))
       (is (= (meld/get-top-node empty-meld) nil))
       (is (= (meld/get-node empty-meld 0) nil))))
-
   (testing "construct a simple meld from scratch"
     (let [root-node {:id 0 :kind :root :children [1 2]}
           leaf1-node {:id 1 :kind :leaf}
@@ -64,12 +59,12 @@
       (is (= (meld/get-node hand-made-meld 2) leaf2-node))
       (is (= (meld/get-node hand-made-meld 3) nil)))))
 
-(def-zip-card :meld.core_tests "tree-based-meld" nil (zip/zip tree-based-meld))
+(meld-zip-card "tree-based-meld" nil #(zip/zip (build-tree-based-meld)))
 
 (deftest tree-made-meld-tests
   (testing "excecise a simple tree-based meld"
-    (let [meld tree-based-meld
-          {:keys [root vector map symbol]} tree-based-protocol]
+    (let [[meld protocol] (build-tree-based-meld-and-protocol)
+          {:keys [root vector map symbol]} protocol]
       (is (= (meld/nodes-count meld) 7))
       (is (nodes-match? (meld/get-top-node meld) root))
       (is (nodes-match? (meld/get-node meld 4) vector))

@@ -21,59 +21,29 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn def-zip-card* [ns name doc loc]
-  (register-card {:path [ns name]
-                  :func (fn []
-                          (log "called card-base" name (count (zip/take-all zip/next loc)))
-                          (card-base
-                            {:name          name
-                             :documentation doc
-                             :main-obj      (reagent zipviz-component)
-                             :initial-data  {:loc loc}
-                             :options       {:xwatch-atom true}}))}))
+(defn zip-card* [name doc loc-fn]
+  (let [loc (loc-fn)]
+    (card-base
+      {:name          name
+       :documentation doc
+       :main-obj      (reagent zipviz-component)
+       :initial-data  {:loc loc}
+       :options       {:xwatch-atom true}})))
 
-;(defn def-zip-card* [ns name doc loc]
-;  (register-card {:path [ns name]
-;                  :func #(card-base
-;                          {:name          name
-;                           :documentation doc
-;                           :main-obj      (reagent zipviz-component)
-;                           :initial-data  (atom {:loc loc})
-;                           :options       {}})}))
+(defn meld-card* [name meld-fn]
+  (let [meld (meld-fn)]
+    (card-base
+      {:name          name
+       :documentation nil
+       :main-obj      (reagent meldviz-component)
+       :initial-data  {:meld meld}
+       :options       {:xwatch-atom true}})))
 
-(defn def-source-zip-card* [ns name source & [move]]
-  (let [top-loc (zip/zip (parse-with-stable-meld-ids source))
-        loc (if move (move top-loc) top-loc)]
-    (def-zip-card* ns name (markdown-source source) loc)))
-
-(defn def-meld-card* [ns name source]
-  (let [meld (parse-with-stable-meld-ids source)]
-    (register-card {:path [ns name]
-                    :func #(card-base
-                            {:name          name
-                             :documentation nil
-                             :main-obj      (reagent meldviz-component)
-                             :initial-data  (atom {:meld meld})
-                             :options       {}})})))
-
-
-(defn def-hist-card* [ns name source & [compounds?]]
-  (let [meld (parse-with-stable-meld-ids source)
-        histogram (histogram-display meld 100 compounds?)]
-    (register-card {:path [ns name]
-                    :func #(card-base
-                            {:name          name
-                             :documentation nil
-                             :main-obj      (reagent histogram-component)
-                             :initial-data  (atom {:histogram histogram})
-                             :options       {}})})))
-
-(defn def-meld-data-card* [ns name source]
-  (let [meld (parse-with-stable-meld-ids source)]
-    (register-card {:path [ns name]
-                    :func #(card-base
-                            {:name          name
-                             :documentation (markdown-source source)
-                             :main-obj      (markdown-source (pretty-print meld))
-                             :initial-data  nil
-                             :options       {}})})))
+(defn hist-card* [name meld-fn & [compounds?]]
+  (let [meld (meld-fn)]
+    (card-base
+      {:name          name
+       :documentation nil
+       :main-obj      (reagent histogram-component)
+       :initial-data  {:histogram (histogram-display meld 100 compounds?)}
+       :options       {:xwatch-atom true}})))

@@ -293,7 +293,6 @@
 
 (defn zipviz-component [data-atom]
   (let [{:keys [loc]} @data-atom]
-    (log "RZP" (count (zip/take-all zip/next loc)))
     [:div.meld-support
      [:div.zip-viz
       [loc-graph-component loc]]]))
