@@ -30,6 +30,12 @@
 (defn set-top-id [loc top-id]
   (assoc loc 3 top-id))
 
+(defn get-root-id [loc]
+  (get loc 4))
+
+(defn set-root-id [loc root-id]
+  (assoc loc 4 root-id))
+
 (defn ^boolean end? [loc]
   (keyword-identical? :end (get-id loc)))
 
@@ -40,8 +46,8 @@
   {:post [%]}
   (get (get-meld& loc) (get-id loc)))
 
-(defn make-loc [meld& id aux top-id]
-  [meld& id aux top-id])
+(defn make-loc [meld& id aux top-id root-id]
+  [meld& id aux top-id root-id])
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; mirror node API on locs
@@ -101,8 +107,9 @@
   ([meld] (zip meld nil))
   ([meld top-id]
    (let [aux (meta meld)
-         top-id (or top-id (meld/get-root-node-id meld))]
-     (make-loc (transient meld) top-id aux top-id))))
+         root-id (meld/get-root-node-id meld)
+         top-id (or top-id root-id)]
+     (make-loc (transient meld) top-id aux top-id root-id))))
 
 (defn unzip [loc]
   (with-meta (persistent! (get-meld& loc)) (get-aux loc)))
@@ -132,6 +139,9 @@
 
 (defn top [loc]
   (set-id loc (get-top-id loc)))
+
+(defn root [loc]
+  (set-id loc (get-root-id loc)))
 
 (defn find [loc id]
   (if (contains? (get-meld& loc) id)

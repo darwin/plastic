@@ -124,8 +124,8 @@
   (let [dom-node (dom-node-from-react react-component)
         tooltip-spec #js {:gravity "s"
                           :opacity 1
-                          :html true
-                          :title #(token-tooltip-markup (title))}]
+                          :html    true
+                          :title   #(token-tooltip-markup (title))}]
     (.tipsy (js/$ dom-node) tooltip-spec)))
 
 (defn token-tipsy-component [tag props title line]
@@ -165,11 +165,6 @@
          (mapcat emit-token tokens))]]]))
 
 ; -------------------------------------------------------------------------------------------------------------------
-
-(defn get-top-loc [loc]
-  (let [meta (zip/get-aux loc)
-        top-id (meld/get-root-node-id-from-meta meta)]
-    (zip/set-id loc top-id)))
 
 (defn get-graph-node-shape [node]
   (case (node/get-type node)
@@ -222,10 +217,10 @@
   (let [graphlib (.-graphlib js/dagreD3)
         graph-class (.-Graph graphlib)
         graph (graph-class.)
-        top-loc (get-top-loc loc)]
+        root-loc (zip/root loc)]
     (.setGraph graph #js {})
-    (populate-graph-nodes! graph top-loc (zip/get-id loc))
-    (populate-graph-edges! graph top-loc)
+    (populate-graph-nodes! graph root-loc (zip/get-id loc))
+    (populate-graph-edges! graph root-loc)
     graph))
 
 (defn center-graph [graph root zoom scale]

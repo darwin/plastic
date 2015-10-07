@@ -42,9 +42,6 @@
 ;
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn get-root-node-id-from-meta [meta]
-  (::root-id meta))
-
 (defn set-root-node-id [meld node-id]
   {:pre [meld]}
   (vary-meta meld assoc ::root-id node-id))
