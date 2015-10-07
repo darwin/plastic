@@ -1,7 +1,7 @@
 (ns meld.file
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [meld.node :as node]
-            [meld.util :refer [update!]]
+            [meld.util :refer [update! transplant-meta]]
             [meld.core :as meld]))
 
 (defn find-top-level-ids-in-order [meld]
@@ -15,10 +15,12 @@
 
 (defn wrap-all-as-file [meld source name]
   (let [top-level-ids (find-top-level-ids-in-order meld)
-        file (node/make-file source top-level-ids name)
-        file-id (node/get-id file)
+        file-id (meld/get-next-node-id meld)
+        file-node (node/set-id (node/make-file source top-level-ids name) file-id)
         meld&! (volatile! (transient meld))]
-    (vswap! meld&! assoc! file-id file)
+    (vswap! meld&! assoc! file-id file-node)
     (doseq [id top-level-ids]
       (vswap! meld&! update! id node/set-parent file-id))
-    (meld/set-root-node-id (persistent! @meld&!) file-id)))
+    (-> (transplant-meta (persistent! @meld&!) meld)
+      (meld/set-root-node-id file-id)
+      (meld/set-next-node-id (inc file-id)))))

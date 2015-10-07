@@ -42,17 +42,47 @@
 ;
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn set-root-node-id [meld node-id]
-  {:pre [meld]}
-  (vary-meta meld assoc ::root-id node-id))
+(def ^:const initial-next-id 1)                                                                                       ; 1-based indexing plays well when meld is empty
+
+(declare get-next-node-id)
+
+(defn sanity-check [meld]
+  (assert (> (get-next-node-id meld) (or (apply max (keys meld)) 0)) (pr-str (meta meld)))
+  meld)
 
 (defn get-root-node-id [meld]
   {:pre [meld]}
-  (::root-id (meta meld)))
+  (::root-node-id (meta meld)))
+
+(defn set-root-node-id [meld node-id]
+  {:pre [meld]}
+  (vary-meta meld assoc ::root-node-id node-id))
+
+(defn get-next-node-id [meld]
+  {:pre [meld]}
+  (::next-node-id (meta meld)))
+
+(defn set-next-node-id [meld node-id]
+  {:pre [meld]}
+  (sanity-check (vary-meta meld assoc ::next-node-id node-id)))
 
 (defn get-node [meld id]
   {:pre [meld]}
   (get meld id))
+
+(defn add-node [meld node]
+  {:pre [meld]}
+  (let [node-id (node/get-id node)]
+    (assert node-id)
+    (assert (not (get node-id (keys meld))))
+    (assert (> (get-next-node-id meld) node-id))
+    (assoc meld node-id node)))
+
+(defn remove-node [meld node-id]
+  {:pre [meld]}
+  (assert node-id)
+  (assert (get node-id (keys meld)))
+  (dissoc meld node-id))
 
 (defn get-root-node [meld]
   {:pre [meld]}
@@ -68,11 +98,12 @@
   (count (keys meld)))
 
 (defn make
-  ([] (make {} nil))
-  ([base root-id]
+  ([base root-id] (make base root-id initial-next-id))
+  ([base root-id next-id]
    (-> {}
      (into base)
-     (set-root-node-id root-id))))
+     (set-root-node-id root-id)
+     (set-next-node-id next-id))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -83,15 +114,12 @@
       (concat children (apply concat (map (partial descendants meld) children)))
       (list))))
 
-(defn dissoc-all! [meld& ids]
-  (reduce dissoc! meld& ids))
-
 (defn all-ancestor-nodes [meld start-id]
   (loop [id start-id
          res []]
     (let [node (get-node meld id)]
       (assert node)
-      (if-let [parent-id (node/get-parent node)]                                                                      ; ignoring-subtree-boundary
+      (if-let [parent-id (node/get-parent node)]
         (recur parent-id (conj res node))
         res))))
 
@@ -150,25 +178,21 @@
 (defn get-tree-children [tree]
   (second (destructure-tree tree)))
 
-(defn flatten-tree-into-meld [meld& tree]
-  (let [[node children] (destructure-tree tree)
-        node-id (node/get-id node)
-        * (fn [[meld& ids] child-tree]
-            (let [child-node (get-tree-node child-tree)
-                  child-id (node/get-id child-node)
-                  flatten-meld& (flatten-tree-into-meld meld& child-tree)
-                  new-meld& (update! flatten-meld& child-id node/set-parent node-id)]
-              [new-meld& (conj ids child-id)]))
-        [flattened-meld& child-ids] (reduce * [meld& []] children)
+(defn flatten-tree-into-meld& [meld& tree first-id]
+  (let [[node-without-id children] (destructure-tree tree)
+        node (node/set-id node-without-id first-id)
+        * (fn [[meld& current-id ids] child-tree]
+            (let [[flatten-meld& next-id] (flatten-tree-into-meld& meld& child-tree current-id)
+                  new-meld& (update! flatten-meld& current-id node/set-parent first-id)]
+              [new-meld& next-id (conj ids current-id)]))
+        [flattened-meld& next-id child-ids] (reduce * [meld& (inc first-id) []] children)
         node-with-children (if (node/compound? node) (node/set-children node child-ids) node)]
-    (assoc! flattened-meld& node-id node-with-children)))
+    [(assoc! flattened-meld& first-id node-with-children) next-id]))
 
 (defn flatten-tree [tree]
-  (-> (make)
-    (transient)
-    (flatten-tree-into-meld tree)
-    (persistent!)
-    (set-root-node-id (node/get-id (get-tree-node tree)))))
+  (let [first-id initial-next-id
+        [base& next-id] (flatten-tree-into-meld& (transient {}) tree first-id)]
+    (make (persistent! base&) first-id next-id)))
 
 ; this is a low-level operation, you have to properly link to the parent of root tree node
 (defn merge-tree [meld tree]

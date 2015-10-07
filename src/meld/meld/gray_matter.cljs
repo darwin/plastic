@@ -19,9 +19,9 @@
             column (get-column-number reader)
             char (read-char reader)
             token (cond
-                    (nil? char) nil                                                                                   ; bail out early because newline? test would match it too
+                    (nil? char) nil                                                                                   ; bail out early because linebreak? test would match nil too
                     (helpers/whitespace? char) (helpers/slurp-whitespace reader char)
-                    (helpers/linebreak? char) (helpers/slurp-linebreak reader char)
+                    (helpers/linebreak? char) (helpers/slurp-linebreak reader)
                     (= char ";") (helpers/slurp-comment reader char)
                     :else (do (unread reader char) nil))]
         (if token
@@ -101,5 +101,5 @@
         all-ends-with-special (cons 0 all-ends)                                                                       ; a special case of leading gray matter, see ***
         reader (rt/indexing-push-back-reader source)
         gray-matter-table (collect-gray-matter reader all-ends-with-special)]                                         ; map node's end-offsets -> gray-matter sequences
-    (transplant-meta (merge-gray-matter meld gray-matter-table) meld)))
+    (merge-gray-matter meld gray-matter-table)))
 

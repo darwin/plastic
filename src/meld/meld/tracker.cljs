@@ -24,7 +24,8 @@
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn make-tracker [source]
-  (let [meld&! (volatile! (transient (meld/make)))
+  (let [meld&! (volatile! (transient {}))
+        last-id! (volatile! (dec meld/initial-next-id))
         starts! (volatile! (sorted-map))
         offsets&! (volatile! (transient []))
         tracker (fn [reader f]
@@ -37,7 +38,7 @@
                               token-end (.getLength (:buffer @frames-atom))
                               token-text (subs source token-start token-end)                                          ; reader includes comments as part of token start-end range
                               gray-matter-end (+ token-start (measure-gray-matter token-text))                        ; we want to start after potential comments and read the meat only
-                              new-node-id (ids/next-node-id!)
+                              new-node-id (vswap! last-id! inc)
                               info {:id     new-node-id
                                     :source (subs source gray-matter-end token-end)
                                     :start  gray-matter-end
@@ -50,5 +51,6 @@
                           (vswap! meld&! assoc! new-node-id new-node)))
                       (vswap! offsets&! pop!)
                       token)))
-        flush (fn [] (persistent! @meld&!))]
+        flush (fn []
+                (meld/make (persistent! @meld&!) nil (inc @last-id!)))]
     [tracker flush]))

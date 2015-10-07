@@ -12,13 +12,6 @@
 (defn pretty-print [v]
   (binding [*print-length* (* 16 1024)] (with-out-str (pprint v))))
 
-(defn with-stable-meld-ids [f & args]
-  (binding [meld.ids/*last-node-id!* (volatile! 0)]
-    (apply f args)))
-
-(defn parse-with-stable-meld-ids [source]
-  (with-stable-meld-ids parser/parse! source))
-
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn zip-card* [name doc loc-fn]

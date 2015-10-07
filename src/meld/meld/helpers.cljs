@@ -43,8 +43,8 @@
 (defn slurp-whitespace [reader init]
   (node/make-node :whitespace (read-whitespace reader init)))
 
-(defn slurp-linebreak [_reader ch]
-  (node/make-node :linebreak ch))
+(defn slurp-linebreak [_reader]
+  (node/make-linebreak))
 
 ; -------------------------------------------------------------------------------------------------------------------
 

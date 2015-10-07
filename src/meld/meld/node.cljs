@@ -162,8 +162,7 @@
 
 (defn make-file [source children name]
   (remove-nil-keys
-    {:id           (ids/next-node-id!)
-     :tag          :file
+    {:tag          :file
      :name         name
      :start        0
      :end          (count source)
@@ -173,8 +172,7 @@
 
 (defn make-unit [source children start end]
   (remove-nil-keys
-    {:id           (ids/next-node-id!)
-     :tag          :unit
+    {:tag          :unit
      :start        start
      :end          end
      :source       source
@@ -183,8 +181,7 @@
 
 (defn make-node [tag source]
   (remove-nil-keys
-    {:id     (ids/next-node-id!)
-     :tag    tag
+    {:tag    tag
      :source source}))
 
 (defn make-symbol [source]

@@ -5,7 +5,7 @@
             [meld.parser :as parser]))
 
 (defn clip-node [node]
-  (select-keys node [:id :type :tag :source]))
+  (select-keys node [:type :tag :source]))
 
 (defn nodes-match? [n1 n2]
   (= (clip-node n1) (clip-node n2)))

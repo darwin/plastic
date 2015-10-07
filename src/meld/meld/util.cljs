@@ -7,6 +7,9 @@
   (let [o (get m k)]
     (assoc! m k (apply f o args))))
 
+(defn dissoc-all! [m& keys]
+  (reduce dissoc! m& keys))
+
 (defn transplant-meta [new old]
   (with-meta new (meta old)))
 

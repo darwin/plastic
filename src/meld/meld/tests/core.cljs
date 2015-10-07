@@ -7,7 +7,7 @@
             [meld.node :as node]
             [meld.zip :as zip]))
 
-(defn prepare-tree-based-meld-and-protocol []
+(defn build-tree-based-meld-and-protocol []
   (let [root-node (node/set-source (node/make-list) "fake source")                                                    ; id 1
         string-node (node/make-string "\"a string\"")                                                                 ; id 2
         linebreak-node (node/make-linebreak)                                                                          ; id 3
@@ -29,9 +29,6 @@
                   :tree      tree}]
     [meld protocol]))
 
-(defn build-tree-based-meld-and-protocol []
-  (util/with-stable-meld-ids prepare-tree-based-meld-and-protocol))
-
 (defn build-tree-based-meld []
   (first (build-tree-based-meld-and-protocol)))
 
@@ -39,25 +36,24 @@
 
 (deftest meld-construction
   (testing "construct an empty meld from scratch"
-    (let [empty-meld (meld/make)]
+    (let [empty-meld (meld/make {} nil)]
       (is (= (meld/nodes-count empty-meld) 0))
       (is (= (meld/get-root-node-id empty-meld) nil))
       (is (= (meld/get-root-node empty-meld) nil))
       (is (= (meld/get-node empty-meld 0) nil))))
   (testing "construct a simple meld from scratch"
-    (let [root-node {:id 0 :kind :root :children [1 2]}
-          leaf1-node {:id 1 :kind :leaf}
-          leaf2-node {:id 2 :kind :leaf}
-          hand-made-meld (meld/make {0 root-node
-                                     1 leaf1-node
-                                     2 leaf2-node} 0)]
+    (let [root-node {:id 1 :kind :root :children [1 2]}
+          leaf1-node {:id 2 :kind :leaf}
+          leaf2-node {:id 3 :kind :leaf}
+          base {1 root-node 2 leaf1-node 3 leaf2-node}
+          hand-made-meld (meld/make base 1 4)]
       (is (= (meld/nodes-count hand-made-meld) 3))
-      (is (= (meld/get-root-node-id hand-made-meld) 0))
+      (is (= (meld/get-root-node-id hand-made-meld) 1))
       (is (= (meld/get-root-node hand-made-meld) root-node))
-      (is (= (meld/get-node hand-made-meld 0) root-node))
-      (is (= (meld/get-node hand-made-meld 1) leaf1-node))
-      (is (= (meld/get-node hand-made-meld 2) leaf2-node))
-      (is (= (meld/get-node hand-made-meld 3) nil)))))
+      (is (= (meld/get-node hand-made-meld 1) root-node))
+      (is (= (meld/get-node hand-made-meld 2) leaf1-node))
+      (is (= (meld/get-node hand-made-meld 3) leaf2-node))
+      (is (= (meld/get-node hand-made-meld 4) nil)))))
 
 (meld-zip-card "tree-based-meld" nil #(zip/zip (build-tree-based-meld)))
 
@@ -77,4 +73,4 @@
       (is (= (meld/ancestors meld 6) '(4 1)))
       (is (= (meld/ancestors meld 2) '(1)))
       (is (= (meld/ancestors meld 1) '()))
-      (is (= (meld/get-root-node-id meld) (node/get-id root))))))
+      (is (= (meld/get-root-node-id meld) 1)))))
