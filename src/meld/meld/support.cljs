@@ -167,7 +167,7 @@
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn get-top-loc [loc]
-  (let [meta (zip/meta loc)
+  (let [meta (zip/aux loc)
         top-id (meld/get-top-node-id-from-meta meta)]
     (zip/set-id loc top-id)))
 

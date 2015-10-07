@@ -43,15 +43,15 @@
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn get-top-node-id-from-meta [meta]
-  (:top meta))
-
-(defn get-top-node-id [meld]
-  {:pre [meld]}
-  (get-top-node-id-from-meta (meta meld)))
+  (::top meta))
 
 (defn set-top-node-id [meld node-id]
   {:pre [meld]}
-  (vary-meta meld assoc :top node-id))
+  (vary-meta meld assoc ::top node-id))
+
+(defn get-top-node-id [meld]
+  {:pre [meld]}
+  (::top (meta meld)))
 
 (defn get-node [meld id]
   {:pre [meld]}
