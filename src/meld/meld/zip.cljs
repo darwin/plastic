@@ -6,39 +6,39 @@
             [meld.core :as meld]
             [meld.util :refer [update!]]))
 
-(defn meld& [loc]
+(defn get-meld& [loc]
   (get loc 0))
 
 (defn set-meld& [loc meld&]
   (assoc loc 0 meld&))
 
-(defn id [loc]
+(defn get-id [loc]
   (get loc 1 :end))
 
 (defn set-id [loc id]
   (assoc loc 1 id))
 
-(defn aux [loc]
+(defn get-aux [loc]
   (get loc 2))
 
 (defn set-aux [loc aux]
   (assoc loc 2 aux))
 
-(defn top-id [loc]
+(defn get-top-id [loc]
   (get loc 3))
 
 (defn set-top-id [loc top-id]
   (assoc loc 3 top-id))
 
 (defn ^boolean end? [loc]
-  (keyword-identical? :end (id loc)))
+  (keyword-identical? :end (get-id loc)))
 
 (defn ^boolean good? [loc]
-  (and loc (number? (id loc))))
+  (and loc (number? (get-id loc))))
 
-(defn node [loc]
+(defn get-node [loc]
   {:post [%]}
-  (get (meld& loc) (id loc)))
+  (get (get-meld& loc) (get-id loc)))
 
 (defn make-loc [meld& id aux top-id]
   [meld& id aux top-id])
@@ -47,52 +47,52 @@
 ; mirror node API on locs
 
 (defn get-source [loc]
-  (node/get-source (node loc)))
+  (node/get-source (get-node loc)))
 
 (defn get-content [loc]
-  (node/get-content (node loc)))
+  (node/get-content (get-node loc)))
 
 (defn get-type [loc]
-  (node/get-type (node loc)))
+  (node/get-type (get-node loc)))
 
 (defn get-tag [loc]
-  (node/get-tag (node loc)))
+  (node/get-tag (get-node loc)))
 
 (defn get-sexpr [loc]
-  (node/get-sexpr (node loc)))
+  (node/get-sexpr (get-node loc)))
 
 (defn ^boolean compound? [loc]
-  (node/compound? (node loc)))
+  (node/compound? (get-node loc)))
 
 (defn ^boolean whitespace? [loc]
-  (node/whitespace? (node loc)))
+  (node/whitespace? (get-node loc)))
 
 (defn ^boolean comment? [loc]
-  (node/comment? (node loc)))
+  (node/comment? (get-node loc)))
 
 (defn ^boolean linebreak? [loc]
-  (node/linebreak? (node loc)))
+  (node/linebreak? (get-node loc)))
 
 (defn ^boolean string? [loc]
-  (node/string? (node loc)))
+  (node/string? (get-node loc)))
 
 (defn ^boolean symbol? [loc]
-  (node/symbol? (node loc)))
+  (node/symbol? (get-node loc)))
 
 (defn ^boolean list? [loc]
-  (node/list? (node loc)))
+  (node/list? (get-node loc)))
 
 (defn ^boolean vector? [loc]
-  (node/vector? (node loc)))
+  (node/vector? (get-node loc)))
 
 (defn ^boolean map? [loc]
-  (node/map? (node loc)))
+  (node/map? (get-node loc)))
 
 (defn ^boolean set? [loc]
-  (node/set? (node loc)))
+  (node/set? (get-node loc)))
 
 (defn ^boolean unit? [loc]
-  (node/unit? (node loc)))
+  (node/unit? (get-node loc)))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -105,42 +105,42 @@
      (make-loc (transient meld) top-id aux top-id))))
 
 (defn unzip [loc]
-  (with-meta (persistent! (meld& loc)) (aux loc)))
+  (with-meta (persistent! (get-meld& loc)) (get-aux loc)))
 
 (defn subzip [loc]
   "Return a new zipper limited to a subtree at current loc"
   {:pre [(good? loc)]}
-  (set-top-id loc (id loc)))
+  (set-top-id loc (get-id loc)))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn ^boolean branch? [loc]
-  (node/compound? (node loc)))
+  (node/compound? (get-node loc)))
 
 (defn children
   "Returns a seq of the children of node at loc, which must be a branch"
   [loc]
   {:pre [(branch? loc)]}
-  (node/get-children (node loc)))
+  (node/get-children (get-node loc)))
 
 (defn parent-ignoring-subzip-boundary [loc]
-  (node/get-parent (node loc)))
+  (node/get-parent (get-node loc)))
 
 (defn parent [loc]
-  (if-not (identical? (id loc) (top-id loc))
-    (node/get-parent (node loc))))
+  (if-not (identical? (get-id loc) (get-top-id loc))
+    (node/get-parent (get-node loc))))
 
 (defn top [loc]
-  (set-id loc (top-id loc)))
+  (set-id loc (get-top-id loc)))
 
 (defn find [loc id]
-  (if (contains? (meld& loc) id)
+  (if (contains? (get-meld& loc) id)
     (set-id loc id)))
 
 (defn down
   "Returns the loc of the leftmost child of the node at this loc, or nil if no children"
   [loc]
-  (let [node (node loc)]
+  (let [node (get-node loc)]
     (if (node/compound? node)
       (if-let [first-child-id (first (node/get-children node))]
         (set-id loc first-child-id)))))
@@ -154,8 +154,8 @@
 (defn right
   "Returns the loc of the right sibling of the node at this loc, or nil"
   [loc]
-  (let [meld& (meld& loc)
-        id (id loc)]
+  (let [meld& (get-meld& loc)
+        id (get-id loc)]
     (if-let [parent-id (parent loc)]
       (if-let [right-id (node/peek-right (get meld& parent-id) id)]
         (set-id loc right-id)))))
@@ -163,8 +163,8 @@
 (defn left
   "Returns the loc of the left sibling of the node at this loc, or nil"
   [loc]
-  (let [meld& (meld& loc)
-        id (id loc)]
+  (let [meld& (get-meld& loc)
+        id (get-id loc)]
     (if-let [parent-id (parent loc)]
       (if-let [left-id (node/peek-left (get meld& parent-id) id)]
         (set-id loc left-id)))))
@@ -172,8 +172,8 @@
 (defn rightmost
   "Returns the loc of the rightmost sibling of the node at this loc, or self"
   [loc]
-  (let [meld& (meld& loc)
-        id (id loc)
+  (let [meld& (get-meld& loc)
+        id (get-id loc)
         parent-id (parent loc)]
     (if parent-id
       (let [parent (get meld& parent-id)
@@ -186,8 +186,8 @@
 (defn leftmost
   "Returns the loc of the leftmost sibling of the node at this loc, or self"
   [loc]
-  (let [meld& (meld& loc)
-        id (id loc)
+  (let [meld& (get-meld& loc)
+        id (get-id loc)
         parent-id (parent loc)]
     (if parent-id
       (let [parent (get meld& parent-id)
@@ -234,10 +234,10 @@
   (take-all next loc))
 
 (defn take-subtree [loc]
-  (let [stop-id (id (right loc))]
+  (let [stop-id (get-id (right loc))]
     (->> loc
       (iterate next)
-      (take-while #(not= (id %) stop-id)))))
+      (take-while #(not= (get-id %) stop-id)))))
 
 (defn take-descendants [loc]
   (rest (take-subtree loc)))
@@ -257,11 +257,11 @@
 ; deprecated, use take-* functions
 
 (defn descendant-locs [loc]
-  (let [stop-id (id (right loc))]
-    (take-while #(not= (id %) stop-id) (iterate next (next loc)))))
+  (let [stop-id (get-id (right loc))]
+    (take-while #(not= (get-id %) stop-id) (iterate next (next loc)))))
 
 (defn descendants [loc]
-  (map id (descendant-locs loc)))
+  (map get-id (descendant-locs loc)))
 
 (defn child-locs [loc]
   (->> loc
@@ -273,7 +273,7 @@
   (take-while good? (iterate up loc)))
 
 (defn ancestors [loc]
-  (map id (ancestor-locs loc)))
+  (map get-id (ancestor-locs loc)))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -286,8 +286,8 @@
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn insert-child [loc child-tree]
-  (let [meld& (meld& loc)
-        id (id loc)
+  (let [meld& (get-meld& loc)
+        id (get-id loc)
         child-node (meld/get-tree-node child-tree)
         child-id (node/get-id child-node)
         new-meld& (-> meld&
@@ -302,8 +302,8 @@
     (reduce * loc (reverse trees))))
 
 (defn insert-right [loc child-tree]
-  (let [meld& (meld& loc)
-        id (id loc)
+  (let [meld& (get-meld& loc)
+        id (get-id loc)
         parent-id (parent loc)
         _ (assert parent-id)
         child-node (meld/get-tree-node child-tree)
@@ -320,8 +320,8 @@
     (reduce * loc (reverse trees))))
 
 (defn insert-left [loc child-tree]
-  (let [meld& (meld& loc)
-        id (id loc)
+  (let [meld& (get-meld& loc)
+        id (get-id loc)
         parent-id (parent loc)
         _ (assert parent-id)
         child-node (meld/get-tree-node child-tree)
@@ -342,8 +342,8 @@
   [loc]
   (let [prev-loc (prev loc)]
     (assert prev-loc "Remove at top")
-    (let [meld& (meld& loc)
-          id (id loc)
+    (let [meld& (get-meld& loc)
+          id (get-id loc)
           parent-id (parent loc)
           _ (assert parent-id)
           new-meld& (-> meld&
@@ -356,8 +356,8 @@
 (defn replace
   "Replaces the node at this loc with a new tree, without moving"
   [loc tree]
-  (let [meld& (meld& loc)
-        id (id loc)
+  (let [meld& (get-meld& loc)
+        id (get-id loc)
         new-node (meld/get-tree-node tree)
         new-node-id (node/get-id new-node)
         parent-id (parent-ignoring-subzip-boundary loc)                                                               ; note: can be nil and that's a valid case for root node
@@ -373,9 +373,9 @@
 (defn edit*
   "Edits the node at this loc by replacing it with a new node in-place, not changing any parent/child relationships"
   [loc new-node]
-  (let [meld& (meld& loc)
-        id (id loc)
-        old-node (node loc)
+  (let [meld& (get-meld& loc)
+        id (get-id loc)
+        old-node (get-node loc)
         ; new-node must have same id, parent and children
         _ (assert (identical? (node/get-id old-node) (node/get-id new-node)))
         _ (assert (identical? (node/get-parent old-node) (node/get-parent new-node)))
@@ -388,12 +388,12 @@
 (defn edit
   "Edits the node at this loc with the value of (f node args)"
   [loc f & args]
-  (edit* loc (apply f (node loc) args)))
+  (edit* loc (apply f (get-node loc) args)))
 
 (defn walk [loc accum f & args]
   (let [walk-child (fn [accum child-id]
                      (apply walk (set-id loc child-id) accum f args))
-        node (node loc)]
+        node (get-node loc)]
     (if-let [children (if (node/compound? node) (node/get-children node))]
       (let [accum-after-enter (apply f accum node :enter args)
             accum-after-children (reduce walk-child accum-after-enter children)
@@ -404,22 +404,22 @@
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn ^boolean top? [loc]
-  (identical? (id loc) (top-id loc)))
+  (identical? (get-id loc) (get-top-id loc)))
 
 (defn ^boolean child-of-top? [loc]
   (top? (parent loc)))
 
 (defn ^boolean leftmost? [loc]
-  (identical? (id (leftmost loc)) (id loc)))
+  (identical? (get-id (leftmost loc)) (get-id loc)))
 
 (defn ^boolean rightmost? [loc]
-  (identical? (id (rightmost loc)) (id loc)))
+  (identical? (get-id (rightmost loc)) (get-id loc)))
 
 (defn lefts
   "Returns a seq of the left siblings of this loc"
   [loc]
-  (let [meld& (meld& loc)
-        id (id loc)
+  (let [meld& (get-meld& loc)
+        id (get-id loc)
         parent-id (parent loc)]
     (assert parent-id "called lefts at top")
     (map (partial meld/get-node meld&) (node/lefts (get meld& parent-id) id))))
@@ -427,8 +427,8 @@
 (defn rights
   "Returns a seq of the right siblings of this loc"
   [loc]
-  (let [meld& (meld& loc)
-        id (id loc)
+  (let [meld& (get-meld& loc)
+        id (get-id loc)
         parent-id (parent loc)]
     (assert parent-id "called rights at top")
     (map (partial meld/get-node meld&) (node/rights (get meld& parent-id) id))))
@@ -438,7 +438,7 @@
 (defn desc [loc]
   (if-not (good? loc)
     "nil"
-    (let [node (node loc)]
+    (let [node (get-node loc)]
       (node/get-desc node))))
 
 ; -------------------------------------------------------------------------------------------------------------------

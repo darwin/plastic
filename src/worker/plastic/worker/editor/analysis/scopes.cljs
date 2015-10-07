@@ -36,7 +36,7 @@
 (defn collect-node-params [loc max-path]
   (->> loc
     (zip/descendant-locs)
-    (map zip/node)
+    (map zip/get-node)
     (filter node/symbol?)
     (filter-non-args)
     (map (fn [node] [node max-path]))))
@@ -93,7 +93,7 @@
   (if (fn? decl-node)
     (decl-node loc)
     (or
-      (identical? (zip/node loc) decl-node)
+      (identical? (zip/get-node loc) decl-node)
       (and
         (= (zip/get-source loc) (node/get-source decl-node))
         (zip/path<= effective-marker-path (zip/loc->path loc))))))
@@ -106,14 +106,14 @@
           best-node (first (last matching-locals))]
       (if best-node
         (set! *related-rings* (update *related-rings* (:id best-node) (fn [node-ids]
-                                                                        (let [new-id (zip/id loc)]
+                                                                        (let [new-id (zip/get-id loc)]
                                                                           (if node-ids
                                                                             (conj node-ids new-id)
                                                                             [new-id]))))))
       (if-not (= hit-count 0)
         (merge (:scope scope-info)
           {:shadows hit-count}
-          (if (identical? best-node (zip/node loc))
+          (if (identical? best-node (zip/get-node loc))
             {:decl? true}))
         (find-symbol-declaration loc (:parent-scope scope-info))))))
 
@@ -125,7 +125,7 @@
     scope-info))
 
 (defn analyze-scope [scope-info loc]
-  (let [id (zip/id loc)
+  (let [id (zip/get-id loc)
         child-locs (zip/child-locs loc)
         depth (get-in scope-info [:scope :depth])
         analyze-child-scopes (fn [scope] (into {} (map (partial analyze-scope scope) child-locs)))]

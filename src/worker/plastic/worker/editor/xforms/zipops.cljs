@@ -17,7 +17,7 @@
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn report* [f report loc]
-  (report/merge report (f (zip/id loc))))
+  (report/merge report (f (zip/get-id loc))))
 
 (def report-modified (partial report* report/make-modified))
 (def report-added (partial report* report/make-added))
@@ -25,7 +25,7 @@
 (def report-moved (partial report* report/make-moved))
 
 (defn report*list [f report locs]
-  (report/merge report (f (map zip/id locs))))
+  (report/merge report (f (map zip/get-id locs))))
 
 (def report-modified-list (partial report*list report/make-modified-list))
 (def report-added-list (partial report*list report/make-added-list))

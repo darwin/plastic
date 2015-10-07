@@ -28,7 +28,7 @@
           (fn [editor unit-loc]
             (let [editor-id (editor/get-id editor)
                   unit-loc (zip/subzip unit-loc)
-                  unit-id (zip/id unit-loc)
+                  unit-id (zip/get-id unit-loc)
                   old-analysis (editor/get-analysis-for-unit editor unit-id)
                   new-analysis (prepare-unit-analysis unit-loc)
                   patch (helpers/prepare-map-patch old-analysis new-analysis)]

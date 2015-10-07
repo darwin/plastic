@@ -52,15 +52,15 @@
   (let [relevant-locs (remove #(or (utils/doc? %) (linebreak-near-doc? %)) locs)
         lines (reduce break-locs-into-lines [[]] relevant-locs)]
     (if (<= (count lines) 1)
-      [{:oneliner? true} (cons {} (map zip/id (first lines)))]
+      [{:oneliner? true} (cons {} (map zip/get-id (first lines)))]
       (let [first-line-is-double-column? (is-double-column-line? (first lines))]
         (cons {:multiline? true}
           (for [line lines]
             (if (is-double-column-line? line)
               (let [indent? (and (not first-line-is-double-column?) (not= line (first lines)))]
-                (cons {:double-column? true :indent indent?} (map zip/id line)))
+                (cons {:double-column? true :indent indent?} (map zip/get-id line)))
               (let [indent? (not= line (first lines))]
-                (cons {:indent indent?} (map zip/id line))))))))))
+                (cons {:indent indent?} (map zip/get-id line))))))))))
 
 (defn prepend-spot [table node-id]
   (let [spot-id (id/make-spot node-id)
@@ -72,10 +72,10 @@
   (-> loc
     (child-locs-without-comments-and-ignored-linebreaks)
     (prepare-children-table)
-    (prepend-spot (zip/id loc))))
+    (prepend-spot (zip/get-id loc))))
 
 (defn add-code-item [accum loc]
-  (let [node (zip/node loc)
+  (let [node (zip/get-node loc)
         node-id (node/get-id node)
         inner? (node/compound? node)
         tag (node/get-tag node)
@@ -98,7 +98,7 @@
           (not inner?) (assoc :text (prepare-node-text node)))))))
 
 (defn add-spot-item [accum loc]
-  (let [node-id (zip/id loc)
+  (let [node-id (zip/get-id loc)
         spot-id (id/make-spot node-id)
         line (:line accum)]
     (-> accum
@@ -114,7 +114,7 @@
          :text          ""}))))
 
 (defn add-doc-item [accum loc]
-  (let [node-id (zip/id loc)
+  (let [node-id (zip/get-id loc)
         text (zip/get-source loc)]
     (-> accum
       (update :docs #(conj % node-id))
@@ -130,7 +130,7 @@
          :text          (utils/prepare-string-for-display text)}))))
 
 (defn add-comment-item [accum loc]
-  (let [node-id (zip/id loc)
+  (let [node-id (zip/get-id loc)
         line (:line accum)]
     (-> accum
       (update :comments #(conj % node-id))
@@ -146,20 +146,20 @@
          :text          (zip/get-content loc)}))))
 
 (defn lookup-def-arities [accum loc]
-  (let [node-id (zip/id loc)]
+  (let [node-id (zip/get-id loc)]
     (if-let [arities (utils/lookup-arities loc)]
       (assoc-in accum [:data node-id :arities] arities)
       accum)))
 
 (defn add-def-name [accum loc]
-  (let [node-id (zip/id loc)]
+  (let [node-id (zip/get-id loc)]
     (-> accum
       (add-code-item loc)
       (lookup-def-arities loc)
       (update :headers #(conj % node-id)))))
 
 (defn build-unit-layout [accum loc stop-id]
-  (if (= (zip/id loc) stop-id)
+  (if (= (zip/get-id loc) stop-id)
     accum
     (let [next-loc (zip/next loc)
           ignored? (ignored-linebreak? loc)]
@@ -187,8 +187,8 @@
 (defn get-first-leaf-expr [loc]
   (let [bottom-loc (zip/next loc)
         right-loc (zip/right loc)]
-    (if (and (zip/good? bottom-loc) (not= (zip/id right-loc) (zip/id bottom-loc)))
-      (node/get-source (zip/node bottom-loc)))))
+    (if (and (zip/good? bottom-loc) (not= (zip/get-id right-loc) (zip/get-id bottom-loc)))
+      (node/get-source (zip/get-node bottom-loc)))))
 
 (defn count-comment-lines [comment-layout]
   (count (string/split (:text comment-layout) #"\n")))
@@ -208,10 +208,10 @@
 (defn build-layout [unit-loc]
   {:pre [(zip/good? unit-loc)]}
   (let [initial {:data {} :code [] :docs [] :headers [] :comments [] :line 0}
-        stop-id (zip/id (zip/right unit-loc))
+        stop-id (zip/get-id (zip/right unit-loc))
         first-loc (zip/down unit-loc)
         {:keys [data code docs headers comments _line]} (build-unit-layout initial first-loc stop-id)
-        unit-id (zip/id unit-loc)
+        unit-id (zip/get-id unit-loc)
         unit-type (name (zip/get-tag first-loc))
         unit-kind (get-first-leaf-expr first-loc)
         has-code? (not (empty? code))

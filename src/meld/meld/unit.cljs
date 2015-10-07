@@ -46,10 +46,10 @@
 
 (defn group-into-units [meld]
   (let [file-loc (zip/zip meld)
-        file-id (zip/id file-loc)
+        file-id (zip/get-id file-loc)
         first-loc (zip/down file-loc)
         partitions (partition-by (make-unit-detector) (take-while zip/good? (iterate zip/right first-loc)))
-        unit-children-ids (map #(map zip/id %) partitions)
+        unit-children-ids (map #(map zip/get-id %) partitions)
         unit-ids! (volatile! [])
         * (fn [meld& ids]
             (let [[start end source] (merge-nodes-info meld& ids)

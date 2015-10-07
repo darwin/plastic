@@ -12,5 +12,5 @@
 
 (defn analyze-calls [analysis loc]
   (let [call-locs (find-call-locs loc)
-        call-analysis (into {} (map (fn [loc] [(zip/id loc) {:call? true}]) call-locs))]
+        call-analysis (into {} (map (fn [loc] [(zip/get-id loc) {:call? true}]) call-locs))]
     (helpers/deep-merge analysis call-analysis)))

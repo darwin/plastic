@@ -27,7 +27,7 @@
     (loop [loc start-loc]
       (if (zip/end? loc)
         (persistent! @hist$!)
-        (let [node (zip/node loc)
+        (let [node (zip/get-node loc)
               [ra rb] (node/get-range node)]
           (if (or include-compounds? (not (node/compound? node)))
             (doseq [i (range ra rb)]
@@ -167,7 +167,7 @@
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn get-top-loc [loc]
-  (let [meta (zip/aux loc)
+  (let [meta (zip/get-aux loc)
         top-id (meld/get-top-node-id-from-meta meta)]
     (zip/set-id loc top-id)))
 
@@ -194,11 +194,11 @@
   {:lineInterpolate "basis"})
 
 (defn populate-graph-nodes! [graph start-loc selected-id]
-  (let [top-id (zip/top-id start-loc)
+  (let [top-id (zip/get-top-id start-loc)
         is-disabled? (fn [loc] (not (some #{top-id} (zip/ancestors loc))))]
     (loop [loc start-loc]
       (if-not (zip/end? loc)
-        (let [node (zip/node loc)
+        (let [node (zip/get-node loc)
               node-id (node/get-id node)
               selected? (= node-id selected-id)
               disabled? (is-disabled? loc)
@@ -210,7 +210,7 @@
   (loop [loc start-loc]
     (when-not (zip/end? loc)
       (if (zip/branch? loc)
-        (let [node (zip/node loc)
+        (let [node (zip/get-node loc)
               node-id (node/get-id node)
               children (node/get-children node)]
           (doseq [child-id children]
@@ -224,7 +224,7 @@
         graph (graph-class.)
         top-loc (get-top-loc loc)]
     (.setGraph graph #js {})
-    (populate-graph-nodes! graph top-loc (zip/id loc))
+    (populate-graph-nodes! graph top-loc (zip/get-id loc))
     (populate-graph-edges! graph top-loc)
     graph))
 

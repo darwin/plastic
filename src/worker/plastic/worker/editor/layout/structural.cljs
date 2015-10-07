@@ -7,7 +7,7 @@
 
 (defn safe-loc-id [loc]
   (if (zip/good? loc)
-    (zip/id loc)))
+    (zip/get-id loc)))
 
 (defn safe-make-spot-id [id layout]
   (if id
@@ -25,7 +25,7 @@
 (defn build-structural-web-for-code [web code-locs layout]
   (process code-locs web
     (fn [accum loc]
-      (let [id (zip/id loc)
+      (let [id (zip/get-id loc)
             up-loc (zip/up loc)
             down-loc (zip/down loc)
             left-loc (zip/left loc)
@@ -49,7 +49,7 @@
           (assoc accum comment-id record))))))
 
 (defn build-structural-web [unit-loc layout]
-  (let [unit-id (zip/id unit-loc)
+  (let [unit-id (zip/get-id unit-loc)
         all-locs (zip/descendant-locs unit-loc)
         comments-id (id/make unit-id :comments)
         comments-layout (get layout comments-id)

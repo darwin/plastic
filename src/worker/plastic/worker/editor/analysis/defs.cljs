@@ -9,10 +9,10 @@
         first-string-loc (first (filter zip/string? children))
         first-symbol-loc (first (rest (filter zip/symbol? children)))]
     [(if first-symbol-loc
-       [(zip/id first-symbol-loc) {:def-name? true}])
+       [(zip/get-id first-symbol-loc) {:def-name? true}])
      (if first-string-loc
-       [(zip/id first-string-loc) {:def-doc? true :selectable? true}])
-     [(zip/id loc) {:def? true}]]))
+       [(zip/get-id first-string-loc) {:def-doc? true :selectable? true}])
+     [(zip/get-id loc) {:def? true}]]))
 
 (defn find-def-locs [loc]
   (filter utils/is-def? (take-while zip/good? (iterate zip/next loc))))

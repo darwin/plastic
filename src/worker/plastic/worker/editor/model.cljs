@@ -206,7 +206,7 @@
   {:pre [(valid-editor? editor)]}
   (let [node-loc (find-node-loc editor node-id)]
     (if (good? node-loc)
-      (zip/node node-loc))))
+      (zip/get-node node-loc))))
 
 (defn get-unit-ids [editor]
   {:pre [(valid-editor? editor)]}
@@ -236,7 +236,7 @@
   {:pre [(valid-editor? editor)]}
   (process (get-unit-locs editor) editor
     (fn [editor unit-loc]
-      (or (if (helpers/selector-matches? selector (zip/id unit-loc))
+      (or (if (helpers/selector-matches? selector (zip/get-id unit-loc))
             (apply f editor unit-loc args))
         editor))))
 
