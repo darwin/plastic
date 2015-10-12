@@ -9,24 +9,15 @@ lastId = 0
 monkeyPatchPresenterInstance = (editorView) ->
   presenter = editorView.component.presenter
   throw "presenter on editorView.component not found" unless presenter
-  originalMethod = presenter.updateContentDimensions
-  throw "presenter.updateContentDimensions not found" unless originalMethod
-  presenter.updateContentDimensions = ->
-    if @lineHeight?
-      oldContentHeight = @contentHeight
-      @contentHeight = @lineHeight * @model.getScreenLineCount()
-
+  originalMethod = presenter.updateHorizontalDimensions
+  throw "presenter.updateHorizontalDimensions not found" unless originalMethod
+  updateHorizontalDimensions: ->
     if @baseCharacterWidth?
       oldContentWidth = @contentWidth
       clip = @model.tokenizedLineForScreenRow(@model.getLongestScreenRow())?.isSoftWrapped()
       @contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), @model.getMaxScreenLineLength()], clip).left
       @contentWidth += @scrollLeft
       @contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
-
-    if @contentHeight isnt oldContentHeight
-      @updateHeight()
-      @updateScrollbarDimensions()
-      @updateScrollHeight()
 
     if @contentWidth isnt oldContentWidth
       # <<<<<<<<<< next line seamlesly expands editor content frame as user is typing
