@@ -11,7 +11,7 @@
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn transfer-sticky-attrs [old-node new-node]
-  (let [sticky-bits (select-keys old-node [:id])]
+  (let [sticky-bits (select-keys old-node [:id :parent])]
     (merge new-node sticky-bits)))
 
 ; -------------------------------------------------------------------------------------------------------------------

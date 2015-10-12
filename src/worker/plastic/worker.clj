@@ -43,7 +43,7 @@
                                         (fancy-log* "" "WORK" "ZIPOP"
                                           (apply str (repeat plastic.env.*zip-op-nesting* "  "))
                                           (.-name op#) args# "@"
-                                          (meld.zip.id (first x#))
+                                          (meld.zip.get-id (first x#))
                                           (meld.zip.desc (first x#))))
                                 res# (apply op# (conj args# x#))]
                             (assert (or (nil? res#) (and (vector? res#)
