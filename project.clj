@@ -62,8 +62,8 @@
                                             "plastic.env.legacy_devtools"           true
                                             "plastic.env.validate_dbs"              true
                                             "plastic.env.log_all_dispatches"        true}
-                    :output-to             "lib/_dev_build/main/plastic.js"
-                    :output-dir            "lib/_dev_build/main"
+                    :output-to             "lib/_build/main/plastic.js"
+                    :output-dir            "lib/_build/main"
                     :optimizations         :none
                     :target                :nodejs
                     :anon-fn-naming-policy :unmapped
