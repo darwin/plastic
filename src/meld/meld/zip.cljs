@@ -6,44 +6,44 @@
             [meld.core :as meld]
             [meld.util :refer [update! dissoc-all!]]))
 
-(defn make-loc [meld& id aux top-id root-id next-id]
-  [meld& id aux top-id root-id next-id])
-
-(defn get-meld& [loc]
-  (get loc 0))
-
-(defn set-meld& [loc meld&]
-  (assoc loc 0 meld&))
+(defn make-loc [id top-id root-id next-id aux meld&]
+  [id top-id root-id next-id aux meld&])
 
 (defn get-id [loc]
-  (get loc 1 :end))
+  (get loc 0 :end))
 
 (defn set-id [loc id]
-  (assoc loc 1 id))
-
-(defn get-aux [loc]
-  (get loc 2))
-
-(defn set-aux [loc aux]
-  (assoc loc 2 aux))
+  (assoc loc 0 id))
 
 (defn get-top-id [loc]
-  (get loc 3))
+  (get loc 1))
 
 (defn set-top-id [loc top-id]
-  (assoc loc 3 top-id))
+  (assoc loc 1 top-id))
 
 (defn get-root-id [loc]
-  (get loc 4))
+  (get loc 2))
 
 (defn set-root-id [loc root-id]
-  (assoc loc 4 root-id))
+  (assoc loc 2 root-id))
 
 (defn get-next-id [loc]
-  (get loc 5))
+  (get loc 3))
 
 (defn set-next-id [loc next-id]
-  (assoc loc 5 next-id))
+  (assoc loc 3 next-id))
+
+(defn get-aux [loc]
+  (get loc 4))
+
+(defn set-aux [loc aux]
+  (assoc loc 4 aux))
+
+(defn get-meld& [loc]
+  (get loc 5))
+
+(defn set-meld& [loc meld&]
+  (assoc loc 5 meld&))
 
 (defn ^boolean end? [loc]
   (keyword-identical? :end (get-id loc)))
@@ -117,7 +117,7 @@
          root-id (meld/get-root-node-id meld)
          next-id (meld/get-next-node-id meld)
          top-id (or top-id root-id)]
-     (make-loc (transient meld) top-id aux top-id root-id next-id))))
+     (make-loc top-id top-id root-id next-id aux (transient meld)))))
 
 (defn unzip [loc]
   "Turns zipper back into meld structure commiting all potential changes"
