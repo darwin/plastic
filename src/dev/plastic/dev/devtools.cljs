@@ -8,4 +8,5 @@
 
 (log "installing cljs-devtools")
 
+(devtools/set-pref! :install-sanity-hints true)
 (devtools/install!)

@@ -4,14 +4,14 @@
 
   :dependencies
   [[org.clojure/clojure "1.7.0"]
-   [org.clojure/clojurescript "1.7.122"]
-   [org.clojure/tools.reader "0.10.0-alpha3"]
+   [org.clojure/clojurescript "1.7.145"]
+   [org.clojure/tools.reader "0.10.0"]
    [org.clojure/core.async "0.1.346.0-17112a-alpha"]
    [com.cognitect/transit-cljs "0.8.225"]
-   [devcards "0.2.0-SNAPSHOT"]
+   [devcards "0.2.0-8"]
    [re-frame "0.4.1"]
-   [binaryage/devtools "0.3.0"]
-   [figwheel "0.4.0"]
+   [binaryage/devtools "0.4.0"]
+   [figwheel "0.4.1"]
    [rm-hull/inkspot "0.0.1-SNAPSHOT"]
    [spellhouse/phalanges "0.1.6"]
    [funcool/cuerdas "0.6.0"]
@@ -21,7 +21,7 @@
 
   :plugins
   [[lein-cljsbuild "1.1.0"]
-   [lein-figwheel "0.4.0"]]
+   [lein-figwheel "0.4.1"]]
 
   :source-paths ["src"
                  "target/classes"]
