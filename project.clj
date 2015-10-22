@@ -16,6 +16,8 @@
    [spellhouse/phalanges "0.1.6"]
    [funcool/cuerdas "0.6.0"]
    [prismatic/schema "1.0.1"]
+   [com.rpl/specter "0.8.0"]
+   [com.stuartsierra/component "0.3.0"]
    [reagent "0.5.1" :exclusions [cljsjs/react]]
    [cljsjs/react "0.13.3-1"]]
 
