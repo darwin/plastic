@@ -11,7 +11,7 @@ monkeyPatchPresenterInstance = (editorView) ->
   throw "presenter on editorView.component not found" unless presenter
   originalMethod = presenter.updateHorizontalDimensions
   throw "presenter.updateHorizontalDimensions not found" unless originalMethod
-  updateHorizontalDimensions: ->
+  presenter.updateHorizontalDimensions = ->
     if @baseCharacterWidth?
       oldContentWidth = @contentWidth
       clip = @model.tokenizedLineForScreenRow(@model.getLongestScreenRow())?.isSoftWrapped()
