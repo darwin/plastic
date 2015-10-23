@@ -7,7 +7,7 @@
             [figwheel.client.utils :as utils]))
 
 (defonce ^:dynamic *inside-repl-plugin* false)
-(def ^:const repl-style "color:white; background-color:black; padding:0px 2px; border-radius:2px;")
+(def ^:const repl-marker-style "color:white; background-color:black; padding:0px 2px; border-radius:1px;")
 
 (defn figwheel-repl-fix [code]
   (.replace code
@@ -28,15 +28,18 @@
     (js* "eval(~{code})")))
 
 (defn present-repl-result [result]
-  (log "%cREPL" repl-style result))
+  (log "%cREPL" repl-marker-style result))
+
+(defn eval-inside-repl-plugin [code]
+  (let [rewritten-code (rewrite-repl-code-snippet code)
+        result (eval rewritten-code)]
+    (present-repl-result result)
+    (pr-str result)))
 
 (defn fancy-eval [code]
-  (if-not *inside-repl-plugin*
-    (eval code)
-    (let [rewritten-code (rewrite-repl-code-snippet code)
-          result (eval rewritten-code)]
-      (present-repl-result result)
-      (pr-str result))))
+  (if *inside-repl-plugin*
+    (eval-inside-repl-plugin code)
+    (eval code)))
 
 (defn repl-plugin [& args]
   (let [standard-impl (apply figwheel/repl-plugin args)]
