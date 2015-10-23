@@ -50,6 +50,7 @@
                     "checkouts/re-frame/src"
                     "checkouts/reagent/src"
                     "checkouts/tools.reader/src/main"
+                    "checkouts/support/src"
                     "src/env"
                     "src/dev"
                     "src/meld"
