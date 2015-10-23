@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -ex
 
 if [ "$(uname)" != "Darwin" ]; then
   echo "Supported only under OS X."

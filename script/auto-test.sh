@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -ex
 
 # http://stackoverflow.com/a/32566506/84283
 kill_childs() {
