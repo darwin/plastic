@@ -1,13 +1,10 @@
 (ns plastic.dev.figwheel
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [plastic.env]
-            [clojure.string :as string]
-            [figwheel.client :as figwheel]
-            [figwheel.client.socket :as socket]
-            [figwheel.client.utils :as utils]))
+            [figwheel.client :as figwheel]))
 
 (defonce ^:dynamic *inside-repl-plugin* false)
-(def ^:const repl-marker-style "color:white; background-color:black; padding:0px 2px; border-radius:1px;")
+(defonce ^:const repl-marker-style "color:white; background-color:black; padding:0px 2px; border-radius:1px;")
 
 (defn figwheel-repl-fix [code]
   (.replace code
