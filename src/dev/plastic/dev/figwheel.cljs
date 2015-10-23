@@ -62,4 +62,6 @@
     {:on-jsload     on-js-load
      :eval-fn       eval
      :websocket-url "ws://localhost:7000/figwheel-ws"
-     :merge-plugins {:repl-plugin repl-plugin}}))
+     :build-id      'dev
+     ; :merge-plugins {:repl-plugin repl-plugin}
+     }))
