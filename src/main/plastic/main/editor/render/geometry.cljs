@@ -5,6 +5,8 @@
             [plastic.util.dom :as dom]
             [plastic.onion.api :refer [$]]))
 
+; -------------------------------------------------------------------------------------------------------------------
+
 (defn read-geometry [parent-offset dom-node]
   (if-let [node-id (dom/read-node-id dom-node)]
     (let [offset (.offset ($ dom-node))]

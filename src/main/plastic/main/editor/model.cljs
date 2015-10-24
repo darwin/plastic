@@ -1,38 +1,33 @@
 (ns plastic.main.editor.model
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.main :refer [dispatch worker-dispatch]]
+                   [plastic.frame :refer [dispatch]]
                    [plastic.common :refer [process]])
-  (:require [plastic.util.helpers :as helpers :refer [select-values]]
+  (:require [plastic.editor.model :as shared]
+            [plastic.util.helpers :as helpers :refer [select-values]]
             [plastic.main.editor.toolkit.id :as id]
             [clojure.set :as set]))
 
-(defprotocol IEditor)
-
-(defrecord Editor [id]
-  IEditor)
-
-(extend-protocol IHash
-  Editor
-  (-hash [this] (goog/getUid this)))
-
-(defn make [editor-id]
-  (Editor. editor-id))
-
-(defn ^boolean valid-editor? [editor]
-  (satisfies? IEditor editor))
-
-(defn ^boolean valid-editor-id? [editor-id]
-  (pos? editor-id))
+; -------------------------------------------------------------------------------------------------------------------
 
 (declare update-highlight-and-puppets)
 (declare get-unit-id-for-node-id)
 
 ; -------------------------------------------------------------------------------------------------------------------
+; shared functionality
 
-(defn get-id [editor]
-  {:pre  [(valid-editor? editor)]
-   :post [(valid-editor-id? %)]}
-  (:id editor))
+(def make shared/make)
+(def valid-editor? shared/valid-editor?)
+(def valid-editor-id? shared/valid-editor-id?)
+
+(def get-id shared/get-id)
+(def apply-to-editors shared/apply-to-editors)
+(def get-context shared/get-context)
+(def set-context shared/set-context)
+(def strip-context shared/strip-context)
+
+(def subscribe! shared/subscribe!)
+(def unsubscribe! shared/unsubscribe!)
+(def unsubscribe-all! shared/unsubscribe-all!)
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -46,7 +41,7 @@
          (string? uri)]}
   (or
     (when (not= (get-uri editor) uri)
-      (dispatch :editor-fetch-text (get-id editor))
+      (dispatch (get-context editor) [:editor-fetch-text (get-id editor)])
       (assoc editor :uri uri))
     editor))
 
@@ -209,24 +204,6 @@
   {:pre [(valid-editor? editor)
          (set? puppets)]}
   (assoc editor :puppets puppets))
-
-; -------------------------------------------------------------------------------------------------------------------
-
-(defn selector-matches-editor? [editor-id selector]
-  {:pre [(valid-editor-id? editor-id)]}
-  (cond
-    (vector? selector) (some #{editor-id} selector)
-    (set? selector) (contains? selector editor-id)
-    :default (= editor-id selector)))
-
-(defn apply-to-editors [editors selector f & args]
-  (process (keys editors) editors
-    (fn [editors editor-id]
-      (or
-        (if (selector-matches-editor? editor-id selector)
-          (if-let [new-editor (apply f (get editors editor-id) args)]
-            (assoc editors editor-id new-editor)))
-        editors))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -408,11 +385,11 @@
 (defn find-related-ring [editor node-id]
   {:pre [(valid-editor? editor)]}
   ; TODO: in future searching for related ring should be across whole file, not just unit-specific
-  (let [unit-id (get-unit-id-for-node-id editor node-id)
-        _ (assert unit-id)
-        analysis (get-analysis-for-unit editor unit-id)
-        info (get analysis node-id)]
-    (or (:related info) #{})))
+  (or
+    (if-let [unit-id (get-unit-id-for-node-id editor node-id)]
+      (let [analysis (get-analysis-for-unit editor unit-id)
+            info (get analysis node-id)]
+        (:related info))) #{}))
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; inline-editor

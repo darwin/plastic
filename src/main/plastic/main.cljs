@@ -1,5 +1,7 @@
 (ns plastic.main
-  (:require [plastic.env]
-            [plastic.node]))
+  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
+  (:require [plastic.main.servant :as servant]))
 
-; leave this namespace empty, we will require root namespaces by hand,, see boot.coffee
+; -------------------------------------------------------------------------------------------------------------------
+
+(def ^:export dispatch-to-worker servant/dispatch-to-worker)

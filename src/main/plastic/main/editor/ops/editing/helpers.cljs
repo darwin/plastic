@@ -1,18 +1,30 @@
 (ns plastic.main.editor.ops.editing.helpers
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.main :refer [worker-dispatch-args]]
+                   [plastic.frame :refer [worker-dispatch]]
                    [plastic.common :refer [process]])
   (:require [plastic.main.editor.model :as editor]
             [plastic.main.editor.ops.cursor :as cursor]
             [plastic.main.editor.toolkit.id :as id]))
 
+; -------------------------------------------------------------------------------------------------------------------
+
 (defn xform-event [editor & args]
   (vec (concat [:editor-xform (editor/get-id editor)] args)))
 
 (defn xform-editor-on-worker [editor args & [callback]]
-  (worker-dispatch-args (apply xform-event editor args)
-    (if callback (editor/db-updater (editor/get-id editor) callback)))
-  editor)
+  (let [context (editor/get-context editor)
+        post-handler (if callback
+                       (fn [db]
+                         (let [editor-id (editor/get-id editor)
+                               editor (get-in db [:editors editor-id])
+                               editor-with-context (editor/set-context editor context)
+                               editor-after-callback (callback editor-with-context (editor/get-xform-report editor))
+                               new-editor (editor/strip-context editor-after-callback)]
+                           (if-not (identical? editor new-editor)
+                             (assoc-in db [:editors editor-id] new-editor)
+                             db))))]
+    (worker-dispatch context (apply xform-event editor args) post-handler)
+    editor))
 
 (defn continue [cb]
   (or cb identity))

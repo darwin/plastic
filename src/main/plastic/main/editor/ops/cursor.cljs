@@ -5,6 +5,8 @@
             [plastic.main.editor.ops.movement.spatial :refer [spatial-movement]]
             [plastic.main.editor.ops.movement.structural :refer [structural-movemement]]))
 
+; -------------------------------------------------------------------------------------------------------------------
+
 (def movements
   {:spatial-up       (partial spatial-movement :up)
    :spatial-down     (partial spatial-movement :down)

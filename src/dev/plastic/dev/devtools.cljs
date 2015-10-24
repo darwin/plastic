@@ -3,7 +3,9 @@
   (:require [plastic.env]
             [devtools.core :as devtools]))
 
-(when plastic.env.legacy-devtools
+; -------------------------------------------------------------------------------------------------------------------
+
+(when plastic.config.legacy-devtools
   (devtools/set-pref! :legacy-formatter true))
 
 (log "installing cljs-devtools")

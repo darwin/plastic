@@ -3,10 +3,12 @@
   (:require [plastic.main.editor.render.utils :refer [wrap-specials classv apply-shadowing-subscripts]]
             [plastic.main.editor.render.inline-editor :refer [inline-editor-component]]
             [plastic.main.editor.render.reusables :refer [raw-html-component]]
-            [plastic.main.frame :refer [subscribe]]
+            [plastic.frame :refer [subscribe]]
             [plastic.util.helpers :as helpers]
             [plastic.main.editor.toolkit.id :as id]
             [plastic.util.dom :as dom]))
+
+; -------------------------------------------------------------------------------------------------------------------
 
 (defn code-token-component
   "A reagent component responsible for rendering a singe code token.
@@ -15,14 +17,14 @@ The component subscribes to relevant data which affects its visual appearance.
 The component can present inline-editor in its place if in editing mode.
 
 A hint: set `plastic.env.log-rendering` to log render calls into devtools console."
-  [editor-id unit-id node-id]
-  (let [selected? (subscribe [:editor-selection-node editor-id node-id])
-        editing? (subscribe [:editor-editing-node editor-id node-id])
-        cursor? (subscribe [:editor-cursor-node editor-id node-id])
-        highlight? (subscribe [:editor-highlight-node editor-id node-id])
-        layout (subscribe [:editor-layout-unit-node editor-id unit-id node-id])
-        analysis (subscribe [:editor-analysis-unit-node editor-id unit-id node-id])]
-    (fn [_editor-id _unit-id _node-id]
+  [context editor-id unit-id node-id]
+  (let [selected? (subscribe context [:editor-selection-node editor-id node-id])
+        editing? (subscribe context [:editor-editing-node editor-id node-id])
+        cursor? (subscribe context [:editor-cursor-node editor-id node-id])
+        highlight? (subscribe context [:editor-highlight-node editor-id node-id])
+        layout (subscribe context [:editor-layout-unit-node editor-id unit-id node-id])
+        analysis (subscribe context [:editor-analysis-unit-node editor-id unit-id node-id])]
+    (fn [context _editor-id _unit-id _node-id]
       (let [layout @layout
             _ (assert layout (str "missing layout for node " node-id))
             analysis @analysis
@@ -55,13 +57,13 @@ A hint: set `plastic.env.log-rendering` to log render calls into devtools consol
                            (apply-shadowing-subscripts (dom/escape-html text) (:shadows decl-scope)))]
             [:div.token props
              (if editing?
-               [inline-editor-component id]
-               [raw-html-component (gen-html)])]))))))
+               [inline-editor-component context id]
+               [raw-html-component context (gen-html)])]))))))
 
 (declare code-block-component)
 
-(defn emit-code-block [editor-id unit-id node-id]
-  ^{:key node-id} [code-block-component editor-id unit-id node-id])
+(defn emit-code-block [context editor-id unit-id node-id]
+  ^{:key node-id} [code-block-component context editor-id unit-id node-id])
 
 (defn code-elements-row [emitter hints items]
   (let [row (map emitter items)]
@@ -94,22 +96,22 @@ A hint: set `plastic.env.log-rendering` to log render calls into devtools consol
           ^{:key index} [:tr
                          [:td {:col-span 2} (code-elements-row emitter hints line-items)]]))]]))
 
-(defn code-element-component [_editor-id _unit-id _node-id _layout]
-  (fn [editor-id unit-id node-id layout]
+(defn code-element-component [_context _editor-id _unit-id _node-id _layout]
+  (fn [context editor-id unit-id node-id layout]
     (let [{:keys [type children]} layout
-          emitter (partial emit-code-block editor-id unit-id)]
+          emitter (partial emit-code-block context editor-id unit-id)]
       (assert layout (str "missing layout for node " node-id))
       (case type
         :compound (code-elements-layout emitter children)
-        [code-token-component editor-id unit-id node-id]))))
+        [code-token-component context editor-id unit-id node-id]))))
 
-(defn wrapped-code-element-component [editor-id unit-id node-id _layout _opener _closer]
-  (let [selected? (subscribe [:editor-selection-node editor-id node-id])
-        highlight-opener? (subscribe [:editor-highlight-node editor-id (id/make node-id :opener)])
-        highlight-closer? (subscribe [:editor-highlight-node editor-id (id/make node-id :closer)])
-        cursor? (subscribe [:editor-cursor-node editor-id node-id])
-        analysis (subscribe [:editor-analysis-unit-node editor-id unit-id node-id])]
-    (fn [editor-id unit-id node-id layout opener closer]
+(defn wrapped-code-element-component [context editor-id unit-id node-id _layout _opener _closer]
+  (let [selected? (subscribe context [:editor-selection-node editor-id node-id])
+        highlight-opener? (subscribe context [:editor-highlight-node editor-id (id/make node-id :opener)])
+        highlight-closer? (subscribe context [:editor-highlight-node editor-id (id/make node-id :closer)])
+        cursor? (subscribe context [:editor-cursor-node editor-id node-id])
+        analysis (subscribe context [:editor-analysis-unit-node editor-id unit-id node-id])]
+    (fn [context editor-id unit-id node-id layout opener closer]
       {:pre [(or opener closer)]}
       (let [analysis @analysis
             cursor? @cursor?
@@ -132,19 +134,19 @@ A hint: set `plastic.env.log-rendering` to log render calls into devtools consol
              (if opener
                [:div.punctuation.opener {:class (classv (if highlight-opener? "highlighted"))}
                 opener])
-             [code-element-component editor-id unit-id node-id layout]
+             [code-element-component context editor-id unit-id node-id layout]
              (if closer
                [:div.punctuation.closer {:class (classv (if highlight-closer? "highlighted"))}
                 closer])]))))))
 
-(defn code-block-component [editor-id unit-id node-id]
-  (let [layout (subscribe [:editor-layout-unit-node editor-id unit-id node-id])]
-    (fn [editor-id unit-id node-id]
+(defn code-block-component [context editor-id unit-id node-id]
+  (let [layout (subscribe context [:editor-layout-unit-node editor-id unit-id node-id])]
+    (fn [context editor-id unit-id node-id]
       (let [layout @layout]
         (assert layout (str "missing layout for node " node-id))
         (log-render "code-block" [node-id layout]
           (let [{:keys [tag]} layout
-                args [wrapped-code-element-component editor-id unit-id node-id layout]
+                args [wrapped-code-element-component context editor-id unit-id node-id layout]
                 wrapped-code-element (fn [& params] (vec (concat args params)))]
             (case tag
               :list (wrapped-code-element "(" ")")
@@ -158,12 +160,12 @@ A hint: set `plastic.env.log-rendering` to log render calls into devtools consol
               :syntax-quote (wrapped-code-element "`")
               :unquote (wrapped-code-element "~")
               :unquote-splicing (wrapped-code-element "~@")
-              [code-element-component editor-id unit-id node-id layout])))))))
+              [code-element-component context editor-id unit-id node-id layout])))))))
 
-(defn code-box-component [editor-id unit-id node-id]
-  (let [layout (subscribe [:editor-layout-unit-node editor-id unit-id node-id])
-        code-visible (subscribe [:settings :code-visible])]
-    (fn [editor-id unit-id node-id]
+(defn code-box-component [context editor-id unit-id node-id]
+  (let [layout (subscribe context [:editor-layout-unit-node editor-id unit-id node-id])
+        code-visible (subscribe context [:settings :code-visible])]
+    (fn [context editor-id unit-id node-id]
       (let [layout @layout
             code-visible @code-visible]
         (log-render "code-box" [node-id layout]
@@ -171,4 +173,4 @@ A hint: set `plastic.env.log-rendering` to log render calls into devtools consol
             [:div.code-box {:class (classv (if unit-kind (str "unit-kind-" unit-kind)))}
              (if code-visible
                (let [child-id (first children)]
-                 [code-block-component editor-id unit-id child-id]))]))))))
+                 [code-block-component context editor-id unit-id child-id]))]))))))

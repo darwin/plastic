@@ -1,12 +1,12 @@
 (ns plastic.main.editor.ops
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.main :refer [react! dispatch worker-dispatch worker-dispatch-args]])
-  (:require [plastic.main.frame :refer [subscribe register-handler]]
-            [plastic.main.paths :as paths]
-            [plastic.main.editor.ops.editing :as editing]
+                   [plastic.frame :refer [dispatch worker-dispatch worker-dispatch]])
+  (:require [plastic.main.editor.ops.editing :as editing]
             [plastic.main.editor.ops.editing.helpers :refer [editing-string?]]
             [plastic.main.editor.ops.cursor :as cursor]
             [plastic.main.editor.model :as editor]))
+
+; -------------------------------------------------------------------------------------------------------------------
 
 (defn spatial-up [editor]
   (-> editor editing/stop-editing cursor/spatial-up))
@@ -36,7 +36,7 @@
 (defn structural-down [editor]
   (let [new-editor (cursor/structural-down editor)]
     (if (identical? new-editor editor)
-      (dispatch :editor-op (editor/get-id editor) :toggle-editing))
+      (dispatch (editor/get-context editor) [:editor-op (editor/get-id editor) :toggle-editing]))
     new-editor))
 
 (defn start-editing [editor]
@@ -70,10 +70,10 @@
     (editing/perform-backspace editor)))
 
 (defn undo [editor]
-  (dispatch :undo (editor/get-id editor)))
+  (dispatch (editor/get-context editor) [:undo (editor/get-id editor)]))
 
 (defn redo [editor]
-  (dispatch :redo (editor/get-id editor)))
+  (dispatch (editor/get-context editor) [:redo (editor/get-id editor)]))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -112,17 +112,15 @@
    :open-quote         editing/open-quote
    :open-deref         editing/open-deref})
 
-(defn dispatch-op* [editors [editor-id op]]
-  (let [editor (get editors editor-id)]
+(defn dispatch-op* [context db [editor-id op]]
+  (let [editors (get db :editors)
+        editor (get editors editor-id)]
     (if-let [handler (op ops)]
-      (if-let [new-editor (handler editor)]
-        (assoc editors editor-id new-editor))
+      (let [editor (editor/set-context editor context)]
+        (if-let [new-editor (handler editor)]
+          (if-not (identical? new-editor editor)
+            (update db :editors assoc editor-id (editor/strip-context new-editor)))))
       (error (str "Unknown editor operation '" op "'")))))
 
-(defn dispatch-op [& args]
-  (or (apply dispatch-op* args) (first args)))
-
-; -------------------------------------------------------------------------------------------------------------------
-; register handlers
-
-(register-handler :editor-op paths/editors-path dispatch-op)
+(defn dispatch-op [context db & args]
+  (or (apply dispatch-op* context db args) db))

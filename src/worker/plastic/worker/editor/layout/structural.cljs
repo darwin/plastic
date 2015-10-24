@@ -5,6 +5,8 @@
             [plastic.worker.editor.toolkit.id :as id]
             [meld.zip :as zip]))
 
+; -------------------------------------------------------------------------------------------------------------------
+
 (defn safe-loc-id [loc]
   (if (zip/good? loc)
     (zip/get-id loc)))

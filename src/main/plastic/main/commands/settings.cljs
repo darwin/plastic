@@ -2,6 +2,8 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [plastic.main.commands.utils :refer [toggle-setting]]))
 
+; -------------------------------------------------------------------------------------------------------------------
+
 (defn toggle-headers [db]
   (toggle-setting db :headers-visible))
 

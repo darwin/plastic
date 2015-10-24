@@ -38,7 +38,7 @@
   {:server-port      7000
    :nrepl-port       7777
    :server-logfile   ".tmp/figwheel_server.log"
-   :http-server-root "devcards"                                                                                       ;; this will be in resources/
+   :http-server-root "devcards"                                                                                       ; this will be in resources/
    :css-dirs         ["resources/devcards/css"]}
 
   :cljsbuild
@@ -51,7 +51,6 @@
                     "checkouts/reagent/src"
                     "checkouts/tools.reader/src/main"
                     "checkouts/support/src"
-                    "src/env"
                     "src/dev"
                     "src/meld"
                     "src/common"
@@ -59,12 +58,13 @@
                     "src/onion-atom"
                     "src/worker"]
      ; :figwheel     true <-- do not include figwheel automagically, we start it manually with our custom config
-     :compiler     {:main                  plastic.main
-                    :closure-defines       {"plastic.env.run_worker_on_main_thread" true
-                                            "plastic.env.need_loophole"             true
-                                            "plastic.env.legacy_devtools"           true
-                                            "plastic.env.validate_dbs"              true
-                                            "plastic.env.log_all_dispatches"        true}
+     :compiler     {:main                  plastic.boot
+                    :closure-defines       {"plastic.config.dev_mode"                  true
+                                            "plastic.config.run_worker_on_main_thread" true
+                                            "plastic.config.need_loophole"             true
+                                            ;"plastic.config.legacy_devtools"           true
+                                            "plastic.config.validate_dbs"              true
+                                            "plastic.config.log_all_dispatches"        true}
                     :output-to             "lib/_build/main/plastic.js"
                     :output-dir            "lib/_build/main"
                     :optimizations         :none
@@ -81,7 +81,6 @@
                     "checkouts/re-frame/src"
                     "checkouts/reagent/src"
                     "checkouts/tools.reader/src/main"
-                    "src/env"
                     "src/dev"
                     "src/devcards"
                     "src/meld"
@@ -91,10 +90,10 @@
                     "src/worker"]
      :figwheel     {:devcards true}
      :compiler     {:main                  plastic.devcards
-                    :closure-defines       {"plastic.env.dont_run_loops"            true
-                                            "plastic.env.run_worker_on_main_thread" true
-                                            "plastic.env.validate_dbs"              true
-                                            "plastic.env.log_all_dispatches"        true}
+                    :closure-defines       {"plastic.config.dont_run_loops"            true
+                                            "plastic.config.run_worker_on_main_thread" true
+                                            "plastic.config.validate_dbs"              true
+                                            "plastic.config.log_all_dispatches"        true}
                     :output-to             "resources/devcards/_build/devcards/plastic.js"
                     :output-dir            "resources/devcards/_build/devcards"
                     :asset-path            "_build/devcards"
@@ -111,7 +110,6 @@
                     "checkouts/re-frame/src"
                     "checkouts/reagent/src"
                     "checkouts/tools.reader/src/main"
-                    "src/env"
                     "src/dev"
                     "src/devcards"
                     "src/meld"
@@ -121,10 +119,10 @@
                     "src/worker"
                     "src/test"]
      :compiler     {:main                  plastic.test
-                    :closure-defines       {"plastic.env.dont_run_loops"            true
-                                            "plastic.env.run_worker_on_main_thread" true
-                                            "plastic.env.validate_dbs"              true
-                                            "plastic.env.log_all_dispatches"        true}
+                    :closure-defines       {"plastic.config.dont_run_loops"            true
+                                            "plastic.config.run_worker_on_main_thread" true
+                                            "plastic.config.validate_dbs"              true
+                                            "plastic.config.log_all_dispatches"        true}
                     :output-to             "resources/test/_build/test/plastic.js"
                     :output-dir            "resources/test/_build/test"
                     :asset-path            "base/cljs/resources/test/_build/test"
@@ -140,17 +138,17 @@
     {:source-paths ["checkouts/cljs-devtools/src"
                     "checkouts/re-frame/src"
                     "checkouts/reagent/src"
-                    "src/env"
                     "src/dev"
+                    "src/components"
                     "src/common"
                     "src/main"
                     "src/onion-atom"]
      ; :figwheel     true <-- do not include figwheel automagically, we start it manually with our custom config
      :compiler     {:main                  plastic.main
-                    :closure-defines       {"plastic.env.need_loophole"       true
-                                            "plastic.env.legacy_devtools"     true
-                                            "plastic.env.dont_start_figwheel" true
-                                            "plastic.env.log_main_dispatches" true}
+                    :closure-defines       {"plastic.config.need_loophole"       true
+                                            "plastic.config.legacy_devtools"     true
+                                            "plastic.config.dont_start_figwheel" true
+                                            "plastic.config.log_main_dispatches" true}
                     :output-to             "lib/_build/main/plastic.js"
                     :output-dir            "lib/_build/main"
                     :optimizations         :none
@@ -166,12 +164,11 @@
     :worker
     {:source-paths ["checkouts/re-frame/src"
                     "checkouts/tools.reader/src/main"
-                    "src/env"
                     "src/meld"
                     "src/common"
                     "src/worker"]
      :compiler     {:main                  plastic.worker
-                    :closure-defines       {"plastic.env.log_worker_dispatches" true}
+                    :closure-defines       {"plastic.config.log_worker_dispatches" true}
                     :output-to             "lib/_build/worker/plastic.js"
                     :output-dir            "lib/_build/worker"
                     :optimizations         :none

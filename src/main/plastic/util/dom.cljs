@@ -8,6 +8,8 @@
             [clojure.string :as string]
             [clojure.string :as str]))
 
+; -------------------------------------------------------------------------------------------------------------------
+
 (defn node-from-react [react-component]
   (let [dom-node (.getDOMNode react-component)]                                                                       ; TODO: deprecated!
     (assert dom-node)
@@ -93,17 +95,6 @@
 (defn find-all-as-vec [& args]
   ($->vec (apply find-all args)))
 
-(defn find-plastic-editor-view [editor-id]
-  (atom/get-plastic-editor-view editor-id))
-
-(defn find-plastic-editor [editor-id]
-  (let [$editor-view ($ (find-plastic-editor-view editor-id))]
-    (find $editor-view ".plastic-editor")))
-
-(defn find-plastic-editor-unit [editor-id unit-id]
-  (let [$editor ($ (find-plastic-editor editor-id))]
-    (find $editor (str ".unit[data-pnid=" unit-id "]"))))
-
 (defn inline-editor-present? [dom-node]
   (single-result? (.children ($ dom-node) "atom-text-editor")))
 
@@ -114,7 +105,31 @@
 
 (defn escape-html [text]
   (-> text
-    (str/replace "&"  "&amp;")
-    (str/replace "<"  "&lt;")
-    (str/replace ">"  "&gt;")
+    (str/replace "&" "&amp;")
+    (str/replace "<" "&lt;")
+    (str/replace ">" "&gt;")
     (str/replace "\"" "&quot;")))
+
+(defn build-plastic-editor-view-selector [editor-id]
+  (str ".plastic-editor-view[data-pevid=" editor-id "]"))
+
+(defn find-plastic-editor-view [editor-id]
+  (let [plastic-editor-view (find (build-plastic-editor-view-selector editor-id))]
+    (assert plastic-editor-view)
+    plastic-editor-view))
+
+(defn find-plastic-editor [editor-id]
+  (let [$editor-view ($ (find-plastic-editor-view editor-id))]
+    (find $editor-view ".plastic-editor")
+    $editor-view))
+
+(defn find-plastic-editor-unit [editor-id unit-id]
+  (let [$editor ($ (find-plastic-editor editor-id))]
+    (find $editor (str ".unit[data-pnid=" unit-id "]"))))
+
+(defn find-react-mount-point [editor-id]
+  (let [plastic-editor-view (find-plastic-editor-view editor-id)
+        react-land-dom-nodes (.getElementsByClassName plastic-editor-view "react-land")]
+    (assert react-land-dom-nodes)
+    (assert (= (count react-land-dom-nodes) 1))
+    (first react-land-dom-nodes)))

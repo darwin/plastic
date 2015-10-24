@@ -1,6 +1,8 @@
 (ns plastic.test.karma
   (:require [cljs.analyzer.api :as ana-api]))
 
+; -------------------------------------------------------------------------------------------------------------------
+
 (defn public-tests [namespace]
   (filter #(:test (nth % 1) false) (ana-api/ns-publics namespace)))
 

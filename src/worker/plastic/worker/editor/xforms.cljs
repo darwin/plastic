@@ -1,11 +1,11 @@
 (ns plastic.worker.editor.xforms
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.worker :refer [react! dispatch main-dispatch]])
-  (:require [plastic.worker.frame :refer [subscribe register-handler]]
-            [plastic.worker.paths :as paths]
-            [plastic.worker.editor.xforms.editing :as editing]
+                   [plastic.frame :refer [dispatch main-dispatch]])
+  (:require [plastic.worker.editor.xforms.editing :as editing]
             [plastic.worker.editor.model :as editor]
             [plastic.worker.frame.undo :as undo]))
+
+; -------------------------------------------------------------------------------------------------------------------
 
 (def xforms
   {:edit                              editing/edit
@@ -32,19 +32,14 @@
     (apply handler editor args)
     (error (str "Unknown editor xform for dispatch '" xform "'"))))
 
-(defn dispatch-xform [editors [editor-id xform & args]]
+(defn dispatch-xform [context db [editor-id xform & args]]
   (undo/open-undo-session! editor-id (name xform))
   (or
-    (let [editor (get editors editor-id)]
+    (let [editor (editor/set-context (get-in db [:editors editor-id]) context)]
       (if-let [new-editor (apply dispatch-xform-on-editor editor xform args)]
         (if-not (identical? new-editor editor)
           (let [xform-report (editor/get-xform-report new-editor)]
             (undo/set-undo-report! editor-id xform-report)
-            (main-dispatch :editor-announce-xform editor-id xform-report)
-            (assoc editors editor-id (editor/remove-xform-report new-editor))))))
-    editors))
-
-; -------------------------------------------------------------------------------------------------------------------
-; register handlers
-
-(register-handler :editor-xform paths/editors-path dispatch-xform)
+            (main-dispatch context [:editor-announce-xform editor-id xform-report])
+            (update db :editors assoc editor-id (editor/remove-xform-report (editor/strip-context new-editor)))))))
+    db))

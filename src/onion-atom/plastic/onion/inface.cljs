@@ -1,73 +1,62 @@
 (ns plastic.onion.inface
   (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]]
-                   [plastic.main :refer [dispatch react!]])
-  (:require [plastic.main.frame]
-            [plastic.onion.api :as api]
-            [plastic.util.dom.shim]
-            [clojure.string :as string]))
-
-(defonce ids->views (atom {}))
-
-(defn register-view [editor-id atom-view]
-  (swap! ids->views assoc editor-id atom-view))
-
-(defn unregister-view [editor-id]
-  (swap! ids->views dissoc editor-id))
-
-(defn find-mount-point [dom-node]
-  (let [react-land-dom-nodes (.getElementsByClassName dom-node "react-land")]
-    (assert react-land-dom-nodes)
-    (assert (= (count react-land-dom-nodes) 1))
-    (first react-land-dom-nodes)))
+                   [plastic.frame :refer [dispatch]])
+  (:require [plastic.util.dom.shim]
+            [clojure.string :as string]
+            [plastic.env :as env :include-macros true]
+            [plastic.main.editor.render :as render]
+            [plastic.util.dom :as dom]))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn init [state]
-  (dispatch :init (js->clj state :keywordize-keys true)))
+(defn init-onion [context]
+  context)
 
-(defn register-editor [atom-view]
-  (let [editor-id (.-id atom-view)
-        editor-uri (.-uri atom-view)]
-    (register-view editor-id atom-view)
-    (dispatch :add-editor editor-id editor-uri)
-    (dispatch :mount-editor editor-id (find-mount-point (.-element atom-view)))))
+; -------------------------------------------------------------------------------------------------------------------
 
-(defn unregister-editor [atom-view]
-  (let [editor-id (.-id atom-view)]
-    (dispatch :remove-editor editor-id (find-mount-point (.-element atom-view)))
-    (unregister-view editor-id)))
+(defn init [context state]
+  (dispatch context [:init (js->clj state :keywordize-keys true)]))
 
-(defn editor-op [atom-view command event]
-  (let [editor-id (.-id atom-view)
-        internal-command (keyword (string/replace command #"^plastic:" ""))]
-    (if (= internal-command :abort-keybinding)
+(defn register-editor [context editor-id editor-uri]
+  (dispatch context [:add-editor editor-id editor-uri]
+    (fn [db]
+      (let [mount-node (dom/find-react-mount-point editor-id)]
+        (render/mount-editor context mount-node editor-id)
+        db))))
+
+(defn unregister-editor [context editor-id]
+  (let [mount-node (dom/find-react-mount-point editor-id)]
+    (render/unmount-editor context mount-node))
+  (dispatch context [:remove-editor editor-id]))
+
+(defn editor-op [context editor-id command event]
+  {:pre [(number? editor-id)]}
+  (let [internal-command (keyword (string/replace command #"^plastic:" ""))]
+    (if (keyword-identical? internal-command :abort-keybinding)
       (do
         (log "abort keybinding")
         (.abortKeyBinding event))
       (do
-        (dispatch :editor-op editor-id internal-command)
+        (dispatch context [:editor-op editor-id internal-command])
         (.stopPropagation event)))))
 
-(defn command [command event]
+(defn command [context command event]
   (let [internal-command (keyword (string/replace command #"^plastic:" ""))]
-    (dispatch :command internal-command)
+    (dispatch context [:command internal-command])
     (.stopPropagation event)))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
 (def inface
-  {:apis              api/register-apis!
-   :init              init
+  {:init              init
    :register-editor   register-editor
    :unregister-editor unregister-editor
    :editor-op         editor-op
    :command           command})
 
-(defn ^:export send [msg-id & args]
-  (when (or plastic.env.log-onion plastic.env.log-onion-inface)
-    (if (= plastic.env.*current-thread* "WORK")
-      (js-debugger))
-    (fancy-log "ONION IN" msg-id args))
+(defn send [context msg-id & args]
+  (when (env/or context :log-onion)
+    (fancy-log "ONION" msg-id args))
   (if-let [handler (get inface (keyword msg-id))]
-    (apply handler args)
+    (apply handler context args)
     (error (str "Invalid onion message '" msg-id "'"))))

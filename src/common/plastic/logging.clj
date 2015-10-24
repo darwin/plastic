@@ -58,12 +58,13 @@
   `(let [padlen# (- ~len (count ~s))]
      (str (apply str (repeat padlen# " ")) ~s)))
 
-(defmacro fancy-log* [time thread label & args]
-  `(let [thread# ~thread
+(defmacro fancy-log-with-time [time label & args]
+  `(let [thread# (or plastic.globals.*current-thread* "JS")
          label# ~label
          thread-color# (case thread#
+                         "JS" "black"
                          "MAIN" "green"
-                         "WORK" "orange"
+                         "WORKER" "orange"
                          "red")]
      (log "%c%s%c%s%c%s"
        "color:#aaa" (pad-str ~time 10)
@@ -72,19 +73,21 @@
        ~@args)))
 
 (defmacro fancy-log [label & args]
-  `(fancy-log* "" plastic.env.*current-thread* ~label ~@args))
+  `(fancy-log-with-time "" ~label ~@args))
 
 (defmacro ms [val]
   `(str (.toFixed ~val 3) "ms"))
 
 ; see https://developers.google.com/web/updates/2012/08/When-milliseconds-are-not-enough-performance-now
 (defmacro measure-time [enabled? label more & body]
-  `(if (or plastic.env.bench-all ~enabled?)
-     (let [start# (.now js/performance)
-           ret# (do ~@body)
-           diff# (- (.now js/performance) start#)]
-       (fancy-log* (ms diff#) plastic.env.*current-thread* ~label ~@more)
-       ret#)
+  `(if (or plastic.config.bench-all ~enabled?)
+     (do
+       (fancy-log-with-time "" ~label ~@more)
+       (let [start# (.now js/performance)
+             ret# (do ~@body)
+             diff# (- (.now js/performance) start#)]
+         ;(fancy-log-with-time (ms diff#) (str "<" ~label) ~@more)
+         ret#))
      (let [res# (do ~@body)]
        res#)))
 
@@ -96,7 +99,7 @@
 
 (defmacro log-render [title params & body]
   `(do
-     (if plastic.env.log-rendering
+     (if plastic.config.log-rendering
        (plastic.logging/fancy-log "RENDER" ~title ~params))
      (let [res# ~@body]
        res#)))

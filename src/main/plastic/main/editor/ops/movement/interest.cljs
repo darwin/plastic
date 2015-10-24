@@ -3,6 +3,8 @@
   (:require [plastic.main.editor.model :as editor]
             [plastic.util.helpers :as helpers]))
 
+; -------------------------------------------------------------------------------------------------------------------
+
 (defn is-token-of-interest? [token]
   (let [type (:type token)]
     (not (#{:linebreak :spot} type))))

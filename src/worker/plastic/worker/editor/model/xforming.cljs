@@ -4,6 +4,8 @@
             [plastic.worker.editor.model :as editor :refer [valid-editor?]]
             [meld.zip :as zip]))
 
+; -------------------------------------------------------------------------------------------------------------------
+
 (defn make-state [loc report]
   [loc report])
 
@@ -21,21 +23,21 @@
 
 (defn remove-empty-units [loc]
   {:pre [(zip/unit? loc)]}
-  loc ; TODO:
+  loc                                                                                                                 ; TODO:
   #_(if (zip-utils/contains-only-spaces? loc)
-    (let [after-loc (z/remove loc)
-          next-form-loc (zip-utils/skip z/next zip-utils/form? after-loc)]
-      (if next-form-loc
-        (recur next-form-loc)
-        after-loc))
-    (if-let [next-loc (z/right loc)]
-      (recur next-loc)
-      loc)))
+      (let [after-loc (z/remove loc)
+            next-form-loc (zip-utils/skip z/next zip-utils/form? after-loc)]
+        (if next-form-loc
+          (recur next-form-loc)
+          after-loc))
+      (if-let [next-loc (z/right loc)]
+        (recur next-loc)
+        loc)))
 
 (defn sanitize-zipper [top-loc]
   (-> top-loc
-      zip/down
-      remove-empty-units))
+    zip/down
+    remove-empty-units))
 
 (defn sanitize-if-needed [state]
   (let [report (get-report state)]

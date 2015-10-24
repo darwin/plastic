@@ -1,28 +1,28 @@
 (ns plastic.main.init
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.main :refer [worker-dispatch worker-dispatch-with-effect worker-dispatch-args]])
-  (:require [plastic.env]
-            [plastic.reagent.patch]
-            [plastic.onion.atom]
-            [plastic.main.paths]
-            [plastic.main.subs]
-            [plastic.main.editor]
-            [plastic.main.commands]
-            [plastic.main.undo]
-            [plastic.main.editor.watcher :as watcher]
-            [plastic.main.servant :as servant]
-            [plastic.onion.api :refer [info]]
-            [plastic.main.frame :refer [register-handler]]))
-
-(defn init [db [_state]]
-  (let [lib-path (.getLibPath info)]
-    (assert lib-path)
-    (servant/spawn-workers lib-path))
-  (watcher/init)
-  (worker-dispatch :init)
-  db)
+                   [plastic.frame :refer [worker-dispatch dispatch]])
+  (:require [plastic.frame :refer [handle-event-and-report-exceptions]]
+            [reagent.core :as reagent]))
 
 ; -------------------------------------------------------------------------------------------------------------------
-; register handlers
 
-(register-handler :init init)
+(defn init [context db [_state]]
+  (worker-dispatch context [:init])
+  db)
+
+(defn job-done [context db [job-id undo-summary]]
+  db
+  #_(let [{:keys [frame]} context
+        job (jobs/get-job context job-id)
+        coallesced-db (reagent/atom db)]
+    (doseq [event (jobs/events job)]                                                                                  ; replay all buffered job events...
+      (handle-event-and-report-exceptions frame coallesced-db event))
+    (jobs/unregister-job context job-id)
+    (or
+      (when-let [result-db ((jobs/continuation job) @coallesced-db undo-summary)]
+        (if-not (identical? db result-db)
+          (doseq [{:keys [editor-id description]} undo-summary]
+            (let [old-editor (get-in db [:editors editor-id])]
+              (dispatch context [:store-editor-undo-snapshot editor-id description old-editor]))))
+        result-db)
+      db)))

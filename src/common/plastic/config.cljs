@@ -1,14 +1,17 @@
-(ns plastic.env)
-
-(defonce ^:dynamic *current-thread* "MAIN")
-(defonce ^:dynamic *current-main-job-id* 0)
-(defonce ^:dynamic *current-main-event* nil)
-(defonce ^:dynamic *current-worker-job-id* 0)
-(defonce ^:dynamic *current-worker-event* nil)
-
-(defonce ^:dynamic *zip-op-nesting* 0)
+(ns plastic.config)
 
 ; -------------------------------------------------------------------------------------------------------------------
+; code should not access these directly (except for system bootstrapping)
+; environment should be passed into components where it should be accessed via env/get, env/or or similar
+;
+; you can override these defaults from project.clj via :closure-defines
+;   see http://www.martinklepsch.org/posts/parameterizing-clojurescript-builds.html
+;
+; -------------------------------------------------------------------------------------------------------------------
+
+(goog-define worker-script "/worker.js")
+
+(goog-define dev-mode false)
 
 (goog-define dont-start-figwheel false)
 (goog-define legacy-devtools false)
@@ -27,25 +30,23 @@
 (goog-define bench-all false)
 (goog-define bench-sonars false)
 (goog-define bench-processing false)
-(goog-define bench-worker-processing false)
-(goog-define bench-main-processing false)
 (goog-define bench-rendering false)
 (goog-define bench-render-queue false)
 (goog-define bench-db-validation false)
 (goog-define bench-main-db-validation false)
 (goog-define bench-worker-db-validation false)
-(goog-define bench-transmit false)
-(goog-define bench-worker-transmit false)
-(goog-define bench-main-transmit false)
+(goog-define bench-transit false)
+(goog-define bench-worker-transit false)
+(goog-define bench-main-transit false)
 
 (goog-define log-all-dispatches false)
+(goog-define log-app-db false)
 (goog-define log-main-dispatches false)
 (goog-define log-worker-dispatches false)
-(goog-define log-rendering true)
+(goog-define log-rendering false)
 (goog-define log-onion false)
-(goog-define log-onion-inface false)
 (goog-define log-inline-editor false)
-(goog-define log-zip-ops true)
+(goog-define log-zip-ops false)
 (goog-define log-threaded-zip-ops false)
 (goog-define log-undo-redo false)
 (goog-define log-parse-tree false)

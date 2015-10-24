@@ -1,7 +1,8 @@
 (ns plastic.main.editor.render.utils
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [clojure.string :as string]
-            [plastic.onion.api :refer [$]]))
+  (:require [clojure.string :as string]))
+
+; -------------------------------------------------------------------------------------------------------------------
 
 (defn dangerously-set-html [html]
   {:dangerouslySetInnerHTML {:__html html}})

@@ -1,5 +1,7 @@
 (ns plastic.onion
-  (:require [plastic.logging :refer [log info warn error group group-end fancy-log*]]))
+  (:require [plastic.logging :refer [log info warn error group group-end fancy-log-with-time]]))
+
+; -------------------------------------------------------------------------------------------------------------------
 
 (defmacro update-inline-editor-synchronously [inline-editor-view & body]
   `(try

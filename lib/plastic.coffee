@@ -4,7 +4,7 @@ path = require 'path'
 PlasticEditorView = require './plastic-editor-view'
 {CompositeDisposable} = require 'atom'
 bridge = require './bridge'
-apis = require './apis'
+services = require './services'
 
 plasticEditorOpener = (uri) ->
   if path.extname(uri) is '.cljs'
@@ -15,17 +15,19 @@ module.exports = Plastic =
   subscriptions: null
 
   activate: (state) ->
-    initPlastic = ->
-      goog.require("plastic.main.loop")
-      goog.require("plastic.worker.loop") if plastic.env.run_worker_on_main_thread
+    bootPlastic = =>
+      goog.require("plastic.core")
+      goog.require("plastic.api")
+      goog.require("plastic.main")
+      goog.require("plastic.worker") if plastic.config.run_worker_on_main_thread
 
-      initAPIs = ->
-        bridge.send "apis", apis
+      initAPIs = =>
+        @system = bridge.boot plastic.config, services
         bridge.send "init", state # TODO: unserialize our part and pass rest
 
       setTimeout initAPIs, 100
-      
-    setTimeout initPlastic, 1000 # TODO: this is temporary, give figwheel and cljs-devtools some time to intialize
+
+    setTimeout bootPlastic, 1000 # TODO: this is temporary, give cljs-devtools some time to initialize
 
     atom.workspace.addOpener plasticEditorOpener
 

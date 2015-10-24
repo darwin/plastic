@@ -1,14 +1,14 @@
 (ns plastic.worker.editor.analysis
   (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]]
-                   [plastic.worker :refer [dispatch main-dispatch]])
-  (:require [plastic.worker.frame :refer [register-handler]]
-            [plastic.worker.editor.model :as editor]
-            [plastic.worker.editor.layout.analysis.calls :refer [analyze-calls]]
-            [plastic.worker.editor.layout.analysis.scopes :refer [analyze-scopes]]
-            [plastic.worker.editor.layout.analysis.defs :refer [analyze-defs]]
-            [plastic.worker.paths :as paths]
+                   [plastic.frame :refer [main-dispatch]])
+  (:require [plastic.worker.editor.model :as editor]
+            [plastic.worker.editor.analysis.calls :refer [analyze-calls]]
+            [plastic.worker.editor.analysis.scopes :refer [analyze-scopes]]
+            [plastic.worker.editor.analysis.defs :refer [analyze-defs]]
             [plastic.util.helpers :as helpers]
             [meld.zip :as zip]))
+
+; -------------------------------------------------------------------------------------------------------------------
 
 ; TODO: implement a cache to prevent recomputing analysis for unchanged forms
 (defn prepare-unit-analysis [unit-loc]
@@ -19,8 +19,8 @@
     (analyze-defs unit-loc)
     (helpers/remove-nil-values)))
 
-(defn run-analysis [editors [editor-selector form-selector]]
-  (editor/apply-to-editors editors editor-selector
+(defn run-analysis [context db [editor-selector form-selector]]
+  (editor/apply-to-editors context db editor-selector
     (fn [editor]
       (if-not (editor/has-meld? editor)
         (error "editor not parsed! (no meld)" editor)
@@ -32,10 +32,5 @@
                   old-analysis (editor/get-analysis-for-unit editor unit-id)
                   new-analysis (prepare-unit-analysis unit-loc)
                   patch (helpers/prepare-map-patch old-analysis new-analysis)]
-              (main-dispatch :editor-commit-analysis-patch editor-id unit-id patch)
+              (main-dispatch context [:editor-commit-analysis-patch editor-id unit-id patch])
               (editor/set-analysis-for-unit editor unit-id new-analysis))))))))
-
-; -------------------------------------------------------------------------------------------------------------------
-; register handlers
-
-(register-handler :editor-run-analysis paths/editors-path run-analysis)

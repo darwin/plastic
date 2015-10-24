@@ -1,10 +1,11 @@
 (ns plastic.worker.validator
   (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]])
   (:require [schema.core :as s :include-macros true]
+            [plastic.env :as env :include-macros true]
+            [plastic.editor.model :refer [IEditor]]
             [plastic.validator :refer [cached factory editor-id! editor-render-state! editor-layout! TODO!
                                        editor-selectables! editor-spatial-web! editor-structural-web! editor-analysis!
-                                       unit-id! anything string! key? all! editor-units!]]
-            [plastic.worker.editor.model :as editor]))
+                                       unit-id! anything string! key? all! editor-units!]]))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -28,7 +29,7 @@
 
 (def editor!
   (cached (all!
-            (s/protocol editor/IEditor)
+            (s/protocol IEditor)
             editor-members!)))
 
 (def undo-redo-item!
@@ -51,6 +52,8 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(def benchmark? (or plastic.env.bench-db-validation plastic.env.bench-worker-db-validation))
+(defn benchmark? [context]
+  (env/or context :bench-db-validation :bench-worker-db-validation))
 
-(def create (partial factory "worker-db" benchmark? checker (fn [] plastic.env.*current-worker-event*)))
+(defn create [context]
+  (partial factory "worker-db" (benchmark? context) checker (fn [] plastic.globals.*current-event*)))

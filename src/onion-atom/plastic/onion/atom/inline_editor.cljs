@@ -1,26 +1,27 @@
 (ns plastic.onion.atom.inline-editor
   (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]]
                    [plastic.onion :refer [update-inline-editor-synchronously]]
-                   [plastic.main :refer [dispatch dispatch-sync]])
+                   [plastic.frame :refer [dispatch]])
   (:require [plastic.onion.api :refer [$ atom-api]]
-            [plastic.main.db :refer [db]]
             [plastic.main.editor.model :as editor]
             [plastic.util.dom :as dom]
-            [plastic.onion.atom :refer [get-plastic-editor-view]]))
+            [plastic.env :as env :include-macros true]))
+
+; -------------------------------------------------------------------------------------------------------------------
 
 (def log-label "INLINE EDITOR")
 
 (defonce book-keeping (atom {}))
 
 (defn get-atom-inline-editor-instance [editor-id]
-  (let [atom-editor-view (get-plastic-editor-view editor-id)
-        mini-editor (.-miniEditor atom-editor-view)]
+  (let [$atom-editor-view ($ (dom/find-plastic-editor-view editor-id))
+        mini-editor (.data $atom-editor-view "mini-editor")]
     (assert mini-editor)
     mini-editor))
 
 (defn get-atom-inline-editor-view-instance [editor-id]
-  (let [atom-editor-view (get-plastic-editor-view editor-id)
-        mini-editor-view (.-miniEditorView atom-editor-view)]
+  (let [$atom-editor-view ($ (dom/find-plastic-editor-view editor-id))
+        mini-editor-view (.data $atom-editor-view "mini-editor-view")]
     (assert mini-editor-view)
     mini-editor-view))
 
@@ -83,7 +84,7 @@
   (let [inline-editor-view (get-atom-inline-editor-view-instance editor-id)]
     (.dispatch (.-commands atom-api) inline-editor-view command)))
 
-(defn insert-text-into-inline-editor [editor-id text]
+(defn insert-text-into-inline-editor [context editor-id text]
   (let [inline-editor (get-atom-inline-editor-instance editor-id)]
     (.insertText inline-editor text)))
 
@@ -93,18 +94,18 @@
       (set-editor-mode-as-class-name inline-editor-view mode)
       (.setText inline-editor ""))))
 
-(defn update-inline-editor-state [editor-id inline-editor]
+(defn update-inline-editor-state [context editor-id inline-editor]
   (let [current-value {:text (.getText inline-editor) :mode (get-inline-editor-mode-from-class editor-id)}
         initial-value (get-in @book-keeping [editor-id :initial-value])
         current-state {:empty?        (.isEmpty inline-editor)
                        :value         current-value
                        :initial-value initial-value
                        :modified?     (not= current-value initial-value)}]
-    (dispatch :editor-update-inline-editor editor-id current-state)))
+    (dispatch context [:editor-update-inline-editor editor-id current-state])))                                       ; TODO: dispatch
 
-(defn update-puppets! [editor-id]
-  (let [$atom-editor-view ($ (get-plastic-editor-view editor-id))
-        editor (get-in @db [:editors editor-id])
+(defn update-puppets! [editor]
+  (let [editor-id (editor/get-id editor)
+        $atom-editor-view ($ (dom/find-plastic-editor-view editor-id))
         puppets (editor/get-puppets editor)
         selector (dom/build-nodes-selector (seq puppets))
         $puppets (dom/find-all $atom-editor-view selector)
@@ -112,17 +113,19 @@
         effective? (editor/get-inline-editor-puppets-effective? editor)
         initial-value (get-in @book-keeping [editor-id :initial-value])
         effective-text (if effective? (editor/get-inline-editor-text editor) (:text initial-value))
-        effective-mode (if effective? mode (:mode initial-value))]
-    (if plastic.env.log-inline-editor
+        effective-mode (if effective? mode (:mode initial-value))
+        context (editor/get-context editor)]
+    (if (env/get context :log-inline-editor)
       (fancy-log log-label "updating puppets" effective-mode effective-text $puppets))
     (sync-token-type-with-editor-mode $puppets effective-mode)
     (set-token-raw-text $puppets effective-text)))
 
-(defn update-state! [editor-id]
-  (when (get-in @book-keeping [editor-id :active])
-    (update-puppets! editor-id)))
+(defn update-state! [editor]
+  (let [editor-id (editor/get-id editor)]
+    (when (get-in @book-keeping [editor-id :active])
+      (update-puppets! editor))))
 
-(defn on-did-change [editor-id inline-editor inline-editor-view]
+(defn on-did-change [context editor-id inline-editor inline-editor-view]
   (if (.isEmpty inline-editor)
     (.addClass ($ inline-editor-view) "empty")
     (.removeClass ($ inline-editor-view) "empty"))
@@ -133,21 +136,21 @@
       "\"" (switch-mode :string)
       "'" (switch-mode :symbol)
       nil))
-  (update-inline-editor-state editor-id inline-editor))                                                               ; this will trigger async update-puppets call, see lifecycle
+  (update-inline-editor-state context editor-id inline-editor))                                                       ; this will trigger async update-puppets call, see lifecycle
 
-(defn initial-inline-editor-setup-if-needed [editor-id inline-editor inline-editor-view]
+(defn initial-inline-editor-setup-if-needed [context editor-id inline-editor inline-editor-view]
   (if-not (get @book-keeping editor-id)
-    (let [handler (partial on-did-change editor-id inline-editor inline-editor-view)
+    (let [handler (partial on-did-change context editor-id inline-editor inline-editor-view)
           disposable-id (.onDidChange inline-editor handler)]
       (swap! book-keeping assoc editor-id {:on-did-change-disposable-id disposable-id}))))
 
-(defn setup-inline-editor-for-editing [editor-id setup]
+(defn setup-inline-editor-for-editing [context editor-id setup]
   {:pre [(contains? known-editor-modes (:mode setup))]}
   (let [inline-editor (get-atom-inline-editor-instance editor-id)
         inline-editor-view (get-atom-inline-editor-view-instance editor-id)
         {:keys [mode text]} setup
         initial-text (preprocess-text-before-editing mode text)]
-    (initial-inline-editor-setup-if-needed editor-id inline-editor inline-editor-view)
+    (initial-inline-editor-setup-if-needed context editor-id inline-editor inline-editor-view)
     (swap! book-keeping update editor-id #(-> %
                                            (assoc :active true)
                                            (assoc :initial-value setup)))
@@ -163,30 +166,33 @@
                                          (assoc :active false)
                                          (assoc :initial-value nil))))
 
-(defn activate-inline-editor! [editor-id]
-  (if plastic.env.log-inline-editor
-    (fancy-log log-label "activate inline editor request"))
-  (let [$root-view ($ (dom/find-plastic-editor-view editor-id))]
-    (when-not (dom/has-class? $root-view "inline-editor-active")
-      (if plastic.env.log-inline-editor
-        (fancy-log log-label "setup, append, focus and add \"inline-editor-active\" class to the root-view"))
-      (.addClass $root-view "inline-editor-active")
-      (let [editor (get-in @db [:editors editor-id])
-            setup (editor/get-editing-setup editor)]
-        (setup-inline-editor-for-editing editor-id setup)
-        (append-inline-editor editor-id $root-view)                                                                   ; temporary, react renderer will relocate it to proper place, see activate-transplantation
-        (focus-inline-editor editor-id)))))                                                                           ; it is important to focus inline editor ASAP, so we don't lose keystrokes
+(defn activate-inline-editor! [editor]
+  (let [editor-id (editor/get-id editor)
+        context (editor/get-context editor)]
+    (if (env/get context :log-inline-editor)
+      (fancy-log log-label "activate inline editor request"))
+    (let [$root-view ($ (dom/find-plastic-editor-view editor-id))]
+      (when-not (dom/has-class? $root-view "inline-editor-active")
+        (if (env/get context :log-inline-editor)
+          (fancy-log log-label "setup, append, focus and add \"inline-editor-active\" class to the root-view"))
+        (.addClass $root-view "inline-editor-active")
+        (let [setup (editor/get-editing-setup editor)]
+          (setup-inline-editor-for-editing context editor-id setup)
+          (append-inline-editor editor-id $root-view)                                                                 ; temporary, react renderer will relocate it to proper place, see activate-transplantation
+          (focus-inline-editor editor-id))))))                                                                        ; it is important to focus inline editor ASAP, so we don't lose keystrokes
 
-(defn deactivate-inline-editor! [editor-id]
-  (if plastic.env.log-inline-editor
-    (fancy-log log-label "deactivate inline editor request"))
-  (let [$root-view ($ (dom/find-plastic-editor-view editor-id))]
-    (when (dom/has-class? $root-view "inline-editor-active")
-      (if plastic.env.log-inline-editor
-        (fancy-log log-label "removing \"inline-editor-active\" class from the root-view"))
-      (.removeClass $root-view "inline-editor-active")
-      (if plastic.env.log-inline-editor
-        (fancy-log log-label "returning focus back to root-view"))
-      (.focus $root-view)
-      (teardown-inline-editor-editing! editor-id)
-      (dispatch :editor-update-inline-editor editor-id nil))))
+(defn deactivate-inline-editor! [editor]
+  (let [editor-id (editor/get-id editor)
+        context (editor/get-context editor)]
+    (if (env/get context :log-inline-editor)
+      (fancy-log log-label "deactivate inline editor request"))
+    (let [$root-view ($ (dom/find-plastic-editor-view editor-id))]
+      (when (dom/has-class? $root-view "inline-editor-active")
+        (if (env/get context :log-inline-editor)
+          (fancy-log log-label "removing \"inline-editor-active\" class from the root-view"))
+        (.removeClass $root-view "inline-editor-active")
+        (if (env/get context :log-inline-editor)
+          (fancy-log log-label "returning focus back to root-view"))
+        (.focus $root-view)
+        (teardown-inline-editor-editing! editor-id)
+        (dispatch context [:editor-update-inline-editor editor-id nil])))))

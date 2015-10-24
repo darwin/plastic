@@ -4,6 +4,7 @@
   (:require [reagent.ratom :refer [cursor make-reaction]]
             [plastic.reagent.sonar :refer [make-sonar-reaction get-or-create-sonar!]]))
 
+; -------------------------------------------------------------------------------------------------------------------
 ; note sonar reactions are much faster than regular reactions
 
 (defn path-query-factory [path-or-fn]

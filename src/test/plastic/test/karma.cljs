@@ -3,6 +3,7 @@
                    [plastic.test.karma :refer [total-number-of-tests-in-all-namespaces]])
   (:require [cljs.test :refer-macros [run-all-tests run-tests]]))
 
+; -------------------------------------------------------------------------------------------------------------------
 ; inspired by https://github.com/honzabrecka/karma-reporter
 
 (defn karma-present? []

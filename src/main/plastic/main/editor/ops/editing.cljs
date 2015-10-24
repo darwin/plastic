@@ -8,6 +8,8 @@
                                                              should-commit? sanitize-cursor disable-editing-mode
                                                              enable-editing-mode]]))
 
+; -------------------------------------------------------------------------------------------------------------------
+
 (declare perform-space)
 
 (defn start-editing [editor & [cb]]

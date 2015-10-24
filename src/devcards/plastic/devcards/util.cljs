@@ -6,6 +6,8 @@
             [meld.zip :as zip]
             [meld.support :refer [zipviz-component meldviz-component histogram-display histogram-component]]))
 
+; -------------------------------------------------------------------------------------------------------------------
+
 (defn markdown-source [source & [lang]]
   (str "```" (or lang "clojure") "\n" source "\n```"))
 

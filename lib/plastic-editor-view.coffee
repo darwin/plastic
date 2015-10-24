@@ -1,5 +1,5 @@
 path = require 'path'
-{View} = require 'space-pen'
+{View, $, $$, $$$} = require 'space-pen'
 {Disposable, TextEditor} = require 'atom'
 {ScrollView} = require 'atom-space-pen-views'
 bridge = require './bridge'
@@ -42,12 +42,14 @@ class PlasticEditorView extends ScrollView
 
   initialize: ({@uri}={}) ->
     super
-    lastId += 1
-    @id = lastId
+
+    @id = ++lastId
+
+    $(@element).attr("data-pevid", @id)
 
     @createMiniEditor()
 
-    bridge.send "register-editor", @
+    bridge.send "register-editor", @id, @uri
 
     @addOps [
       'plastic:abort-keybinding'
@@ -91,19 +93,21 @@ class PlasticEditorView extends ScrollView
     @miniEditor = new TextEditor(softWrapped: false, tabLength: 2, softTabs: true, lineNumberGutterVisible: false)
     @miniEditorView = atom.views.getView(@miniEditor)
     monkeyPatchEditorInstance(@miniEditorView)
+    $(@element).data('mini-editor', @miniEditor)
+    $(@element).data('mini-editor-view', @miniEditorView)
 
   detached: ->
-    bridge.send "unregister-editor", @
+    bridge.send "unregister-editor", @id
 
   serialize: ->
     # deserializer: 'PlasticView'
     # version: 2
     # uri: @uri
 
-  addOps: (ops) ->
+  addOps: (ops) =>
     handler = (op) =>
       (event) =>
-        bridge.send "editor-op", @, op, event
+        bridge.send "editor-op", @id, op, event
 
     for op in ops
       atom.commands.add @element, op, handler(op)

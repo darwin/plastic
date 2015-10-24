@@ -6,7 +6,10 @@
             [cljs.core.async :refer [put! <! chan timeout close!]]
             [goog.object :as gobj]
             [clojure.set :as set]
-            [cuerdas.core :as str]))
+            [cuerdas.core :as str]
+            [clojure.string :as string]))
+
+; -------------------------------------------------------------------------------------------------------------------
 
 (def noop (fn [] []))
 
@@ -234,3 +237,11 @@
 (defn select-values [pred map]
   (let [keys (keep (fn [[k v]] (if (pred v) k)) map)]
     (select-keys map keys)))
+
+(defn convert-from-js [x]
+  (let [keyfn (fn [k] (keyword (string/replace k "_" "-")))]
+    (into {} (for [k (js-keys x)]
+               [(keyfn k) (aget x k)]))))
+
+(defn vupdate! [v f & args]
+  (vreset! v (apply f @v args)))

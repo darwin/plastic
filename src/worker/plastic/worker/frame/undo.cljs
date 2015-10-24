@@ -1,6 +1,5 @@
 (ns plastic.worker.frame.undo
   (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]]
-                   [plastic.worker :refer [main-dispatch-args dispatch-args dispatch]]
                    [plastic.common :refer [process]])
   (:require [plastic.util.booking :as booking]))
 

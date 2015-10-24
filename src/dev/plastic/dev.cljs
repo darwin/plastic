@@ -2,4 +2,5 @@
   (:require [plastic.dev.devtools]
             [plastic.dev.figwheel]))
 
-; included by boot.coffee
+; -------------------------------------------------------------------------------------------------------------------
+; has to be included before plastic boot, see boot.coffee

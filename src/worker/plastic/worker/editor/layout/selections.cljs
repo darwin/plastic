@@ -1,6 +1,8 @@
 (ns plastic.worker.editor.layout.selections
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]))
 
+; -------------------------------------------------------------------------------------------------------------------
+
 (defn emit-item [id selectable info]
   [id (assoc selectable :geometry info)])
 

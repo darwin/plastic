@@ -2,6 +2,7 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [clojure.string :as string]))
 
+; -------------------------------------------------------------------------------------------------------------------
 ; ids can be simple numbers pointing to parsed node-ids
 ; or composed id-tag strings, where tag can be a distinction for virtual nodes not necesarilly present in the parsed tree
 

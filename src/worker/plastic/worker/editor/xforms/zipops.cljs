@@ -6,6 +6,7 @@
   (:require [plastic.worker.editor.model.report :as report]
             [meld.zip :as zip]))
 
+; -------------------------------------------------------------------------------------------------------------------
 ; operations with parse-tree's zippers
 
 ; -------------------------------------------------------------------------------------------------------------------
@@ -24,21 +25,21 @@
 (def report-removed (partial report* report/make-removed))
 (def report-moved (partial report* report/make-moved))
 
-(defn report*list [f report locs]
-  (report/merge report (f (map zip/get-id locs))))
+;(defn report*list [f report locs]
+;  (report/merge report (f (map zip/get-id locs))))
 
-(def report-modified-list (partial report*list report/make-modified-list))
-(def report-added-list (partial report*list report/make-added-list))
-(def report-removed-list (partial report*list report/make-removed-list))
-(def report-moved-list (partial report*list report/make-moved-list))
+;(def report-modified-list (partial report*list report/make-modified-list))
+;(def report-added-list (partial report*list report/make-added-list))
+;(def report-removed-list (partial report*list report/make-removed-list))
+;(def report-moved-list (partial report*list report/make-moved-list))
 
-(defn report*nodes [f report nodes]
-  (report/merge report (f (map :id nodes))))
-
-(def report-modified-nodes (partial report*nodes report/make-modified-list))
-(def report-added-nodes (partial report*nodes report/make-added-list))
-(def report-removed-nodes (partial report*nodes report/make-removed-list))
-(def report-moved-nodes (partial report*nodes report/make-moved-list))
+;(defn report*nodes [f report nodes]
+;  (report/merge report (f (map :id nodes))))
+;
+;(def report-modified-nodes (partial report*nodes report/make-modified-list))
+;(def report-added-nodes (partial report*nodes report/make-added-list))
+;(def report-removed-nodes (partial report*nodes report/make-removed-list))
+;(def report-moved-nodes (partial report*nodes report/make-moved-list))
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; zip ops
@@ -110,10 +111,20 @@
         [loc report]))))
 
 (defn insert-after [values [loc report]]
-  [(zip/insert-rights loc values) (report-added-nodes report values)])
+  (let [new-loc (zip/insert-rights loc values)
+        added-locs (take (count values) (iterate zip/right (zip/right new-loc)))
+        new-report (process added-locs report
+                     (fn [report loc]
+                       (report-added report loc)))]
+    [new-loc new-report]))
 
 (defn insert-before [values [loc report]]
-  [(zip/insert-lefts loc values) (report-added-nodes report values)])
+  (let [new-loc (zip/insert-lefts loc values)
+        added-locs (take (count values) (iterate zip/left (zip/left new-loc)))
+        new-report (process added-locs report
+                     (fn [report loc]
+                       (report-added report loc)))]
+    [new-loc new-report]))
 
 (defn remove-linebreak-before [[loc report]]
   (let [prev-locs (take-while zip/good? (iterate zip/prev loc))
@@ -123,8 +134,8 @@
       [loc report])))
 
 #_(defn splice [[loc report]]
-  (let [children (z/children loc)]
-    [(editz/splice loc) (report-moved-nodes report children)]))
+    (let [children (z/children loc)]
+      [(editz/splice loc) (report-moved-nodes report children)]))
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; composed ops
@@ -206,5 +217,5 @@
   (error "implement splice-node")
   [loc report]
   #_(thread-zip-ops [loc report]
-    [find node-id]
-    [splice]))
+      [find node-id]
+      [splice]))

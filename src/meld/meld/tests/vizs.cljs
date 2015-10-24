@@ -3,6 +3,8 @@
   (:require [plastic.devcards.util :refer-macros [meld-card]]
             [meld.parser :as parser]))
 
+; -------------------------------------------------------------------------------------------------------------------
+
 (meld-card "wild-whitespace" #(parser/parse! " (0   )  "))
 
 (meld-card "small-vec" #(parser/parse! "[0 1 2]"))
@@ -59,7 +61,7 @@
   (:require [plastic.main.editor.render.utils :refer [wrap-specials classv apply-shadowing-subscripts]]
             [plastic.main.editor.render.inline-editor :refer [inline-editor-component]]
             [plastic.main.editor.render.reusables :refer [raw-html-component]]
-            [plastic.main.frame :refer [subscribe]]
+            [plastic.frame :refer [subscribe]]
             [plastic.util.helpers :as helpers]
             [plastic.main.editor.toolkit.id :as id]
             [plastic.util.dom :as dom]))

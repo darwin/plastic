@@ -3,14 +3,16 @@
   (:require [plastic.main.editor.render.utils :refer [dangerously-set-html wrap-specials fix-pre classv]]
             [plastic.main.editor.render.inline-editor :refer [inline-editor-component]]
             [plastic.main.editor.render.reusables :refer [raw-html-component]]
-            [plastic.main.frame :refer [subscribe]]))
+            [plastic.frame :refer [subscribe]]))
 
-(defn doc-component [editor-id unit-id node-id]
-  (let [selected? (subscribe [:editor-selection-node editor-id node-id])
-        cursor? (subscribe [:editor-cursor-node editor-id node-id])
-        editing? (subscribe [:editor-editing-node editor-id node-id])
-        layout (subscribe [:editor-layout-unit-node editor-id unit-id node-id])]
-    (fn [_editor-id _unit-id _node-id]
+; -------------------------------------------------------------------------------------------------------------------
+
+(defn doc-component [context editor-id unit-id node-id]
+  (let [selected? (subscribe context [:editor-selection-node editor-id node-id])
+        cursor? (subscribe context [:editor-cursor-node editor-id node-id])
+        editing? (subscribe context [:editor-editing-node editor-id node-id])
+        layout (subscribe context [:editor-layout-unit-node editor-id unit-id node-id])]
+    (fn [_context _editor-id _unit-id _node-id]
       (let [layout @layout
             selected? @selected?
             editing? @editing?
@@ -27,16 +29,18 @@
                             (if cursor? "cursor")
                             (if editing? "editing"))}
               (if editing?
-                [inline-editor-component id]
-                [raw-html-component (fix-pre (wrap-specials text))])]]))))))
+                [inline-editor-component context id]
+                [raw-html-component context (fix-pre (wrap-specials text))])]]))))))
 
-(defn docs-section-component [editor-id unit-id node-id]
-  (let [layout (subscribe [:editor-layout-unit-node editor-id unit-id node-id])
-        docs-visible (subscribe [:settings :docs-visible])]
-    (fn [editor-id unit-id _node-id]
+; -------------------------------------------------------------------------------------------------------------------
+
+(defn docs-section-component [context editor-id unit-id node-id]
+  (let [layout (subscribe context [:editor-layout-unit-node editor-id unit-id node-id])
+        docs-visible (subscribe context [:settings :docs-visible])]
+    (fn [context editor-id unit-id _node-id]
       (let [layout @layout]
         (log-render "docs-section" [node-id layout]
           [:div.docs-section
            (if @docs-visible
              (for [doc-id (:children layout)]
-               ^{:key doc-id} [doc-component editor-id unit-id doc-id]))])))))
+               ^{:key doc-id} [doc-component context editor-id unit-id doc-id]))])))))

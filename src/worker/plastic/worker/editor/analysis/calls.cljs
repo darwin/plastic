@@ -1,7 +1,9 @@
-(ns plastic.worker.editor.layout.analysis.calls
+(ns plastic.worker.editor.analysis.calls
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [plastic.util.helpers :as helpers]
             [meld.zip :as zip]))
+
+; -------------------------------------------------------------------------------------------------------------------
 
 (defn is-call? [loc]
   (if-let [parent-loc (zip/up loc)]

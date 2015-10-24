@@ -1,8 +1,10 @@
-(ns plastic.worker.editor.layout.analysis.scopes
+(ns plastic.worker.editor.analysis.scopes
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [plastic.util.helpers :as helpers]
             [meld.zip :as zip]
             [meld.node :as node]))
+
+; -------------------------------------------------------------------------------------------------------------------
 
 (defonce ^:dynamic *scope-id* 0)
 (defonce ^:dynamic *scope-locals* nil)

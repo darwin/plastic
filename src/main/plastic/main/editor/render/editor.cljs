@@ -1,19 +1,21 @@
 (ns plastic.main.editor.render.editor
   (:require-macros [plastic.logging :refer [log info warn error group group-end log-render]]
-                   [plastic.main :refer [react! dispatch]])
-  (:require [plastic.main.frame :refer [subscribe]]
+                   [plastic.frame :refer [dispatch]])
+  (:require [plastic.frame :refer [subscribe]]
             [plastic.main.editor.render.unit :refer [unit-component]]
             [plastic.main.editor.render.utils :refer [classv]]))
 
-(defn handle-editor-click [editor-id event]
-  (.stopPropagation event)
-  (dispatch :editor-clear-selection editor-id)
-  (dispatch :editor-clear-cursor editor-id))
+; -------------------------------------------------------------------------------------------------------------------
 
-(defn editor-root-component [editor-id]
-  (let [units (subscribe [:editor-units editor-id])
-        selections-debug-visible (subscribe [:settings :selections-debug-visible])]
-    (fn [editor-id]
+(defn handle-editor-click [context editor-id event]
+  (.stopPropagation event)
+  (dispatch context [:editor-clear-selection editor-id])
+  (dispatch context [:editor-clear-cursor editor-id]))
+
+(defn editor-root-component [context editor-id]
+  (let [units (subscribe context [:editor-units editor-id])
+        selections-debug-visible (subscribe context [:settings :selections-debug-visible])]
+    (fn [context editor-id]
       (let [units @units
             selections-debug-visible @selections-debug-visible]
         (log-render "editor-root" editor-id
@@ -21,7 +23,7 @@
            {:data-peid editor-id
             :class     (classv
                          (if selections-debug-visible "debug-selections"))
-            :on-click  (partial handle-editor-click editor-id)}
+            :on-click  (partial handle-editor-click context editor-id)}
            [:div.units
             (for [unit-id units]
-              ^{:key unit-id} [unit-component editor-id unit-id])]])))))
+              ^{:key unit-id} [unit-component context editor-id unit-id])]])))))

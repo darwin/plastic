@@ -1,11 +1,13 @@
 (ns plastic.main.validator
   (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]])
   (:require [schema.core :as s :include-macros true]
+            [plastic.editor.model :refer [IEditor]]
             [plastic.validator :refer [cached factory TODO! string! editor-id! node-id-set! editor-render-state!
                                        editor-layout! editor-selectables! editor-spatial-web! editor-structural-web!
                                        editor-analysis! integer! key? bool! keyword! all! editor-units!]]
             [plastic.main.editor.model :as editor]
-            [plastic.main.editor.toolkit.id :as id]))
+            [plastic.main.editor.toolkit.id :as id]
+            [plastic.env :as env :include-macros true]))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -55,7 +57,7 @@
 (def editor!
   (cached
     (all!
-      (s/protocol editor/IEditor)
+      (s/protocol IEditor)
       editor-members!
       (s/pred editor-cursor-consistent?)
       (s/pred editor-selection-consistent?)
@@ -86,6 +88,8 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(def benchmark? (or plastic.env.bench-db-validation plastic.env.bench-main-db-validation))
+(defn benchmark? [context]
+  (env/or context :bench-db-validation :bench-main-db-validation))
 
-(def create (partial factory "main-db" benchmark? checker (fn [] plastic.env.*current-main-event*)))
+(defn create [context]
+  (partial factory "main-db" (benchmark? context) checker (fn [] plastic.globals.*current-event*)))

@@ -2,6 +2,8 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [meld.util :refer [update!]]))
 
+; -------------------------------------------------------------------------------------------------------------------
+
 (defn strip-semicolon-and-whitespace [text]
   (.replace text #"^[;]+[\s\t]?" ""))
 

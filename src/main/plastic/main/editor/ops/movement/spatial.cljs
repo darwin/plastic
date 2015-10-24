@@ -5,6 +5,8 @@
             [plastic.main.editor.render.geometry :as geometry]
             [plastic.util.helpers :as helpers]))
 
+; -------------------------------------------------------------------------------------------------------------------
+
 (defn get-left-score-fn [node-geometry]
   (let [node-point (geometry/left-point (second node-geometry))]
     (fn [geometry]

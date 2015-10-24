@@ -2,7 +2,9 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:refer-clojure :exclude [atom]))
 
-; these apis will be provided by Atom during runtime, see :apis inface message
+; TODO: nuke this namespace
+
+; these apis will be provided by Atom during runtime
 
 (defonce ^:dynamic *apis* nil)
 

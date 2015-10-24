@@ -4,6 +4,7 @@
             [plastic.util.helpers :as helpers]
             [clojure.data :as data]))
 
+; -------------------------------------------------------------------------------------------------------------------
 ; Sonars - pools of lightweight path-aware reactions
 ; for rationale see https://github.com/reagent-project/reagent/issues/165
 
@@ -24,7 +25,7 @@
   (doseq [[key val] paths-tree]
     (if (= val ::reaction)
       (do
-        (if plastic.env.debug-sonars (log "triggering" key))
+        (if plastic.config.debug-sonars (log "triggering" key))
         (ratom/run key))                                                                                              ; in case of ::reaction stopper, the key is actual SonarReaction instance
       (let [old (get old-data key)
             new (get new-data key)]
@@ -70,8 +71,8 @@
 
   ISonarFilter
   (-handle-change [this _sender old-data new-data]
-    (measure-time plastic.env.bench-sonars "SONAR" [(str "#" (hash this))]
-      (if plastic.env.debug-sonars
+    (measure-time plastic.config.bench-sonars "SONAR" [(str "#" (hash this))]
+      (if plastic.config.debug-sonars
         (log "handle-change paths-tree:" paths-tree "diff:" (data/diff old-data new-data)))
       (match-paths old-data new-data paths-tree)))
 
@@ -87,12 +88,12 @@
     (if (empty? paths-tree)
       (-start-watching this))
     (set! paths-tree (assoc-in paths-tree (conj (.-path sonar-reaction) sonar-reaction) ::reaction))
-    (if plastic.env.debug-sonars
+    (if plastic.config.debug-sonars
       (log "registered" sonar-reaction "in" this)))
   (-unregister [this sonar-reaction]
     {:pre [(get paths-tree (conj (.-path sonar-reaction) sonar-reaction))]}
     (set! paths-tree (helpers/dissoc-in paths-tree (conj (.-path sonar-reaction) sonar-reaction)))
-    (if plastic.env.debug-sonars
+    (if plastic.config.debug-sonars
       (log "unregistered" sonar-reaction "from" this))
     (when (empty? paths-tree)
       (-stop-watching this)
@@ -170,7 +171,7 @@
   {:pre [(nil? (get sonars source))]}
   (let [sonar (make-sonar source)]
     (set! sonars (assoc sonars source sonar))
-    (if plastic.env.debug-sonars
+    (if plastic.config.debug-sonars
       (log "created " sonar))
     sonar))
 
@@ -180,6 +181,6 @@
 
 (defn destroy-sonar! [source]
   {:pre [(get sonars source)]}
-  (if plastic.env.debug-sonars
+  (if plastic.config.debug-sonars
     (log "destroyed " (get sonars source)))
   (set! sonars (dissoc sonars source)))

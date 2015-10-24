@@ -1,10 +1,14 @@
 (ns plastic.dev.figwheel
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.env]
+  (:require [plastic.env :as env :include-macros true]
             [figwheel.client :as figwheel]))
+
+; -------------------------------------------------------------------------------------------------------------------
 
 (defonce ^:dynamic *inside-repl-plugin* false)
 (defonce ^:const repl-marker-style "color:white; background-color:black; padding:0px 2px; border-radius:1px;")
+
+; --------------------------------------------------------------------------------------------------------------------
 
 (defn figwheel-repl-fix [code]
   (.replace code
@@ -20,7 +24,7 @@
   (-> code figwheel-repl-fix intellij-repl-fix))
 
 (defn eval [code]
-  (if plastic.env.need-loophole
+  (if plastic.config.need-loophole
     (.runInThisContext (js/require "vm") code)                                                                        ; https://github.com/atom/loophole
     (js* "eval(~{code})")))
 
@@ -46,10 +50,18 @@
 
 (defn on-js-load [])
 
-(when-not plastic.env.dont-start-figwheel
-  (figwheel/start
-    {:on-jsload     on-js-load
-     :eval-fn       fancy-eval
-     :websocket-url "ws://localhost:7000/figwheel-ws"
-     :build-id      'dev
-     :merge-plugins {:repl-plugin repl-plugin}}))
+; --------------------------------------------------------------------------------------------------------------------
+
+(defn start [context]
+  (if-not (env/get context :dont-start-figwheel)
+    (figwheel/start
+      {:on-jsload     on-js-load
+       :eval-fn       fancy-eval
+       :websocket-url "ws://localhost:7000/figwheel-ws"
+       :build-id      'dev
+       :merge-plugins {:repl-plugin repl-plugin}}))
+  context)
+
+(defn stop [context]
+  context)
+

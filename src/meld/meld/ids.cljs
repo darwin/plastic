@@ -1,6 +1,8 @@
 (ns meld.ids
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]))
 
+; -------------------------------------------------------------------------------------------------------------------
+
 (defn insert-id* [inserter ids marker-id new-id]
   (loop [ids ids
          res []]

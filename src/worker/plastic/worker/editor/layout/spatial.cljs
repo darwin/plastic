@@ -5,6 +5,8 @@
             [plastic.worker.editor.layout.utils :as utils]
             [meld.zip :as zip]))
 
+; -------------------------------------------------------------------------------------------------------------------
+
 (defn add-min-max [spatial-graph]
   (let [keys (keys spatial-graph)]
     (-> spatial-graph

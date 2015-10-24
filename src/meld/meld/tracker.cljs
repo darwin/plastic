@@ -6,6 +6,8 @@
             [meld.core :as meld]
             [meld.util :refer [update!]]))
 
+; -------------------------------------------------------------------------------------------------------------------
+
 (def eof-sentinel ::eof-sentinel)
 
 (defn ^boolean is-token-interesting? [token]

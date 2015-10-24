@@ -2,6 +2,8 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [reagent.ratom :refer [IDisposable dispose!]]))
 
+; -------------------------------------------------------------------------------------------------------------------
+
 (defn make-booking []
   (atom {}))
 

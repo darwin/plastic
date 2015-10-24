@@ -8,6 +8,8 @@
             [meld.node :as node]
             [clojure.string :as string]))
 
+; -------------------------------------------------------------------------------------------------------------------
+
 (defn linebreak-near-doc? [loc]
   (or
     (utils/linebreak-near-doc? loc zip/left)

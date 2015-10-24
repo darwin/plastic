@@ -1,30 +1,15 @@
 (ns plastic.worker.editor.model
   (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]]
-                   [plastic.worker :refer [dispatch main-dispatch]]
+                   [plastic.frame :refer [dispatch]]
                    [plastic.common :refer [process]])
   (:require [plastic.util.helpers :as helpers :refer [select-values]]
             [plastic.worker.editor.toolkit.id :as id]
             [meld.core :as meld]
             [meld.node :as node]
-            [meld.zip :as zip]))
+            [meld.zip :as zip]
+            [plastic.editor.model :as shared]))
 
-(defprotocol IEditor)
-
-(defrecord Editor [id uri]
-  IEditor)
-
-(extend-protocol IHash
-  Editor
-  (-hash [this] (goog/getUid this)))
-
-(defn make [editor-id editor-uri]
-  (Editor. editor-id editor-uri))
-
-(defn valid-editor? [editor]
-  (satisfies? IEditor editor))
-
-(defn valid-editor-id? [editor-id]
-  (pos? editor-id))
+; -------------------------------------------------------------------------------------------------------------------
 
 (def good? zip/good?)
 
@@ -35,10 +20,21 @@
     (not (nil? (find-node-loc editor id)))))
 
 ; -------------------------------------------------------------------------------------------------------------------
+; shared functionality
 
-(defn get-id [editor]
-  {:post [(pos? %)]}
-  (:id editor))
+(def make shared/make)
+(def valid-editor? shared/valid-editor?)
+(def valid-editor-id? shared/valid-editor-id?)
+
+(def get-id shared/get-id)
+(def apply-to-editors shared/apply-to-editors)
+(def get-context shared/get-context)
+(def set-context shared/set-context)
+(def strip-context shared/strip-context)
+
+(def subscribe! shared/subscribe!)
+(def unsubscribe! shared/unsubscribe!)
+(def unsubscribe-all! shared/unsubscribe-all!)
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -52,7 +48,7 @@
          (string? source)]}
   (or
     (when-not (= (get-source editor) source)
-      (dispatch :editor-parse-source (get-id editor))
+      (dispatch (get-context editor) [:editor-parse-source (get-id editor)])                                          ; TODO: do this in a wrapping helper
       (assoc editor :source source))
     editor))
 
@@ -80,7 +76,7 @@
   (if (identical? (get-meld editor) meld)
     editor
     (do
-      (dispatch :editor-update-layout (get-id editor))
+      (dispatch (get-context editor) [:editor-update-layout (get-id editor)])                                         ; TODO: do this in a wrapping helper
       (assoc editor :meld meld))))
 
 (defn ^boolean has-meld? [editor]
@@ -213,24 +209,6 @@
   (let [meld (get-meld editor)
         top-node (meld/get-root-node meld)]
     (node/get-children top-node)))
-
-; -------------------------------------------------------------------------------------------------------------------
-
-(defn selector-matches-editor? [editor-id selector]
-  {:pre [(valid-editor-id? editor-id)]}
-  (cond
-    (vector? selector) (some #{editor-id} selector)
-    (set? selector) (contains? selector editor-id)
-    :default (= editor-id selector)))
-
-(defn apply-to-editors [editors selector f & args]
-  (process (keys editors) editors
-    (fn [editors editor-id]
-      (or
-        (if (selector-matches-editor? editor-id selector)
-          (if-let [new-editor (apply f (get editors editor-id) args)]
-            (assoc editors editor-id new-editor)))
-        editors))))
 
 (defn apply-to-units [editor selector f & args]
   {:pre [(valid-editor? editor)]}

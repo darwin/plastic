@@ -1,8 +1,10 @@
-(ns plastic.worker.editor.layout.analysis.defs
+(ns plastic.worker.editor.analysis.defs
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [plastic.util.helpers :as helpers]
             [plastic.worker.editor.layout.utils :as utils]
             [meld.zip :as zip]))
+
+; -------------------------------------------------------------------------------------------------------------------
 
 (defn extract-sym-doc [loc]
   (let [children (zip/child-locs loc)                                                                                 ; TODO: layout-utils/unwrap-metas

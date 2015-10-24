@@ -1,29 +1,18 @@
 (ns plastic.worker.editor.lifecycle
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.worker :refer [dispatch main-dispatch react!]])
-  (:require [plastic.util.reactions :refer [register-reaction dispose-reactions!]]
-            [plastic.worker.frame :refer [subscribe register-handler]]
-            [plastic.worker.frame.undo :refer [set-undo-report!]]
-            [plastic.worker.paths :as paths]
-            [plastic.worker.editor.watcher :as watcher]
+  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
+  (:require [plastic.worker.frame.undo :refer [set-undo-report!]]
             [plastic.worker.editor.model :as editor]
             [plastic.undo :as undo]))
 
-(defn add-editor! [editors [editor-id editor-uri]]
-  {:pre [(not (get editors editor-id))]}
-  (let [editors (if (map? editors) editors {})
-        editor (editor/make editor-id editor-uri)]
-    (watcher/init-editor editor-id)
-    (assoc editors editor-id editor)))
+; -------------------------------------------------------------------------------------------------------------------
 
-(defn remove-editor! [db [editor-id]]
+(defn add-editor! [context db [editor-id editor-uri]]
+  {:pre [(not (get-in db [:editors editor-id]))]}
+  (let [new-editor (editor/make editor-id editor-uri)]
+    (update db :editors assoc editor-id new-editor)))
+
+(defn remove-editor! [context db [editor-id]]
   {:pre [(get-in db [:editors editor-id])]}
   (-> db
     (update :editors dissoc editor-id)
     (undo/remove-undo-redo-for-editor editor-id)))
-
-; -------------------------------------------------------------------------------------------------------------------
-; register handlers
-
-(register-handler :add-editor paths/editors-path add-editor!)
-(register-handler :remove-editor remove-editor!)
