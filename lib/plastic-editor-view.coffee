@@ -1,6 +1,6 @@
 path = require 'path'
 {View, $, $$, $$$} = require 'space-pen'
-{Disposable, TextEditor} = require 'atom'
+{Disposable} = require 'atom'
 {ScrollView} = require 'atom-space-pen-views'
 bridge = require './bridge'
 
@@ -88,7 +88,7 @@ class PlasticEditorView extends ScrollView
     ]
 
   createMiniEditor: ->
-    @miniEditor = new TextEditor(softWrapped: false, tabLength: 2, softTabs: true, lineNumberGutterVisible: false)
+    @miniEditor = atom.workspace.buildTextEditor(softWrapped: false, tabLength: 2, softTabs: true, lineNumberGutterVisible: false)
     @miniEditorView = atom.views.getView(@miniEditor)
     monkeyPatchEditorInstance(@miniEditorView)
     $(@element).data('mini-editor', @miniEditor)
