@@ -23,7 +23,7 @@
         spatial-web-patch (prepare-map-patch (editor/get-spatial-web-for-unit editor unit-id) spatial-web)
         structural-web (build-structural-web unit-loc layout)
         structural-web-patch (prepare-map-patch (editor/get-structural-web-for-unit editor unit-id) structural-web)]
-    (dispatch (editor/get-context editor) [:editor-run-analysis editor-id unit-id]) ; TODO: here should be async dispatch
+    (dispatch (editor/get-context editor) [:editor-run-analysis editor-id unit-id])                                   ; TODO: here should be async dispatch
     (main-dispatch (editor/get-context editor) [:editor-commit-layout-patch editor-id unit-id layout-patch
                                                 spatial-web-patch structural-web-patch])
     (-> editor

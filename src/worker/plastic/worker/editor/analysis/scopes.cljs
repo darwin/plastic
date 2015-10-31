@@ -37,7 +37,7 @@
 
 (defn collect-node-params [loc max-path]
   (->> loc
-    (zip/descendant-locs)
+    (zip/take-subtree)
     (map zip/get-node)
     (filter node/symbol?)
     (filter-non-args)
@@ -48,13 +48,15 @@
   (if loc
     (collect-node-params loc (zip/inc-path (zip/loc->path loc)))))
 
+(defn collect-params-from-pair [[left-loc right-loc]]
+  (let [max-path (zip/inc-path (zip/inc-path (zip/loc->path right-loc)))]
+    (collect-node-params left-loc max-path)))
+
 ; TODO: here must be proper parsing of destructuring
 (defn collect-vector-pairs [loc]
   (if (zip/good? loc)
-    (let [pairs (partition 2 (filter scope-related? (zip/child-locs loc)))
-          inc-path zip/inc-path
-          loc->path zip/loc->path]
-      (mapcat #(collect-node-params (first %) (inc-path (inc-path (loc->path (second %))))) pairs))))
+    (let [pairs (partition 2 (filter scope-related? (zip/child-locs loc)))]
+      (mapcat collect-params-from-pair pairs))))
 
 (defn collect-specified-param [loc num]
   (let [relevant-child-locs (filter scope-related? (zip/child-locs loc))]
@@ -81,8 +83,8 @@
 
 (defn node-scope [loc childs depth]
   (case (zip/get-tag loc)
-    :list (if-not (empty? childs)
-            (if-let [opener-type (scope-openers (zip/get-sexpr (first childs)))]
+    :list (when-not (empty? childs)
+            (if-let [opener-type (get scope-openers (zip/get-sexpr (first childs)))]
               (store-locals {:id    (next-scope-id!)
                              :depth (inc depth)}
                 (collect-params loc opener-type))))
