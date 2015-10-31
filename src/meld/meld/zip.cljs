@@ -490,15 +490,15 @@
           (recur (rest path) child-loc))))))
 
 (defn path-compare [path1 path2]
-  (loop [p1 path1
-         p2 path2]
-    (cond
-      (and (empty? p1) (not (empty? p2))) -1
-      (and (not (empty? p1)) (empty? p2)) 1
-      :else (let [c (compare (first p1) (first p2))]
-              (if-not (zero? c)
-                c
-                (recur (rest p1) (rest p2)))))))
+  (let [res (loop [p1 path1
+                   p2 path2]
+              (if (and (empty? p1) (empty? p2))
+                0
+                (let [c (compare (first p1) (first p2))]
+                  (if-not (zero? c)
+                    c
+                    (recur (rest p1) (rest p2))))))]
+    res))
 
 (defn path< [path1 path2]
   (neg? (path-compare path1 path2)))
