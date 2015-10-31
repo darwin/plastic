@@ -1,4 +1,4 @@
-(ns plastic.system.dev
+(ns plastic.system
   (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]])
   (:require [com.stuartsierra.component :refer [system-map using]]
             [plastic.component.env :refer [make-env]]
@@ -10,7 +10,7 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn make-dev-system [config services]
+(defn make-system [config services]
   (system-map
     :env (make-env config)
     :sonar-pool (using (make-sonar-pool) [:env])

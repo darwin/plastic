@@ -2,7 +2,7 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]])
   (:require [com.stuartsierra.component :as component]
             [plastic.globals :as globals]
-            [plastic.system.dev :refer [make-dev-system]]
+            [plastic.system :refer [make-system]]
             [plastic.onion.api :refer [register-apis!]]
             [plastic.util.helpers :refer [convert-from-js]]
             [plastic.env :as env]))
@@ -38,10 +38,11 @@
 (defn create-system! [js-env js-services]
   (let [env (convert-from-js js-env)
         services (convert-from-js js-services)
-        constructed-system (make-dev-system env services)
-        running-system (wire-components! (component/start constructed-system))]
+        system (-> (make-system env services)
+                 (component/start)
+                 (wire-components!))]
     (register-apis! js-services)                                                                                      ; TODO: temporary - remove later
-    (if (env/get running-system :dev-mode)
-      (expose-debug-vars! running-system))
-    (set! globals/*system* running-system)
-    running-system))
+    (if (env/get system :dev-mode)
+      (expose-debug-vars! system))
+    (set! globals/*system* system)
+    system))
