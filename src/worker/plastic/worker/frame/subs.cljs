@@ -12,13 +12,16 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
+(defn define-subscription [context name selector]
+  (register-sub context name (path-query-factory context selector)))
+
 (defn register-subs [context]
   (-> context
-    (register-sub :editors (path-query-factory [:editors]))
-    (register-sub :editor (path-query-factory (editor-selector [])))
-    (register-sub :editor-render-state (path-query-factory (editor-selector [:render-state])))
-    (register-sub :editor-forms (path-query-factory (editor-selector [:forms])))
-    (register-sub :editor-uri (path-query-factory (editor-selector [:uri])))
-    (register-sub :editor-text (path-query-factory (editor-selector [:text])))
-    (register-sub :editor-parse-tree (path-query-factory (editor-selector [:parse-tree])))
-    (register-sub :editor-xform-report (path-query-factory (editor-selector [:xform-report])))))
+    (define-subscription :editors [:editors])
+    (define-subscription :editor (editor-selector []))
+    (define-subscription :editor-render-state (editor-selector [:render-state]))
+    (define-subscription :editor-forms (editor-selector [:forms]))
+    (define-subscription :editor-uri (editor-selector [:uri]))
+    (define-subscription :editor-text (editor-selector [:text]))
+    (define-subscription :editor-parse-tree (editor-selector [:parse-tree]))
+    (define-subscription :editor-xform-report (editor-selector [:xform-report]))))
