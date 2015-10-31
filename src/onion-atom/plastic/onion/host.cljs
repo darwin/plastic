@@ -1,4 +1,4 @@
-(ns plastic.onion.atom
+(ns plastic.onion.host
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [plastic.onion.api :refer [File]]))
 
@@ -9,4 +9,3 @@
   (let [file (File. uri)
         content (.read file)]
     (.then content cb)))
-

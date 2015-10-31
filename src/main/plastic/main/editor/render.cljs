@@ -8,5 +8,5 @@
 (defn mount-editor [context element editor-id]
   (reagent/render [editor-root-component context editor-id] element))
 
-(defn unmount-editor [context element]
+(defn unmount-editor [_context element]
   (reagent/unmount-component-at-node element))

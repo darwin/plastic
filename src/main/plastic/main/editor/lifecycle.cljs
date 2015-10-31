@@ -3,7 +3,7 @@
                    [plastic.frame :refer [dispatch worker-dispatch]])
   (:require [plastic.util.booking :as booking]
             [plastic.main.servant]
-            [plastic.onion.atom.inline-editor :as inline-editor]
+            [plastic.onion.inline-editor :as inline-editor]
             [plastic.main.editor.model :as editor]
             [plastic.undo :as undo]))
 

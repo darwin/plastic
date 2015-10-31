@@ -4,7 +4,7 @@
   (:require [reagent.core :as reagent]
             [plastic.onion.api :refer [$]]
             [plastic.util.dom :as dom]
-            [plastic.onion.atom.inline-editor :as inline-editor]
+            [plastic.onion.inline-editor :as inline-editor]
             [plastic.env :as env :include-macros true]))
 
 ; -------------------------------------------------------------------------------------------------------------------

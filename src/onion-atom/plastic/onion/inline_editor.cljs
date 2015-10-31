@@ -1,6 +1,6 @@
-(ns plastic.onion.atom.inline-editor
+(ns plastic.onion.inline-editor
   (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]]
-                   [plastic.onion.atom.inline-editor :refer [update-inline-editor-synchronously]]
+                   [plastic.onion.inline-editor :refer [update-inline-editor-synchronously]]
                    [plastic.frame :refer [dispatch]])
   (:require [plastic.onion.api :refer [$ atom-api]]
             [plastic.main.editor.model :as editor]
