@@ -49,8 +49,6 @@ class PlasticEditorView extends ScrollView
 
     @createMiniEditor()
 
-    bridge.send "register-editor", @id, @uri
-
     @addOps [
       'plastic:abort-keybinding'
       'plastic:nop'
@@ -96,15 +94,19 @@ class PlasticEditorView extends ScrollView
     $(@element).data('mini-editor', @miniEditor)
     $(@element).data('mini-editor-view', @miniEditorView)
 
-  detached: ->
-    bridge.send "unregister-editor", @id
+  attached: ->
+    bridge.send "register-editor", @id, @uri
+    pane = atom.workspace.getActivePane()
+    handler = pane.onWillRemoveItem =>
+      bridge.send "unregister-editor", @id
+      handler.dispose()
 
   serialize: ->
     # deserializer: 'PlasticView'
     # version: 2
     # uri: @uri
 
-  addOps: (ops) =>
+  addOps: (ops) ->
     handler = (op) =>
       (event) =>
         bridge.send "editor-op", @id, op, event
