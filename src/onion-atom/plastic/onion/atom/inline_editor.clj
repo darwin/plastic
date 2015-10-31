@@ -1,5 +1,4 @@
-(ns plastic.onion
-  (:require [plastic.logging :refer [log info warn error group group-end fancy-log-with-time]]))
+(ns plastic.onion.atom.inline-editor)
 
 ; -------------------------------------------------------------------------------------------------------------------
 

@@ -1,7 +1,6 @@
 (ns plastic.onion.atom
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.onion :refer [update-inline-editor-synchronously]])
-  (:require [plastic.onion.api :refer [File $ atom-api]]))
+  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
+  (:require [plastic.onion.api :refer [File]]))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
