@@ -37,6 +37,7 @@
 
 (defn create-system! [js-env js-services]
   (let [env (convert-from-js js-env)
+        _ (log "active config" env)
         services (convert-from-js js-services)
         system (-> (make-system env services)
                  (component/start)

@@ -92,4 +92,4 @@
   (env/or context :bench-db-validation :bench-main-db-validation))
 
 (defn create [context]
-  (partial factory "main-db" (benchmark? context) checker (fn [] plastic.globals.*current-event*)))
+  (factory "main-db" (benchmark? context) checker))

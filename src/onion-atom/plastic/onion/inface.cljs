@@ -12,6 +12,9 @@
 (defn init-onion [context]
   context)
 
+(defn atom-command-to-plastic-command [atom-command]
+  (keyword (string/replace atom-command #"^plastic:" "")))
+
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defn init [context state]
@@ -29,20 +32,20 @@
     (render/unmount-editor context mount-node))
   (dispatch context [:remove-editor editor-id]))
 
-(defn editor-op [context editor-id command event]
+(defn editor-op [context editor-id atom-command event]
   {:pre [(number? editor-id)]}
-  (let [internal-command (keyword (string/replace command #"^plastic:" ""))]
-    (if (keyword-identical? internal-command :abort-keybinding)
+  (let [plastic-command (atom-command-to-plastic-command atom-command)]
+    (if (keyword-identical? plastic-command :abort-keybinding)
       (do
         (log "abort keybinding")
         (.abortKeyBinding event))
       (do
-        (dispatch context [:editor-op editor-id internal-command])
+        (dispatch context [:editor-op editor-id plastic-command])
         (.stopPropagation event)))))
 
-(defn command [context command event]
-  (let [internal-command (keyword (string/replace command #"^plastic:" ""))]
-    (dispatch context [:command internal-command])
+(defn command [context atom-command event]
+  (let [plastic-command (atom-command-to-plastic-command atom-command)]
+    (dispatch context [:command plastic-command])
     (.stopPropagation event)))
 
 ; -------------------------------------------------------------------------------------------------------------------

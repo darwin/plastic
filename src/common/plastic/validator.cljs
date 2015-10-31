@@ -38,11 +38,14 @@
 (defn cached [schema]
   (s/if (partial check-or-update-cache! schema) s/Any schema))
 
-(defn factory [db-name benchmark? check-fn event-name-fn]
-  (fn [db]
-    (if-let [e (measure-time benchmark? "VALIDATE" [db-name] (check-fn db))]
-      (error (str db-name ": failed validation") e "after reset!" (event-name-fn) "invalid db:" db)
-      true)))
+(defn factory
+  ([db-name benchmark? check-fn] (factory db-name benchmark? check-fn (fn [] plastic.globals.*current-event-stack*)))
+  ([db-name benchmark? check-fn event-info-fn]
+   (fn [db]
+     (if-let [err (measure-time benchmark? "VALIDATE" [db-name]
+                    (check-fn db))]
+       (error (str db-name ": failed validation") err "after reset!" (event-info-fn) "invalid db:" db)
+       true))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; shared validation helpers

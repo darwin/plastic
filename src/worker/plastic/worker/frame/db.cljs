@@ -14,7 +14,7 @@
     (validator/create context)))
 
 (defn make-validator [context]
-  (or (provide-validator context) (fn [] true)))
+  (or (provide-validator context) (constantly true)))
 
 (defn make-db [context]
   (reagent/atom defaults :validator (make-validator context)))

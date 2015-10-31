@@ -62,7 +62,6 @@
                     :closure-defines       {"plastic.config.dev_mode"                  true
                                             "plastic.config.run_worker_on_main_thread" true
                                             "plastic.config.need_loophole"             true
-                                            ;"plastic.config.legacy_devtools"           true
                                             "plastic.config.validate_dbs"              true
                                             "plastic.config.log_all_dispatches"        true}
                     :output-to             "lib/_build/main/plastic.js"

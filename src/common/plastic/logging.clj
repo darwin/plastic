@@ -86,7 +86,7 @@
        (let [start# (.now js/performance)
              ret# (do ~@body)
              diff# (- (.now js/performance) start#)]
-         ;(fancy-log-with-time (ms diff#) (str "<" ~label) ~@more)
+         (fancy-log-with-time (ms diff#) (str "<" ~label) ~@more)
          ret#))
      (let [res# (do ~@body)]
        res#)))
