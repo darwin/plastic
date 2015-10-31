@@ -2,7 +2,7 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]]
                    [plastic.onion.inline-editor :refer [update-inline-editor-synchronously]]
                    [plastic.frame :refer [dispatch]])
-  (:require [plastic.onion.api :refer [$ atom-api]]
+  (:require [plastic.onion.api :refer [$]]
             [plastic.main.editor.model :as editor]
             [plastic.util.dom :as dom]
             [plastic.env :as env :include-macros true]))
@@ -79,10 +79,6 @@
   {:post [(contains? known-editor-modes %)]}
   (let [$inline-editor-view ($ (get-atom-inline-editor-view-instance editor-id))]
     (class-name-to-editor-mode (some #(if (.hasClass $inline-editor-view %) %) known-editor-modes-classes))))
-
-(defn dispatch-command-in-inline-editor [editor-id command]
-  (let [inline-editor-view (get-atom-inline-editor-view-instance editor-id)]
-    (.dispatch (.-commands atom-api) inline-editor-view command)))
 
 (defn insert-text-into-inline-editor [context editor-id text]
   (let [inline-editor (get-atom-inline-editor-instance editor-id)]

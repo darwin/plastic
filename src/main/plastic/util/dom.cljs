@@ -3,7 +3,6 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [plastic.util.dom.shim]
             [plastic.onion.api :refer [$]]
-            [plastic.onion.host :as atom]
             [plastic.main.editor.toolkit.id :as id]
             [clojure.string :as string]
             [clojure.string :as str]))

@@ -11,5 +11,5 @@
     (fn [editor]
       (let [editor-id (editor/get-id editor)
             uri (editor/get-uri editor)]
-        (host/load-file-content uri #(worker-dispatch context [:editor-set-source editor-id %]))
+        (host/load-file-content context uri #(worker-dispatch context [:editor-set-source editor-id %]))
         editor))))

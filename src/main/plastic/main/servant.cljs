@@ -2,6 +2,7 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]]
                    [plastic.frame :refer [dispatch]])
   (:require [plastic.servant :as shared]
+            [plastic.services :refer [get-service]]
             [plastic.env :as env :include-macros true]))
 
 ; -------------------------------------------------------------------------------------------------------------------
@@ -11,7 +12,7 @@
 
 (defn spawn-worker-if-needed [context]
   (if-not (env/get context :run-worker-on-main-thread)
-    (let [info (get-in context [:services :services :info])
+    (let [info (get-service context :info)
           base-path (.getLibPath info)
           worker-script (env/get context :worker-script)
           script-url (str base-path worker-script)
