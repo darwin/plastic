@@ -1,6 +1,6 @@
 (ns plastic.worker.undo
-  (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]])
-  (:require [plastic.undo :as undo]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end fancy-log]]
+            [plastic.undo :as undo]
             [plastic.worker.editor.model :as editor]
             [plastic.env :as env]))
 

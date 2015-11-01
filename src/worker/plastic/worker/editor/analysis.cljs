@@ -1,7 +1,7 @@
 (ns plastic.worker.editor.analysis
-  (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]]
-                   [plastic.frame :refer [main-dispatch]])
-  (:require [plastic.worker.editor.model :as editor]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end fancy-log]]
+            [plastic.frame :refer-macros [main-dispatch]]
+            [plastic.worker.editor.model :as editor]
             [plastic.worker.editor.analysis.calls :refer [analyze-calls]]
             [plastic.worker.editor.analysis.scopes :refer [analyze-scopes]]
             [plastic.worker.editor.analysis.defs :refer [analyze-defs]]

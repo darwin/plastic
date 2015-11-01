@@ -1,7 +1,7 @@
 (ns plastic.worker.editor.model
-  (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]]
-                   [plastic.common :refer [process]])
-  (:require [plastic.util.helpers :as helpers :refer [select-values]]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end fancy-log]]
+            [plastic.common :refer-macros [process]]
+            [plastic.util.helpers :as helpers :refer [select-values]]
             [plastic.worker.editor.toolkit.id :as id]
             [meld.core :as meld]
             [meld.node :as node]

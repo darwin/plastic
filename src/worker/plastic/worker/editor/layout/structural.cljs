@@ -1,7 +1,7 @@
 (ns plastic.worker.editor.layout.structural
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.common :refer [process]])
-  (:require [plastic.worker.editor.layout.utils :as utils]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.common :refer-macros [process]]
+            [plastic.worker.editor.layout.utils :as utils]
             [plastic.worker.editor.toolkit.id :as id]
             [meld.zip :as zip]))
 

@@ -1,6 +1,6 @@
 (ns plastic.worker.editor.xforms.editing
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.worker.editor.model.nodes :as nodes]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.worker.editor.model.nodes :as nodes]
             [plastic.worker.editor.xforms.zipops :as ops]
             [plastic.worker.editor.model.xforming :refer [apply-op apply-ops]]
             [plastic.worker.editor.model :refer [valid-edit-point?]]

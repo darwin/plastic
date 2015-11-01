@@ -1,6 +1,6 @@
 (ns meld.tests.zip
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [meld.tests.helpers :refer-macros [simple-zip-test] :refer [zip-from-source subtree-tags children-tags]]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [meld.tests.helpers :refer-macros [simple-zip-test] :refer [zip-from-source subtree-tags children-tags]]
             [cljs.test :refer-macros [is testing]]
             [meld.zip :as z]))
 

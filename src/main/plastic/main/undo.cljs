@@ -1,6 +1,6 @@
 (ns plastic.main.undo
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.undo :as undo]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.undo :as undo]
             [plastic.frame :refer [with-post-handler] :refer-macros [worker-dispatch]]))
 
 ; -------------------------------------------------------------------------------------------------------------------

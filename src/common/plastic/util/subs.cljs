@@ -1,7 +1,6 @@
 (ns plastic.util.subs
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [reagent.ratom :refer [reaction]])
-  (:require [reagent.ratom :refer [cursor make-reaction]]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [reagent.ratom :refer [cursor make-reaction] :refer-macros [reaction]]
             [plastic.reagent.sonar :refer [make-sonar-reaction get-or-create-sonar!]]))
 
 ; -------------------------------------------------------------------------------------------------------------------

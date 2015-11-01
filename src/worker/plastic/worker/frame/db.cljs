@@ -1,6 +1,6 @@
 (ns plastic.worker.frame.db
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [reagent.core :as reagent]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [reagent.core :as reagent]
             [plastic.env :as env :include-macros true]
             [plastic.worker.validator :as validator]))
 

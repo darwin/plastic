@@ -1,6 +1,6 @@
 (ns plastic.main.editor.render
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [reagent.core :as reagent]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [reagent.core :as reagent]
             [plastic.main.editor.render.editor :refer [editor-root-component]]))
 
 ; -------------------------------------------------------------------------------------------------------------------

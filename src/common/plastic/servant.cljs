@@ -1,10 +1,10 @@
 (ns plastic.servant
-  (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]]
-                   [plastic.common :refer [process]]
-                   [plastic.frame :refer [dispatch]])
-  (:require [cognitect.transit :as transit]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end measure-time fancy-log]]
+            [cognitect.transit :as transit]
+            [plastic.common :refer-macros [process]]
             [re-frame.utils :refer [reset-if-changed!]]
-            [plastic.frame :refer [get-thread-id dispatch* get-thread-label with-pre-handler with-final-handler]]
+            [plastic.frame :refer [get-thread-id dispatch* get-thread-label with-pre-handler
+                                   with-final-handler] :refer-macros [dispatch]]
             [plastic.env :as env :include-macros true]
             [plastic.util.helpers :as helpers]
             [plastic.globals :as globals]))

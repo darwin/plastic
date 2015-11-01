@@ -1,6 +1,6 @@
 (ns plastic.main.validator
-  (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]])
-  (:require [schema.core :as s :include-macros true]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end measure-time]]
+            [schema.core :as s :include-macros true]
             [plastic.editor.model :refer [IEditor]]
             [plastic.validator :refer [cached factory TODO! string! editor-id! node-id-set! editor-render-state!
                                        editor-layout! editor-selectables! editor-spatial-web! editor-structural-web!

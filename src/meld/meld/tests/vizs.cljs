@@ -1,6 +1,6 @@
 (ns meld.tests.vizs
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.devcards.util :refer-macros [meld-card]]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.devcards.util :refer-macros [meld-card]]
             [meld.parser :as parser]))
 
 ; -------------------------------------------------------------------------------------------------------------------
@@ -57,7 +57,7 @@
 "))
 
 (meld-card "real-code" #(parser/parse! "(ns plastic.main.editor.render.code
-  (:require-macros [plastic.logging :refer [log info warn error group group-end log-render]])
+  (:require-macros [plastic.logging :refer-macros [log info warn error group group-end log-render]])
   (:require [plastic.main.editor.render.utils :refer [wrap-specials classv apply-shadowing-subscripts]]
             [plastic.main.editor.render.inline-editor :refer [inline-editor-component]]
             [plastic.main.editor.render.reusables :refer [raw-html-component]]

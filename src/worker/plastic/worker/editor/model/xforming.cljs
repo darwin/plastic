@@ -1,6 +1,6 @@
 (ns plastic.worker.editor.model.xforming
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.worker.editor.model.report :as report]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.worker.editor.model.report :as report]
             [plastic.worker.editor.model :as editor :refer [valid-editor?]]
             [meld.zip :as zip]))
 

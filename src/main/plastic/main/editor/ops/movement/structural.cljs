@@ -1,8 +1,7 @@
 (ns plastic.main.editor.ops.movement.structural
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.frame :refer [dispatch]]
-                   [plastic.common :refer [process]])
-  (:require [plastic.main.editor.model :as editor]))
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.common :refer-macros [process]]
+            [plastic.main.editor.model :as editor]))
 
 ; -------------------------------------------------------------------------------------------------------------------
 

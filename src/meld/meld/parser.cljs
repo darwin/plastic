@@ -1,6 +1,6 @@
 (ns meld.parser
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [cljs.tools.reader.reader-types :as rt]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [cljs.tools.reader.reader-types :as rt]
             [cljs.tools.reader :as r]
             [meld.tracker :refer [make-tracker eof-sentinel]]
             [meld.gray-matter :refer [process-gray-matter]]

@@ -1,6 +1,6 @@
 (ns plastic.main.editor.ops.cursor
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.main.editor.ops.movement.form :refer [form-movement]]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.main.editor.ops.movement.form :refer [form-movement]]
             [plastic.main.editor.ops.movement.interest :refer [interest-movement]]
             [plastic.main.editor.ops.movement.spatial :refer [spatial-movement]]
             [plastic.main.editor.ops.movement.structural :refer [structural-movemement]]))

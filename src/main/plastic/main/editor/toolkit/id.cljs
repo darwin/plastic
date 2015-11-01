@@ -1,6 +1,6 @@
 (ns plastic.main.editor.toolkit.id
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [clojure.string :as string]))
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [clojure.string :as string]))
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; ids can be simple numbers pointing to parsed node-ids

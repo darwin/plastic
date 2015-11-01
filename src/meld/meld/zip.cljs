@@ -1,8 +1,8 @@
 (ns meld.zip
   (:refer-clojure :exclude [find next remove replace descendants ancestors
                             string? symbol? list? map? vector? set?])
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [meld.node :as node]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [meld.node :as node]
             [meld.core :as meld]
             [meld.util :refer [update! dissoc-all!]]))
 

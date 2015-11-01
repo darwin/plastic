@@ -1,6 +1,6 @@
 (ns plastic.component.main-frame
-  (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]])
-  (:require [com.stuartsierra.component :as component]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end fancy-log]]
+            [com.stuartsierra.component :as component]
             [plastic.frame :refer [IFrameThread]]
             [plastic.main.frame :refer [start stop]]))
 

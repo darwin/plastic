@@ -1,6 +1,6 @@
 (ns meld.comments
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [meld.util :refer [update!]]))
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [meld.util :refer [update!]]))
 
 ; -------------------------------------------------------------------------------------------------------------------
 

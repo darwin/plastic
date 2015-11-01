@@ -1,6 +1,6 @@
 (ns meld.tests.histograms
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.devcards.util :refer-macros [hist-card]]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.devcards.util :refer-macros [hist-card]]
             [meld.parser :as parser]))
 
 ; -------------------------------------------------------------------------------------------------------------------

@@ -1,7 +1,6 @@
 (ns plastic.main.editor.render.inline-editor
-  (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]]
-                   [plastic.frame :refer [dispatch]])
-  (:require [reagent.core :as reagent]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end fancy-log]]
+            [reagent.core :as reagent]
             [plastic.onion.api :refer [$]]
             [plastic.util.dom :as dom]
             [plastic.onion.inline-editor :as inline-editor]

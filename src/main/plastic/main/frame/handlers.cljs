@@ -1,7 +1,6 @@
 (ns plastic.main.frame.handlers
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.frame :refer [worker-dispatch worker-dispatch]])
-  (:require [plastic.frame :refer [register-handler]]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.frame :refer [register-handler] :refer-macros [worker-dispatch]]
             [plastic.main.init :refer [init job-done]]
             [plastic.main.commands :refer [dispatch-command]]
             [plastic.main.editor.analysis :refer [commit-analysis-patch]]

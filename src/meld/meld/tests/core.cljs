@@ -1,6 +1,6 @@
 (ns meld.tests.core
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.devcards.util :as util :refer-macros [deftest meld-zip-card]]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.devcards.util :as util :refer-macros [deftest meld-zip-card]]
             [cljs.test :refer-macros [is testing]]
             [meld.tests.helpers :refer [clip-node nodes-match?]]
             [meld.core :as meld]

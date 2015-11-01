@@ -1,7 +1,7 @@
 (ns plastic.worker.editor.layout
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.common :refer [process]])
-  (:require [plastic.worker.editor.model :as editor]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.common :refer-macros [process]]
+            [plastic.worker.editor.model :as editor]
             [plastic.frame :refer [as-independent] :refer-macros [dispatch main-dispatch]]
             [plastic.worker.editor.layout.builder :refer [build-layout]]
             [plastic.worker.editor.layout.selections :refer [build-selections-render-info]]

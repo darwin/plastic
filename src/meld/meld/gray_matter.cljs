@@ -1,6 +1,6 @@
 (ns meld.gray-matter
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [cljs.tools.reader.reader-types :as rt :refer [read-char unread get-line-number get-column-number]]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [cljs.tools.reader.reader-types :as rt :refer [read-char unread get-line-number get-column-number]]
             [meld.helpers :as helpers]
             [meld.comments :refer [stitch-aligned-comments]]
             [meld.zip :as zip]

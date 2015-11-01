@@ -1,5 +1,6 @@
 (ns meld.tests.helpers
-  (:require [plastic.devcards.util]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.devcards.util]
             [cljs.test]
             [meld.zip :as zip]
             [meld.parser :as parser]))

@@ -1,7 +1,7 @@
 (ns plastic.main.editor.ops
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.frame :refer [dispatch worker-dispatch worker-dispatch]])
-  (:require [plastic.main.editor.ops.editing :as editing]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.frame :refer-macros [dispatch worker-dispatch]]
+            [plastic.main.editor.ops.editing :as editing]
             [plastic.main.editor.ops.editing.helpers :refer [editing-string?]]
             [plastic.main.editor.ops.cursor :as cursor]
             [plastic.main.editor.model :as editor]))

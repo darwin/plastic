@@ -1,6 +1,6 @@
 (ns meld.tests.parser
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [meld.tests.helpers :refer-macros [simple-meld-test]]))
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [meld.tests.helpers :refer-macros [simple-meld-test]]))
 
 ; -------------------------------------------------------------------------------------------------------------------
 

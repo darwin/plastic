@@ -1,6 +1,6 @@
 (ns plastic.main.commands.settings
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.main.commands.utils :refer [toggle-setting]]))
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.main.commands.utils :refer [toggle-setting]]))
 
 ; -------------------------------------------------------------------------------------------------------------------
 

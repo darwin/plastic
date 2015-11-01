@@ -1,8 +1,7 @@
 (ns plastic.main.editor.render.unit
-  (:require-macros [plastic.logging :refer [log info warn error group group-end log-render]]
-                   [plastic.frame :refer [dispatch]])
-  (:require [plastic.util.dom :as dom]
-            [plastic.frame :refer [subscribe]]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end log-render]]
+            [plastic.util.dom :as dom]
+            [plastic.frame :refer [subscribe] :refer-macros [dispatch]]
             [plastic.main.editor.render.headers :refer [headers-section-component]]
             [plastic.main.editor.render.docs :refer [docs-section-component]]
             [plastic.main.editor.render.comments :refer [comments-box-component]]

@@ -1,6 +1,6 @@
 (ns plastic.core
-  (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]])
-  (:require [com.stuartsierra.component :as component]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end fancy-log]]
+            [com.stuartsierra.component :as component]
             [plastic.globals :as globals]
             [plastic.system :refer [make-system]]
             [plastic.onion.api :refer [expose-global-apis!]]

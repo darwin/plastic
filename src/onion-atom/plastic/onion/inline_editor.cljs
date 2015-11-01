@@ -1,8 +1,8 @@
 (ns plastic.onion.inline-editor
-  (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]]
-                   [plastic.onion.inline-editor :refer [update-inline-editor-synchronously]]
-                   [plastic.frame :refer [dispatch]])
-  (:require [plastic.onion.api :refer [$]]
+  (:require-macros [plastic.onion.inline-editor :refer [update-inline-editor-synchronously]])
+  (:require [plastic.logging :refer-macros [log info warn error group group-end fancy-log]]
+            [plastic.frame :refer-macros [dispatch]]
+            [plastic.onion.api :refer [$]]
             [plastic.main.editor.model :as editor]
             [plastic.util.dom :as dom]
             [plastic.env :as env :include-macros true]))

@@ -1,7 +1,7 @@
 (ns meld.core
   (:refer-clojure :exclude [descendants ancestors])
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [meld.node :as node]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [meld.node :as node]
             [meld.util :refer [update!]]))
 
 ; -------------------------------------------------------------------------------------------------------------------

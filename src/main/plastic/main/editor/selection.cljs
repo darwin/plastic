@@ -1,6 +1,6 @@
 (ns plastic.main.editor.selection
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.main.editor.model :as editor]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.main.editor.model :as editor]
             [plastic.main.editor.ops.editing :as editing]))
 
 ; -------------------------------------------------------------------------------------------------------------------

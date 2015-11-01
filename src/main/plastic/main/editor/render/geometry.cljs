@@ -1,7 +1,7 @@
 (ns plastic.main.editor.render.geometry
   (:refer-clojure :exclude [find])
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.util.dom.shim]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.util.dom.shim]
             [plastic.util.dom :as dom]
             [plastic.onion.api :refer [$]]))
 

@@ -1,6 +1,6 @@
 (ns meld.tracker
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [meld.gray-matter :refer [measure-gray-matter]]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [meld.gray-matter :refer [measure-gray-matter]]
             [meld.node :as node]
             [meld.ids :as ids]
             [meld.core :as meld]

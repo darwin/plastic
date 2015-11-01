@@ -1,6 +1,6 @@
 (ns plastic.worker.editor.analysis.scopes
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.util.helpers :as helpers]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.util.helpers :as helpers]
             [meld.zip :as zip]
             [meld.node :as node]))
 

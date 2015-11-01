@@ -1,6 +1,5 @@
 (ns plastic.env
-  (:refer-clojure :exclude [or])
-  (:require [plastic.logging :refer [log info warn error group group-end fancy-log-with-time]]))
+  (:refer-clojure :exclude [or]))
 
 ; -------------------------------------------------------------------------------------------------------------------
 

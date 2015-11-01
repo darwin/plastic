@@ -1,6 +1,6 @@
 (ns plastic.onion.host
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.services :refer [get-service]]))
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.services :refer [get-service]]))
 
 ; -------------------------------------------------------------------------------------------------------------------
 

@@ -1,6 +1,6 @@
 (ns plastic.devcards.util
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [devcards.core :refer [card-base register-card] :refer-macros [reagent]]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [devcards.core :refer [card-base register-card] :refer-macros [reagent]]
             [cljs.pprint :refer [pprint]]
             [meld.parser :as parser]
             [meld.zip :as zip]

@@ -1,6 +1,6 @@
 (ns meld.helpers
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [cljs.tools.reader.reader-types :refer [read-char unread]]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [cljs.tools.reader.reader-types :refer [read-char unread]]
             [meld.node :as node])
   (:import goog.string.StringBuffer))
 

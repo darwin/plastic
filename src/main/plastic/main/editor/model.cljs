@@ -1,7 +1,7 @@
 (ns plastic.main.editor.model
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.common :refer [process]])
-  (:require [plastic.editor.model :as shared]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.common :refer-macros [process]]
+            [plastic.editor.model :as shared]
             [plastic.util.helpers :as helpers :refer [select-values]]
             [plastic.main.editor.toolkit.id :as id]
             [clojure.set :as set]))

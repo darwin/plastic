@@ -1,7 +1,7 @@
 (ns plastic.main.editor.loader
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.frame :refer [worker-dispatch]])
-  (:require [plastic.onion.host :as host]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.frame :refer-macros [worker-dispatch]]
+            [plastic.onion.host :as host]
             [plastic.main.editor.model :as editor]))
 
 ; -------------------------------------------------------------------------------------------------------------------

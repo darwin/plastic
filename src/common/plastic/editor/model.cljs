@@ -1,11 +1,9 @@
 (ns plastic.editor.model
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.frame :refer [dispatch worker-dispatch]]
-                   [plastic.common :refer [process]]
-                   [plastic.editor.model :refer [editor-react!]]
-                   [plastic.util.reactions])
-  (:require [plastic.util.helpers :refer [select-values]]
+  (:require-macros [plastic.editor.model :refer [editor-react!]])
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.common :refer-macros [process]]
             [plastic.frame :refer [subscribe]]
+            [plastic.util.helpers :refer [select-values]]
             [plastic.util.booking :as booking]
             [plastic.util.reactions :refer [register-reaction unregister-reaction dispose-reaction!
                                             unregister-and-dispose-all-reactions!]]))

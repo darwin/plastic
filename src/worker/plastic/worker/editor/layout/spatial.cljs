@@ -1,6 +1,6 @@
 (ns plastic.worker.editor.layout.spatial
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.worker.editor.toolkit.id :as id]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.worker.editor.toolkit.id :as id]
             [plastic.util.helpers :as helpers]
             [plastic.worker.editor.layout.utils :as utils]
             [meld.zip :as zip]))

@@ -1,6 +1,6 @@
 (ns plastic.worker.frame.handlers
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.frame :refer [register-handler]]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.frame :refer [register-handler]]
             [plastic.worker.init :refer [init]]
             [plastic.worker.editor.lifecycle :refer [add-editor! remove-editor! wire-editor!]]
             [plastic.worker.editor.analysis :refer [run-analysis]]

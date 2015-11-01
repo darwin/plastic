@@ -1,6 +1,5 @@
 (ns plastic.main.frame
-  (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]])
-  (:require [cljs.core.async :refer [chan put! <!]]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end measure-time]]
             [re-frame.frame :refer [make-frame]]
             [plastic.frame :refer [start-loop init-frame]]
             [plastic.util.booking :refer [make-booking]]

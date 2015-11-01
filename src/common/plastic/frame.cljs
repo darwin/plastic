@@ -1,14 +1,14 @@
 (ns plastic.frame
-  (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time fancy-log]]
-                   [plastic.common :refer [process]]
-                   [cljs.core.async.macros :refer [go-loop go]])
-  (:require [cljs.core.async :refer [chan put! <!]]
-            [plastic.env :as env :include-macros true]
+  (:require-macros [cljs.core.async.macros :refer [go-loop]])
+  (:require [plastic.logging :refer-macros [log info warn error group group-end measure-time fancy-log]]
+            [cljs.core.async :refer [chan put! <!]]
             [re-frame.frame :refer [process-event register-subscription-handler make-frame]]
             [re-frame.middleware :refer [trim-v]]
             [re-frame.scaffold :refer [register-base legacy-subscribe]]
-            [plastic.globals :as globals]
             [clojure.string :as string]
+            [plastic.env :as env :include-macros true]
+            [plastic.common :refer-macros [process]]
+            [plastic.globals :as globals]
             [plastic.util.helpers :as helpers]))
 
 ; -------------------------------------------------------------------------------------------------------------------

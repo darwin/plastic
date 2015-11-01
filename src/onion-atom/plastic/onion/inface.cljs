@@ -1,6 +1,6 @@
 (ns plastic.onion.inface
-  (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]])
-  (:require [plastic.util.dom.shim]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end fancy-log]]
+            [plastic.util.dom.shim]
             [clojure.string :as string]
             [plastic.frame :refer [with-post-handler] :refer-macros [dispatch]]
             [plastic.env :as env :include-macros true]

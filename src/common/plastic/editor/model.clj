@@ -1,10 +1,11 @@
-(ns plastic.editor.model)
+(ns plastic.editor.model
+  (:require [plastic.util.reactions :refer [react!]]))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
 (defmacro editor-react! [context editor-subscription derefable f]
   `(let [previous-value# (volatile! ::not-initialized)]
-     (plastic.util.reactions/react!
+     (react!
        (let [editor-subscription# ~editor-subscription
              _# (reagent.ratom/run editor-subscription#)                                                              ; insanity
              value# @~derefable

@@ -1,7 +1,7 @@
 (ns plastic.worker.frame.subs
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [reagent.ratom :refer [reaction]])
-  (:require [plastic.frame :refer [register-sub]]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [reagent.ratom :refer-macros [reaction]]
+            [plastic.frame :refer [register-sub]]
             [plastic.util.subs :refer [path-query-factory]]))
 
 ; -------------------------------------------------------------------------------------------------------------------

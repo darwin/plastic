@@ -1,8 +1,8 @@
 (ns plastic.util.helpers
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.common :refer [process]]
-                   [cljs.core.async.macros :refer [go]])
-  (:require [cljs.pprint :as pprint :refer [pprint]]
+  (:require-macros [cljs.core.async.macros :refer [go]])
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.common :refer-macros [process]]
+            [cljs.pprint :as pprint :refer [pprint]]
             [cljs.core.async :refer [put! <! chan timeout close!]]
             [goog.object :as gobj]
             [clojure.set :as set]

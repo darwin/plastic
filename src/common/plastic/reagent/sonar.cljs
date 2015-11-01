@@ -1,6 +1,6 @@
 (ns plastic.reagent.sonar
-  (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]])
-  (:require [reagent.ratom :as ratom]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end measure-time]]
+            [reagent.ratom :as ratom]
             [plastic.util.helpers :as helpers]
             [clojure.data :as data]))
 

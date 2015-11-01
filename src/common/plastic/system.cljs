@@ -1,6 +1,6 @@
 (ns plastic.system
-  (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]])
-  (:require [com.stuartsierra.component :refer [system-map using]]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end fancy-log]]
+            [com.stuartsierra.component :refer [system-map using]]
             [plastic.component.env :refer [make-env]]
             [plastic.component.sonar-pool :refer [make-sonar-pool]]
             [plastic.component.figwheel :refer [make-figwheel]]

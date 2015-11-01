@@ -1,7 +1,6 @@
 (ns plastic.worker.servant
-  (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]]
-                   [plastic.frame :refer [dispatch]])
-  (:require [plastic.servant :as shared]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end measure-time]]
+            [plastic.servant :as shared]
             [plastic.env :as env :include-macros true]))
 
 ; -------------------------------------------------------------------------------------------------------------------

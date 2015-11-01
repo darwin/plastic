@@ -1,7 +1,7 @@
 (ns plastic.worker.editor.xforms
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.frame :refer [dispatch main-dispatch]])
-  (:require [plastic.worker.editor.xforms.editing :as editing]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.frame :refer-macros [main-dispatch]]
+            [plastic.worker.editor.xforms.editing :as editing]
             [plastic.worker.editor.model :as editor]
             [plastic.worker.frame.undo :as undo]))
 

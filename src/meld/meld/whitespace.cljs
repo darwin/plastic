@@ -1,6 +1,6 @@
 (ns meld.whitespace
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [meld.zip :as zip]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [meld.zip :as zip]
             [meld.node :as node]))
 
 ; -------------------------------------------------------------------------------------------------------------------

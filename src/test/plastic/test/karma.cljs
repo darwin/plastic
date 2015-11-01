@@ -1,7 +1,7 @@
 (ns plastic.test.karma
-  (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]]
-                   [plastic.test.karma :refer [total-number-of-tests-in-all-namespaces]])
-  (:require [cljs.test :refer-macros [run-all-tests run-tests]]))
+  (:require-macros [plastic.test.karma :refer [total-number-of-tests-in-all-namespaces]])
+  (:require [plastic.logging :refer-macros [log info warn error group group-end fancy-log]]
+            [cljs.test :refer-macros [run-all-tests run-tests]]))
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; inspired by https://github.com/honzabrecka/karma-reporter

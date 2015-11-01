@@ -1,7 +1,6 @@
 (ns plastic.validator
-  (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]])
-  (:require [schema.core :as s :include-macros true]
-            [goog.object :as gobj]))
+  (:require [plastic.logging :refer-macros [log info warn error group group-end measure-time]]
+            [schema.core :as s :include-macros true]))
 
 ; -------------------------------------------------------------------------------------------------------------------
 ; validation utils

@@ -1,6 +1,6 @@
 (ns plastic.main.editor.ops.editing
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.main.editor.model :as editor]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.main.editor.model :as editor]
             [plastic.main.editor.ops.cursor :as cursor]
             [plastic.main.editor.toolkit.id :as id]
             [plastic.main.editor.ops.editing.helpers :refer [xform-editor-on-worker continue editing-string?

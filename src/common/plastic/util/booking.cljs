@@ -1,6 +1,6 @@
 (ns plastic.util.booking
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [reagent.ratom :refer [IDisposable dispose!]]))
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [reagent.ratom :refer [IDisposable dispose!]]))
 
 ; -------------------------------------------------------------------------------------------------------------------
 

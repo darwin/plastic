@@ -1,6 +1,6 @@
 (ns plastic.main.editor.render.code
-  (:require-macros [plastic.logging :refer [log info warn error group group-end log-render]])
-  (:require [plastic.main.editor.render.utils :refer [wrap-specials classv apply-shadowing-subscripts]]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end log-render]]
+            [plastic.main.editor.render.utils :refer [wrap-specials classv apply-shadowing-subscripts]]
             [plastic.main.editor.render.inline-editor :refer [inline-editor-component]]
             [plastic.main.editor.render.reusables :refer [raw-html-component]]
             [plastic.frame :refer [subscribe]]

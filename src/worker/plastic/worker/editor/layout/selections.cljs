@@ -1,5 +1,5 @@
 (ns plastic.worker.editor.layout.selections
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]))
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]))
 
 ; -------------------------------------------------------------------------------------------------------------------
 

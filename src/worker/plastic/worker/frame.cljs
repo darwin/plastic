@@ -1,6 +1,6 @@
 (ns plastic.worker.frame
-  (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]])
-  (:require [re-frame.frame :refer [make-frame]]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end measure-time]]
+            [re-frame.frame :refer [make-frame]]
             [plastic.frame :refer [start-loop init-frame]]
             [plastic.util.booking :refer [make-booking]]
             [plastic.worker.frame.db :refer [make-db]]

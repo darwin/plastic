@@ -1,7 +1,7 @@
 (ns meld.node
   (:refer-clojure :exclude [string? keyword? regexp? seq? vector? map? set? symbol? list?])
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [meld.ids :as ids]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [meld.ids :as ids]
             [meld.util :refer [remove-nil-keys]]))
 
 ; -------------------------------------------------------------------------------------------------------------------

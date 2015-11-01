@@ -1,6 +1,6 @@
 (ns plastic.api
-  (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]])
-  (:require [plastic.onion.inface :as onion]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end fancy-log]]
+            [plastic.onion.inface :as onion]
             [plastic.core :refer [create-system!]]))
 
 ; -------------------------------------------------------------------------------------------------------------------

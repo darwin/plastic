@@ -1,6 +1,6 @@
 (ns plastic.main.editor
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.main.editor.toolkit]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.main.editor.toolkit]
             [plastic.main.editor.model]
             [plastic.main.editor.lifecycle]
             [plastic.main.editor.loader]

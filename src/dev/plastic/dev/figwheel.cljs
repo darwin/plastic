@@ -1,6 +1,6 @@
 (ns plastic.dev.figwheel
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.env :as env :include-macros true]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.env :as env :include-macros true]
             [figwheel.client :as figwheel]))
 
 ; -------------------------------------------------------------------------------------------------------------------

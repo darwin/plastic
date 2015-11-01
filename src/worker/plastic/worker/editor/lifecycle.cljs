@@ -1,8 +1,8 @@
 (ns plastic.worker.editor.lifecycle
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.worker.frame.undo :refer [set-undo-report!]]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.worker.frame.undo :refer [set-undo-report!]]
             [plastic.worker.editor.model :as editor]
-            [plastic.frame :refer-macros [dispatch main-dispatch]]
+            [plastic.frame :refer-macros [dispatch]]
             [plastic.undo :as undo]
             [plastic.util.booking :as booking]))
 

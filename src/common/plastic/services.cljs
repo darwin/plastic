@@ -1,5 +1,5 @@
 (ns plastic.services
-  (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]]))
+  (:require [plastic.logging :refer-macros [log info warn error group group-end fancy-log]]))
 
 ; -------------------------------------------------------------------------------------------------------------------
 

@@ -1,6 +1,6 @@
 (ns plastic.dev.devtools
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
-  (:require [plastic.env]
+  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
+            [plastic.env]
             [devtools.core :as devtools]))
 
 ; -------------------------------------------------------------------------------------------------------------------
