@@ -1,8 +1,8 @@
 (ns plastic.onion.inface
-  (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]]
-                   [plastic.frame :refer [dispatch]])
+  (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]])
   (:require [plastic.util.dom.shim]
             [clojure.string :as string]
+            [plastic.frame :refer [with-post-handler] :refer-macros [dispatch]]
             [plastic.env :as env :include-macros true]
             [plastic.main.editor.render :as render]
             [plastic.util.dom :as dom]))
@@ -21,11 +21,11 @@
   (dispatch context [:init (js->clj state :keywordize-keys true)]))
 
 (defn register-editor [context editor-id editor-uri]
-  (dispatch context [:add-editor editor-id editor-uri]
-    (fn [db]
-      (let [mount-node (dom/find-react-mount-point editor-id)]
-        (render/mount-editor context mount-node editor-id)
-        db))))
+  (dispatch context (with-post-handler [:add-editor editor-id editor-uri]
+                      (fn [db]
+                        (let [mount-node (dom/find-react-mount-point editor-id)]
+                          (render/mount-editor context mount-node editor-id)
+                          db)))))
 
 (defn unregister-editor [context editor-id]
   (let [mount-node (dom/find-react-mount-point editor-id)]

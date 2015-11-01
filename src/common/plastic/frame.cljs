@@ -122,18 +122,28 @@
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defn dispatch* [context event & [post-handler pre-handler final-handler]]
+(defn dispatch* [context event]
   {:pre [context]}
   (let [{:keys [event-chan event-queue]} context
-        info (if (or post-handler pre-handler final-handler)
-               {:pre   pre-handler
-                :post  post-handler
-                :final final-handler})
-        event-with-info (with-meta event info)]
-    (if @event-queue
-      (helpers/vupdate! event-queue conj event-with-info)
-      (put! event-chan event-with-info)))
+        info (meta event)]
+    (if (and @event-queue (not (:independent info)))
+      (helpers/vupdate! event-queue conj event)
+      (put! event-chan event)))
   nil)
+
+; -------------------------------------------------------------------------------------------------------------------
+
+(defn as-independent [event]
+  (vary-meta event assoc :independent true))
+
+(defn with-post-handler [event f]
+  (vary-meta event assoc :post f))
+
+(defn with-pre-handler [event f]
+  (vary-meta event assoc :pre f))
+
+(defn with-final-handler [event f]
+  (vary-meta event assoc :final f))
 
 ; -------------------------------------------------------------------------------------------------------------------
 

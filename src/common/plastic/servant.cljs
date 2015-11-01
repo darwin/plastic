@@ -4,7 +4,7 @@
                    [plastic.frame :refer [dispatch]])
   (:require [cognitect.transit :as transit]
             [re-frame.utils :refer [reset-if-changed!]]
-            [plastic.frame :refer [get-thread-id dispatch* get-thread-label]]
+            [plastic.frame :refer [get-thread-id dispatch* get-thread-label with-pre-handler with-final-handler]]
             [plastic.env :as env :include-macros true]
             [plastic.util.helpers :as helpers]
             [plastic.globals :as globals]))
@@ -117,7 +117,9 @@
                           db)]
       (case command
         :ack (ack context event)
-        :dispatch (dispatch context event nil pre-handler final-handler)))))
+        :dispatch (dispatch context (-> event
+                                      (with-pre-handler pre-handler)
+                                      (with-final-handler final-handler)))))))
 
 (defn post-message* [context recipient msg-id command args]
   (let [payload (js-obj

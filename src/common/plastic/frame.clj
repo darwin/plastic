@@ -5,16 +5,12 @@
 ; -------------------------------------------------------------------------------------------------------------------
 ; these need to be macros to preserve source location for logging into devtools
 
-(defmacro dispatch
-  ([context event] `(dispatch ~context ~event nil nil nil))
-  ([context event post-handler] `(dispatch ~context ~event ~post-handler nil nil))
-  ([context event post-handler pre-handler] `(dispatch ~context ~event ~post-handler ~pre-handler nil))
-  ([context event post-handler pre-handler final-handler]
-   `(let [context# ~context
-          event# ~event]
-      (if (env/get context# :log-all-dispatches)
-        (fancy-log "DISPATCH" event#))
-      (plastic.frame.dispatch* context# event# ~post-handler ~pre-handler ~final-handler))))
+(defmacro dispatch [context event]
+  `(let [context# ~context
+         event# ~event]
+     (if (env/get context# :log-all-dispatches)
+       (fancy-log "DISPATCH" event#))
+     (dispatch* context# event#)))
 
 (defmacro worker-dispatch
   ([context event] `(worker-dispatch ~context ~event nil nil))
