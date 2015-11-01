@@ -1,5 +1,5 @@
 (ns plastic.frame
-  (:require [plastic.logging :refer [log info warn error group group-end fancy-log-with-time]]
+  (:require [plastic.logging :refer [log info warn error group group-end fancy-log]]
             [plastic.env :as env]))
 
 ; -------------------------------------------------------------------------------------------------------------------
@@ -13,7 +13,7 @@
    `(let [context# ~context
           event# ~event]
       (if (env/get context# :log-all-dispatches)
-        (fancy-log-with-time "" "DISPATCH" event#))
+        (fancy-log "DISPATCH" event#))
       (plastic.frame.dispatch* context# event# ~post-handler ~pre-handler ~final-handler))))
 
 (defmacro worker-dispatch
@@ -23,7 +23,7 @@
    `(let [context# ~context
           event# ~event]
       (if (env/get context# :log-all-dispatches)
-        (fancy-log-with-time "" "DISP->W" event#))
+        (fancy-log "DISP->W" event#))
       (plastic.main.dispatch-to-worker context# event# ~post-handler ~pre-handler))))
 
 (defmacro main-dispatch
@@ -33,5 +33,5 @@
    `(let [context# ~context
           event# ~event]
       (if (env/get context# :log-all-dispatches)
-        (fancy-log-with-time "" "DISP->M" event#))
+        (fancy-log "DISP->M" event#))
       (plastic.worker.dispatch-to-main context# event# ~post-handler ~pre-handler))))
