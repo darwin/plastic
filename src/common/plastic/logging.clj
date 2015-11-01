@@ -54,21 +54,28 @@
          (.profileEnd js/console)
          (throw e#)))))
 
-(defmacro pad-str [s len]
+(defmacro padding [s len]
   `(let [padlen# (- ~len (count ~s))]
-     (str (apply str (repeat padlen# " ")) ~s)))
+     (apply str (repeat padlen# " "))))
+
+(defmacro pad-str [s len]
+  `(let [s# ~s]
+     (str (padding s# ~len) s#)))
 
 (defmacro fancy-log-with-time [time label & args]
   `(let [thread# (or plastic.globals.*current-thread* "JS")
          label# ~label
          thread-color# (case thread#
-                         "JS" "black"
-                         "MAIN" "green"
-                         "WORKER" "orange"
-                         "red")]
-     (log "%c%s%c%s%c%s"
+                         "JS" "DimGray"
+                         "RENDER" "DarkPurple"
+                         "MAIN" "DarkGreen"
+                         "WORKER" "DarkOrange"
+                         "red")
+         thread-style# (str "background-color:" thread-color# ";border-radius:2px;color:white;")]
+     (log "%c%s%s%c%s%c%s"
        "color:#aaa" (pad-str ~time 10)
-       (str "color:" thread-color#) (if thread# (pad-str (str "[" thread# "]") 10) "")
+       (padding thread# 10)
+       thread-style# (if thread# (str " " thread# " ") "")
        "color:blue" (if label# (pad-str (str label# ":") 16) "")
        ~@args)))
 
