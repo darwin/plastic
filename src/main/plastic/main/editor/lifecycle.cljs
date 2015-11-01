@@ -1,7 +1,7 @@
 (ns plastic.main.editor.lifecycle
-  (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.frame :refer [dispatch worker-dispatch]])
+  (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [plastic.util.booking :as booking]
+            [plastic.frame :refer-macros [dispatch worker-dispatch]]
             [plastic.main.servant]
             [plastic.onion.inline-editor :as inline-editor]
             [plastic.main.editor.model :as editor]
@@ -15,13 +15,22 @@
       (fn [editor editing]
         (inline-editor/deactivate-inline-editor! editor)
         (if-not (empty? editing)
-          (inline-editor/activate-inline-editor! editor))))))
+          (inline-editor/activate-inline-editor! editor)))))
+  editor)
 
 (defn watch-to-update-inline-editor! [editor]
   (let [editor-id (editor/get-id editor)]
     (editor/subscribe! editor [:editor-inline-editor editor-id]
       (fn [editor]
-        (inline-editor/update-state! editor)))))
+        (inline-editor/update-state! editor))))
+  editor)
+
+(defn watch-to-fetch-text! [editor]
+  (let [editor-id (editor/get-id editor)]
+    (editor/subscribe! editor [:editor-uri editor-id]
+      (fn [editor]
+        (dispatch (editor/get-context editor) [:editor-fetch-text editor-id]))))
+  editor)
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -49,9 +58,10 @@
 (defn wire-editor! [context db [selector]]
   (editor/apply-to-editors context db selector
     (fn [editor]
-      (watch-to-update-inline-editor! editor)
-      (watch-to-activate-inline-editor! editor)
-      editor)))
+      (-> editor
+        (watch-to-update-inline-editor!)
+        (watch-to-activate-inline-editor!)
+        (watch-to-fetch-text!)))))
 
 (defn update-inline-editor [context db [selector inline-editor-state]]
   (editor/apply-to-editors context db selector

@@ -2,7 +2,7 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end]])
   (:require [plastic.frame :refer [register-handler]]
             [plastic.worker.init :refer [init]]
-            [plastic.worker.editor.lifecycle :refer [add-editor! remove-editor!]]
+            [plastic.worker.editor.lifecycle :refer [add-editor! remove-editor! wire-editor!]]
             [plastic.worker.editor.analysis :refer [run-analysis]]
             [plastic.worker.editor.layout :refer [update-layout]]
             [plastic.worker.editor.loader :refer [set-source]]
@@ -18,6 +18,7 @@
     (register-handler :init init)
     (register-handler :add-editor add-editor!)
     (register-handler :remove-editor remove-editor!)
+    (register-handler :wire-editor wire-editor!)
     (register-handler :editor-set-source set-source)
     (register-handler :editor-run-analysis run-analysis)
     (register-handler :editor-update-layout update-layout)

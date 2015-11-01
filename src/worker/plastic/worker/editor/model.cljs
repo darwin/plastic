@@ -1,6 +1,5 @@
 (ns plastic.worker.editor.model
   (:require-macros [plastic.logging :refer [log info warn error group group-end fancy-log]]
-                   [plastic.frame :refer [dispatch]]
                    [plastic.common :refer [process]])
   (:require [plastic.util.helpers :as helpers :refer [select-values]]
             [plastic.worker.editor.toolkit.id :as id]
@@ -46,10 +45,8 @@
 (defn set-source [editor source]
   {:pre [(valid-editor? editor)
          (string? source)]}
-  (or
-    (when-not (= (get-source editor) source)
-      (dispatch (get-context editor) [:editor-parse-source (get-id editor)])                                          ; TODO: do this in a wrapping helper
-      (assoc editor :source source))
+  (if-not (= (get-source editor) source)
+    (assoc editor :source source)
     editor))
 
 (defn get-uri [editor]
@@ -60,9 +57,8 @@
 (defn set-uri [editor uri]
   {:pre [(valid-editor? editor)
          (string? uri)]}
-  (or
-    (when-not (= (get-uri editor) uri)
-      (assoc editor :uri uri))
+  (if-not (= (get-uri editor) uri)
+    (assoc editor :uri uri)
     editor))
 
 ; -------------------------------------------------------------------------------------------------------------------
@@ -73,11 +69,9 @@
 
 (defn set-meld [editor meld]
   {:pre [(valid-editor? editor)]}
-  (if (identical? (get-meld editor) meld)
-    editor
-    (do
-      (dispatch (get-context editor) [:editor-update-layout (get-id editor)])                                         ; TODO: do this in a wrapping helper
-      (assoc editor :meld meld))))
+  (if-not (identical? (get-meld editor) meld)
+    (assoc editor :meld meld)
+    editor))
 
 (defn ^boolean has-meld? [editor]
   {:pre [(valid-editor? editor)]}

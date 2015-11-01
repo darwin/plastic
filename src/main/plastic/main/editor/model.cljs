@@ -1,6 +1,5 @@
 (ns plastic.main.editor.model
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.frame :refer [dispatch]]
                    [plastic.common :refer [process]])
   (:require [plastic.editor.model :as shared]
             [plastic.util.helpers :as helpers :refer [select-values]]
@@ -39,10 +38,8 @@
 (defn set-uri [editor uri]
   {:pre [(valid-editor? editor)
          (string? uri)]}
-  (or
-    (when (not= (get-uri editor) uri)
-      (dispatch (get-context editor) [:editor-fetch-text (get-id editor)])
-      (assoc editor :uri uri))
+  (if (not= (get-uri editor) uri)
+    (assoc editor :uri uri)
     editor))
 
 ; -------------------------------------------------------------------------------------------------------------------

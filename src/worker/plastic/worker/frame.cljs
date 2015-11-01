@@ -2,6 +2,7 @@
   (:require-macros [plastic.logging :refer [log info warn error group group-end measure-time]])
   (:require [re-frame.frame :refer [make-frame]]
             [plastic.frame :refer [start-loop init-frame]]
+            [plastic.util.booking :refer [make-booking]]
             [plastic.worker.frame.db :refer [make-db]]
             [plastic.worker.frame.handlers :refer [register-handlers]]
             [plastic.worker.frame.subs :refer [register-subs]]
@@ -29,6 +30,7 @@
   (-> context
     (assoc :main-context (volatile! nil))
     (assoc :db (make-db context))
+    (assoc :aux (make-booking))
     (init-frame)
     (init-servant)
     (register-handlers)

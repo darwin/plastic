@@ -22,6 +22,7 @@
     (define-subscription :editor-render-state (editor-selector [:render-state]))
     (define-subscription :editor-forms (editor-selector [:forms]))
     (define-subscription :editor-uri (editor-selector [:uri]))
-    (define-subscription :editor-text (editor-selector [:text]))
+    (define-subscription :editor-meld (editor-selector [:meld]))
+    (define-subscription :editor-source (editor-selector [:source]))
     (define-subscription :editor-parse-tree (editor-selector [:parse-tree]))
     (define-subscription :editor-xform-report (editor-selector [:xform-report]))))
