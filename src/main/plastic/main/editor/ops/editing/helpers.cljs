@@ -1,10 +1,9 @@
 (ns plastic.main.editor.ops.editing.helpers
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.frame :refer [worker-dispatch]]
                    [plastic.common :refer [process]])
   (:require [plastic.main.editor.model :as editor]
-            [plastic.main.editor.ops.cursor :as cursor]
-            [plastic.main.editor.toolkit.id :as id]))
+            [plastic.frame :refer [with-post-handler] :refer-macros [worker-dispatch]]
+            [plastic.main.editor.ops.cursor :as cursor]))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
@@ -23,7 +22,7 @@
                            (if-not (identical? editor new-editor)
                              (assoc-in db [:editors editor-id] new-editor)
                              db))))]
-    (worker-dispatch context (apply xform-event editor args) post-handler)
+    (worker-dispatch context (with-post-handler (apply xform-event editor args) post-handler))
     editor))
 
 (defn continue [cb]

@@ -136,10 +136,14 @@
     (register-pending-msg! context msg-id post-handler pre-handler)
     (post-message* context recipient msg-id command args)))
 
-(defn dispatch-to [context recipient event post-handler pre-handler]
-  (if (dispatch-recording? context recipient)
-    (record-event-to-dispatch-tape context recipient event post-handler pre-handler)
-    (post-message context recipient :dispatch event post-handler pre-handler)))
+(defn dispatch-to [context recipient event]
+  (let [info (meta event)
+        post-handler (:post info)
+        pre-handler (:pre info)
+        event-without-meta (with-meta event nil)]
+    (if (dispatch-recording? context recipient)
+      (record-event-to-dispatch-tape context recipient event-without-meta post-handler pre-handler)
+      (post-message context recipient :dispatch event-without-meta post-handler pre-handler))))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
