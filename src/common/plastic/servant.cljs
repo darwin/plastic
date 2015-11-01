@@ -97,14 +97,24 @@
 
 (declare post-message)
 
+(defn pack-payload [context msg-id sender command args]
+  (js-obj
+    "msg-id" msg-id
+    "sender" (name sender)
+    "command" (name command)
+    "args" (measure-time (benchmark? context) transit-label ["encode args"]
+             (transit/write (:writer context) args))))
+
+(defn unpack-payload [context payload]
+  {:msg-id  (aget payload "msg-id")
+   :sender  (keyword (aget payload "sender"))
+   :command (keyword (aget payload "command"))
+   :event   (measure-time (benchmark? context) transit-label ["decode args"]
+              (transit/read (:reader context) (aget payload "args")))})
+
 (defn process-message [context payload]
   (binding [globals/*current-thread* (get-thread-label context)]
-    (let [msg-id (aget payload "msg-id")
-          sender (keyword (aget payload "sender"))
-          command (keyword (aget payload "command"))
-          args (aget payload "args")
-          event (measure-time (benchmark? context) transit-label ["decode args"]
-                  (transit/read (:reader context) args))
+    (let [{:keys [msg-id sender command event]} (unpack-payload context payload)
           pre-handler (fn [db]
                         (start-dispatch-recording! context sender)
                         db)
@@ -122,12 +132,7 @@
                                       (with-final-handler final-handler)))))))
 
 (defn post-message* [context recipient msg-id command args]
-  (let [payload (js-obj
-                  "msg-id" msg-id
-                  "sender" (name (get-thread-id context))
-                  "command" (name command)
-                  "args" (measure-time (benchmark? context) transit-label ["encode args"]
-                           (transit/write (:writer context) args)))
+  (let [payload (pack-payload context msg-id (get-thread-id context) command args)
         post-fn (get-socket context recipient)]
     (post-fn payload)))
 
