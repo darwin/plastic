@@ -106,7 +106,7 @@
              (transit/write (:writer context) args))))
 
 (defn unpack-payload [context payload]
-  {:msg-id  (aget payload "msg-id")
+  {:msg-id  (int (aget payload "msg-id"))
    :sender  (keyword (aget payload "sender"))
    :command (keyword (aget payload "command"))
    :event   (measure-time (benchmark? context) transit-label ["decode args"]
