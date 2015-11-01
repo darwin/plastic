@@ -1,8 +1,8 @@
 (ns plastic.worker.editor.layout
   (:require-macros [plastic.logging :refer [log info warn error group group-end]]
-                   [plastic.frame :refer [dispatch main-dispatch]]
                    [plastic.common :refer [process]])
   (:require [plastic.worker.editor.model :as editor]
+            [plastic.frame :refer [as-independent] :refer-macros [dispatch main-dispatch]]
             [plastic.worker.editor.layout.builder :refer [build-layout]]
             [plastic.worker.editor.layout.selections :refer [build-selections-render-info]]
             [plastic.worker.editor.layout.structural :refer [build-structural-web]]
@@ -23,7 +23,7 @@
         spatial-web-patch (prepare-map-patch (editor/get-spatial-web-for-unit editor unit-id) spatial-web)
         structural-web (build-structural-web unit-loc layout)
         structural-web-patch (prepare-map-patch (editor/get-structural-web-for-unit editor unit-id) structural-web)]
-    (dispatch (editor/get-context editor) [:editor-run-analysis editor-id unit-id])                                   ; TODO: here should be async dispatch
+    (dispatch (editor/get-context editor) (as-independent [:editor-run-analysis editor-id unit-id]))
     (main-dispatch (editor/get-context editor) [:editor-commit-layout-patch editor-id unit-id layout-patch
                                                 spatial-web-patch structural-web-patch])
     (-> editor
