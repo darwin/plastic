@@ -1,45 +1,58 @@
 (ns plastic.dev.repl
-  (:require [plastic.logging :refer-macros [log info warn error group group-end]]
-            [plastic.env :as env :include-macros true]
+  (:require [plastic.env :as env :include-macros true]
             [figwheel.client :as figwheel]))
 
 ; -------------------------------------------------------------------------------------------------------------------
 
-(defonce ^:dynamic *inside-repl-plugin* false)
 (defonce ^:const repl-marker-style "color:white; background-color:black; padding:0px 2px; border-radius:1px;")
+(defonce ^:const figwheel-pattern #"^\(function \(\)\{try\{return cljs\.core\.pr_str\.call")
+(defonce ^:const figwheel-replacement "(function (){try{return cljs.core.identity.call")
+(defonce ^:const intellij-pattern #"^try\{cljs\.core\.pr_str\.call")
+(defonce ^:const intellij-replacement "try{cljs.core.identity.call")
+
+(defonce ^:dynamic *inside-repl-plugin* false)
 
 ; --------------------------------------------------------------------------------------------------------------------
 
-(defn figwheel-repl-fix [code]
-  (.replace code
-    #"^\(function \(\)\{try\{return cljs\.core\.pr_str\.call"
-    "(function (){try{return cljs.core.identity.call"))
+(defn should-be-ignored? [code]
+  (boolean (.match code #"^goog\.(addDependency|require|provide)")))                                                  ; for some reason we are getting goog.* calls from figwheel inside repl plugin
 
-(defn intellij-repl-fix [code]
-  (.replace code
-    #"^try\{cljs\.core\.pr_str\.call"
-    "try{cljs.core.identity.call"))
+(defn detect-repl-kind [code]
+  (cond
+    (.match code figwheel-pattern) :figwheel
+    (.match code intellij-pattern) :intellij
+    :else :unknown))
 
-(defn rewrite-repl-code-snippet [code]
-  (-> code figwheel-repl-fix intellij-repl-fix))
+(defn unwrap-code [repl-kind code]
+  (case repl-kind
+    :figwheel (.replace code figwheel-pattern figwheel-replacement)
+    :intellij (.replace code intellij-pattern intellij-replacement)
+    code))
+
+(defn wrap-result [repl-kind result]
+  (case repl-kind
+    :figwheel (pr-str result)
+    :intellij (pr-str result)
+    result))
 
 (defn eval [context code]
   (if (env/get context :need-loophole)
     (.runInThisContext (js/require "vm") code)                                                                        ; https://github.com/atom/loophole
     (js* "eval(~{code})")))
 
-(defn present-repl-result [result]
-  (log "%cREPL" repl-marker-style result))
+(defn echo-result [result]
+  (.log js/console "%cREPL" repl-marker-style result))
 
-(defn eval-inside-repl-plugin [context code]
-  (let [rewritten-code (rewrite-repl-code-snippet code)
+(defn eval-with-echoing [context code]
+  (let [repl-kind (detect-repl-kind code)
+        rewritten-code (unwrap-code repl-kind code)
         result (eval context rewritten-code)]
-    (present-repl-result result)
-    (pr-str result)))
+    (echo-result result)
+    (wrap-result repl-kind result)))
 
-(defn fancy-eval [context code]
-  (if *inside-repl-plugin*
-    (eval-inside-repl-plugin context code)
+(defn echoing-eval [context code]
+  (if (and *inside-repl-plugin* (not (should-be-ignored? code)))
+    (eval-with-echoing context code)
     (eval context code)))
 
 (defn repl-plugin [& args]
